@@ -1,1 +1,11 @@
 streamlit>=1.57
+
+# Pin starlette below 1.4.0.
+# starlette 1.4.0 made `thread_minimum_size` a required keyword-only argument of
+# GZipResponder.__init__. Streamlit's gzip middleware (_MediaAwareGZipResponder)
+# does not pass it, so every HTTP request raises
+#   TypeError: GZipResponder.__init__() missing 1 required keyword-only argument
+# and the app fails with "Oh no. Error running app." on Streamlit Cloud.
+# Affects Streamlit 1.57 and 1.61 alike, so pinning streamlit does not help.
+# Remove this pin once Streamlit ships a compatible release.
+starlette<1.4
