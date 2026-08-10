@@ -266,11 +266,11 @@ const C={chp:'#126181',tx:'#c0392b',lv:'#105676',gas:'#9c7636',dc:'#1f62e7',proc
 const ASSETS=[
 {pin:1,id:'chp',n:'499 kWe CHP — 2G containerised engine room',cat:'chp',kind:'poly',lat:53.176810,lon:-0.110385,
  poly:[[53.176880,-0.110440],[53.176880,-0.110330],[53.176740,-0.110330],[53.176740,-0.110440]],
- note:'Green 2G containerised CHP with roof coolers, gas conditioning vessels and exhaust stack — the 499 kWe generation source to connect. Its <b>control room</b> holds the generator incomer (<b>Schneider Masterpact NW10 H1</b>), the copper busbar chamber (REDUR CTs) and the engine service record G3643 — interior shots pins P7, P8 and P9. Output then runs ~8 m to the <b>LV switchroom (pin 7)</b>, the site distribution board and tie-in for the new compute load bank feeder. <b>Confirm:</b> export regime/run-hours and protection settings.',
+ note:'Green 2G containerised CHP with roof coolers, gas conditioning vessels and exhaust stack — the 499 kWe generation source to connect. Its <b>control room</b> holds the generator incomer (<b>Schneider Masterpact NW10 H1</b>), the copper busbar chamber (REDUR CTs) and the engine service record G3643 — interior shots pins P7, P8 and P9. Output then runs ~8 m to the <b>LV switchroom (pin 7)</b>, the site distribution board and tie-in for the new load bank feeder. <b>Confirm:</b> export regime/run-hours and protection settings.',
  photos:['p6','p12','p13','p15']},
 {pin:2,id:'gas',n:'Gas train, LPG back-up & flare',cat:'gas',kind:'poly',lat:53.176661,lon:-0.110415,
  poly:[[53.176675,-0.110448],[53.176675,-0.110385],[53.176646,-0.110385],[53.176646,-0.110448]],
- note:'Biogas train riser, flare mast and red LPG back-up bottles on a concrete pad immediately S of the CHP (7.2 m). Not electrical, but it fixes the fuel side: the proposed feeder passes W of this pad, and the proposed compute load bank plot sits immediately S of it (~4 m).',
+ note:'Biogas train riser, flare mast and red LPG back-up bottles on a concrete pad immediately S of the CHP (7.2 m). Not electrical, but it fixes the fuel side: the proposed feeder passes W of this pad, and the load bank plot sits immediately S of it (~4 m).',
  photos:['p2','p8']},
 {pin:3,id:'dc',n:'Proposed compute load bank plot',cat:'dc',kind:'poly',lat:53.176528,lon:-0.110505,
  poly:[[53.176610,-0.110590],[53.176610,-0.110430],[53.176445,-0.110420],[53.176445,-0.110590]],
@@ -287,7 +287,7 @@ const ASSETS=[
  note:'Raised screw-press separator platform on the SW edge of the W storage tank. Live process pipework in this corridor.',photos:[]},
 {pin:7,id:'swr',n:'LV switchroom — site distribution point',cat:'lv',kind:'poly',lat:53.176920,lon:-0.110312,
  poly:[[53.176950,-0.110345],[53.176950,-0.110280],[53.176890,-0.110280],[53.176890,-0.110345]],
- note:'Green rendered switchroom between the CHP and the buffer tank — the <b>site distribution board and the practical tie-in for the compute load bank feeder</b>. Paktronic-built board (interior — pin P4): generator-incomer ACB (set ≤ 1000 A), main control cabinet, and outgoing ways labelled <b>Fan House 3P 100 A</b>, office-container aux, substation aux and transformer supply. The Masterpact incomer, copper busbar chamber and engine records sit in the <b>CHP control room (pin 1)</b>. <b>Confirm:</b> spare ways and busbar headroom for the new 2 × 800 A feeder.',
+ note:'Green rendered switchroom between the CHP and the buffer tank — the <b>site distribution board and the practical tie-in for the load bank feeder</b>. Paktronic-built board (interior — pin P4): generator-incomer ACB (set ≤ 1000 A), main control cabinet, and outgoing ways labelled <b>Fan House 3P 100 A</b>, office-container aux, substation aux and transformer supply. The Masterpact incomer, copper busbar chamber and engine records sit in the <b>CHP control room (pin 1)</b>. <b>Confirm:</b> spare ways and busbar headroom for the new 2 × 800 A feeder.',
  photos:['p10','p14','sw1']},
 {pin:0,id:'orchard',n:'Orchard strip (W of access track)',cat:'land',kind:'poly',lat:53.176763,lon:-0.110838,
  poly:[[53.177050,-0.110850],[53.177050,-0.110600],[53.176620,-0.110730],[53.176660,-0.111010]],note:'Young orchard planting between the W track and the arable field — visible in the CHP photos.',photos:[]}
@@ -301,7 +301,7 @@ const SHOTS=[{id:'sw1',pin:'P4',lat:53.176905,lon:-0.110298,b:0,d:'28 Jul 2026',
 {id:'p5',pin:'P5',lat:53.1769000,lon:-0.1103450,b:190,d:'27 May 2026',cap:'LV distribution & metering kiosk, looking S (position corrected — EXIF drift)',nc:2},
 {id:'p2',pin:'P10',lat:53.1766361,lon:-0.1103056,b:272,d:'11 May 2026',cap:'Gas train riser & LPG bottles, looking W'},
 {id:'p8',pin:'P11',lat:53.1766167,lon:-0.1102944,b:307,d:'11 May 2026',cap:'Flare mast (L) & CHP container (R), looking NW'},
-{id:'p3',pin:'P12',lat:53.1765472,lon:-0.1102694,b:232,d:'9 Feb 2026',cap:'Proposed compute load bank field, looking SW'},
+{id:'p3',pin:'P12',lat:53.1765472,lon:-0.1102694,b:232,d:'9 Feb 2026',cap:'Load bank field, looking SW'},
 {id:'p10',pin:'P2',lat:53.1769150,lon:-0.1102180,b:262,d:'28 Jul 2026',cap:'Switchroom front — doors open on the board (position estimated)'},
 {id:'p11',pin:'P6',lat:53.1768640,lon:-0.1102440,b:306,d:'25 Jun 2026',cap:'Switchroom door & corrugated buffer tank, looking NW',nc:2},
 {id:'p12',pin:'P9',lat:53.176800,lon:-0.110402,b:83,d:'25 Jun 2026',cap:'Generator incomer — Masterpact NW10 H1 + busbar chamber (interior)',nc:1},
@@ -424,12 +424,12 @@ OSM.features.forEach(f=>{
  g.addTo(ctxLayer);
 });
 
-// ===== Proposed LV feeder route to the compute load bank (RFQ RBX-SCR-RFQ-001) =====
+// ===== Proposed LV feeder route to the load bank (RFQ RBX-SCR-RFQ-001) =====
 const cableLayer=L.layerGroup().addTo(map);
 const CABLE=[[53.176912,-0.110332],[53.176905,-0.110470],[53.176600,-0.110488],[53.176556,-0.110499]];
 L.polyline(CABLE,{color:'#00363f',weight:9,opacity:.6,lineCap:'round',lineJoin:'round',interactive:false}).addTo(cableLayer);
 L.polyline(CABLE,{color:'#00e5ff',weight:5,opacity:.95,lineCap:'round',lineJoin:'round'})
- .bindPopup('<div class="cabpop"><h3>Proposed LV feeder route</h3><div class="cabsub">switchroom busbars \u2192 compute load bank container \u00b7 W of the gas flare pad</div>'
+ .bindPopup('<div class="cabpop"><h3>Proposed LV feeder route</h3><div class="cabsub">switchroom busbars \u2192 load bank container \u00b7 W of the gas flare pad</div>'
   +'<p><b>Tie-in.</b> New busbar-connected section on the Paktronic board \u2014 <b>2 \u00d7 800 A</b> outgoing ways (plus 1 \u00d7 400 A BESS-provision way).</p>'
   +'<p><b>Cable.</b> 2 circuits to the container OEM requirement (see RFQ Appendix A). Priced alternatives are invited provided conductor provision is not less than the OEM specification.</p>'
   +'<p><b>Route.</b> Allow \u2248 45 m installed per circuit, plus an allowance for tails. Containment per the supplier proposal: an existing provision runs from the switchboard egress to \u2248 1 m below ground; allow to trench the remaining \u2248 40 m to the slab, terminating in a stub-up / draw pit with \u2248 5 m coiled tails.</p>'
