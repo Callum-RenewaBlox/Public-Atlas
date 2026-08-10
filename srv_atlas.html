@@ -219,9 +219,6 @@ table.d b{color:var(--ink);font-weight:650}
   letter-spacing:.04em;text-transform:uppercase;font-weight:650}
 .cabpop p{margin:6px 0;font-size:11.8px;line-height:1.5}
 .cabpop p b{color:var(--brand);font-weight:700}
-.cabpop .cabwarn{margin-top:9px;padding:8px 10px;border-top:0;border-radius:var(--r-s);
-  background:#fdeeec;color:#96271b}
-.cabpop .cabwarn b{color:var(--opt1)}
 </style>
 </head>
 <body>
@@ -254,7 +251,7 @@ const ASSETS=[
  photos:['p6','p12','p13','p15']},
 {pin:2,id:'gas',n:'Gas train, LPG back-up & flare',cat:'gas',kind:'poly',lat:53.176661,lon:-0.110415,
  poly:[[53.176675,-0.110448],[53.176675,-0.110385],[53.176646,-0.110385],[53.176646,-0.110448]],
- note:'Biogas train riser, flare mast and red LPG back-up bottles on a concrete pad immediately S of the CHP (7.2 m). Not electrical, but it fixes the fuel side and a <b>keep-clear / hazardous-area zone</b>: route trenching and cable runs clear of the gas riser and buried gas pipework. The proposed feeder passes W of this pad, and the proposed data-centre plot sits immediately S of it (~4 m) — <b>DSEAR/hazardous-area separation to be confirmed</b>.',
+ note:'Biogas train riser, flare mast and red LPG back-up bottles on a concrete pad immediately S of the CHP (7.2 m). Not electrical, but it fixes the fuel side: the proposed feeder passes W of this pad, and the proposed data-centre plot sits immediately S of it (~4 m).',
  photos:['p2','p8']},
 {pin:3,id:'dc',n:'Proposed data centre plot',cat:'dc',kind:'poly',lat:53.176528,lon:-0.110505,
  poly:[[53.176610,-0.110590],[53.176610,-0.110430],[53.176445,-0.110420],[53.176445,-0.110590]],
@@ -415,13 +412,13 @@ L.polyline(CABLE,{color:'#00363f',weight:9,opacity:.6,lineCap:'round',lineJoin:'
 L.polyline(CABLE,{color:'#00e5ff',weight:5,opacity:.95,lineCap:'round',lineJoin:'round'})
  .bindPopup('<div class="cabpop"><h3>Proposed LV feeder route</h3><div class="cabsub">switchroom busbars \u2192 data-centre container \u00b7 W of the gas flare pad</div>'
   +'<p><b>Tie-in.</b> New busbar-connected section on the Paktronic board \u2014 <b>2 \u00d7 800 A</b> outgoing ways (plus 1 \u00d7 400 A BESS-provision way).</p>'
-  +'<p><b>Cable.</b> 2 circuits, each <b>3 \u00d7 1c 300 mm\u00b2 Cu XLPE + 1 \u00d7 300 mm\u00b2 PE</b> (3P + PE, no neutral).</p>'
-  +'<p><b>Route.</b> \u2248 45 m external; allow \u2248 35\u201340 m installed / circuit incl. tails. HD galvanised cable ladder on fence-line posts \u2192 buried duct for the slab approach; stub-up / draw pit with \u2248 5 m coiled tails.</p>'
+  +'<p><b>Cable.</b> 2 circuits to the container OEM requirement (see RFQ Appendix A). Priced alternatives are invited provided conductor provision is not less than the OEM specification.</p>'
+  +'<p><b>Route.</b> Allow \u2248 45 m installed per circuit, plus an allowance for tails. Containment per the supplier proposal: an existing provision runs from the switchboard egress to \u2248 1 m below ground; allow to trench the remaining \u2248 40 m to the slab, terminating in a stub-up / draw pit with \u2248 5 m coiled tails.</p>'
   +'<p><b>Ends.</b> container intakes <b>P01</b> (400 kW) and <b>P02</b> (234 kW) \u2014 800 A each.</p>'
-  +'<p class="cabwarn"><b>DSEAR.</b> keep clear of the gas riser and buried pipework (route confirmed clear).</p></div>',{maxWidth:300}).addTo(cableLayer);
+  +'</div>',{maxWidth:300}).addTo(cableLayer);
 function cabLbl(ll,dir,html){L.marker(ll,{opacity:0,interactive:false}).addTo(cableLayer).bindTooltip(html,{permanent:true,direction:dir,className:'cabtip'});}
 cabLbl([53.176912,-0.110332],'top','<b>TIE-IN</b> \u2014 switchroom busbars<br><span>new 2\u00d7800 A section</span>');
-cabLbl([53.176752,-0.110488],'left','<b>LV feeder</b> \u2014 2 circuits<br><span>3\u00d7300 mm\u00b2 Cu XLPE +PE \u00b7 \u224845 m<br>ladder \u2192 buried duct \u00b7 W of flare pad</span>');
+cabLbl([53.176752,-0.110488],'left','<b>LV feeder</b> \u2014 2 circuits<br><span>\u224845 m installed / circuit<br>existing provision \u2192 trench \u2248 40 m \u00b7 W of flare pad</span>');
 cabLbl([53.176556,-0.110499],'bottom','<b>\u2192 container P01 / P02</b><br><span>800 A each</span>');
 
 // --- layer control
