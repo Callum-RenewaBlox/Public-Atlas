@@ -2,7 +2,7 @@
 
 A standalone Leaflet site-survey map of the Home Farm AD site at Scrivelsby
 (LN9 6JB, operator Qila Energy): site assets (CHP, transformer, LV switchroom,
-proposed data centre), geolocated site photos, and grid/site context.
+proposed compute load bank), geolocated site photos, and grid/site context.
 
 Self-contained: reads ``srv_atlas.html`` (Leaflet from a CDN, all data and
 photos embedded) and renders it via ``st.iframe``. No database, no secrets.
