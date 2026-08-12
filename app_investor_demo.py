@@ -31,6 +31,15 @@ HERE = Path(__file__).resolve().parent
 MODELS = {
     "peaker": {"file": "peaker_plant_3d.html", "label": "Peaker Plant 3D"},
     "hydro": {"file": "kld_interactive.html", "label": "Hydro 3D"},
+    "nem": {"file": "nem_negative_price_atlas.html", "label": "NEM 3D"},
+}
+
+# Presentation-only patches applied to a model page as it is served, so the
+# HTML files stay byte-for-byte copies of their upstream builds. Peaker: the
+# guided-tour view strip is dropped for investors — the overview scene is the
+# demo.
+PATCH_CSS = {
+    "peaker": "#viewstrip{display:none !important;}",
 }
 
 view = st.query_params.get("view", "home")
@@ -143,5 +152,8 @@ else:
         """,
         unsafe_allow_html=True,
     )
-    st.iframe((HERE / MODELS[view]["file"]).read_text(encoding="utf-8"),
-              height=900)
+    model_html = (HERE / MODELS[view]["file"]).read_text(encoding="utf-8")
+    if view in PATCH_CSS:
+        model_html = model_html.replace(
+            "</head>", f"<style>{PATCH_CSS[view]}</style></head>", 1)
+    st.iframe(model_html, height=900)
