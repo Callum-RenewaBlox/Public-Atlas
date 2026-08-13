@@ -1,28 +1,27 @@
-"""Investor Demo — the RenewaBlox project pack.
+"""Investor Demo (Australia) — the RenewaBlox pack for the NEM investors.
 
-One app, two doors. A minimal landing page introduces the pack and links to
-the interactive 3D models, each rendered full-bleed behind a slim petrol
-navigation bar:
+The Australian cut of the investor demo, deployed at its own URL so the group
+it was built for gets a link of their own rather than a page inside the UK
+pack. One model, behind the same landing page:
 
-* ``?view=peaker`` — Peaker Plant 3D: the peaker business model as a living
-  site, with its half-hourly dispatch desk (``peaker_plant_3d.html``).
-* ``?view=hydro`` — Hydro 3D: the Kinlochdamph powerhouse and its in-room data
-  centre, water to wire to rack (``kld_interactive.html``).
+* ``?view=nem`` — NEM 3D: mining economics and strategy across the Australian
+  National Electricity Market (``nem_negative_price_atlas.html``).
 
-NEM 3D is not in this pack: it was built for one group of Australian investors
-and has its own app and its own URL — see ``app_investor_demo_aus.py``.
+The model page is a byte-for-byte copy of its upstream build and is served
+unpatched. Adding a second model here is a second entry in ``MODELS`` plus a
+card in the landing page — the pack bar grows its nav back automatically.
 
-Self-contained: the landing page (``investor_demo_home.html``, hand-authored,
-scene thumbnails and wordmark inlined) and both models carry all data embedded
-— no CDN, no database, no secrets. Navigation is plain query-param links, so
-each model has a shareable URL.
+Self-contained: the landing page (``investor_demo_aus_home.html``,
+hand-authored, scene thumbnail and wordmark inlined) and the model carry all
+data embedded — no CDN, no database, no secrets. Navigation is plain
+query-param links, so the model has a shareable URL.
 
 The landing page is a script-free HTML fragment rendered in the parent page
 with ``st.markdown`` rather than inside ``st.iframe`` — Streamlit sandboxes
 component iframes without ``allow-top-navigation``, so links inside one can
 never change the app's URL.
 
-Public tool. Run locally:  streamlit run app_investor_demo.py
+Public tool. Run locally:  streamlit run app_investor_demo_aus.py
 """
 from pathlib import Path
 
@@ -31,16 +30,7 @@ import streamlit as st
 HERE = Path(__file__).resolve().parent
 
 MODELS = {
-    "peaker": {"file": "peaker_plant_3d.html", "label": "Peaker Plant 3D"},
-    "hydro": {"file": "kld_interactive.html", "label": "Hydro 3D"},
-}
-
-# Presentation-only patches applied to a model page as it is served, so the
-# HTML files stay byte-for-byte copies of their upstream builds. Peaker: the
-# guided-tour view strip is dropped for investors — the overview scene is the
-# demo.
-PATCH_CSS = {
-    "peaker": "#viewstrip{display:none !important;}",
+    "nem": {"file": "nem_negative_price_atlas.html", "label": "NEM 3D"},
 }
 
 view = st.query_params.get("view", "home")
@@ -48,7 +38,7 @@ if view not in MODELS:
     view = "home"
 
 st.set_page_config(
-    page_title=("RenewaBlox — Investor Demo" if view == "home"
+    page_title=("RenewaBlox — Investor Demo (Australia)" if view == "home"
                 else f"RenewaBlox — {MODELS[view]['label']}"),
     page_icon=":material/deployed_code:",
     layout="wide",
@@ -95,7 +85,8 @@ st.markdown(
       {VIEWPORT_CSS["model" if view in MODELS else "home"]}
 
       /* The bar is purely navigational — the model's own header below it
-         carries the real wordmark, so the bar doesn't repeat the brand. */
+         carries the real wordmark, so the bar doesn't repeat the brand. One
+         model in the pack, so it carries no view pills, only the way back. */
       .rbx-bar {{height:{BAR_H}px; background:#0d1b23; display:flex; align-items:center;
           gap:14px; padding:0 14px; overflow-x:auto; scrollbar-width:none;
           -webkit-overflow-scrolling:touch;
@@ -103,20 +94,12 @@ st.markdown(
                       Roboto,"Helvetica Neue",Arial,sans-serif;}}
       .rbx-bar::-webkit-scrollbar {{display:none;}}
       .rbx-bar .crumb {{font-size:12.5px; color:#93a2aa; white-space:nowrap;}}
-      .rbx-bar nav {{margin-left:auto; display:flex; gap:6px; align-items:center;}}
-      .rbx-bar a {{text-decoration:none; font-size:12.5px; padding:5px 13px;
-          border-radius:999px; color:#b9c6cd; white-space:nowrap;
-          transition:background .15s, color .15s;}}
-      .rbx-bar a:hover {{color:#fff; background:rgba(255,255,255,.09);}}
+      .rbx-bar a {{text-decoration:none; font-size:12.5px; color:#fff; font-weight:600;
+          white-space:nowrap; padding:5px 13px 5px 2px; border-radius:999px;
+          transition:color .15s;}}
+      .rbx-bar a:hover {{color:#b9c6cd;}}
       .rbx-bar a:focus-visible {{outline:2px solid #fff; outline-offset:2px;}}
-      .rbx-bar a.active {{color:#0d1b23; background:#fff; font-weight:600;}}
-      .rbx-bar a.back {{color:#fff; font-weight:600; padding-left:2px;}}
-      .rbx-bar .lbl-s {{display:none;}}
       @media (max-width:640px) {{ .rbx-bar .crumb {{display:none;}} }}
-      @media (max-width:480px) {{
-        .rbx-bar .lbl-f {{display:none;}}
-        .rbx-bar .lbl-s {{display:inline;}}
-      }}
     </style>
     """,
     unsafe_allow_html=True,
@@ -126,7 +109,7 @@ st.markdown(
 # script but can keep imported modules cached, so reading here keeps the
 # embedded build current after every redeploy).
 if view == "home":
-    home = (HERE / "investor_demo_home.html").read_text(encoding="utf-8")
+    home = (HERE / "investor_demo_aus_home.html").read_text(encoding="utf-8")
     # st.markdown parses this as Markdown: a blank line ends a CommonMark HTML
     # block and the indented remainder would render as a code block, so drop
     # blank lines before handing the fragment over.
@@ -135,26 +118,13 @@ if view == "home":
 else:
     # target="_self" matters: Streamlit's markdown renderer retargets plain
     # anchors to open in a new tab, which would orphan the pack navigation.
-    links = []
-    for key, model in MODELS.items():
-        active = ' class="active"' if key == view else ""
-        short = model["label"].split()[0]
-        links.append(
-            f'<a href="?view={key}" target="_self"{active}>'
-            f'<span class="lbl-f">{model["label"]}</span>'
-            f'<span class="lbl-s">{short}</span></a>')
     st.markdown(
         f"""
         <div class="rbx-bar">
-          <a href="?view=home" target="_self" class="back">&larr; All models</a>
-          <div class="crumb">Investor Demo &middot; {MODELS[view]["label"]}</div>
-          <nav>{"".join(links)}</nav>
+          <a href="?view=home" target="_self">&larr; Back</a>
+          <div class="crumb">Investor Demo &middot; Australia &middot; {MODELS[view]["label"]}</div>
         </div>
         """,
         unsafe_allow_html=True,
     )
-    model_html = (HERE / MODELS[view]["file"]).read_text(encoding="utf-8")
-    if view in PATCH_CSS:
-        model_html = model_html.replace(
-            "</head>", f"<style>{PATCH_CSS[view]}</style></head>", 1)
-    st.iframe(model_html, height=900)
+    st.iframe((HERE / MODELS[view]["file"]).read_text(encoding="utf-8"), height=900)
