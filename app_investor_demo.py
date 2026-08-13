@@ -9,8 +9,9 @@ navigation bar:
 * ``?view=hydro`` — Hydro 3D: the Kinlochdamph powerhouse and its in-room data
   centre, water to wire to rack (``kld_interactive.html``).
 
-NEM 3D is not in this pack: it was built for one group of Australian investors
-and has its own app and its own URL — see ``app_investor_demo_aus.py``.
+NEM 3D is not in this pack: it was built for one group of Australian investors,
+who get these two models plus that one at a URL of their own — see
+``app_investor_demo_aus.py``.
 
 Self-contained: the landing page (``investor_demo_home.html``, hand-authored,
 scene thumbnails and wordmark inlined) and both models carry all data embedded

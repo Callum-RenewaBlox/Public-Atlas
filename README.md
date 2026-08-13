@@ -15,14 +15,15 @@ public, the apps deploy as **public apps** on Streamlit Community Cloud
 | `app_moray_atlas.py` | `moray_atlas.html` | Moray Cluster Atlas — the Keith & Huntly primaries (the only two green-headroom primaries in the Savills Moray screen): candidate plots, ownership areas, GSP saturation, the 33/132/275/400 kV network and the offshore wind landing on it |
 | `app_srv_3d_sim.py` | `srv_3d_sim.html` | SRV 3D Sim — the Scrivelsby Peaker: a three.js model of the Home Farm AD site with a half-hourly dispatch simulation of the 350 kW switchable block over a real metered year, and the site survey photography on every asset pin |
 | `app_investor_demo.py` | `investor_demo_home.html` + `peaker_plant_3d.html` + `kld_interactive.html` | Investor Demo — a landing page for prospective investors that packs the interactive 3D models: Peaker Plant 3D (the peaker business model as a living site, `?view=peaker`) and Hydro 3D (the KLD powerhouse and its in-room data centre, `?view=hydro`) |
-| `app_investor_demo_aus.py` | `investor_demo_aus_home.html` + `nem_negative_price_atlas.html` | Investor Demo (Australia) — the same landing page carrying NEM 3D alone (mining economics across the Australian NEM, `?view=nem`), on its own URL for the investor group it was built for |
+| `app_investor_demo_aus.py` | `investor_demo_aus_home.html` + `peaker_plant_3d.html` + `kld_interactive.html` + `nem_negative_price_atlas.html` | Investor Demo (Australia) — the same pack plus NEM 3D (mining economics across the Australian NEM, `?view=nem`), on its own URL for the investor group that model was built for |
 
 The two investor demos are separate apps on purpose: NEM 3D was built for one
-group of Australian investors, so it gets its own deployment rather than a card
-in the pack everyone else is sent to. They share this repo, the model copies and
-the landing-page design; each has its own entry file and its own landing
-fragment. A stale `?view=nem` link against the UK pack falls back to its landing
-page rather than erroring.
+group of Australian investors, so it appears only in the pack they are sent to.
+The Australia pack is a superset — the same two models plus NEM 3D — not a
+different demo. They share this repo, the model copies and the landing-page
+design; each has its own entry file and its own landing fragment. A stale
+`?view=nem` link against the main pack falls back to its landing page rather
+than erroring.
 
 Each app reads its HTML inline and renders it with `st.iframe`, so a redeploy
 always serves the current map. The one exception is the investor demos' landing
@@ -48,22 +49,22 @@ them after an upstream rebuild:
 
 | Copy in this repo | Used by | Source of truth |
 | --- | --- | --- |
-| `peaker_plant_3d.html` | UK pack | internal Atlas 3D build (`peaker_plant_3d_2.html`) |
-| `kld_interactive.html` | UK pack | `Contracts/Kinlochdamph/Atlas/kld_interactive.html` |
+| `peaker_plant_3d.html` | both packs | internal Atlas 3D build (`peaker_plant_3d_2.html`) |
+| `kld_interactive.html` | both packs | `Contracts/Kinlochdamph/Atlas/kld_interactive.html` |
 | `nem_negative_price_atlas.html` | Australia pack | internal Atlas 3D build (`nem_negative_price_atlas_2.html`) |
 
-The UK pack serves its model pages with small presentation-only CSS patches
-(`PATCH_CSS` in `app_investor_demo.py`) — the peaker's guided-tour view strip is
-hidden for investors — so the files themselves stay byte-for-byte copies of
-upstream. The Australia pack serves NEM 3D unpatched.
+Both packs serve their model pages with small presentation-only CSS patches
+(`PATCH_CSS` in each entry file) — the peaker's guided-tour view strip is hidden
+for investors — so the files themselves stay byte-for-byte copies of upstream.
 
 `investor_demo_home.html` and `investor_demo_aus_home.html` are hand-authored
 (wordmark and scene thumbnails inlined as data URIs) — edit them directly. Each
 is a fragment (`<style>` + one `<div>`, no `<html>`/`<body>`, no scripts, every
 class prefixed `rbx-`); the app strips blank lines before handing it to
 `st.markdown`, and any new link in it needs an explicit `target="_self"` or
-Streamlit will retarget it to a new tab. The Australia fragment is the UK one
-with a single card, so a design change to one wants porting to the other.
+Streamlit will retarget it to a new tab. The two fragments are the same page —
+the Australia one carries a third card and says so in its kicker — so a design
+change to one wants porting to the other.
 
 The SRV builder also lifts the 12 survey photographs out of `srv_atlas.html`,
 re-encodes them to WebP and wires them onto the 3D scene's asset pins, so the
