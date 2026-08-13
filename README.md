@@ -50,7 +50,7 @@ them after an upstream rebuild:
 | Copy in this repo | Used by | Source of truth |
 | --- | --- | --- |
 | `peaker_plant_3d.html` | both packs | internal Atlas 3D build (`peaker_plant_3d_2.html`) |
-| `kld_interactive.html` | both packs | `Contracts/Kinlochdamph/Atlas/kld_interactive.html` |
+| `kld_interactive.html` | both packs | `Contracts/Kinlochdamph/Atlas/kld_live_3.html` |
 | `nem_negative_price_atlas.html` | Australia pack | internal Atlas 3D build (`nem_negative_price_atlas_2.html`) |
 
 Both packs serve their model pages with small presentation-only CSS patches
