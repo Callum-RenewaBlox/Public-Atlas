@@ -66,6 +66,14 @@ Streamlit will retarget it to a new tab. The two fragments are the same page —
 the Australia one carries a third card and says so in its kicker — so a design
 change to one wants porting to the other.
 
+Card thumbnails are frames taken from the models themselves, so they go stale
+when a model is rebuilt. The three.js scenes render with `preserveDrawingBuffer`
+and expose `window.__atlas`, so a frame is: hide the pins (`#labels`), point the
+camera (`__atlas.view('hall')`), size the canvas 2:1
+(`__atlas.renderer.setSize(2400, 1200, false)` with `cam.aspect = 2`), render,
+then `__atlas.shoot()` for a PNG data URL. Downscale to 1200×600 and inline it
+as WebP (~40 kB at quality 78 matches the other cards).
+
 The SRV builder also lifts the 12 survey photographs out of `srv_atlas.html`,
 re-encodes them to WebP and wires them onto the 3D scene's asset pins, so the
 two SRV apps can never disagree about the site record — rebuild it after any
