@@ -132,19 +132,40 @@
 
   /* revenue counter - the money is the headline, so it gets the empty corner
      rather than another row in the right-hand column */
-  #revpanel { right:14px; bottom:14px; width:250px; padding:10px 13px 9px; }
+  /* bottom:74px, not 14px - embedded in the investor demo, Streamlit floats its
+     "Manage app" button over the bottom-right corner */
+  #revpanel { right:14px; bottom:74px; width:290px; padding:11px 15px 10px; }
   #revpanel .rvhead { display:flex; align-items:baseline; gap:8px; font-size:9.5px;
       letter-spacing:1.5px; color:var(--rbx-grey); font-weight:700; text-transform:uppercase; }
   #revpanel .rvscope { margin-left:auto; letter-spacing:.6px; color:var(--muted); }
   /* the hero. tabular figures so the digits do not jitter as it counts, nowrap
      so a wider font fallback overflows rather than reflowing the panel */
-  #revTotal { margin-top:1px; font-size:34px; line-height:1.15; font-weight:700; white-space:nowrap;
-      color:var(--teal); letter-spacing:-.8px; font-variant-numeric:tabular-nums; }
-  #revspark { display:block; width:100%; height:32px; margin-top:3px; overflow:visible; }
+  #revTotal { margin-top:2px; font-size:40px; line-height:1.14; font-weight:700; white-space:nowrap;
+      color:var(--teal); letter-spacing:-1px; font-variant-numeric:tabular-nums; }
+  #revspark { display:block; width:100%; height:36px; margin-top:4px; overflow:visible; }
+  /* case toggle, borrowing the dispatch desk's segmented-control look */
+  #revcase { margin-left:auto; display:flex; gap:2px; background:var(--rbx-light);
+      border:1px solid var(--rbx-line); border-radius:7px; padding:2px; }
+  #revcase button { border:0; background:transparent; cursor:pointer; padding:3px 8px;
+      border-radius:5px; font:700 9.5px 'Segoe UI',system-ui; letter-spacing:.5px;
+      text-transform:uppercase; color:var(--rbx-grey); }
+  #revcase button:hover { color:var(--rbx-blue); }
+  #revcase button.on { background:#fff; color:var(--rbx-blue); box-shadow:0 1px 3px rgba(16,42,58,.16); }
   #revpanel .rvfoot { display:flex; align-items:baseline; gap:8px; margin-top:5px;
       font-size:9.5px; color:var(--muted); white-space:nowrap; }
   #revRate { font-weight:700; color:var(--ink2); font-variant-numeric:tabular-nums; }
   #revpanel .rvnote { margin-left:auto; }
+
+  /* load prompts. pointer-events:none matters - they sit over live controls */
+  .rbx-cta { position:absolute; z-index:6; background:var(--rbx-blue); color:#fff;
+      font:600 11px 'Segoe UI',system-ui; padding:6px 11px; border-radius:8px;
+      box-shadow:0 6px 18px rgba(16,42,58,.30); white-space:nowrap;
+      pointer-events:none; opacity:0; transition:opacity .5s ease; }
+  .rbx-cta.show { opacity:1; }
+  .rbx-cta .caret { display:inline-block; margin-left:5px;
+      animation:rbx-cta-bob 1.9s ease-in-out infinite; }
+  @keyframes rbx-cta-bob { 0%,100% { transform:translateY(-1px); } 50% { transform:translateY(2px); } }
+  @media (prefers-reduced-motion: reduce) { .rbx-cta .caret { animation:none; } }
   /* the desk owns the bottom edge on narrow screens, so the counter moves up
      into the space the right-hand column vacates rather than hiding */
   @media (max-width:980px){ #revpanel { top:14px; bottom:auto; max-width:calc(100% - 28px); } }
@@ -238,11 +259,16 @@
     </div></div>
   </div>
 
-  <div class="panel" id="revpanel" title="Illustrative scenario output, not a forecast or a guarantee. Gross mining revenue, before the revenue share.">
-    <div class="rvhead">Revenue <span class="rvscope" id="revScope">week to date</span></div>
+  <div class="rbx-cta" id="ctaCase">Try the bull case <span class="caret">&#9662;</span></div>
+  <div class="rbx-cta" id="ctaScen">See a full year <span class="caret">&#9662;</span></div>
+
+  <div class="panel" id="revpanel" title="Illustrative scenario output, not a forecast or a guarantee. Base and bull are the commercial model's own cases. Gross mining revenue, before the revenue share.">
+    <div class="rvhead">Revenue <span class="rvscope" id="revScope">week to date</span>
+      <span id="revcase"><button data-case="base" class="on">Base</button><button data-case="bull">Bull</button></span>
+    </div>
     <div id="revTotal">&pound;0</div>
     <svg id="revspark" viewBox="0 0 224 32" preserveAspectRatio="none" aria-hidden="true"></svg>
-    <div class="rvfoot"><span id="revRate">&mdash;</span><span class="rvnote">base case &middot; before revenue share</span></div>
+    <div class="rvfoot"><span id="revRate">&mdash;</span><span class="rvnote">before revenue share</span></div>
   </div>
 </div>
 
@@ -4327,8 +4353,8 @@ three/build/three.module.js:
 <script>
 /* Mining revenue on the model -----------------------------------------------
  *
- * Basis: the base-case contract year 1 gross mining revenue from the KLD
- * commercial model. Price, network-hashrate, pool-fee and utilisation
+ * Basis: contract year 1 gross mining revenue from the KLD commercial model,
+ * for each of its two headline cases. Price, network-hashrate, pool-fee and utilisation
  * assumptions all sit inside that single figure, so rather than re-deriving a
  * mining model here the scene carries one rate - pounds per MWh of available
  * compute - solved against this hydrology so a full run of the typical year
@@ -4346,7 +4372,18 @@ three/build/three.module.js:
  * capped at the flexible maximum, and below 40 kW the fleet is off.
  */
 (function () {
-  var YEAR1_GBP = 193113.81;
+  /* Year 1 of each case. The commercial model tables the base case year by
+     year but the bull case only as a seven-year total, so bull year 1 is
+     reverse-engineered from the base series: the two cases share a start point
+     and a halving schedule, so their ratio in year n is just their compounding
+     differential, k^(n-0.5). Solving k so the seven scaled years reconcile to
+     the modelled bull total gives k = 1.154124 - within 0.5% of the ratio the
+     case assumptions imply directly, which is the check that this holds. Year 1
+     is only ~7% above base because the cases have barely diverged by then; the
+     gap is a seven-year effect, not a first-year one. */
+  var YEAR1_GBP = { base: 197622.21, bull: 212305.89 };
+  var CASE_LABEL = { base: 'Base', bull: 'Bull' };
+  var revCase = 'base';
   var HOUSE = 14, HOUSE_IDLE = 2, DC_MAX = 1000, DC_MIN = 40;
   var HOURS_PER_POINT = { week: 1, typical: 24 };
   var SCOPE = { week: 'week to date', typical: 'year to date' };
@@ -4367,14 +4404,16 @@ three/build/three.module.js:
   }
 
   var CUM = { week: cumulative('week'), typical: cumulative('typical') };
-  var RATE = YEAR1_GBP / CUM.typical[CUM.typical.length - 1];   // GBP per MWh
+  var YEAR_MWH = CUM.typical[CUM.typical.length - 1];
+  var RATES = { base: YEAR1_GBP.base / YEAR_MWH, bull: YEAR1_GBP.bull / YEAR_MWH };
+  function rate() { return RATES[revCase]; }
 
   function revenueAt(scen, x) {
     var c = CUM[scen], n = c.length - 1;
     if (!(x > 0)) return 0;
-    if (x >= n) return c[n] * RATE;
+    if (x >= n) return c[n] * rate();
     var i = Math.floor(x);
-    return (c[i] + (c[i + 1] - c[i]) * (x - i)) * RATE;
+    return (c[i] + (c[i + 1] - c[i]) * (x - i)) * rate();
   }
 
   function powerAt(scen, x) {
@@ -4424,8 +4463,9 @@ three/build/three.module.js:
       var r = $('revclipr');
       if (r) r.setAttribute('width', ((x / n) * W).toFixed(2));
 
-      var perHour = computeKW(powerAt(scen, x)) / 1000 * RATE;
+      var perHour = computeKW(powerAt(scen, x)) / 1000 * rate();
       var chip = $('chipR');
+      placeCTAs();
       $('revRate').textContent = '\u00a3' + perHour.toFixed(2) + '/h';
       chip.textContent = '\u00a3' + perHour.toFixed(2) + '/h';
       chip.parentElement.classList.toggle('live', perHour > 0);
@@ -4433,7 +4473,67 @@ three/build/three.module.js:
     requestAnimationFrame(update);
   }
 
-  window.__revenue = { rate: RATE, at: revenueAt, cum: CUM, update: update };
+  /* case toggle */
+  [].forEach.call(document.querySelectorAll('#revcase button'), function (b) {
+    b.addEventListener('click', function () {
+      revCase = b.dataset.case;
+      [].forEach.call(document.querySelectorAll('#revcase button'), function (o) {
+        o.classList.toggle('on', o === b);
+      });
+      dismiss('ctaCase');
+      update();
+    });
+  });
+
+  /* Load prompts. They are positioned against the live geometry of the control
+     they point at rather than hard-coded, so they follow the desk when it is
+     minimised or the window resized, and hide when their target does. */
+  /* target = what the prompt points at, and what it centres on horizontally.
+     above = what it clears vertically, so a prompt never covers the panel it is
+     pointing into (the desk chart in particular). */
+  var cta = {
+    ctaCase: { target: '#revcase',  above: '#revpanel',  gone: false },
+    ctaScen: { target: '#scenario', above: '#deskwrap', gone: false }
+  };
+
+  function dismiss(id) {
+    var c = cta[id];
+    if (!c || c.gone) return;
+    c.gone = true;
+    var el = document.getElementById(id);
+    el.classList.remove('show');
+    setTimeout(function () { el.style.display = 'none'; }, 600);
+  }
+
+  function placeCTAs() {
+    var stage = document.getElementById('stage');
+    if (!stage) return;
+    var sb = stage.getBoundingClientRect();
+    for (var id in cta) {
+      var c = cta[id], el = document.getElementById(id);
+      if (c.gone) continue;
+      var t = document.querySelector(c.target);
+      var tb = t && t.getBoundingClientRect();
+      if (!tb || !tb.width || getComputedStyle(t).visibility === 'hidden') { el.style.display = 'none'; continue; }
+      el.style.display = '';
+      var w = el.offsetWidth || 120;
+      var left = tb.left - sb.left + tb.width / 2 - w / 2;
+      el.style.left = Math.max(8, Math.min(left, sb.width - w - 8)) + 'px';
+      var over = document.querySelector(c.above) || t;
+      el.style.top = (over.getBoundingClientRect().top - sb.top - el.offsetHeight - 9) + 'px';
+    }
+  }
+
+  document.getElementById('scenario').addEventListener('change', function () { dismiss('ctaScen'); });
+  setTimeout(function () {
+    placeCTAs();
+    for (var id in cta) if (!cta[id].gone) document.getElementById(id).classList.add('show');
+  }, 1600);
+  setTimeout(function () { for (var id in cta) dismiss(id); }, 45000);
+
+  window.__revenue = { rates: RATES, at: revenueAt, cum: CUM, update: update,
+                       setCase: function (c) { revCase = c; update(); },
+                       get case_() { return revCase; }, cta: cta, placeCTAs: placeCTAs };
   update();
 })();
 </script>
