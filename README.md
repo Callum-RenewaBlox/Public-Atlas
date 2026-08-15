@@ -10,7 +10,8 @@ public, the apps deploy as **public apps** on Streamlit Community Cloud
 
 | App | Page(s) | What it shows |
 | --- | --- | --- |
-| `app_srv_atlas.py` | `srv_atlas.html` | SRV Atlas — Scrivelsby (Home Farm AD) electrical site survey: geolocated assets, site photos and grid context (LN9 6JB) |
+| `app_srv_atlas.py` | `srv_atlas.html` | SRV Atlas — the client view of the Scrivelsby (Home Farm AD) scheme: where the compute load bank sits, how it connects, and the site around it, kept deliberately minimal (LN9 6JB) |
+| `app_srv_contractor.py` | `srv_contractor.html` | SRV Contractor Atlas — the same site surveyed for the LV connection RFQ: switchgear detail, the full 12-photo survey including switchroom interiors, the feeder route with its tie-in and containment notes, and OSM/DNO context |
 | `app_kld_atlas.py` | `kld_atlas.html` | KLD Atlas — Kinlochdamph 999 kW run-of-river hydro (Loch Damh, Wester Ross): site assets, the 11/33/132 kV network, the two SSEN connection options, and an interactive 3D model of the powerhouse |
 | `app_moray_atlas.py` | `moray_atlas.html` | Moray Cluster Atlas — the Keith & Huntly primaries (the only two green-headroom primaries in the Savills Moray screen): candidate plots, ownership areas, GSP saturation, the 33/132/275/400 kV network and the offshore wind landing on it |
 | `app_srv_3d_sim.py` | `srv_3d_sim.html` | SRV 3D Sim — the Scrivelsby Peaker: a three.js model of the Home Farm AD site with a half-hourly dispatch simulation of the 350 kW switchable block over a real metered year, and the site survey photography on every asset pin |
@@ -74,15 +75,21 @@ camera (`__atlas.view('hall')`), size the canvas 2:1
 then `__atlas.shoot()` for a PNG data URL. Downscale to 1200×600 and inline it
 as WebP (~40 kB at quality 78 matches the other cards).
 
-The SRV builder also lifts the 12 survey photographs out of `srv_atlas.html`,
-re-encodes them to WebP and wires them onto the 3D scene's asset pins, so the
-two SRV apps can never disagree about the site record — rebuild it after any
-change to the 2D atlas's photos or captions. It needs Pillow.
+The SRV builder also lifts the 12 survey photographs out of
+`srv_contractor.html`, re-encodes them to WebP and wires them onto the 3D
+scene's asset pins, so the 3D sim and the survey can never disagree about the
+site record — rebuild it after any change to the contractor atlas's photos or
+captions. It needs Pillow.
+
+It reads the **contractor** atlas deliberately: `srv_atlas.html` is the
+minimalist client build and carries only a few exterior shots, so pointing the
+builder at it would quietly strip the 3D sim's photography.
 
 ## Run locally
 
     pip install -r requirements.txt
     streamlit run app_srv_atlas.py
+    streamlit run app_srv_contractor.py
     streamlit run app_kld_atlas.py
     streamlit run app_moray_atlas.py
     streamlit run app_srv_3d_sim.py
