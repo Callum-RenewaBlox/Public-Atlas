@@ -10,7 +10,7 @@ public, the apps deploy as **public apps** on Streamlit Community Cloud
 
 | App | Page(s) | What it shows |
 | --- | --- | --- |
-| `app_srv_atlas.py` | `srv_atlas.html` | SRV Atlas — the client view of the Scrivelsby (Home Farm AD) scheme: where the compute load bank sits, how it connects, and the site around it, kept deliberately minimal (LN9 6JB) |
+| `app_srv_atlas.py` | `srv_atlas.html` + `srv_atlas_3d_badge.html` + `srv_3d_sim.html` | SRV Atlas — the client view of the Scrivelsby (Home Farm AD) scheme: where the compute load bank sits, how it connects, and the site around it, kept deliberately minimal (LN9 6JB). A pulsing BLOX badge on the yard opens the SRV 3D Sim in a full-screen overlay — the same app serving `?view=3d`, so the atlas page carries none of the sim's weight |
 | `app_srv_contractor.py` | `srv_contractor.html` | SRV Contractor Atlas — the same site surveyed for the LV connection RFQ: switchgear detail, the full 12-photo survey including switchroom interiors, the feeder route with its tie-in and containment notes, and OSM/DNO context |
 | `app_kld_atlas.py` | `kld_atlas.html` | KLD Atlas — Kinlochdamph 999 kW run-of-river hydro (Loch Damh, Wester Ross): site assets, the 11/33/132 kV network, the two SSEN connection options, and an interactive 3D model of the powerhouse |
 | `app_moray_atlas.py` | `moray_atlas.html` | Moray Cluster Atlas — the Keith & Huntly primaries (the only two green-headroom primaries in the Savills Moray screen): candidate plots, ownership areas, GSP saturation, the 33/132/275/400 kV network and the offshore wind landing on it |
@@ -34,16 +34,23 @@ inside one can never drive the app's `?view=` navigation.
 
 ## Generated files
 
-`kld_atlas.html`, `moray_atlas.html` and `srv_3d_sim.html` are built, not
-hand-edited. Each builder re-skins its hand-authored source in the shared
-RenewaBlox design system (petrol brand tokens, Inter, glass panels, brand bar)
-and re-uses the source's data and vendored payloads byte-for-byte:
+`kld_atlas.html`, `moray_atlas.html`, `srv_3d_sim.html` and
+`srv_atlas_3d_badge.html` are built, not hand-edited. Each builder re-skins its
+hand-authored source in the shared RenewaBlox design system (petrol brand
+tokens, Inter, glass panels, brand bar) and re-uses the source's data and
+vendored payloads byte-for-byte:
 
 | Output | Builder |
 | --- | --- |
 | `kld_atlas.html` | `Contracts/Kinlochdamph/Atlas/build_kld_atlas.py` |
 | `moray_atlas.html` | `Contracts/Savills Earth/Atlas/build_moray_atlas.py` |
 | `srv_3d_sim.html` | `Contracts/Scrivelsby Farm Ltd/Atlas/build_srv_3d_sim.py` |
+| `srv_atlas_3d_badge.html` | `Contracts/Scrivelsby Farm Ltd/Atlas/build_srv_atlas_badge.py` |
+
+`srv_atlas_3d_badge.html` is the 3D-sim gateway for the client atlas: the BLOX
+badge, the popup call-to-action rows and the overlay. `app_srv_atlas.py`
+appends it to `srv_atlas.html` at serve time, so the hand-maintained map file
+stays pristine and the sim loads through `?view=3d` only when opened.
 
 The investor demos' model pages are copies of their upstream sources — refresh
 them after an upstream rebuild:
