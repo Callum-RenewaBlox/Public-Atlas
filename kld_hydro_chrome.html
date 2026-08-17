@@ -1,0 +1,108 @@
+<!-- ======================================================================
+  Hydro 3D · atlas chrome
+  Appended to kld_interactive.html at serve time by app_kld_atlas.py, only on
+  the ?view=3d route. kld_interactive.html itself is shared with the two
+  investor-demo apps and must stay untouched, so everything here is an
+  override layered on top: the RenewaBlox design system the atlases share,
+  plus the "Atlas" control that takes the visitor back to the map.
+======================================================================= -->
+<style>
+  :root{
+    --k-brand:#12475e; --k-accent:#1f5f7f; --k-accent-l:#3a89ae; --k-teal:#0f9d77;
+    --k-ink:#0d1b23; --k-ink2:#33454f; --k-muted:#6a7a83; --k-line:#dfe8ed; --k-tint:#f4f8fa;
+    --k-font:"Inter","Inter var",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --k-sh:0 1px 2px rgba(9,26,35,.09), 0 4px 14px rgba(9,26,35,.13);
+  }
+  body{font-family:var(--k-font) !important;color:var(--k-ink2) !important;
+       -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+
+  /* --- header: the gradient keyline the atlases share, in place of the
+         3px rule, and the tighter type scale --- */
+  header{
+    position:relative !important;
+    padding:11px 18px 12px !important;
+    background:linear-gradient(180deg,#fff,#f8fbfc) !important;
+    border-bottom:1px solid var(--k-line) !important;
+    gap:14px !important;
+  }
+  header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2.5px;
+    background:linear-gradient(90deg,var(--k-brand),var(--k-accent-l) 48%,var(--k-teal))}
+  header .logo img{height:21px !important}
+  header .logo span{font-size:10px !important;letter-spacing:.06em;color:var(--k-muted) !important}
+  header .divider{height:30px !important;background:var(--k-line) !important}
+  header .title h1{font-size:14.5px !important;font-weight:700 !important;
+    letter-spacing:-.005em !important;color:var(--k-ink) !important}
+  header .title p{font-size:11.5px !important;color:var(--k-muted) !important}
+
+  /* the water-to-wire flow chips, in the atlas pill language */
+  header .fchip{
+    background:var(--k-tint) !important;border:1px solid var(--k-line) !important;
+    border-radius:999px !important;padding:4px 12px !important}
+  header .fchip small{color:var(--k-muted) !important;letter-spacing:.05em}
+  header .fchip b{color:var(--k-brand) !important;font-variant-numeric:tabular-nums}
+  header .farr{color:var(--k-accent-l) !important}
+
+  /* --- panels: glass, 16px radius, layered shadow, as on both atlases --- */
+  .panel{
+    background:rgba(251,253,254,.93) !important;
+    -webkit-backdrop-filter:blur(14px) saturate(1.7) !important;
+    backdrop-filter:blur(14px) saturate(1.7) !important;
+    border:0 !important;border-radius:16px !important;box-shadow:var(--k-sh) !important;
+  }
+  #viewstrip button{
+    font:650 11.5px var(--k-font) !important;color:var(--k-muted) !important;
+    border-radius:9px !important;padding:7px 11px !important;border:0 !important;
+    background:transparent !important;transition:background .14s,color .14s}
+  #viewstrip button:hover{background:var(--k-tint) !important;color:var(--k-brand) !important}
+  #viewstrip button.on{background:#eaf1f5 !important;color:var(--k-brand) !important}
+
+  /* --- back to the atlas ---
+     Top-left of the stage, clear of the centred view strip. The page's own
+     stacking tops out at z-index 9, so 60 sits above everything. */
+  #kld-back{
+    position:absolute;left:14px;top:14px;z-index:60;
+    display:inline-flex;align-items:center;gap:7px;
+    border:0;border-radius:999px;cursor:pointer;
+    background:rgba(251,253,254,.93);
+    -webkit-backdrop-filter:blur(14px) saturate(1.7);backdrop-filter:blur(14px) saturate(1.7);
+    color:var(--k-accent);font:700 11.5px var(--k-font);letter-spacing:.01em;
+    padding:9px 15px 9px 12px;box-shadow:var(--k-sh);
+    transition:background .15s,color .15s,transform .16s cubic-bezier(.2,.8,.3,1);
+  }
+  #kld-back:hover{background:var(--k-accent);color:#fff;transform:translateX(-2px)}
+  #kld-back svg{width:12px;height:12px;display:block}
+  @media (max-width:900px){
+    #kld-back{left:10px;top:10px;padding:8px 12px 8px 10px;font-size:11px}
+    #kld-back span{display:none}
+    header{padding:10px 12px !important}
+    header .title p{display:none}
+  }
+</style>
+
+<script>
+(function(){
+  var stage = document.getElementById('stage') || document.body;
+  var b = document.createElement('button');
+  b.id = 'kld-back';
+  b.type = 'button';
+  b.title = 'Back to the KLD Atlas';
+  b.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.9" ' +
+                'stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.6L4.6 8 10 13.4"/></svg>' +
+                '<span>Atlas</span>';
+  b.addEventListener('click', function(){
+    var href = '';
+    try { href = window.parent.location.href; } catch(e){}
+    if (!href) href = document.referrer || '';
+    var url = '?';
+    try {
+      var u = new URL(href);
+      u.searchParams.delete('view');
+      u.hash = '';
+      url = u.toString();
+    } catch(e){}
+    try { window.parent.location.assign(url); }
+    catch(e){ window.open(url, '_blank', 'noopener'); }
+  });
+  stage.appendChild(b);
+})();
+</script>
