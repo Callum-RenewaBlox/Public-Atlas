@@ -58,7 +58,8 @@ st.markdown(
 SRV_HTML = (Path(__file__).resolve().parent / "srv_contractor.html").read_text(
     encoding="utf-8")
 
+# No trailing st.caption: the iframe already owns the full 100dvh and stMain is
+# overflow:hidden, so anything rendered after it lands exactly on the fold and
+# can never be scrolled to. (Unlike the client atlas, this map carries no
+# caveat or contact line of its own — worth adding to the HTML if wanted.)
 st.iframe(SRV_HTML, height=900)
-st.caption(
-    "RenewaBlox · Scrivelsby Contractor Atlas — Home Farm AD electrical site "
-    "survey · contact callum@renewablox.com")
