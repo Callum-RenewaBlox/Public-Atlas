@@ -9,8 +9,9 @@ One app, two views — the same shape as ``app_srv_atlas.py``, so the two site
 atlases behave identically:
 
 * default — the map (``kld_atlas.html``), carrying a pulsing BLOX badge on the
-  powerhouse with a standing "3D Site Model" call to action.
-* ``?view=3d`` — the Hydro 3D living site model (``kld_interactive.html``),
+  powerhouse with a standing "3D Revenue Sim" call to action.
+* ``?view=3d`` — the 3D Revenue Sim: the Kinlochdamph living site model
+  (``kld_interactive.html``),
   full-bleed, with an "Atlas" control to come back.
 
 The model is a separate route rather than an in-page overlay, so the map page
@@ -32,7 +33,7 @@ import streamlit as st
 VIEW_3D = st.query_params.get("view") == "3d"
 
 st.set_page_config(
-    page_title="KLD Atlas — Hydro 3D" if VIEW_3D else "KLD Atlas — Kinlochdamph",
+    page_title="KLD Atlas — 3D Revenue Sim" if VIEW_3D else "KLD Atlas — Kinlochdamph",
     page_icon=":material/hub:",
     layout="wide",
     initial_sidebar_state="collapsed",

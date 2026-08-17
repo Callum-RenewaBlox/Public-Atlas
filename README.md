@@ -12,7 +12,7 @@ public, the apps deploy as **public apps** on Streamlit Community Cloud
 | --- | --- | --- |
 | `app_srv_atlas.py` | `srv_atlas.html` + `srv_atlas_3d_badge.html` + `srv_3d_sim.html` | SRV Atlas — the client view of the Scrivelsby (Home Farm AD) scheme: where the compute load bank sits, how it connects, and the site around it, kept deliberately minimal (LN9 6JB). A pulsing BLOX badge on the yard opens the SRV 3D Sim in a full-screen overlay — the same app serving `?view=3d`, so the atlas page carries none of the sim's weight |
 | `app_srv_contractor.py` | `srv_contractor.html` | SRV Contractor Atlas — the same site surveyed for the LV connection RFQ: switchgear detail, the full 12-photo survey including switchroom interiors, the feeder route with its tie-in and containment notes, and OSM/DNO context |
-| `app_kld_atlas.py` | `kld_atlas.html` + `kld_hydro_chrome.html` + `kld_interactive.html` | KLD Atlas — Kinlochdamph 999 kW run-of-river hydro (Loch Damh, Wester Ross): site assets, the 11/33/132 kV network and the two SSEN connection options. A pulsing BLOX badge on the powerhouse opens Hydro 3D full-screen — the same app serving `?view=3d`, so the atlas page carries none of the model's weight |
+| `app_kld_atlas.py` | `kld_atlas.html` + `kld_hydro_chrome.html` + `kld_interactive.html` | KLD Atlas — Kinlochdamph 999 kW run-of-river hydro (Loch Damh, Wester Ross): site assets, the 11/33/132 kV network and the two SSEN connection options. A pulsing BLOX badge on the powerhouse opens the 3D Revenue Sim full-screen — the same app serving `?view=3d`, so the atlas page carries none of the model's weight |
 | `app_moray_atlas.py` | `moray_atlas.html` | Moray Cluster Atlas — the Keith & Huntly primaries (the only two green-headroom primaries in the Savills Moray screen): candidate plots, ownership areas, GSP saturation, the 33/132/275/400 kV network and the offshore wind landing on it |
 | `app_srv_3d_sim.py` | `srv_3d_sim.html` | SRV 3D Sim — the Scrivelsby Peaker: a three.js model of the Home Farm AD site with a half-hourly dispatch simulation of the 350 kW switchable block over a real metered year, and the site survey photography on every asset pin |
 | `app_investor_demo.py` | `investor_demo_home.html` + `peaker_plant_3d.html` + `kld_interactive.html` | Investor Demo — a landing page for prospective investors that packs the interactive 3D models: Peaker Plant 3D (the peaker business model as a living site, `?view=peaker`) and Hydro 3D (the KLD powerhouse and its in-room data centre, `?view=hydro`) |
@@ -81,7 +81,7 @@ new site can be stood up by copying either:
   (KLD is 0.31 MB) and the model gets the whole window;
 * the same gateway on the map: a pulsing BLOX chip with a gradient
   call-to-action pill and a matching CTA row inside the relevant popups;
-* the same way back: an "Atlas" pill at the top-left of the model;
+* the same way back: an "Atlas" pill as the first item in the model's header;
 * one shared token set (`--brand:#12475e`, `--accent:#1f5f7f`, Inter, the
   `--sh-1`/`--sh-2` elevations, `--r-s`/`--r-m`/`--r-l`/`--r-pill` radii) across
   every page, defined in each build's stylesheet.
@@ -89,8 +89,8 @@ new site can be stood up by copying either:
 Where the two genuinely differ: SRV's client build shows a top brand bar and no
 side panel, KLD shows a briefing panel whose header carries the wordmark and no
 top bar — giving KLD both would print the wordmark twice. SRV also stands its
-CTA pill permanently because it opens over a single yard, whereas KLD opens on
-20 km of 33 kV spur and reveals the pill past zoom 13.5.
+CTA pill at full length because it opens over a single yard, whereas KLD opens
+on 20 km of 33 kV spur and shows the short form until zoom 13.5.
 
 `investor_demo_home.html` and `investor_demo_aus_home.html` are hand-authored
 (wordmark and scene thumbnails inlined as data URIs) — edit them directly. Each

@@ -13,8 +13,35 @@
     --k-font:"Inter","Inter var",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
     --k-sh:0 1px 2px rgba(9,26,35,.09), 0 4px 14px rgba(9,26,35,.13);
   }
+  /* The page's own :root is warm/olive and predates the design system. This
+     block loads after it, so redefining the legacy tokens re-tints everything
+     that reads them — legend chips, card copy, stat rows, panel footers —
+     without touching --rbx-blue, which also drives data marks in the scene. */
+  :root{
+    --ink2:#33454f; --muted:#93a2aa; --grid:#e3e9ec;
+    --rbx-ink:#0d1b23; --rbx-grey:#6a7a83; --rbx-line:#dfe8ed; --rbx-light:#f4f8fa;
+  }
   body{font-family:var(--k-font) !important;color:var(--k-ink2) !important;
+       font-size:12.5px;line-height:1.5;background:#0d1b23 !important;
        -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+  #stage{background:#0d1b23}
+
+  /* Ten rules in the page use a `font:` shorthand naming 'Segoe UI', which
+     replaces the family outright — so the desk, chart ticks, mode chips and
+     card pin rendered in Segoe while the header and rail rendered in Inter.
+     Override the FAMILY only; a shorthand here would take the sizes with it. */
+  #deskmin,#scenario,#imMode,#nowMode,.card-pin,.rbx-cta,
+  .deskrow button,#revcase button,#chart .tick,#pchart .tick,#chart .ratedtxt{
+    font-family:var(--k-font) !important}
+
+  /* focus, selection and motion, matching the SRV 3D Sim */
+  *:focus{outline:none}
+  *:focus-visible{outline:2px solid var(--k-accent-l);outline-offset:2px;border-radius:5px}
+  ::selection{background:rgba(31,95,127,.22)}
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{animation-duration:.001ms !important;
+      animation-iteration-count:1 !important;transition-duration:.001ms !important}
+  }
 
   /* --- header: the gradient keyline the atlases share, in place of the
          3px rule, and the tighter type scale --- */
@@ -45,7 +72,11 @@
     background:var(--k-tint) !important;border:1px solid var(--k-line) !important;
     border-radius:999px !important;padding:4px 12px !important}
   header .fchip small{color:var(--k-muted) !important;letter-spacing:.05em}
-  header .fchip b{color:var(--k-brand) !important;font-variant-numeric:tabular-nums}
+  /* the scene drives these numbers through .live / .live.amber at runtime —
+     a flat brand colour here would freeze the running and overclock states */
+  header .fchip b{color:#9aa7ad !important;font-variant-numeric:tabular-nums}
+  header .fchip.live b{color:var(--k-teal) !important}
+  header .fchip.live.amber b{color:#d97706 !important}
   header .farr{color:var(--k-accent-l) !important}
 
   /* --- panels: glass, 16px radius, layered shadow, as on both atlases --- */
@@ -61,6 +92,46 @@
     background:transparent !important;transition:background .14s,color .14s}
   #viewstrip button:hover{background:var(--k-tint) !important;color:var(--k-brand) !important}
   #viewstrip button.on{background:#eaf1f5 !important;color:var(--k-brand) !important}
+  @media (max-width:1200px){
+    /* the page hides the camera strip outright here; reflow it instead, the
+       way the SRV sim reflows its view rail */
+    #viewstrip{display:flex !important;left:14px;right:14px;transform:none;
+      width:auto;overflow-x:auto;scrollbar-width:none;justify-content:flex-start}
+    #viewstrip::-webkit-scrollbar{display:none}
+    #viewstrip button{flex:0 0 auto}
+  }
+
+  /* one micro-caps scale across every panel heading, as on the SRV sim */
+  #deskwrap h2,#nowpanel .nphead,#powerwrap .phead,#island h2,#revpanel .rvhead{
+    font-size:9.7px !important;font-weight:750 !important;
+    letter-spacing:.095em !important;color:var(--k-muted) !important}
+  #powerwrap .phead:hover,#island h2:hover{color:var(--k-brand) !important}
+  .deskrow button.on,#revcase button.on{color:var(--k-brand) !important}
+  #deskmin:hover{background:var(--k-accent) !important;color:#fff !important}
+
+  /* the chart tooltip was the one hairline-bordered surface left */
+  #tip{
+    background:rgba(255,255,255,.97) !important;
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+    border:0 !important;border-radius:10px !important;padding:8px 10px !important;
+    font-size:10.8px !important;line-height:1.55 !important;
+    color:var(--k-ink2) !important;box-shadow:var(--k-sh) !important}
+  #tip .dot{border-radius:2.5px !important}
+
+  /* chart furniture in the cool ramp */
+  #chart .tick,#pchart .tick{font-size:10px !important;font-weight:550;fill:#93a2aa !important}
+  #chart .nowline,#pchart .nowline{opacity:.24 !important}
+  .lg{font-size:10.5px !important;font-weight:550}
+  .lg .sw{width:9px !important;height:9px !important}
+
+  /* the model page has no footer of its own; the SRV sim closes on one */
+  footer.kld-foot{
+    flex:0 0 auto;padding:9px 18px;font-size:10.6px;color:var(--k-muted);line-height:1.5;
+    border-top:1px solid var(--k-line);background:linear-gradient(180deg,#fbfdfe,#fff);
+    display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  footer.kld-foot b{color:var(--k-brand);font-weight:700}
+  footer.kld-foot .f2{text-align:right;color:#93a2aa}
+  @media (max-width:900px){footer.kld-foot .f2{display:none}}
 
   /* --- back to the atlas ---
      First child of the header, exactly where the SRV 3D Sim puts its own
@@ -109,5 +180,19 @@
     catch(e){ window.open(url, '_blank', 'noopener'); }
   });
   host.insertBefore(b, host.firstChild);
+
+  // close the page on the same provenance footer the SRV sim carries
+  if (!document.querySelector('footer.kld-foot')) {
+    var f = document.createElement('footer');
+    f.className = 'kld-foot';
+    f.innerHTML =
+      '<div><b>The mine-first model:</b> the 999 kW run-of-river output is ' +
+      'monetised behind the meter by a co-located, dispatchable compute load ' +
+      'while the 999 kW export connection stays 7.8 km and years away.</div>' +
+      '<div class="f2">Scheme: Adrian Laycock dwgs 2285/9A &amp; 2285/10A · ' +
+      'Flows: SEPA/CEH gauged record · Options &amp; costs: RBX SSEN call, 26/03/26 · ' +
+      '© RenewaBlox · renewablox.com</div>';
+    document.body.appendChild(f);
+  }
 })();
 </script>

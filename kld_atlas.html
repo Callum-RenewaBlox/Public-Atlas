@@ -1082,15 +1082,28 @@ table.d tr.tot .win{background:#e2f2e7;color:var(--good)}
 .b3d-badge .cta .s{display:none}
 /* the pill only earns its space once the map is on the site itself;
    kld_boot.js toggles .cta-on past zoom 13.5 */
-/* no transition on opacity: the pill must be correct at a discrete zoom
-   threshold, and a transitioned property can stay pinned at its start
-   value where frames are not being produced */
-.b3d-badge .cta{opacity:0;pointer-events:none}
-.b3d-badge.cta-on .cta{opacity:1;pointer-events:auto}
+/* The gateway is advertised from first paint, as on the SRV atlas — but KLD
+   opens on 20 km of 33 kV spur, so out there it shows only the short label and
+   earns the full one once the map is on the site (kld_boot.js sets .cta-on
+   past zoom 13.5). No transition: a transitioned property can stay pinned at
+   its start value where frames are not being produced. */
+.b3d-badge .cta .f{display:none}
+.b3d-badge .cta .s{display:inline}
+.b3d-badge.cta-on .cta .f{display:inline}
+.b3d-badge.cta-on .cta .s{display:none}
 @keyframes b3dpulse{0%{transform:scale(.4);opacity:.95}72%{transform:scale(1.7);opacity:0}100%{opacity:0}}
 @keyframes b3dsheen{0%,55%{transform:translateX(-110%)}72%,100%{transform:translateX(115%)}}
 @keyframes b3dnudge{0%,100%{transform:translateY(-50%)}30%{transform:translateY(-50%) translateX(-7px)}55%{transform:translateY(-50%)}}
 .b3d-badge.nudge .cta{animation:b3dnudge 1s cubic-bezier(.3,.7,.3,1) .9s 2}
+@media (max-width:620px){
+  /* beside the chip the full pill runs off a phone screen when the map pans —
+     shorten it and hang it centred underneath, as the SRV badge does */
+  .b3d-badge .cta .f,.b3d-badge.cta-on .cta .f{display:none}
+  .b3d-badge .cta .s,.b3d-badge.cta-on .cta .s{display:inline}
+  .b3d-badge .cta{right:auto;left:50%;top:42px;transform:translateX(-50%);padding:8px 14px}
+  .b3d-badge:hover .cta{transform:translateX(-50%) translateY(2px)}
+  .b3d-badge.nudge .cta{animation:none}
+}
 
 /* the same call to action inside the powerhouse popup */
 .b3d-poprow{
@@ -1510,7 +1523,9 @@ const kldBadge=L.marker(PH,{zIndexOffset:4000,keyboard:false,
          '<div class="cta"><span class="f">3D Revenue Sim</span>'+
          '<span class="s">3D Sim</span><i>&#9654;</i></div>'})});
 kldBadge.on('click',openKLD3D);
-kldBadge.addTo(siteLayer);
+// on the map itself, not siteLayer — the 3D gateway must not disappear when
+// someone unticks "KLD site & scheme" in the layers control
+kldBadge.addTo(map);
 
 // The SRV atlas opens over a single yard, so its pill can stand permanently.
 // KLD opens on the whole 33 kV spur (fitBounds ≈ zoom 11), where a pill would
