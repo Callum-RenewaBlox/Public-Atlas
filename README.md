@@ -17,6 +17,7 @@ public, the apps deploy as **public apps** on Streamlit Community Cloud
 | `app_srv_3d_sim.py` | `srv_3d_sim.html` | SRV 3D Sim — the Scrivelsby Peaker: a three.js model of the Home Farm AD site with a half-hourly dispatch simulation of the 350 kW switchable block over a real metered year, and the site survey photography on every asset pin |
 | `app_investor_demo.py` | `investor_demo_home.html` + `peaker_plant_3d.html` + `kld_interactive.html` | Investor Demo — a landing page for prospective investors that packs the interactive 3D models: Peaker Plant 3D (the peaker business model as a living site, `?view=peaker`) and Hydro 3D (the KLD powerhouse and its in-room data centre, `?view=hydro`) |
 | `app_investor_demo_aus.py` | `investor_demo_aus_home.html` + `peaker_plant_3d.html` + `kld_interactive.html` + `nem_negative_price_atlas.html` | Investor Demo (Australia) — the same pack plus NEM 3D (mining economics across the Australian NEM, `?view=nem`), on its own URL for the investor group that model was built for |
+| `app_peaker_3d.py` | `peaker_plant_3d.html` | Peaker Plant 3D standalone — the same peaker model on its own link, for client brochures (AD operators): no landing page, no pack navigation, straight into the model |
 
 The two investor demos are separate apps on purpose: NEM 3D was built for one
 group of Australian investors, so it appears only in the pack they are sent to.
@@ -57,13 +58,14 @@ them after an upstream rebuild:
 
 | Copy in this repo | Used by | Source of truth |
 | --- | --- | --- |
-| `peaker_plant_3d.html` | both packs | internal Atlas 3D build (`peaker_plant_3d_2.html`) |
+| `peaker_plant_3d.html` | both packs + `app_peaker_3d.py` | internal Atlas 3D build (`peaker_plant_3d_2.html`) |
 | `kld_interactive.html` | both packs + KLD Atlas | `Contracts/Kinlochdamph/Atlas/kld_live_3.html` |
 | `nem_negative_price_atlas.html` | Australia pack | internal Atlas 3D build (`nem_negative_price_atlas_2.html`) |
 
-Both packs serve their model pages with small presentation-only CSS patches
-(`PATCH_CSS` in each entry file) — the peaker's guided-tour view strip is hidden
-for investors — so the files themselves stay byte-for-byte copies of upstream.
+Both packs and the standalone peaker serve their model pages with small
+presentation-only CSS patches (`PATCH_CSS` in the packs, inline in
+`app_peaker_3d.py`) — the peaker's guided-tour view strip is hidden in all
+three — so the files themselves stay byte-for-byte copies of upstream.
 `app_kld_atlas.py` does the same for `kld_interactive.html`, appending
 `kld_hydro_chrome.html` (design-system overrides plus the "Atlas" control back
 to the map). **Never edit `kld_interactive.html` to add atlas-specific chrome** —
@@ -128,6 +130,7 @@ builder at it would quietly strip the 3D sim's photography.
     streamlit run app_moray_atlas.py
     streamlit run app_srv_3d_sim.py
     streamlit run app_investor_demo.py
+    streamlit run app_peaker_3d.py
     streamlit run app_investor_demo_aus.py
 
 ## Deploy
