@@ -143,3 +143,4 @@ per entry file, each with its own custom subdomain:
 | --- | --- |
 | `app_investor_demo.py` | `investor-demo.streamlit.app` |
 | `app_investor_demo_aus.py` | `investor-demo-aus.streamlit.app` |
+| `app_peaker_3d.py` | `peakerplant-3d.streamlit.app` |

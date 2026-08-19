@@ -53,11 +53,14 @@ st.markdown(
 
 # Read the scene fresh from the main script each run (Streamlit re-runs this
 # script but can keep imported modules cached, so reading here keeps the
-# embedded build current after every redeploy). The guided-tour view strip is
-# dropped with a serve-time patch so the HTML stays a byte-for-byte upstream
-# copy shared with the Investor Demo.
+# embedded build current after every redeploy). Serve-time patches keep the
+# HTML a byte-for-byte upstream copy shared with the investor packs: the
+# guided-tour view strip is dropped, and PEAKER_UNITS switches every price on
+# the page to p/kWh — the unit AD operators know — where the packs keep £/MWh.
 PEAKER_HTML = (Path(__file__).resolve().parent / "peaker_plant_3d.html").read_text(
     encoding="utf-8").replace(
-    "</head>", "<style>#viewstrip{display:none !important;}</style></head>", 1)
+    "</head>",
+    '<script>window.PEAKER_UNITS="p/kWh";</script>'
+    "<style>#viewstrip{display:none !important;}</style></head>", 1)
 
 st.iframe(PEAKER_HTML, height=900)
