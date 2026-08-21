@@ -276,6 +276,20 @@ body.cabtips-off .cabtip{display:none}
 #docbar .dt b{display:block;font-size:13px;font-weight:750;color:var(--brand);letter-spacing:-.005em}
 #docbar .dt span{display:block;font-size:10.6px;color:var(--muted);margin-top:1px}
 #docframe{flex:1;min-height:0;width:100%;border:0;background:#fff}
+.cabtip.alt{border-left-color:#2fbf5f;cursor:pointer;
+  transition:box-shadow .14s ease,transform .14s ease}
+.cabtip.alt:hover{transform:translateY(-1px);
+  box-shadow:0 2px 8px rgba(9,26,35,.24),0 12px 30px rgba(9,26,35,.28)}
+.cabtip.alt b{color:#1c7a3e}
+.cabtip .cta{display:inline-block;margin-top:3px;font-size:9.6px;font-weight:750;
+  letter-spacing:.06em;text-transform:uppercase;color:#1c7a3e}
+.cabtip .cta:after{content:" 92"}
+.cabpop .altbtn{display:inline-block;margin-top:9px;font:750 10.8px/1 var(--font);
+  letter-spacing:.05em;text-transform:uppercase;padding:7px 12px;cursor:pointer;
+  color:#fff;background:#1c7a3e;border:0;border-radius:var(--r-pill);
+  transition:background .14s}
+.cabpop .altbtn:hover{background:#155f30}
+.cabpop h3.alt{color:#1c7a3e}
 </style>
 </head>
 <body>
@@ -493,9 +507,34 @@ cabLbl([53.176912,-0.110332],'top','<b>TIE-IN</b> \u2014 switchroom busbars<br><
 cabLbl([53.176752,-0.110488],'left','<b>LV feeder</b> \u2014 2 circuits<br><span>\u224845 m installed / circuit<br>existing provision \u2192 trench \u2248 40 m \u00b7 W of flare pad</span>',[-18,0]);
 cabLbl([53.176556,-0.110499],'left','<b>\u2192 container P01 / P02</b><br><span>800 A each</span>',[-18,0]);
 
+// ===== Alternative feeder route: container beside the CHP (bank toe regrade) =====
+// Down the east face of the CHP from the same switchroom tie-in: ~15 m against
+// ~48 m for the route above. Alignment taken from the regrade note's photography
+// and the CHP footprint - indicative, not surveyed.
+const altLayer=L.layerGroup().addTo(map);
+const ALT=[[53.176912,-0.110332],[53.176900,-0.110316],[53.176840,-0.110312],[53.176778,-0.110309]];
+L.polyline(ALT,{color:'#0a3a1e',weight:9,opacity:.6,lineCap:'round',lineJoin:'round',interactive:false}).addTo(altLayer);
+const altLine=L.polyline(ALT,{color:'#3ff08a',weight:5,opacity:.95,lineCap:'round',lineJoin:'round',dashArray:'10,6'})
+ .bindPopup('<div class="cabpop"><h3 class="alt">Alternative feeder route</h3>'
+  +'<div class="cabsub">switchroom → container beside the CHP · ≈ 15 m</div>'
+  +'<p><b>Why it is here.</b> Standing the container on a regraded bench at the toe of the screening bund, alongside the CHP, shortens the run from ≈ 48 m to <b>≈ 15 m</b> from the same tie-in.</p>'
+  +'<p><b>What it depends on.</b> Cutting the toe back ≈ 3.0 m over a 15 m run to win a ≈ 4.5 m bench, crest height unchanged. The civils note sets out the question we are asking you to price against.</p>'
+  +'<p><b>Status.</b> Indicative alignment, taken from photography and the CHP footprint — not surveyed.</p>'
+  +'<button class="altbtn" type="button" onclick="window.openRegradeDoc&&window.openRegradeDoc()">Open the regrade note</button>'
+  +'</div>',{maxWidth:310}).addTo(altLayer);
+// the label is the call to action, and is clickable in its own right
+altLine.bindTooltip('<b>ALTERNATIVE ROUTE ≈ 15 m</b><br>'
+  +'<span>container beside the CHP, on a regraded bench</span><br>'
+  +'<span class="cta">Click for the regrade note</span>',
+  {permanent:true,direction:'right',className:'cabtip alt',offset:[10,0],interactive:true});
+altLine.on('tooltipopen',function(e){
+  const el=e.tooltip.getElement();
+  if(el) el.addEventListener('click',function(){ if(window.openRegradeDoc) window.openRegradeDoc(); });
+});
+
 // --- layer control
 L.control.layers({'Satellite (Esri)':sat,'Street (OSM)':osmT},
- {'Proposed LV feeder route':cableLayer,'Site assets':assetLayer,'Survey photos':photoLayer,
+ {'Proposed LV feeder route':cableLayer,'Alternative route ≈ 15 m':altLayer,'Site assets':assetLayer,'Survey photos':photoLayer,
   'OSM context (BigQuery extract)':ctxLayer,'DNO 11 kV network (OSM)':powLayer,'Individual trees (OSM)':treeLayer},
  {position:'topleft'}).addTo(map);
 
@@ -550,6 +589,7 @@ const DOC_B64="PHRpdGxlPkJhbmsgVG9lIFJlZ3JhZGU8L3RpdGxlPgo8bGluayByZWw9InByZWNvb
     ov.hidden=false; if(cl) cl.focus();
   }
   function close(){ ov.hidden=true; btn.focus(); }
+  window.openRegradeDoc=open;      /* the map's alternative route calls this */
   btn.addEventListener('click',open);
   if(cl) cl.addEventListener('click',close);
   ov.addEventListener('click',function(e){ if(e.target===ov) close(); });
