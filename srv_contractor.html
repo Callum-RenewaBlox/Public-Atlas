@@ -508,22 +508,23 @@ cabLbl([53.176752,-0.110488],'left','<b>LV feeder</b> \u2014 2 circuits<br><span
 cabLbl([53.176556,-0.110499],'left','<b>\u2192 container P01 / P02</b><br><span>800 A each</span>',[-18,0]);
 
 // ===== Alternative feeder route: container beside the CHP (bank toe regrade) =====
-// Down the east face of the CHP from the same switchroom tie-in: ~15 m against
-// ~48 m for the route above. Alignment taken from the regrade note's photography
-// and the CHP footprint - indicative, not surveyed.
+// Follows the main route west from the same switchroom tie-in, then turns south
+// down the WEST face of the CHP and stops midway along it, where the container
+// stands on the regraded bench: 18 m against 48 m. Drawn 1.2 m off the main route
+// so both read at site zoom. Indicative, not surveyed.
 const altLayer=L.layerGroup().addTo(map);
-const ALT=[[53.176912,-0.110332],[53.176900,-0.110316],[53.176840,-0.110312],[53.176778,-0.110309]];
+const ALT=[[53.176912,-0.110332],[53.176898,-0.110452],[53.176810,-0.110455]];
 L.polyline(ALT,{color:'#0a3a1e',weight:9,opacity:.6,lineCap:'round',lineJoin:'round',interactive:false}).addTo(altLayer);
 const altLine=L.polyline(ALT,{color:'#3ff08a',weight:5,opacity:.95,lineCap:'round',lineJoin:'round',dashArray:'10,6'})
  .bindPopup('<div class="cabpop"><h3 class="alt">Alternative feeder route</h3>'
-  +'<div class="cabsub">switchroom → container beside the CHP · ≈ 15 m</div>'
-  +'<p><b>Why it is here.</b> Standing the container on a regraded bench at the toe of the screening bund, alongside the CHP, shortens the run from ≈ 48 m to <b>≈ 15 m</b> from the same tie-in.</p>'
+  +'<div class="cabsub">switchroom → container beside the CHP · ≈ 18 m</div>'
+  +'<p><b>Why it is here.</b> Standing the container on a regraded bench at the toe of the screening bund, alongside the CHP, shortens the run from ≈ 48 m to <b>≈ 18 m</b> from the same tie-in. It follows the main route west from the tie-in, then turns south down the west face of the CHP.</p>'
   +'<p><b>What it depends on.</b> Cutting the toe back ≈ 3.0 m over a 15 m run to win a ≈ 4.5 m bench, crest height unchanged. The civils note sets out the question we are asking you to price against.</p>'
   +'<p><b>Status.</b> Indicative alignment, taken from photography and the CHP footprint — not surveyed.</p>'
   +'<button class="altbtn" type="button" onclick="window.openRegradeDoc&&window.openRegradeDoc()">Open the regrade note</button>'
   +'</div>',{maxWidth:310}).addTo(altLayer);
 // the label is the call to action, and is clickable in its own right
-altLine.bindTooltip('<b>ALTERNATIVE ROUTE ≈ 15 m</b><br>'
+altLine.bindTooltip('<b>ALTERNATIVE ROUTE ≈ 18 m</b><br>'
   +'<span>container beside the CHP, on a regraded bench</span><br>'
   +'<span class="cta">Click for the regrade note</span>',
   {permanent:true,direction:'right',className:'cabtip alt',offset:[10,0],interactive:true});
@@ -534,7 +535,7 @@ altLine.on('tooltipopen',function(e){
 
 // --- layer control
 L.control.layers({'Satellite (Esri)':sat,'Street (OSM)':osmT},
- {'Proposed LV feeder route':cableLayer,'Alternative route ≈ 15 m':altLayer,'Site assets':assetLayer,'Survey photos':photoLayer,
+ {'Proposed LV feeder route':cableLayer,'Alternative route ≈ 18 m':altLayer,'Site assets':assetLayer,'Survey photos':photoLayer,
   'OSM context (BigQuery extract)':ctxLayer,'DNO 11 kV network (OSM)':powLayer,'Individual trees (OSM)':treeLayer},
  {position:'topleft'}).addTo(map);
 
