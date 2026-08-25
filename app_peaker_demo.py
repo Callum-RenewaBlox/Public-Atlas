@@ -6,6 +6,11 @@ navigation. Prices stay in £/MWh, exactly as the packs show them, so this is
 the investor-facing peaker on a URL of its own — the pack keeps its Peaker
 card too, this is an additional door, not a move.
 
+Tailored for an energy-literate audience: the strike price opens at £80/MWh
+on a £50–£100 range (the packs run £40–£160 from £100), and the export price
+is named for what it is — day-ahead plus gDUoS — on the seesaw and in the
+dispatch-desk legend, rather than the packs' plainer wording.
+
 Three apps serve ``peaker_plant_3d.html``; they differ only in framing:
 
 * ``app_investor_demo.py`` (and ``_aus``) — inside the pack, £/MWh, pack bar.
@@ -57,13 +62,25 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
+# Everything that makes this surface different is declared here and applied by
+# the model at load, so peaker_plant_3d.html stays a byte-for-byte upstream copy
+# shared by all four peaker surfaces: the guided-tour view strip is dropped (as
+# the packs do), and PEAKER_CFG narrows the strike control and names the export
+# price. The model leaves both alone when a surface declares neither.
+DEMO_CFG = """
+<script>window.PEAKER_CFG={
+  strike:{value:80, min:50, max:100},
+  exportLabel:"Export \\u00B7 DA + gDUoS",
+  legendLabel:"Export value \\u00B7 DA + gDUoS"
+};</script>
+"""
+
 # Read the scene fresh from the main script each run (Streamlit re-runs this
 # script but can keep imported modules cached, so reading here keeps the
-# embedded build current after every redeploy). The guided-tour view strip is
-# dropped with a serve-time patch — the same one the packs apply — so the HTML
-# stays a byte-for-byte upstream copy shared by all four peaker surfaces.
+# embedded build current after every redeploy).
 PEAKER_HTML = (Path(__file__).resolve().parent / "peaker_plant_3d.html").read_text(
     encoding="utf-8").replace(
-    "</head>", "<style>#viewstrip{display:none !important;}</style></head>", 1)
+    "</head>",
+    DEMO_CFG + "<style>#viewstrip{display:none !important;}</style></head>", 1)
 
 st.iframe(PEAKER_HTML, height=900)

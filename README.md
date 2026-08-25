@@ -18,7 +18,7 @@ public, the apps deploy as **public apps** on Streamlit Community Cloud
 | `app_investor_demo.py` | `investor_demo_home.html` + `peaker_plant_3d.html` + `kld_interactive.html` | Investor Demo — a landing page for prospective investors that packs the interactive 3D models: Peaker Plant 3D (the peaker business model as a living site, `?view=peaker`) and Hydro 3D (the KLD powerhouse and its in-room data centre, `?view=hydro`) |
 | `app_investor_demo_aus.py` | `investor_demo_aus_home.html` + `peaker_plant_3d.html` + `kld_interactive.html` + `nem_negative_price_atlas.html` | Investor Demo (Australia) — the same pack plus NEM 3D (mining economics across the Australian NEM, `?view=nem`), on its own URL for the investor group that model was built for |
 | `app_peaker_3d.py` | `peaker_plant_3d.html` | Peaker Plant 3D standalone — the same peaker model on its own link, for client brochures (AD operators): no landing page, no pack navigation, straight into the model, prices in **p/kWh** |
-| `app_peaker_demo.py` | `peaker_plant_3d.html` | Peaker Demo — the pack's Peaker Plant 3D on a link of its own, for sending the peaker without the rest of the pack: no landing page, no pack navigation, prices in **£/MWh** as the packs show them |
+| `app_peaker_demo.py` | `peaker_plant_3d.html` | Peaker Demo — the pack's Peaker Plant 3D on a link of its own, for sending the peaker without the rest of the pack: no landing page, no pack navigation, prices in **£/MWh**, and tailored for an energy-literate audience (strike opens at £80 on a £50–£100 range; the export price is named **DA + gDUoS**) |
 
 The two investor demos are separate apps on purpose: NEM 3D was built for one
 group of Australian investors, so it appears only in the pack they are sent to.
@@ -31,14 +31,20 @@ than erroring.
 Four surfaces serve the same `peaker_plant_3d.html`, and they differ only in
 framing — audience decides which link goes out:
 
-| Surface | Chrome | Prices |
-| --- | --- | --- |
-| the two packs, `?view=peaker` | landing page + pack bar | £/MWh |
-| `app_peaker_demo.py` | none | £/MWh |
-| `app_peaker_3d.py` | none | p/kWh (AD operators) |
+| Surface | Chrome | Prices | Strike | Export price reads |
+| --- | --- | --- | --- | --- |
+| the two packs, `?view=peaker` | landing page + pack bar | £/MWh | £100, £40–£160 | "Price of electricity" |
+| `app_peaker_demo.py` | none | £/MWh | £80, £50–£100 | "Export · DA + gDUoS" |
+| `app_peaker_3d.py` | none | p/kWh (AD operators) | £100, £40–£160 | "Price of electricity" |
 
 Standing the peaker up on its own did not take it out of the packs: both still
 carry their Peaker card, so `?view=peaker` links already sent out keep working.
+
+Those per-surface differences are declared by the serving app and applied by the
+model at load — `window.PEAKER_UNITS` for p/kWh, `window.PEAKER_CFG` for the
+strike range and the export-price labels — so the HTML never forks. Both
+default to the packs' behaviour when a surface declares neither. Tailor a
+surface by editing its entry file, never by editing `peaker_plant_3d.html`.
 
 Each app reads its HTML inline and renders it with `st.iframe`, so a redeploy
 always serves the current map. The one exception is the investor demos' landing
