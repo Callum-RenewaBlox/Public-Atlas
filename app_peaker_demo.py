@@ -83,6 +83,9 @@ DEMO_CSS = """
   /* the "peaker model:" explainer: this audience reads the dispatch desk
      itself, so the footer keeps only its price-sourcing and copyright line */
   footer > div:first-child {display:none !important;}
+  /* the dispatch desk moves to the bottom-right, unchanged in every other
+     respect; it clears #rightcol, which is anchored top-right */
+  #deskwrap {left:auto !important; right:14px !important;}
 </style>
 """
 
