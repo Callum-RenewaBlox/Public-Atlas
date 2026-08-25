@@ -7,9 +7,10 @@ the investor-facing peaker on a URL of its own — the pack keeps its Peaker
 card too, this is an additional door, not a move.
 
 Tailored for an energy-literate audience: the strike price opens at £80/MWh
-on a £50–£100 range (the packs run £40–£160 from £100), and the export price
-is named for what it is — day-ahead plus gDUoS — on the seesaw and in the
-dispatch-desk legend, rather than the packs' plainer wording.
+on a £50–£100 range (the packs run £40–£160 from £100), the export price is
+named for what it is — day-ahead plus gDUoS — on the seesaw and in the
+dispatch-desk legend, and the footer's "peaker model" explainer is dropped,
+leaving its price-sourcing line.
 
 Three apps serve ``peaker_plant_3d.html``; they differ only in framing:
 
@@ -75,12 +76,20 @@ DEMO_CFG = """
 };</script>
 """
 
+DEMO_CSS = """
+<style>
+  /* the guided-tour view strip — the packs drop it too */
+  #viewstrip {display:none !important;}
+  /* the "peaker model:" explainer: this audience reads the dispatch desk
+     itself, so the footer keeps only its price-sourcing and copyright line */
+  footer > div:first-child {display:none !important;}
+</style>
+"""
+
 # Read the scene fresh from the main script each run (Streamlit re-runs this
 # script but can keep imported modules cached, so reading here keeps the
 # embedded build current after every redeploy).
 PEAKER_HTML = (Path(__file__).resolve().parent / "peaker_plant_3d.html").read_text(
-    encoding="utf-8").replace(
-    "</head>",
-    DEMO_CFG + "<style>#viewstrip{display:none !important;}</style></head>", 1)
+    encoding="utf-8").replace("</head>", DEMO_CFG + DEMO_CSS + "</head>", 1)
 
 st.iframe(PEAKER_HTML, height=900)
