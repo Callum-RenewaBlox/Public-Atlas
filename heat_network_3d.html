@@ -130,6 +130,29 @@ header .tab small{display:none}
 /* the orbit hint only where the bar has room for it */
 header .title .hint{display:none}
 @media (min-width:1600px){header .title .hint{display:inline}}
+
+/* ---- the bottom bar: shorter, collapsible, and out of the way while you look ----
+   The outside-temperature and network-demand figures are gone (the cards carry
+   them); the play/speed controls join the clock row, so the bar loses a row; the
+   legend is drawn on the chart. A toggle folds the year strip away, and while the
+   user is dragging or zooming the scene the bar and the card column go nearly
+   transparent, then come straight back — nothing ever fades on its own. */
+#hud-temp,#hud-dem,#hud-key{display:none}
+#bottom{padding:8px 14px 8px}
+#hud{margin-bottom:4px}
+#hud #transport{margin:0 0 0 auto}
+#hud #transport .lab{margin-left:2px}
+#hn-min{width:26px;height:26px;padding:0;font-size:14px;line-height:1;color:var(--text2)}
+#bottom.collapsed #stripwrap{display:none}
+#bottom.collapsed #hud{margin-bottom:0}
+#bottom,#right{transition:opacity .22s}
+body.hn-peek #bottom,body.hn-peek #right{opacity:.12;pointer-events:none}
+
+/* the Basement call to action */
+#views .btn.cta{background:var(--on);color:#1a1a19;border-color:var(--on);font:700 12px var(--rbx-font);
+                padding:8px 14px;letter-spacing:.01em;box-shadow:0 0 0 3px rgba(255,179,71,.18)}
+#views .btn.cta:hover{background:#ffc46a;color:#1a1a19;border-color:#ffc46a}
+#views .btn.cta.on{background:var(--on);color:#1a1a19;border-color:var(--on);box-shadow:0 0 0 3px rgba(255,179,71,.38)}
 </style>
 </head>
 <body>
@@ -155,7 +178,7 @@ header .title .hint{display:none}
 <div id="left">
   <h1 id="title">Phase 1 · heat into the network <small>ISL heat network · one year, half-hour by half-hour</small></h1>
   <div class="status" id="status"><div id="st-title">—</div><div id="st-sub">—</div></div>
-  <div id="views"><button class="btn" data-view="overview">Overview</button><button class="btn" data-view="dc1">Data centre</button></div>
+  <div id="views"><button class="btn" data-view="overview">Overview</button><button class="btn" data-view="dc1">Data centre</button><button class="btn cta" data-view="basement" title="The whole plant room in one view">&#9662; Basement</button></div>
 </div>
 
 <div id="right">
@@ -196,17 +219,18 @@ header .title .hint{display:none}
 
 <div id="bottom">
   <div id="hud">
+    <button class="btn" id="hn-min" title="Fold the year strip away">&#8211;</button>
     <div id="clock"><div class="d" id="hud-date">—</div><div class="t"><span id="hud-time">—</span><span class="sp" id="hud-sp"></span></div></div>
     <div id="hud-play" class="play on">▶ playing · slow</div>
     <span class="chip" id="hud-state">—</span><span id="hud-temp">—</span><span id="hud-dem">—</span>
     <span id="hud-key" style="margin-left:auto;font-size:10px;color:var(--muted)">amber = data centre supplying heat</span>
-  </div>
-  <div id="stripwrap"><canvas id="strip"></canvas><canvas id="playhead"></canvas><div id="strip-tip"></div></div>
-  <div id="transport">
+    <div id="transport">
     <button class="btn" id="btn-play">❚❚</button>
     <span class="lab">speed</span><button class="btn" data-speed="0.0833">slow</button><button class="btn" data-speed="0.1667">normal</button><button class="btn" data-speed="0.3333">fast</button>
   </div>
-</div>
+  </div>
+  <div id="stripwrap"><canvas id="strip"></canvas><canvas id="playhead"></canvas><div id="strip-tip"></div></div>
+  </div>
 
 </div>
 
@@ -393,8 +417,7 @@ const VIEWS = {
   plant2: { theta: -0.5, phi: 1.0, radius: 34, target: B(9, 0.5, 1.6) },
   store: { theta: 0.05, phi: 0.78, radius: 34, target: B(9, 1.5, 1.6) },
   street: { theta: -0.15, phi: 0.72, radius: 62, target: B(7, 6, 4) },
-  overview: { theta: -0.62, phi: 0.6, radius: 80, target: B(7, 4.5, 6) }
-};
+  overview: { theta: -0.62, phi: 0.6, radius: 80, target: B(7, 4.5, 6) }, basement: { theta: -0.30, phi: 0.92, radius: 46, target: B(12.4, -1.3, 1.8) } }; window.__hn = { setView, VIEWS, ctrl, B, camera, scene, OBJ };
 setView(VIEWS.overview, true); setView(VIEWS.plant);
 canvas.addEventListener('pointerdown', e => { ctrl.dragging = true; ctrl.mode = (e.button === 2 || e.shiftKey) ? 1 : 0; ctrl.lx = e.clientX; ctrl.ly = e.clientY; canvas.setPointerCapture(e.pointerId); ctrl.lastUser = performance.now(); });
 canvas.addEventListener('pointerup', e => { ctrl.dragging = false; });
@@ -685,6 +708,14 @@ function drawStrip() {
     }
   }
   stctx.fillStyle = C.muted; stctx.fillText('MWh of heat per day', x0 + 5, top + 3);
+
+  // legend, top right of the plot — only the sources actually drawn
+  const names = { [C.on]: 'data centre', [C.store]: 'thermal store', [C.boilerbar]: 'gas boilers' };
+  stctx.textAlign = 'right'; let lx = x1 - 6;
+  for (const [, col] of [...layers].reverse()) {
+    const nm = names[col]; stctx.fillStyle = C.text2; stctx.fillText(nm, lx, top + 3);
+    lx -= stctx.measureText(nm).width + 14; stctx.fillStyle = col; stctx.fillRect(lx, top + 3, 8, 8); lx -= 14;
+  }
   drawPlayhead();
 }
 function drawPlayhead() {
@@ -772,6 +803,35 @@ resize(); setPhase('P1'); setView(VIEWS.overview, true); setIndex(0); playUI(); 
 window.ISL = { setIndex, setPhase, T, VIEWS, setView, PH, TH, get phase() { return phase; } };
 })();
 </script>
-<script>new ResizeObserver(() => window.dispatchEvent(new Event('resize'))).observe(document.getElementById('stage'));</script>
+<script>
+new ResizeObserver(() => window.dispatchEvent(new Event("resize"))).observe(document.getElementById("stage"));
+document.getElementById("hn-min").addEventListener("click", () => {
+  const b = document.getElementById("bottom"), m = document.getElementById("hn-min");
+  const c = b.classList.toggle("collapsed");
+  m.innerHTML = c ? "&#9652;" : "&#8211;"; m.title = c ? "Show the year strip" : "Fold the year strip away";
+});
+(() => {
+  const gl = document.getElementById("gl"); let t = 0, down = false;
+  const peek = () => { document.body.classList.add("hn-peek"); clearTimeout(t);
+    t = setTimeout(() => { if (!down) document.body.classList.remove("hn-peek"); }, 420); };
+  gl.addEventListener("pointerdown", () => { down = true; peek(); });
+  gl.addEventListener("pointermove", () => { if (down) peek(); });
+  const up = () => { down = false; peek(); };
+  gl.addEventListener("pointerup", up); gl.addEventListener("pointercancel", up);
+  gl.addEventListener("wheel", peek, { passive: true });
+})();
+// choosing the Basement view folds the year strip away so the room gets the height;
+// one click on the bar's toggle brings the strip back
+document.querySelector('[data-view="basement"]').addEventListener("click", () => {
+  if (!document.getElementById("bottom").classList.contains("collapsed")) document.getElementById("hn-min").click();
+});
+// the client's phase switch resets to Overview; if the Basement was chosen, keep it,
+// so Phase 1 and Phase 2 can be compared from the same spot
+(() => {
+  const bas = document.querySelector('[data-view="basement"]');
+  document.querySelectorAll("[data-view]").forEach(b => b.addEventListener("click", () => { bas.dataset.keep = b === bas ? "1" : "0"; }));
+  document.querySelectorAll("[data-phase]").forEach(b => b.addEventListener("click", () => { if (bas.dataset.keep === "1") bas.click(); }));
+})();
+</script>
 </body>
 </html>
