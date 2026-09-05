@@ -156,15 +156,20 @@ body.hn-peek #bottom,body.hn-peek #right{opacity:.12;pointer-events:none}
 
 /* ---- the year-to-date figures are the argument: colour-coded and lifted ----
    heat delivered in the data centre's amber, gas not burned in the gas yellow,
-   CO2 avoided in green; bigger values, a coloured rule and a tinted ground */
-.kpis{gap:8px;margin-top:4px}
-.kpis .kpi{--k:var(--on);padding:10px 10px 9px;border-radius:10px;border:1px solid rgba(255,255,255,.10);
+   CO2 avoided in green; the unit sits beside the number. Three five-figure
+   values with units need ~95px a tile, so the card column gains 40px where the
+   screen has it (the client's own 300px column below 1181px stays); the unit
+   is an inline-block so that on a narrow column, or a wider system font, it
+   folds under the number instead of being clipped. */
+@media (min-width:1181px){#right{width:380px}#bottom{right:408px}}
+.kpis{gap:6px;margin-top:4px}
+.kpis .kpi{--k:var(--on);padding:10px 8px 8px;border-radius:10px;border:1px solid rgba(255,255,255,.10);
            border-top:3px solid var(--k);background:rgba(255,179,71,.09)}
 .kpis .kpi:nth-child(2){--k:var(--gas);background:rgba(255,217,77,.09)}
 .kpis .kpi:nth-child(3){--k:#7ee0a0;background:rgba(126,224,160,.10)}
 .kpis .kpi label{color:var(--text);font-weight:700;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;line-height:1.3}
-.kpis .kpi .v{color:var(--k);font-size:22px;font-weight:800;letter-spacing:-.02em;margin-top:5px;line-height:1.05}
-.kpis .kpi .v small{display:block;color:var(--text2);font-size:10px;font-weight:600;margin:3px 0 0;letter-spacing:0}
+.kpis .kpi .v{color:var(--k);font-size:20px;font-weight:800;letter-spacing:-.03em;margin-top:5px;line-height:1.1;white-space:normal}
+.kpis .kpi .v small{display:inline-block;color:var(--text2);font-size:10px;font-weight:600;margin-left:3px;letter-spacing:0;vertical-align:baseline}
 .kpis .kpi .s{color:var(--text2);margin-top:4px}
 </style>
 </head>
@@ -223,7 +228,7 @@ body.hn-peek #bottom,body.hn-peek #right{opacity:.12;pointer-events:none}
     <div class="kpis">
       <div class="kpi"><label>Heat delivered</label><div class="v" id="k-heat">—<small>MWh</small></div><div class="s" id="k-heat-s"></div></div>
       <div class="kpi"><label>Gas not burned</label><div class="v" id="k-gas">—<small>MWh</small></div><div class="s" id="k-gas-s"></div></div>
-      <div class="kpi"><label>CO₂ avoided</label><div class="v" id="k-co2">—<small>t</small></div><div class="s" id="k-co2-s">net of the electricity used, at each half-hour&rsquo;s grid carbon</div></div>
+      <div class="kpi"><label>CO₂ avoided</label><div class="v" id="k-co2">—<small>t</small></div><div class="s" id="k-co2-s">net of the electricity used</div></div>
     </div>
     <div class="mlabel">Heat delivered each month · MWh</div>
     <canvas id="months"></canvas>
