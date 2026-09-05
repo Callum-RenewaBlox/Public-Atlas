@@ -120,8 +120,9 @@ is a fragment (`<style>` + one `<div>`, no `<html>`/`<body>`, no scripts, every
 class prefixed `rbx-`); the app strips blank lines before handing it to
 `st.markdown`, and any new link in it needs an explicit `target="_self"` or
 Streamlit will retarget it to a new tab. The main landing page groups its
-models into delivery windows (2026/27: Peaker and Hydro; 2027/28: Heat Network
-plus a slot for the next model) with CSS-only tabs — radio inputs and
+models into delivery windows (2026/27: Peaker and Hydro; 2027 & beyond: Heat
+Network plus a slot for the next model, whose delivery may run to 2029/30) with
+CSS-only tabs — radio inputs and
 `:checked` selectors, since scripts never run inside `st.markdown`. The first
 window is the CSS default rather than a `checked` attribute: Streamlit's React
 tree treats a `checked` radio as controlled and snaps it back after a click.
