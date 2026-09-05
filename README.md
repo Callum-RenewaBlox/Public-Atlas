@@ -119,9 +119,15 @@ on 20 km of 33 kV spur and shows the short form until zoom 13.5.
 is a fragment (`<style>` + one `<div>`, no `<html>`/`<body>`, no scripts, every
 class prefixed `rbx-`); the app strips blank lines before handing it to
 `st.markdown`, and any new link in it needs an explicit `target="_self"` or
-Streamlit will retarget it to a new tab. The two fragments are the same page —
-each carries a different third card — Heat Network 3D here, NEM 3D in the Australia one, whose kicker says so — so a design
-change to one wants porting to the other.
+Streamlit will retarget it to a new tab. The main landing page groups its
+models into delivery windows (2026/27: Peaker and Hydro; 2027/28: Heat Network
+plus a slot for the next model) with CSS-only tabs — radio inputs and
+`:checked` selectors, since scripts never run inside `st.markdown`. The first
+window is the CSS default rather than a `checked` attribute: Streamlit's React
+tree treats a `checked` radio as controlled and snaps it back after a click.
+The Australia fragment still has the earlier single-grid design with NEM 3D as
+its third card; the tabbed design has not been ported to it yet, pending a
+decision on which window NEM 3D belongs to.
 
 Card thumbnails are frames taken from the models themselves, so they go stale
 when a model is rebuilt. The three.js scenes render with `preserveDrawingBuffer`
