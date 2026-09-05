@@ -8,10 +8,10 @@ navigation bar:
   site, with its half-hourly dispatch desk (``peaker_plant_3d.html``).
 * ``?view=hydro`` — Hydro 3D: the Kinlochdamph powerhouse and its in-room data
   centre, water to wire to rack (``kld_interactive.html``).
-* ``?view=heat`` — Heat Network 3D: the Seward Street heat network and the
+* ``?view=heat`` — Heat Network 3D: the ISL heat network and the
   data centre that heats it, a year half-hour by half-hour
   (``heat_network_3d.html``, built by ``build_heat_network_3d.py`` in the
-  Seward Street client's contract folder).
+  ISL client's contract folder).
 
 NEM 3D is not in this pack: it was built for one group of Australian investors,
 who get Peaker Plant 3D and Hydro 3D plus that one at a URL of their own
