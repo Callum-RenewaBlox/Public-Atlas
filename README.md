@@ -15,15 +15,15 @@ public, the apps deploy as **public apps** on Streamlit Community Cloud
 | `app_kld_atlas.py` | `kld_atlas.html` + `kld_hydro_chrome.html` + `kld_interactive.html` | KLD Atlas — Kinlochdamph 999 kW run-of-river hydro (Loch Damh, Wester Ross): site assets, the 11/33/132 kV network and the two SSEN connection options. A pulsing BLOX badge on the powerhouse opens the 3D Revenue Sim full-screen — the same app serving `?view=3d`, so the atlas page carries none of the model's weight |
 | `app_moray_atlas.py` | `moray_atlas.html` | Moray Cluster Atlas — the Keith & Huntly primaries (the only two green-headroom primaries in the Savills Moray screen): candidate plots, ownership areas, GSP saturation, the 33/132/275/400 kV network and the offshore wind landing on it |
 | `app_srv_3d_sim.py` | `srv_3d_sim.html` | SRV 3D Sim — the Scrivelsby Peaker: a three.js model of the Home Farm AD site with a half-hourly dispatch simulation of the 350 kW switchable block over a real metered year, and the site survey photography on every asset pin |
-| `app_investor_demo.py` | `investor_demo_home.html` + `peaker_plant_3d.html` + `kld_interactive.html` | Investor Demo — a landing page for prospective investors that packs the interactive 3D models: Peaker Plant 3D (the peaker business model as a living site, `?view=peaker`) and Hydro 3D (the KLD powerhouse and its in-room data centre, `?view=hydro`) |
-| `app_investor_demo_aus.py` | `investor_demo_aus_home.html` + `peaker_plant_3d.html` + `kld_interactive.html` + `nem_negative_price_atlas.html` | Investor Demo (Australia) — the same pack plus NEM 3D (mining economics across the Australian NEM, `?view=nem`), on its own URL for the investor group that model was built for |
+| `app_investor_demo.py` | `investor_demo_home.html` + `peaker_plant_3d.html` + `kld_interactive.html` + `heat_network_3d.html` | Investor Demo — a landing page for prospective investors that packs the interactive 3D models: Peaker Plant 3D (the peaker business model as a living site, `?view=peaker`), Hydro 3D (the KLD powerhouse and its in-room data centre, `?view=hydro`) and Heat Network 3D (the Seward Street heat network and the data centre that heats it, a year half-hour by half-hour, `?view=heat`) |
+| `app_investor_demo_aus.py` | `investor_demo_aus_home.html` + `peaker_plant_3d.html` + `kld_interactive.html` + `nem_negative_price_atlas.html` | Investor Demo (Australia) — Peaker Plant 3D and Hydro 3D plus NEM 3D (mining economics across the Australian NEM, `?view=nem`), on its own URL for the investor group that model was built for |
 | `app_peaker_3d.py` | `peaker_plant_3d.html` | Peaker Plant 3D standalone — the same peaker model on its own link, for client brochures (AD operators): no landing page, no pack navigation, straight into the model, prices in **p/kWh** |
 | `app_peaker_demo.py` | `peaker_plant_3d.html` | Peaker Demo — the pack's Peaker Plant 3D on a link of its own, for sending the peaker without the rest of the pack: no landing page, no pack navigation, prices in **£/MWh**, and tailored for an energy-literate audience (strike opens at £80 on a £50–£100 range; the export price is named **DA + gDUoS**) |
 
 The two investor demos are separate apps on purpose: NEM 3D was built for one
 group of Australian investors, so it appears only in the pack they are sent to.
-The Australia pack is a superset — the same two models plus NEM 3D — not a
-different demo. They share this repo, the model copies and the landing-page
+The Australia pack carries Peaker, Hydro and NEM 3D; Heat Network 3D joined
+the main pack first and is not in the Australia pack yet. They share this repo, the model copies and the landing-page
 design; each has its own entry file and its own landing fragment. A stale
 `?view=nem` link against the main pack falls back to its landing page rather
 than erroring.
@@ -54,10 +54,10 @@ inside one can never drive the app's `?view=` navigation.
 
 ## Generated files
 
-`kld_atlas.html`, `moray_atlas.html`, `srv_3d_sim.html` and
-`srv_atlas_3d_badge.html` are built, not hand-edited. Each builder re-skins its
+`kld_atlas.html`, `moray_atlas.html`, `srv_3d_sim.html`,
+`srv_atlas_3d_badge.html` and `heat_network_3d.html` are built, not hand-edited. Each builder re-skins its
 hand-authored source in the shared RenewaBlox design system (petrol brand
-tokens, Inter, glass panels, brand bar) and re-uses the source's data and
+tokens, Inter, brand bar — and glass panels where the build re-skins the panels) and re-uses the source's data and
 vendored payloads byte-for-byte:
 
 | Output | Builder |
@@ -66,6 +66,7 @@ vendored payloads byte-for-byte:
 | `moray_atlas.html` | `Contracts/Savills Earth/Atlas/build_moray_atlas.py` |
 | `srv_3d_sim.html` | `Contracts/Scrivelsby Farm Ltd/Atlas/build_srv_3d_sim.py` |
 | `srv_atlas_3d_badge.html` | `Contracts/Scrivelsby Farm Ltd/Atlas/build_srv_atlas_badge.py` |
+| `heat_network_3d.html` | `Contracts/<Seward Street client>/Atlas/build_heat_network_3d.py` — from the client edition of the Seward Street model: the brand bar, house type and chips go on, the Google Fonts links come off, and the scene, panels, data and payloads pass through byte-for-byte |
 
 `srv_atlas_3d_badge.html` is the 3D-sim gateway for the client atlas: the BLOX
 badge, the popup call-to-action rows and the overlay. `app_srv_atlas.py`
@@ -119,7 +120,7 @@ is a fragment (`<style>` + one `<div>`, no `<html>`/`<body>`, no scripts, every
 class prefixed `rbx-`); the app strips blank lines before handing it to
 `st.markdown`, and any new link in it needs an explicit `target="_self"` or
 Streamlit will retarget it to a new tab. The two fragments are the same page —
-the Australia one carries a third card and says so in its kicker — so a design
+each carries a different third card — Heat Network 3D here, NEM 3D in the Australia one, whose kicker says so — so a design
 change to one wants porting to the other.
 
 Card thumbnails are frames taken from the models themselves, so they go stale
@@ -128,7 +129,9 @@ and expose `window.__atlas`, so a frame is: hide the pins (`#labels`), point the
 camera (`__atlas.view('hall')`), size the canvas 2:1
 (`__atlas.renderer.setSize(2400, 1200, false)` with `cam.aspect = 2`), render,
 then `__atlas.shoot()` for a PNG data URL. Downscale to 1200×600 and inline it
-as WebP (~40 kB at quality 78 matches the other cards).
+as WebP (~40 kB at quality 78 matches the other cards). Heat Network 3D has no
+`__atlas` hook: its card is a plain 2:1 crop of a `#stage` screenshot taken in
+Phase 2, when the thermal stores are lit.
 
 The SRV builder also lifts the 12 survey photographs out of
 `srv_contractor.html`, re-encodes them to WebP and wires them onto the 3D

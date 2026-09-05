@@ -1,7 +1,7 @@
 """Investor Demo (Australia) — the RenewaBlox project pack for the NEM investors.
 
-The Australian cut of the investor demo: the whole pack, plus the NEM model
-that only this audience sees. Deployed at its own URL so the group it was built
+The Australian cut of the investor demo: Peaker and Hydro from the main pack,
+plus the NEM model that only this audience sees. Deployed at its own URL so the group it was built
 for gets a link of their own. A minimal landing page introduces the pack and
 links to the interactive 3D models, each rendered full-bleed behind a slim
 petrol navigation bar:
@@ -15,7 +15,8 @@ petrol navigation bar:
 
 NEM 3D is the reason this app exists: it was built for one group of Australian
 investors, so it stays out of the pack everyone else is sent to
-(``app_investor_demo.py``). The other two models are shared between both.
+(``app_investor_demo.py``). Peaker and Hydro are shared between both; Heat
+Network 3D is only in the main pack for now.
 
 Self-contained: the landing page (``investor_demo_aus_home.html``,
 hand-authored, scene thumbnails and wordmark inlined) and every model carry all

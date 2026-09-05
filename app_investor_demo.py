@@ -1,6 +1,6 @@
 """Investor Demo — the RenewaBlox project pack.
 
-One app, two doors. A minimal landing page introduces the pack and links to
+One app, three doors. A minimal landing page introduces the pack and links to
 the interactive 3D models, each rendered full-bleed behind a slim petrol
 navigation bar:
 
@@ -8,13 +8,18 @@ navigation bar:
   site, with its half-hourly dispatch desk (``peaker_plant_3d.html``).
 * ``?view=hydro`` — Hydro 3D: the Kinlochdamph powerhouse and its in-room data
   centre, water to wire to rack (``kld_interactive.html``).
+* ``?view=heat`` — Heat Network 3D: the Seward Street heat network and the
+  data centre that heats it, a year half-hour by half-hour
+  (``heat_network_3d.html``, built by ``build_heat_network_3d.py`` in the
+  Seward Street client's contract folder).
 
 NEM 3D is not in this pack: it was built for one group of Australian investors,
-who get these two models plus that one at a URL of their own — see
+who get Peaker Plant 3D and Hydro 3D plus that one at a URL of their own
+(Heat Network 3D is not in the Australia pack yet) — see
 ``app_investor_demo_aus.py``.
 
 Self-contained: the landing page (``investor_demo_home.html``, hand-authored,
-scene thumbnails and wordmark inlined) and both models carry all data embedded
+scene thumbnails and wordmark inlined) and every model carry all data embedded
 — no CDN, no database, no secrets. Navigation is plain query-param links, so
 each model has a shareable URL.
 
@@ -34,6 +39,7 @@ HERE = Path(__file__).resolve().parent
 MODELS = {
     "peaker": {"file": "peaker_plant_3d.html", "label": "Peaker Plant 3D"},
     "hydro": {"file": "kld_interactive.html", "label": "Hydro 3D"},
+    "heat": {"file": "heat_network_3d.html", "label": "Heat Network 3D"},
 }
 
 # Presentation-only patches applied to a model page as it is served, so the
