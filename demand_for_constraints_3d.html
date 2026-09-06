@@ -227,7 +227,7 @@ footer .src{margin-left:auto;color:#6f8290;white-space:nowrap}
 :root{--rbx-font:"Inter","Inter var",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
 html,body{font-family:var(--rbx-font)}
 .hbtn,#views button,.ctrls button,#scen,#modecard .why,#sitecard .btns button,#stackBtn,#deskmin,
-#drawer button,#drawer input,#drawer select{font-family:var(--rbx-font)}
+#drawer button,#drawer input,#drawer select,#drawer table.yt input[type=number],.inp input[type=number],.inp select{font-family:var(--rbx-font)}
 header{padding:13px 26px 11px;gap:20px;flex:none;position:relative;z-index:6;flex-wrap:wrap}
 header .logo{display:flex;align-items:baseline;gap:10px}
 header .logo img{height:24px;display:block}
@@ -255,16 +255,23 @@ header .title .hint{display:none}
 
 /* ---- the page: the scene owns everything below the bar ----
    The footer's "How to read it" sentence is the How-it-works card's first
-   paragraph in miniature; the row is dropped so the stage gets its 47 px. */
+   paragraph in miniature; the row is dropped so the stage gets its 47 px, and
+   its credit line moves into the year panel. The scene headline's second line
+   repeats the bar's subtitle and the site chips' capacities, so it goes too. */
 footer{display:none}
-/* the card column scrolls (invisibly) when the revenue stack is opened, instead of running off the page */
-#rightcol{overflow-y:auto;scrollbar-width:none;overscroll-behavior:contain}
-#rightcol::-webkit-scrollbar{display:none}
-/* the columns: 380 px, so the year-to-date figures never clip and the view row
-   is one line; the desk and the drawer follow the card column's edge. The
-   model's own 260 px column below 1181 px stays. The view row needs 400. */
+#heroS{display:none}
+/* the columns: 400 / 380 px, so five view chips sit on one line and the
+   year-to-date figures never clip; the desk and the drawer follow the card
+   column's edge. The model's own 260 px column below 1181 px stays. */
 #leftcol{width:400px}
-@media (min-width:1181px){#rightcol{width:380px}#desk{right:412px}#drawer{right:412px}}
+@media (min-width:1181px){#rightcol{width:380px}#desk{right:412px}#drawer{right:412px}#desk.collapsed{right:412px}}
+@media (max-width:1180px){#desk.collapsed{right:292px}}
+/* the left column always ends above the desk: capped by the desk's height (a
+   variable the appended script keeps current, folding included), scrolling
+   invisibly only as a last resort */
+#leftcol{max-height:calc(100% - 34px - var(--desk-h,0px));overflow-y:auto;scrollbar-width:none;overscroll-behavior:contain}
+#leftcol::-webkit-scrollbar{display:none}
+#why svg{width:auto;height:118px;margin:2px auto 0}
 
 /* ---- the view row: five chips on one line, the call to action in amber ----
    (amber is the model's own curtailment colour: the gate, the wind-turned-down
@@ -281,7 +288,7 @@ footer{display:none}
    absorbed in amber; 20 px numbers with the unit beside them (an inline-block,
    so it folds under rather than clips on the narrow column); the month bars
    and the Atlas caption go — the desk's year lane now carries the hours by
-   market, and the column fits a laptop screen */
+   market — and the column fits a laptop screen */
 .tiles{gap:6px;margin-top:8px}
 .tile{--k:var(--idle);padding:10px 8px 8px;border-radius:10px;border:1px solid rgba(255,255,255,.10);
       border-top:3px solid var(--k);background:rgba(255,255,255,.05)}
@@ -292,30 +299,65 @@ footer{display:none}
 .tile .v{color:var(--k);font-size:20px;letter-spacing:-.03em;margin-top:5px;line-height:1.1;white-space:normal}
 .tile .v small{display:inline-block;color:var(--tx2);font-size:10px;font-weight:600;margin-left:3px;vertical-align:baseline}
 .tile .s{color:var(--tx2);margin-top:4px;font-size:9.5px}
-#mbars,#year .cap,#year .tiny[style]{display:none}
-#stackBtn{margin-top:10px}
+#mbars,#year .cap{display:none}
+#year .tiny[style]{color:var(--mu);font-size:10px}
+#stackBtn{margin-top:8px}
 #sitecard .cell b{font-size:17px}
-/* the How-it-works / tour card: five lines, not eight */
-#card{width:520px;padding:14px 18px 13px}
+/* the full-year revenue stack opens as a panel beside the card column, level
+   with its top, instead of pushing the column off the bottom of the page (the
+   appended script moves #stack out of the year panel, whose backdrop-filter
+   would otherwise be its containing block) */
+#rightcol{overflow:visible;z-index:5}
+#stack.open{position:absolute;right:calc(100% + 10px);top:0;width:320px;margin:0;padding:11px 14px;background:var(--pnl2);
+            border:1px solid var(--ln);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.35);backdrop-filter:blur(10px)}
+#stack.open::before{content:"Full-year revenue stack";display:block;font-size:10.5px;letter-spacing:1.2px;color:#c7d3dc;
+                    font-weight:700;text-transform:uppercase;margin-bottom:6px}
+/* the How-it-works / tour card sits in the gap between the columns */
+#card{padding:14px 18px 13px}
 #card p{font-size:12.5px}
+@media (min-width:1181px){#card{left:436px;right:428px;width:auto;max-width:520px;margin:0 auto;transform:none}}
 
 /* ---- the dispatch desk: one control row, two lanes that earn their height ----
    The play pill repeats the play button and the "half-hour n of 48" line is
-   jargon; the date and time share a baseline; the row never wraps. The Today
-   lane stays as authored; the year lane is redrawn (parts/dfc_year.js) and the
-   lanes are rebalanced so each chart draws at its authored size. */
+   jargon; the date and time share a baseline; the row never wraps (the mode
+   pill yields below 1500 px — the mode card and the site chips carry the same
+   state). The Today lane stays as authored; the year lane is redrawn
+   (parts/dfc_year.js); both are drawn at their real pixel width. */
 #desk{padding:8px 14px 8px;bottom:10px;transition:opacity .22s}
 #deskmin{width:26px;height:26px;font-size:14px;border-radius:7px}
 #playPill,#deskSp{display:none}
+@media (max-width:1499px){#modePill{display:none}}
 .dhead{flex-wrap:nowrap;gap:10px}
-.dhead .when{min-width:0;flex-direction:row;align-items:baseline;gap:8px;white-space:nowrap}
+.dhead .when{flex:none;min-width:0;flex-direction:row;align-items:baseline;gap:8px;white-space:nowrap}
 .dhead .when small{font-size:11px;color:var(--tx2);font-weight:600}
 .dhead .when b #deskTime{font-size:16px;font-weight:800;color:#fff;margin-left:0;letter-spacing:-.2px}
 #scen{max-width:160px}
-.lanes{grid-template-columns:4fr 3fr;margin-top:6px}
-@media (max-width:1180px){.lanes{grid-template-columns:4fr 3fr}}
+.lanes{grid-template-columns:minmax(0,4fr) minmax(0,3fr);margin-top:6px}
+@media (max-width:1180px){.lanes{grid-template-columns:minmax(0,4fr) minmax(0,3fr)}}
+.lane{min-width:0}
 .lane h4{font:700 10px var(--rbx-font);letter-spacing:.08em}
-.lane h4 .lg{font:500 10px var(--rbx-font)}
+.lane h4 .lg{font:500 9.5px var(--rbx-font);gap:7px}
+/* on a laptop the Today legend would run into the year lane's heading: the
+   grey 'Standing by' entry is self-evident and yields */
+@media (max-width:1400px){.lane:first-child h4 .lg > span:nth-child(4){display:none}.lane h4 .lg{gap:6px}}
+
+/* ---- a short-height tier for 600 px iframes: the bar, the headline and the
+   desk each give back a few pixels, and an open panel compacts what it repeats ---- */
+@media (max-height:760px){
+  header{padding:9px 26px 8px}
+  #hero h2{font-size:20px}
+  #desk{padding:6px 14px 6px}
+  .lanes{margin-top:4px}
+  #sitecard .kit{display:none}
+  #leftcol:has(#why.open) #modecard p,#leftcol:has(#why.open) #modecard .row{display:none}
+}
+
+/* ---- scene labels: the site chips on top, towns underneath; wind chips lose
+   their sub-line on a laptop so the offshore three stop overlapping ---- */
+.lbl.site{z-index:3}
+.lbl.wind,.lbl.grid,.lbl.neso{z-index:2}
+.lbl.town{z-index:1}
+@media (max-width:1400px){.lbl.wind .chip small{display:none}}
 
 /* ---- while the scene is being dragged or zoomed, the desk and the card
    column get out of the way, and come straight back when the pointer settles;
@@ -348,6 +390,13 @@ body.dfc-peek #desk,body.dfc-peek #rightcol{opacity:.12;pointer-events:none}
   <div id="leftcol">
   <div id="hero"><h2 id="heroT">2028 · absorbing curtailed wind</h2><p id="heroS">Keith 2 MW + Huntly 4 MW · the Moray cluster, half-hour by half-hour</p></div>
 
+<div id="views">
+    <button data-v="overview" class="on">Overview</button>
+    <button data-v="binds" class="cta" title="The B4 gate, the NESO signal and the halls in one view">&#9662; Where it binds</button>
+    <button data-v="keith">Keith</button>
+    <button data-v="huntly">Huntly</button>
+    <button data-v="hub">Grid hub</button>
+  </div>
   <div class="panel" id="modecard">
     <div class="k"><i></i><span id="mcK">Standing by</span></div>
     <h3 id="mcT">—</h3>
@@ -355,14 +404,7 @@ body.dfc-peek #desk,body.dfc-peek #rightcol{opacity:.12;pointer-events:none}
     <div class="row" id="mcRow"></div>
     <button class="why" id="whyBtn">why?</button>
   </div>
-  <div id="views">
-    <button data-v="overview" class="on">Overview</button>
-    <button data-v="binds" class="cta" title="The B4 gate, the NESO signal and the halls in one view">&#9662; Where it binds</button>
-    <button data-v="keith">Keith</button>
-    <button data-v="huntly">Huntly</button>
-    <button data-v="hub">Grid hub</button>
-  </div>
-  <div class="panel" id="why">
+    <div class="panel" id="why">
     <div class="ph">Cost of a kWh <span class="r">delivered · this half hour</span></div>
     <svg id="stackSvg" viewBox="0 0 274 118"></svg>
     <div class="note" id="stackNote"></div>
@@ -403,7 +445,7 @@ body.dfc-peek #desk,body.dfc-peek #rightcol{opacity:.12;pointer-events:none}
         <div class="tile b"><div class="l">Levies avoided</div><div class="v" id="yFcl">£0<small>m</small></div><div class="s">RO · CfD · FiT · RAB · CM</div></div>
         <div class="tile a"><div class="l">Wind absorbed</div><div class="v" id="yGwh">0<small>GWh</small></div><div class="s" id="yLf">–</div></div>
       </div>
-      <div class="tiny" style="margin-top:8px">Hours in each market, month by month</div>
+      <div class="tiny" style="margin-top:8px">2025 shapes &middot; Atlas constraint % &middot; &copy; RenewaBlox</div>
       <svg id="mbars" viewBox="0 0 272 54"></svg>
       <div class="cap" id="yearCap"></div>
       <button id="stackBtn"><span>Full-year revenue stack</span><span id="stackArrow">▾</span></button>
@@ -426,8 +468,8 @@ body.dfc-peek #desk,body.dfc-peek #rightcol{opacity:.12;pointer-events:none}
     </div>
     <div class="deskbody">
       <div class="lanes">
-        <div class="lane"><h4>Today <span class="lg"><span><i style="background:var(--dfc)"></i>DfC · absorbing</span><span><i style="background:var(--whl)"></i>Wholesale</span><span><i style="background:var(--res)"></i>Reserve · available</span><span><i style="background:#3a4a58"></i>Standing by</span><span><i style="background:var(--amber);height:4px;border-radius:2px"></i>Wind turned down</span></span></h4><div style="position:relative"><svg id="today" viewBox="0 0 640 62"></svg><div id="tip"></div></div></div>
-        <div class="lane"><h4>The year <span class="lg"><span><i style="background:var(--dfc)"></i>DfC</span><span><i style="background:var(--whl)"></i>Wholesale</span><span>hours a day · click to jump</span></span></h4><svg id="yearchart" viewBox="0 0 480 64"></svg></div>
+        <div class="lane"><h4>Today <span class="lg"><span><i style="background:var(--dfc)"></i>DfC · absorbing</span><span><i style="background:var(--whl)"></i>Wholesale</span><span><i style="background:var(--res)"></i>Reserve · available</span><span><i style="background:#3a4a58"></i>Standing by</span><span><i style="background:var(--amber);height:4px;border-radius:2px"></i>Wind turned down</span></span></h4><div style="position:relative"><svg id="today" viewBox="0 0 860 62"></svg><div id="tip"></div></div></div>
+        <div class="lane"><h4>The year <span class="lg"><span><i style="background:var(--dfc)"></i>DfC</span><span><i style="background:var(--whl)"></i>Wholesale</span><span>hours a day · click to jump</span></span></h4><svg id="yearchart" viewBox="0 0 330 62"></svg></div>
       </div>
     </div>
   </div>
@@ -7355,7 +7397,7 @@ const Scene3D = (() => {
   }
 
   // ---------------------------------------------------------------- views
-  const VIEWS = { overview: { p: [24, 21, 64], t: [-2, 0.4, -6] }, keith: { p: [1.1, 0.95, 2.35], t: [0.05, 0.1, 0.2], rel: 'keith' }, huntly: { p: [1.4, 1.15, 2.9], t: [0, 0.1, 0.45], rel: 'huntly' }, hub: { p: [2.4, 1.6, 2.8], t: [0, 0.2, 0], rel: 'hub' }, offshore: { p: [2, 7, 22], t: [0, 0.8, 0], rel: 'offshore' }, gate: { p: [-8, 5, 8], t: [0, 1.8, 0], rel: 'gate' }, binds: { p: [33, 22, 72], t: [9, 0.5, 12] } };
+  const VIEWS = { overview: { p: [24, 21, 64], t: [-2, 0.4, -6] }, keith: { p: [1.1, 0.95, 2.35], t: [0.05, 0.1, 0.2], rel: 'keith' }, huntly: { p: [1.4, 1.15, 2.9], t: [0, 0.1, 0.45], rel: 'huntly' }, hub: { p: [2.4, 1.6, 2.8], t: [0, 0.2, 0], rel: 'hub' }, offshore: { p: [2, 7, 22], t: [0, 0.8, 0], rel: 'offshore' }, gate: { p: [-8, 5, 8], t: [0, 1.8, 0], rel: 'gate' }, binds: { p: [38, 28, 80], t: [9, 0.5, 22] } };
   let camAnim = null;
   function setView(name) {
     const v = VIEWS[name]; if (!v) return; let base = new THREE.Vector3(0, 0, 0);
@@ -7463,7 +7505,7 @@ const Scene3D = (() => {
     svg += `<line x1="4" y1="${y - 1}" x2="264" y2="${y - 1}" stroke="rgba(255,255,255,.14)"/><text x="${x0 - 6}" y="${y + 11}" text-anchor="end" font-size="9.2" fill="#a9b8c4">Dispatch margin</text><text x="${x0}" y="${y + 11}" font-size="10.5" font-weight="800" fill="${t.marginVar >= 0 ? '#22C99A' : '#FF6B6B'}">${fmtK(t.marginVar)}</text><text x="${x0 - 6}" y="${y + 24}" text-anchor="end" font-size="9.2" fill="#a9b8c4">Other revenues</text><text x="${x0}" y="${y + 24}" font-size="10" font-weight="700" fill="#fff">+${fmtK(t.rOther)}</text><text x="${x0 - 6}" y="${y + 37}" text-anchor="end" font-size="9.2" fill="#a9b8c4">Fixed DUoS + TNUoS</text><text x="${x0}" y="${y + 37}" font-size="10" font-weight="700" fill="#a9b8c4">−${fmtK(t.fixed)}</text>`;
     $('rsSvg').setAttribute('viewBox', '0 0 264 ' + (y + 42)); $('rsSvg').innerHTML = svg; const n = $('rsNet'); n.textContent = fmtK(t.net); n.className = t.net < 0 ? 'neg' : '';
   }
-  $('stackBtn').onclick = () => { const o = $('stack').classList.toggle('open'); $('stackArrow').textContent = o ? '▴' : '▾'; };
+  $('stackBtn').onclick = () => { const o = $('stack').classList.toggle('open'); $('stackArrow').textContent = o ? '◂' : '▸'; };
 
   // ---------------------------------------------------------------- month bars (hours in each market)
   function drawMonthBars() {
@@ -7475,19 +7517,22 @@ const Scene3D = (() => {
   }
 
   // ---------------------------------------------------------------- year chart (desk, right lane)
-  const YW = 480, YH = 64, YPL = 22, YPR = 4;
+  let YW = 480; const YH = 62, YPL = 24, YPR = 4;
   // The year lane, redrawn: hours a day in each market as stacked areas — DfC
   // from the baseline, wholesale on top — with 12 h / 24 h gridlines, month
   // names along the base and the year still to come dimmed behind the
-  // playhead. Same closure contract as the source: drawYearChart() from
-  // recompute(), moveYearCursor() from tick(); click to jump, hover for the day.
+  // playhead. Drawn at the lane's real pixel width (the viewBox follows it, so
+  // the type stays 1:1 at every desk width; redrawDesk() redraws on resize).
+  // Same closure contract as the source: drawYearChart() from recompute(),
+  // moveYearCursor() from tick(); click to jump, hover for the day.
   function drawYearChart() {
+    const yc = $('yearchart'); YW = Math.max(240, Math.round(yc.getBoundingClientRect().width)) || 480; yc.setAttribute('viewBox', '0 0 ' + YW + ' ' + YH);
     const D = M.P.days.length; const hd = new Float32Array(D), hw = new Float32Array(D);
     for (let i = 0; i < N; i++) { if (R.mode[i] === 2) hd[M.dayIdx[i]] += 0.5; else if (R.mode[i] === 1) hw[M.dayIdx[i]] += 0.5; }
     const pl = YPL, pr = YPR, pt = 5, pb = 12; const w = (YW - pl - pr) / D, ph = YH - pt - pb; const y = h => pt + ph * (1 - h / 24);
     const x = d => pl + (d + 0.5) * w; const f = v => v.toFixed(1);
     let s = '';
-    for (const g of [12, 24]) s += `<line x1="${pl}" y1="${f(y(g))}" x2="${YW - pr}" y2="${f(y(g))}" stroke="rgba(255,255,255,.09)"/><text x="${pl - 3}" y="${f(y(g) + 2.6)}" text-anchor="end" font-size="7.5" fill="#71838F">${g} h</text>`;
+    for (const g of [12, 24]) s += `<line x1="${pl}" y1="${f(y(g))}" x2="${YW - pr}" y2="${f(y(g))}" stroke="rgba(255,255,255,.09)"/><text x="${pl - 3}" y="${f(y(g) + 3)}" text-anchor="end" font-size="8.5" fill="#71838F">${g} h</text>`;
     let top1 = '', top2 = '', back1 = '';
     for (let d = 0; d < D; d++) { const c = d ? 'L' : 'M'; top1 += `${c}${f(x(d))},${f(y(hd[d]))}`; top2 += `${c}${f(x(d))},${f(y(hd[d] + hw[d]))}`; }
     for (let d = D - 1; d >= 0; d--) back1 += `L${f(x(d))},${f(y(hd[d]))}`;
@@ -7497,11 +7542,11 @@ const Scene3D = (() => {
     ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].forEach((l, mo) => {
       const idx = M.P.days.findIndex(t => +t.slice(5, 7) === mo + 1); if (idx < 0) return; const xx = pl + idx * w;
       if (mo > 0) s += `<line x1="${f(xx)}" y1="${pt}" x2="${f(xx)}" y2="${f(pt + ph)}" stroke="rgba(255,255,255,.06)"/>`;
-      s += `<text x="${f(xx + 2)}" y="${YH - 2}" font-size="7.5" fill="#71838F">${l}</text>`;
+      s += `<text x="${f(xx + 2)}" y="${YH - 2}" font-size="8.5" fill="#71838F">${l}</text>`;
     });
     s += `<rect id="ycFut" x="${pl}" y="${pt}" width="${f(YW - pl - pr)}" height="${f(ph)}" fill="rgba(11,20,29,.62)"/>`;
     s += `<line id="ycCur" x1="0" y1="${pt}" x2="0" y2="${pt + ph}" stroke="#fff" stroke-width="1.5" opacity=".9"/><rect id="ycHit" x="${pl}" y="0" width="${YW - pl - pr}" height="${YH}" fill="transparent" style="cursor:pointer"/>`;
-    const yc = $('yearchart'); yc.innerHTML = s; moveYearCursor();
+    yc.innerHTML = s; moveYearCursor();
     const dayAt = e => { const r = yc.getBoundingClientRect(); return Math.min(D - 1, Math.max(0, Math.floor(((e.clientX - r.left) / r.width * YW - pl) / w))); };
     $('ycHit').addEventListener('click', e => jumpTo(M.dayStart[dayAt(e)] + 16));
     $('ycHit').addEventListener('mousemove', e => { const d = dayAt(e); showTip(e, `<b>${M.fmtDL.format(new Date(M.utc(M.dayStart[d] + 20)))}</b><br><span class="dot" style="background:${COL[2]}"></span>DfC ${hd[d]} h · <span class="dot" style="background:${COL[1]}"></span>wholesale ${hw[d]} h<br>Day margin <b>${fmtK(R.daily[d])}</b> · absorbed ${fmtN(R.dailyE[d])} MWh`, $('desk')); });
@@ -7512,10 +7557,10 @@ const Scene3D = (() => {
   function hideTip() { $('tip').style.opacity = 0; }
 
   // ---------------------------------------------------------------- today lane (desk, left)
-  const TW = 640, TH = 62; let todayDay = -1;
+  let TW = 860; const TH = 62; let todayDay = -1;
   function drawToday(force) {
     const day = M.dayIdx[cur]; if (day === todayDay && !force) { moveTodayCursor(); return; } todayDay = day;
-    const i0 = M.dayStart[day], n = M.P.day_n[day]; const pl = 4, pr = 4; const w = (TW - pl - pr) / n; let s = '';
+    TW = Math.max(360, Math.round($('today').getBoundingClientRect().width)) || 860; $('today').setAttribute('viewBox', '0 0 ' + TW + ' ' + TH); const i0 = M.dayStart[day], n = M.P.day_n[day]; const pl = 4, pr = 4; const w = (TW - pl - pr) / n; let s = '';
     for (let k = 0; k < n; k++) { const i = i0 + k; const x = pl + k * w; const m = R.mode[i]; s += `<rect x="${(x + 0.6).toFixed(1)}" y="14" width="${(w - 1.2).toFixed(1)}" height="34" rx="2.5" fill="${COL[m]}" opacity="${m === 0 ? 0.55 : 1}"/>`; if (M.excess[i] > 0) s += `<rect x="${(x + 0.6).toFixed(1)}" y="4" width="${(w - 1.2).toFixed(1)}" height="5" rx="1.5" fill="#F5A623" opacity="${Math.min(1, 0.45 + M.excess[i] / 2500)}"/>`; }
     for (let hh = 0; hh <= 24; hh += 3) { const x = pl + hh * 2 * n / 48 * w; s += `<text x="${x.toFixed(1)}" y="${TH - 3}" text-anchor="${hh === 0 ? 'start' : hh === 24 ? 'end' : 'middle'}" font-size="9" fill="#71838F">${String(hh).padStart(2, '0')}:00</text>`; }
     s += `<line id="tdCur" x1="0" y1="2" x2="0" y2="50" stroke="#fff" stroke-width="2" opacity=".95"/><rect id="tdHit" x="${pl}" y="0" width="${TW - pl - pr}" height="${TH}" fill="transparent" style="cursor:pointer"/>`;
@@ -7716,7 +7761,7 @@ const Scene3D = (() => {
   buildYears();
   const glb = Uint8Array.from(atob(window.__DFC_GLB__), c => c.charCodeAt(0)).buffer;
   S.init(glb, () => { $('loading').classList.add('hide'); recompute(); const e = M.P.days.indexOf('2025-01-24'); jumpTo((e >= 0 ? M.dayStart[e] : 0) + 24); setPlaying(true); requestAnimationFrame(loop); });
-  window.__dfc = { get R() { return R; }, get cur() { return cur; }, jumpTo, setYear, openSite, setViewBtn, pause: () => setPlaying(false), play: () => setPlaying(true), S, M };
+  window.__dfc = { get R() { return R; }, get cur() { return cur; }, jumpTo, setYear, openSite, setViewBtn, redrawDesk: () => { if (!R) return; todayDay = -1; drawToday(true); drawYearChart(); }, pause: () => setPlaying(false), play: () => setPlaying(true), S, M };
 })();
 
 </script>
@@ -7730,7 +7775,9 @@ new ResizeObserver(() => window.dispatchEvent(new Event("resize"))).observe(docu
       .map(r => ({ x0: r.left - s.left - 6, x1: r.right - s.left + 6, y0: r.top - s.top - 6, y1: r.bottom - s.top + 6 }));
     // and the strip beside the desk, under the card column, where a chip would peek out of the corner
     const dk = document.getElementById("desk").getBoundingClientRect();
-    bands.push({ x0: dk.right - s.left, x1: s.width + 60, y0: dk.top - s.top - 6, y1: s.height + 60 }); };
+    bands.push({ x0: dk.right - s.left, x1: s.width + 60, y0: dk.top - s.top - 6, y1: s.height + 60 });
+    const so = document.querySelector("#stack.open");
+    if (so) { const r = so.getBoundingClientRect(); bands.push({ x0: r.left - s.left - 6, x1: r.right - s.left + 6, y0: r.top - s.top - 6, y1: r.bottom - s.top + 6 }); } };
   refresh(); window.addEventListener("resize", refresh); setInterval(refresh, 400);
   window.__dfcCull = (x, y) => bands.some(b => x > b.x0 && x < b.x1 && y > b.y0 && y < b.y1);
 })();
@@ -7745,10 +7792,22 @@ new ResizeObserver(() => window.dispatchEvent(new Event("resize"))).observe(docu
   gl.addEventListener("wheel", peek, { passive: true });
 })();
 (() => {
+  // the revenue stack is positioned against the column, not the year panel (a
+  // panel's backdrop-filter is a containing block); its id lookups still work
+  document.getElementById("rightcol").appendChild(document.getElementById("stack"));
   const g = document.getElementById("gear"), d = document.getElementById("drawer");
   const sync = () => g.classList.toggle("on", d.classList.contains("open"));
   g.addEventListener("click", sync); d.addEventListener("click", e => { if (e.target.id === "closeA") setTimeout(sync, 0); });
   document.getElementById("deskmin").title = "Fold the timeline away";
+})();
+(() => {
+  const st = document.getElementById("stage"), dk = document.getElementById("desk");
+  const set = () => st.style.setProperty("--desk-h", dk.offsetHeight + "px");
+  new ResizeObserver(set).observe(dk); set();
+  let w = 0, t = 0;
+  new ResizeObserver(() => { const nw = Math.round(dk.querySelector(".lanes").getBoundingClientRect().width);
+    if (nw < 50 || nw === w) return; w = nw; clearTimeout(t);
+    t = setTimeout(() => { if (window.__dfc) window.__dfc.redrawDesk(); }, 120); }).observe(dk.querySelector(".lanes"));
 })();
 </script>
 </body>
