@@ -12,6 +12,10 @@ navigation bar:
   data centre that heats it, a year half-hour by half-hour
   (``heat_network_3d.html``, built by ``build_heat_network_3d.py`` in the
   ISL client's contract folder).
+* ``?view=dfc`` — Demand for Constraints 3D: the Moray cluster north of the
+  B4 constraint and the two BLOX halls NESO dispatches to absorb curtailed
+  wind, a year half-hour by half-hour (``demand_for_constraints_3d.html``,
+  built by ``build_dfc_3d.py`` in the in-house Atlas 3D folder).
 
 NEM 3D is not in this pack: it was built for one group of Australian investors,
 who get Peaker Plant 3D and Hydro 3D plus that one at a URL of their own
@@ -40,6 +44,9 @@ MODELS = {
     "peaker": {"file": "peaker_plant_3d.html", "label": "Peaker Plant 3D"},
     "hydro": {"file": "kld_interactive.html", "label": "Hydro 3D"},
     "heat": {"file": "heat_network_3d.html", "label": "Heat Network 3D"},
+    # the pack bar shortens labels to their first word on a phone; "Demand" alone
+    # would not say what this is
+    "dfc": {"file": "demand_for_constraints_3d.html", "label": "Demand for Constraints 3D", "short": "DfC"},
 }
 
 # Presentation-only patches applied to a model page as it is served, so the
@@ -145,7 +152,7 @@ else:
     links = []
     for key, model in MODELS.items():
         active = ' class="active"' if key == view else ""
-        short = model["label"].split()[0]
+        short = model.get("short", model["label"].split()[0])
         links.append(
             f'<a href="?view={key}" target="_self"{active}>'
             f'<span class="lbl-f">{model["label"]}</span>'
