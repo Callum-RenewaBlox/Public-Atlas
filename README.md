@@ -177,9 +177,10 @@ per entry file, each with its own custom subdomain:
 | `app_investor_demo.py` | `investor-demo.streamlit.app` |
 | `app_investor_demo_aus.py` | `investor-demo-aus.streamlit.app` |
 | `app_peaker_3d.py` | `peakerplant-3d.streamlit.app` |
+| `app_investor_portal.py` | `investor-insight.streamlit.app` — linked from the members-only area of the Wix investor portal |
 
-`app_peaker_demo.py` and `app_investor_portal.py` are ready to deploy and have no
-subdomain yet — add their rows above once claimed. For the portal app, set
+`app_peaker_demo.py` is ready to deploy and has no subdomain yet — add its row
+above once one is claimed. For the portal app, set
 `PORTAL_PASSCODE` in the app's secrets on Streamlit Cloud to lock it (the code
 never lives in this repo; `.streamlit/secrets.toml` is git-ignored), then run
 `python portal_key.py <code>` and put the printed `?k=…` on the end of the app's
