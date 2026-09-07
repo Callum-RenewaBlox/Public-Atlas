@@ -57,6 +57,53 @@ PATCH_CSS = {
     "peaker": "#viewstrip{display:none !important;}",
 }
 
+# Views whose figures are for investors. In this public pack the panels that
+# carry them are blurred and inert — a visitor sees that the data is there —
+# and a card points to the investor portal. Cosmetic by design: the numbers
+# are still in the page the browser receives, and the model files are public
+# in this repository; the portal edition (``app_investor_portal.py``) serves
+# the same files unblurred behind its access gate. ``blur`` lists the panels
+# that carry figures, ``hide`` the controls that only make sense with them
+# (the DfC assumptions drawer is the whole commercial model), ``top`` puts the
+# card over the blurred column.
+PORTAL_URL = "https://www.renewablox.com/invest"
+GATED = {
+    "hydro": {
+        "blur": ("#nowpanel, #powerwrap, #revpanel, #island .imbody, #deskwrap #chart, "
+                 "#deskwrap #tip, #scstats, header .fchip b"),
+        "hide": "",
+        "top": "56%",
+    },
+    "dfc": {
+        "blur": ("#rightcol, #stack, #modecard p, #modecard .row, #why, #sitecard .grid, "
+                 "#sitecard .kit, #desk .lane:nth-child(2)"),
+        "hide": "#gear",
+        "top": "36%",
+    },
+}
+
+GATE_CSS = """
+  {blur}{{filter:blur(7px) saturate(.85); pointer-events:none !important; user-select:none;}}
+  {hide}{{display:none !important;}}
+  #rbx-gate{{position:fixed; right:{right}; top:{top}; transform:translateY(-50%); width:318px; z-index:40;
+      font-family:"Inter","Inter var",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+      background:rgba(255,255,255,.97); color:#12475e; border:1px solid #dde5ea; border-radius:14px;
+      box-shadow:0 18px 48px rgba(9,26,35,.38); padding:18px 20px 16px;}}
+  #rbx-gate .k{{font-size:11px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:#1f5f7f;
+      margin:0 0 6px; display:flex; align-items:center; gap:8px;}}
+  #rbx-gate .k::before{{content:""; width:20px; height:2px; background:#1f5f7f; border-radius:2px;}}
+  #rbx-gate h3{{margin:0 0 6px; font-size:18px; font-weight:800; letter-spacing:-.01em; line-height:1.25;}}
+  #rbx-gate p{{margin:0 0 12px; font-size:13px; line-height:1.5; color:#4f6572;}}
+  #rbx-gate a{{display:inline-flex; align-items:center; gap:8px; background:#1f5f7f; color:#fff; text-decoration:none;
+      font-weight:600; font-size:13px; padding:9px 15px; border-radius:999px; transition:background .15s;}}
+  #rbx-gate a:hover{{background:#16485f;}}
+"""
+GATE_HTML = """<div id="rbx-gate"><div class="k">Investor data</div>
+<h3>The live figures are blurred in this demo.</h3>
+<p>Investors see them in full inside the RenewaBlox investor portal.</p>
+<a href="{url}" target="_blank" rel="noopener">Open the investor portal &rarr;</a></div>
+"""
+
 view = st.query_params.get("view", "home")
 if view not in MODELS:
     view = "home"
@@ -125,6 +172,8 @@ st.markdown(
       .rbx-bar a:focus-visible {{outline:2px solid #fff; outline-offset:2px;}}
       .rbx-bar a.active {{color:#0d1b23; background:#fff; font-weight:600;}}
       .rbx-bar a.back {{color:#fff; font-weight:600; padding-left:2px;}}
+      .rbx-bar a.portal {{margin-left:8px; border:1px solid rgba(255,255,255,.38); color:#fff; font-weight:600;}}
+      .rbx-bar a.portal:hover {{background:#fff; color:#0d1b23;}}
       .rbx-bar .lbl-s {{display:none;}}
       @media (max-width:640px) {{ .rbx-bar .crumb {{display:none;}} }}
       @media (max-width:480px) {{
@@ -150,6 +199,8 @@ else:
     # target="_self" matters: Streamlit's markdown renderer retargets plain
     # anchors to open in a new tab, which would orphan the pack navigation.
     links = []
+    portal_link = (f'<a href="{PORTAL_URL}" target="_blank" rel="noopener" class="portal">'
+                   f'Investor data &rarr; portal</a>' if view in GATED else "")
     for key, model in MODELS.items():
         active = ' class="active"' if key == view else ""
         short = model.get("short", model["label"].split()[0])
@@ -162,7 +213,7 @@ else:
         <div class="rbx-bar">
           <a href="?view=home" target="_self" class="back">&larr; All models</a>
           <div class="crumb">Investor Demo &middot; {MODELS[view]["label"]}</div>
-          <nav>{"".join(links)}</nav>
+          <nav>{"".join(links)}{portal_link}</nav>
         </div>
         """,
         unsafe_allow_html=True,
@@ -171,4 +222,10 @@ else:
     if view in PATCH_CSS:
         model_html = model_html.replace(
             "</head>", f"<style>{PATCH_CSS[view]}</style></head>", 1)
+    if view in GATED:
+        g = GATED[view]
+        css = GATE_CSS.format(blur=g["blur"], hide=g["hide"] or "#rbx-gate-none",
+                              top=g["top"], right=g.get("right", "18px"))
+        model_html = model_html.replace("</head>", f"<style>{css}</style></head>", 1)
+        model_html = model_html.replace("</body>", GATE_HTML.format(url=PORTAL_URL) + "</body>", 1)
     st.iframe(model_html, height=900)
