@@ -301,6 +301,9 @@ footer{display:none}
 .tile .s{color:var(--tx2);margin-top:4px;font-size:9.5px}
 #mbars,#year .cap{display:none}
 #year .tiny[style]{color:var(--mu);font-size:10px}
+/* the halls' wholesale participation, stated (the model's own line) */
+#yearWh{color:var(--tx2);font-size:10.5px;line-height:1.45}
+#yearWh b{color:var(--tx)}
 #stackBtn{margin-top:8px}
 #sitecard .cell b{font-size:17px}
 /* the full-year revenue stack opens as a panel beside the card column, level
@@ -318,19 +321,22 @@ footer{display:none}
 @media (min-width:1181px){#card{left:436px;right:428px;width:auto;max-width:520px;margin:0 auto;transform:none}}
 
 /* ---- the dispatch desk: one control row, two lanes that earn their height ----
-   The play pill repeats the play button and the "half-hour n of 48" line is
-   jargon; the date and time share a baseline; the row never wraps (the mode
-   pill yields below 1500 px — the mode card and the site chips carry the same
-   state). The Today lane stays as authored; the year lane is redrawn
-   (parts/dfc_year.js); both are drawn at their real pixel width. */
+   The play pill repeats the play button and goes; the clock keeps Heat
+   Network's shape — the date small above, the settlement period big with
+   "half-hour n of 48" beside it — so the period is unmistakable. The row
+   never wraps (the mode pill yields below 1500 px — the mode card and the site
+   chips carry the same state). The Today lane stays as authored; the year lane
+   is redrawn (parts/dfc_year.js); both are drawn at their real pixel width. */
 #desk{padding:8px 14px 8px;bottom:10px;transition:opacity .22s}
 #deskmin{width:26px;height:26px;font-size:14px;border-radius:7px}
-#playPill,#deskSp{display:none}
+#playPill{display:none}
 @media (max-width:1499px){#modePill{display:none}}
 .dhead{flex-wrap:nowrap;gap:10px}
-.dhead .when{flex:none;min-width:0;flex-direction:row;align-items:baseline;gap:8px;white-space:nowrap}
+.dhead .when{flex:none;min-width:0;white-space:nowrap;line-height:1.05}
 .dhead .when small{font-size:11px;color:var(--tx2);font-weight:600}
-.dhead .when b #deskTime{font-size:16px;font-weight:800;color:#fff;margin-left:0;letter-spacing:-.2px}
+.dhead .when b{font-size:21px;font-weight:800;color:#fff;letter-spacing:-.3px;margin-top:1px}
+.dhead .when b #deskTime{font-size:21px;font-weight:800;color:#fff;margin-left:0}
+.dhead .when b #deskSp{font-size:11px;font-weight:600;color:var(--tx2);margin-left:9px;letter-spacing:0}
 #scen{max-width:160px}
 .lanes{grid-template-columns:minmax(0,4fr) minmax(0,3fr);margin-top:6px}
 @media (max-width:1180px){.lanes{grid-template-columns:minmax(0,4fr) minmax(0,3fr)}}
@@ -448,6 +454,7 @@ body.dfc-peek #desk,body.dfc-peek #rightcol{opacity:.12;pointer-events:none}
       <div class="tiny" style="margin-top:8px">2025 shapes &middot; Atlas constraint % &middot; &copy; RenewaBlox</div>
       <svg id="mbars" viewBox="0 0 272 54"></svg>
       <div class="cap" id="yearCap"></div>
+      <div class="tiny" id="yearWh" style="margin-top:6px"></div>
       <button id="stackBtn"><span>Full-year revenue stack</span><span id="stackArrow">▾</span></button>
       <div id="stack"><svg id="rsSvg" viewBox="0 0 264 150"></svg><div class="tot"><span>Net after fixed network charges</span><b id="rsNet">£0</b></div></div>
     </div>
@@ -461,7 +468,7 @@ body.dfc-peek #desk,body.dfc-peek #rightcol{opacity:.12;pointer-events:none}
       <span class="pill mode m0" id="modePill">Standing by</span>
       <div class="ctrls">
         <div class="grp"><button id="play" title="Play / pause">❚❚</button></div>
-        <div class="grp" title="Playback speed"><button data-v="12" class="on">slow</button><button data-v="6">normal</button><button data-v="2">fast</button></div>
+        <div class="grp" title="Playback speed"><button data-v="1" class="on">slow</button><button data-v="0.5">normal</button><button data-v="0.25">fast</button></div>
         <div class="grp"><button id="nextBtn" title="Skip to the next change">Next change ▸▸</button></div>
         <select id="scen"></select>
       </div>
@@ -6954,7 +6961,7 @@ window.__DFC_GLB__="Z2xURgIAAAD48QMAvK4BAEpTT057ImFzc2V0Ijp7ImdlbmVyYXRvciI6Ikto
 </script>
 <script>
 // ============================================================================
-//  DfC 3D · data + model layer.  Mirrors dfc_model.py exactly.
+//  DfC 3D · data + model layer.  v4: projectDA carries the continental coupling and compute() the RO path (JS only).
 // ============================================================================
 const DfC = (() => {
   const P = window.__DFC_DATA__;
@@ -7011,8 +7018,15 @@ const DfC = (() => {
     // v2 · other revenues
     availMw: P.avail_mw || 30000, cmOn: 'yes', cmPrice: P.cm_price || 15, cmDerate: P.cm_derate || 0.86, resPrice: P.res_price || 2, resShare: P.res_share || 0.7,
     // v2 · BM expected-capture path (£/MWh by year) and wholesale projection factors by year
-    bmPath: Object.assign({}, P.bm_path), pj: JSON.parse(JSON.stringify(P.proj)), floor: P.price_floor, slopeNeg: P.slope_neg, flexAt: P.flex_at,
+    bmPath: Object.assign({}, P.bm_path), pj: JSON.parse(JSON.stringify(P.proj)), floor: Math.max(P.price_floor, -50), slopeNeg: 2.5, flexAt: P.flex_at,
+    // v4 · continental coupling: in continental-surplus half hours the links import instead of exporting (gw = net swing vs 2025 flows, GW, at full weight), the GB price closes icPull of the gap to the continent's surplus price (lvl, £/MWh) on the solar branch only, a half hour is coupled when year-scaled GB solar reaches `at` GW (rising as the continent adds flexibility), and weekdays are capped at icWkdayCap because the continent's surplus is weekend/holiday-weighted
+    icOn: 'yes', icPull: 0.4, icWkFac: 1.3, icWkdayCap: 0.5, icExpShare: 0, icWindGw: 16, icWindShare: 0.35,
+    ic: { 2028: { gw: 2.5, lvl: -12, at: 9.0 }, 2029: { gw: 3.0, lvl: -12, at: 9.5 }, 2030: { gw: 3.0, lvl: -12, at: 10.0 }, 2031: { gw: 3.0, lvl: -10, at: 10.5 }, 2032: { gw: 4.5, lvl: -10, at: 11.0 }, 2033: { gw: 6.0, lvl: -10, at: 11.5 } },
+    // v4 · RO levy path: share of the 2025/26 RO cost per MWh still payable as RO stations leave support from 31 Mar 2027 (tracker-derived estimate)
+    roPath: { 2028: 0.9, 2029: 0.85, 2030: 0.8, 2031: 0.75, 2032: 0.7, 2033: 0.65 },
   };
+  // v4 · build-out consistent with the flatter price stack: wind toward CP2030 delivery (ORE Catapult ~32 GW offshore by end-2030), flex = FES 10YF battery GWh over a 6 h solar plateau + LDES + EV turn-up
+  Object.entries({ 2028: [1.3, 4.5], 2029: [1.45, 6.0], 2030: [1.7, 8.0], 2031: [1.85, 9.5], 2032: [2.0, 11.0], 2033: [2.15, 12.0] }).forEach(([y, v]) => { if (DEF.pj[y]) { DEF.pj[y].wind = v[0]; DEF.pj[y].flex = v[1]; } });
   const A = JSON.parse(JSON.stringify(DEF));
   const YEARS = Object.keys(P.pct).map(Number);
 
@@ -7024,13 +7038,34 @@ const DfC = (() => {
     if (r >= RC[RC.length - 1]) return RM[RM.length - 1];
     const k = Math.floor((r - RC[0]) / 1000); const t = (r - RC[k]) / 1000; return Math.max(A.floor, RM[k] + t * (RM[k + 1] - RM[k]));
   }
+  // v4 · continental coupling. Proxy for "the continent is in surplus" built from the 2025 GB shapes and the calendar: the solar branch fires when GB transmission solar, scaled by the year's solar ×, reaches A.ic[year].at GW (weekends and NW-European public holidays count A.icWkFac ×, continental demand being ~5 GW lower; weekdays are capped at A.icWkdayCap); the wind branch fires on windy nights and off-days (DK1 / North-German wind surplus) at A.icWindShare weight. The weight ramps from 0 at 75 % of the threshold to 1 at 125 %.
+  const HOL = new Set(['2025-01-01', '2025-04-18', '2025-04-21', '2025-05-01', '2025-05-29', '2025-06-09', '2025-08-15', '2025-12-25', '2025-12-26']);
+  const offDay = new Uint8Array(N), lowDem = new Uint8Array(N);
+  for (let i = 0; i < N; i++) { offDay[i] = (dow[i] >= 5 || HOL.has(P.days[dayIdx[i]])) ? 1 : 0; lowDem[i] = (offDay[i] || hourLocal[i] >= 23 || hourLocal[i] < 7) ? 1 : 0; }
+  const icW = new Float32Array(N); // coupling weight per half hour for the last projected year: 0 = the links behave as in 2025, 1 = fully coupled
+  const ramp = x => Math.min(1, Math.max(0, (x - 0.75) / 0.5));
   function projectDA(year) {
-    const out = new Float32Array(N); const p = A.pj[year];
-    if (A.proj !== 'yes' || !p) { out.set(da); return out; }
+    const out = new Float32Array(N); const p = A.pj[year]; icW.fill(0);
+    if (A.proj !== 'yes' || !p) { for (let i = 0; i < N; i++) out[i] = Math.max(A.floor, da[i]); return out; }
+    const c = A.icOn === 'yes' && A.ic && A.ic[year] ? A.ic[year] : null;
     for (let i = 0; i < N; i++) {
       const ry = indo[i] * p.demand - wind[i] * p.wind - solar[i] * (p.solar - 1);
-      const absorb = Math.min(p.flex * 1000, Math.max(0, A.flexAt - ry));
-      out[i] = Math.max(A.floor, da[i] + fmap(ry + absorb) - fmap(res0[i]));
+      let w = 0, ws = 0;
+      if (c) {
+        // solar branch: continental solar surplus (weekends and NW-European holidays count icWkFac ×; weekdays capped at icWkdayCap because the continent's surplus is weekend-weighted)
+        ws = ramp(solar[i] * p.solar * (offDay[i] ? A.icWkFac : 1) / (c.at * 1000)) * (offDay[i] ? 1 : A.icWkdayCap);
+        // wind branch: North-Sea wind that fills GB overnight also fills DK1 and northern Germany, so Viking/NeuConnect import instead of exporting
+        const ww = lowDem[i] ? ramp(wind[i] * p.wind / (A.icWindGw * 1000)) * A.icWindShare : 0;
+        w = Math.max(ws, ww); icW[i] = w;
+      }
+      // coupled: the links import w·gw GW instead of exporting (residual demand falls); the export share of new flex (default 0 — the by-year flex is battery-energy-limited) is unavailable
+      const ryc = c ? ry - w * c.gw * 1000 : ry;
+      const flex = p.flex * 1000 * (c ? 1 - w * A.icExpShare : 1);
+      const absorb = Math.min(flex, Math.max(0, A.flexAt - ryc));
+      let px = da[i] + fmap(ryc + absorb) - fmap(res0[i]);
+      // solar branch only: the GB price closes ws·icPull of the gap to the continent's surplus price (never pulls up). On windy nights the links' effect is the import volume above, not a price level.
+      if (c && ws > 0 && px > c.lvl) px += ws * A.icPull * (c.lvl - px);
+      out[i] = Math.max(A.floor, px);
     }
     return out;
   }
@@ -7060,17 +7095,18 @@ const DfC = (() => {
     const MW = A.mwKeith + A.mwHuntly; const mwh = MW * 0.5; const val = A.value * 10;
     const mode = new Uint8Array(N); // 0 idle, 1 econ, 2 dfc
     const bmAt = new Float32Array(N); const rMin = new Float32Array(N), rBm = new Float32Array(N), rSub = new Float32Array(N), cEn = new Float32Array(N), cNet = new Float32Array(N), cFcl = new Float32Array(N), fclAv = new Float32Array(N), deliv = new Float32Array(N), fclRate = new Float32Array(N), netRate = new Float32Array(N);
-    const tot = { hDfc: 0, hEcon: 0, mwhDfc: 0, mwhEcon: 0, rMin: 0, rBm: 0, rSub: 0, cEn: 0, cNet: 0, cFcl: 0, fclAv: 0, daDfcSum: 0, curtMwh: 0, negHH: 0, negHH25: 0, daMean: 0 };
+    const tot = { hDfc: 0, hEcon: 0, mwhDfc: 0, mwhEcon: 0, rMin: 0, rBm: 0, rSub: 0, cEn: 0, cNet: 0, cFcl: 0, fclAv: 0, daDfcSum: 0, curtMwh: 0, negHH: 0, negHH25: 0, daMean: 0, paid: 0, negWh: 0, hCoupled: 0, negDfc: 0 };
     const monthly = Array.from({ length: 12 }, () => ({ hDfc: 0, hEcon: 0, margin: 0 }));
     const daily = new Float32Array(P.days.length), dailyE = new Float32Array(P.days.length);
     let skipSeed = 12345; const rnd = () => { skipSeed = (skipSeed * 1103515245 + 12345) & 0x7fffffff; return skipSeed / 0x7fffffff; };
     const pathRev = A.bmPath[year] != null ? +A.bmPath[year] : A.bmBid;
+    const roY = A.ro * (A.roPath && A.roPath[year] != null ? +A.roPath[year] : 1); // v4 · RO roll-off
     for (let i = 0; i < N; i++) {
       const dr = duos[i] === 2 ? A.duosRed : duos[i] === 1 ? A.duosAmber : A.duosGreen;
       let net = dr + A.bsuos[month[i]] + A.ccl + A.aahedc;
-      const fcl = A.ro + A.cfd[Math.floor(month[i] / 3)] + A.fit + A.rab + (cm[i] ? A.cmRate : 0);
+      const fcl = roY + A.cfd[Math.floor(month[i] / 3)] + A.fit + A.rab + (cm[i] ? A.cmRate : 0);
       const dai = A.cps === 'yes' && daY[i] > 30 ? daY[i] - 6.7 : daY[i];
-      netRate[i] = net; fclRate[i] = fcl; deliv[i] = dai + net + fcl; tot.daMean += daY[i]; if (daY[i] < 0) tot.negHH++;
+      netRate[i] = net; fclRate[i] = fcl; deliv[i] = dai + net + fcl; tot.daMean += daY[i]; if (daY[i] < 0) tot.negHH++; if (icW[i] > 0.5) tot.hCoupled += 0.5;
       let m = 0;
       // BM basis: 'path' = per-year expected capture; 'fixed' = bid always accepted; 'vwap' = paid what NESO paid wind that half hour (not dispatched if no wind was curtailed); 'merit' = our bid accepted only when NESO's expensive quartile of wind bids cost more than it
       let bmRev = A.bmMode === 'path' ? pathRev : A.bmBid, inMerit = true;
@@ -7083,8 +7119,8 @@ const DfC = (() => {
       if (m === 2) {
         rBm[i] = bmRev * mwh; rSub[i] = A.subsidy * mwh; fclAv[i] = fcl * mwh;
         cEn[i] = A.energyMode === 'da' ? dai * mwh : A.energyMode === 'da50' ? 0.5 * dai * mwh : A.energyMode === 'tariff' ? A.tariff * mwh : 0;
-        tot.hDfc += 0.5; tot.mwhDfc += mwh; tot.daDfcSum += daY[i]; tot.curtMwh += excess[i] * 0.5; monthly[month[i]].hDfc += 0.5;
-      } else { cEn[i] = dai * mwh; cFcl[i] = fcl * mwh; tot.hEcon += 0.5; tot.mwhEcon += mwh; monthly[month[i]].hEcon += 0.5; }
+        tot.hDfc += 0.5; tot.mwhDfc += mwh; tot.daDfcSum += daY[i]; tot.curtMwh += excess[i] * 0.5; monthly[month[i]].hDfc += 0.5; if (daY[i] < 0) tot.negDfc++;
+      } else { cEn[i] = dai * mwh; cFcl[i] = fcl * mwh; tot.hEcon += 0.5; tot.mwhEcon += mwh; monthly[month[i]].hEcon += 0.5; if (cEn[i] < 0) { tot.paid -= cEn[i]; tot.negWh++; } }
       const mg = rMin[i] + rBm[i] + rSub[i] - cEn[i] - cNet[i] - cFcl[i];
       monthly[month[i]].margin += mg; daily[dayIdx[i]] += mg; dailyE[dayIdx[i]] += (m === 2 ? mwh : 0);
       tot.rMin += rMin[i]; tot.rBm += rBm[i]; tot.rSub += rSub[i]; tot.cEn += cEn[i]; tot.cNet += cNet[i]; tot.cFcl += cFcl[i]; tot.fclAv += fclAv[i];
@@ -7110,16 +7146,14 @@ const DfC = (() => {
     const argmin = (arr, filt) => { let b = -1, bv = Infinity; for (let d = 0; d < D; d++) { if (filt && !filt(d)) continue; if (arr[d] < bv) { bv = arr[d]; b = d; } } return b; };
     const mo = d => +P.days[d].slice(5, 7);
     const list = [];
-    const eowyn = P.days.indexOf('2025-01-24'); if (eowyn >= 0) list.push({ d: eowyn, name: 'Storm Éowyn · Fri 24 Jan' });
-    list.push({ d: argmax(dayEx), name: 'Hardest constraint day of the year' });
-    list.push({ d: argmax(dayNeg, d => mo(d) >= 5 && mo(d) <= 8), name: 'Summer negative prices · sunny & windy' });
-    list.push({ d: argmax(daySolar, d => dayMinDa[d] < 0), name: 'Solar midday dip · price below zero' });
-    list.push({ d: argmin(dayWind), name: 'Calm high pressure · nothing to absorb' });
-    list.push({ d: argmax(dayEx, d => mo(d) >= 11 || mo(d) <= 2), name: 'Winter gale week' });
+    // three highlights, one per state the halls can be in; sp = the half-hour each opens on (lit, in that state)
+    const eowyn = P.days.indexOf('2025-01-24'); if (eowyn >= 0) list.push({ d: eowyn, sp: 24, name: 'Storm Éowyn · the corridor binds, NESO dispatches the halls' });
+    const midsummer = P.days.indexOf('2025-06-22'); if (midsummer >= 0) list.push({ d: midsummer, sp: 20, name: 'Midsummer Sunday · negative prices, the halls run on wholesale' });
+    list.push({ d: argmin(dayWind), sp: 24, name: 'Calm high pressure · nothing to absorb, the halls stand by' });
     const seen = new Set(); return list.filter(s => s.d >= 0 && !seen.has(s.d) && seen.add(s.d));
   }
 
-  return { P, N, A, DEF, YEARS, wbid, wp25, da, wind, solar, indo, b4f, b4l, ssf, ssl, b6f, b6l, excess, util, score, duos, cm, month, dow, hourLocal, dayIdx, spIdx, dayStart, utc, fmtT, fmtD, fmtDL, sun, sunAt, assign, compute, projectDA, findScenarios };
+  return { P, N, A, DEF, YEARS, icW, wbid, wp25, da, wind, solar, indo, b4f, b4l, ssf, ssl, b6f, b6l, excess, util, score, duos, cm, month, dow, hourLocal, dayIdx, spIdx, dayStart, utc, fmtT, fmtD, fmtDL, sun, sunAt, assign, compute, projectDA, findScenarios };
 })();
 
 // ============================================================================
@@ -7436,7 +7470,7 @@ const Scene3D = (() => {
     // clouds
     clouds.forEach(c => { c.position.x += dirx * speed * 0.35 * c.userData.sp; c.position.z += dirz * speed * 0.35 * c.userData.sp; if (c.position.x > KW * 0.75) c.position.x -= KW * 1.5; if (c.position.x < -KW * 0.75) c.position.x += KW * 1.5; if (c.position.z > KH * 0.75) c.position.z -= KH * 1.5; if (c.position.z < -KH * 0.75) c.position.z += KH * 1.5; c.material.opacity = Math.min(0.85, cloudK * 1.1) * (0.35 + 0.65 * day); c.material.color.setRGB(1, 1, 1).lerp(C(0x3a4658), (1 - day) * 0.8 + cloudK * 0.25); });
     // turbines: rpm ∝ wind, feathered when curtailed
-    const curt = state.excess > 0 ? Math.min(1, state.excess / 1500) : 0; const rpm = (0.4 + 3.2 * Math.pow(wv, 0.6)) * (1 - 0.88 * curt);
+    const curt = state.excess > 0 ? Math.min(1, state.excess / 1500) : 0; const rpm = 3.6 * Math.pow(wv, 0.6) * (1 - 0.88 * curt);
     turbines.forEach((tb, i) => { const r = tb.userData.rotor; if (r) r.rotation.x -= dt * rpm * (tb.userData.off ? 0.75 : 1) * (1 + 0.08 * Math.sin(i)); });
     // containers: fans + LEDs
     const run = state.mode === 1 || state.mode === 2; const ledCol = state.mode === 2 ? C(0x22c99a) : state.mode === 1 ? C(0x5eb1f0) : state.mode === 3 ? C(0xb39dff) : C(0x223038); const haloCol = ledCol;
@@ -7475,7 +7509,7 @@ const Scene3D = (() => {
   const MODE_K = { 0: 'Standing by', 1: 'Wholesale · running on merit', 2: 'DfC dispatch · BOA live', 3: 'Reserve · available to NESO' };
   const MODE_PILL = { 0: 'Standing by', 1: 'Wholesale run', 2: 'DfC · absorbing wind', 3: 'Reserve · available' };
   const SITE_ST = { 0: 'standing by', 1: 'running · wholesale', 2: 'absorbing · DfC', 3: 'reserve · available' };
-  let yr = M.YEARS[0], R = null, cur = 0, tf = 0, playing = true, spSec = 12, lastMode = -1, lastCloud = 0.45, blockStart = 0, siteOpen = null, view = 'overview';
+  let yr = M.YEARS[0], R = null, cur = 0, tf = 0, playing = true, spSec = 1, lastMode = -1, lastCloud = 0.45, lastWind = 0, blockStart = 0, siteOpen = null, view = 'overview';
   const SCEN = M.findScenarios();
   let cum = null; // year-to-date accumulators
 
@@ -7484,7 +7518,7 @@ const Scene3D = (() => {
     const box = $('years'); box.innerHTML = '';
     M.YEARS.forEach(y => { const b = document.createElement('button'); b.dataset.y = y; b.innerHTML = `${y}<small>${Math.round(A.pct[y] * 100)}%</small>`; b.className = y === yr ? 'on' : ''; b.onclick = () => setYear(y); box.appendChild(b); });
   }
-  function setYear(y) { yr = y; recompute(); }
+  function setYear(y) { yr = y; recompute(); const sc = $('scen'); if (sc.options.length) sc.options[0].textContent = `Full year · ${yr}`; }
   function recompute() {
     R = M.compute(yr); const t = R.tot;
     cum = { mg: new Float32Array(N), mwh: new Float32Array(N), h: new Float32Array(N), fcl: new Float32Array(N) };
@@ -7492,7 +7526,8 @@ const Scene3D = (() => {
     for (let i = 0; i < N; i++) { mg += R.rMin[i] + R.rBm[i] + R.rSub[i] - R.cEn[i] - R.cNet[i] - R.cFcl[i]; if (R.mode[i] === 2) { mwh += t.mwh; h += 0.5; } fcl += R.fclAv[i]; cum.mg[i] = mg; cum.mwh[i] = mwh; cum.h[i] = h; cum.fcl[i] = fcl; }
     $('heroT').textContent = `${yr} · absorbing curtailed wind`; $('yearLbl').textContent = yr; $('yearPct').textContent = Math.round(A.pct[yr] * 100) + '%';
     const bi = M.P.atlas_years.indexOf(yr); const cap = (M.P.atlas_captions[bi] || '').replace(/^\d{4} — /, ''); const pj = A.pj[yr];
-    $('yearCap').innerHTML = `<b>Atlas · ${yr}:</b> ${cap}` + (A.proj === 'yes' && pj ? ` <b>Prices:</b> 2025 shape re-priced for ${pj.wind.toFixed(2)}× wind and ${pj.solar.toFixed(2)}× solar — ${fmtN(t.negHH)} negative half hours (2025: ${fmtN(t.negHH25)}). BM capture £${t.bmPerMwh.toFixed(0)}/MWh.` : ` <b>Prices:</b> 2025 actual day-ahead. BM capture £${t.bmPerMwh.toFixed(0)}/MWh.`);
+    $('yearCap').innerHTML = `<b>Atlas · ${yr}:</b> ${cap}` + (A.proj === 'yes' && pj ? ` <b>Prices:</b> 2025 shape re-priced for ${pj.wind.toFixed(2)}× wind and ${pj.solar.toFixed(2)}× solar — ${fmtN(t.negHH)} negative half hours (2025: ${fmtN(t.negHH25)}; ${fmtN(t.negDfc)} of them inside DfC hours, where energy is free). <b>Wholesale:</b> ${fmtN(t.hEcon, 1)} h on merit${t.negWh / 2 < t.hEcon ? ` (${fmtN(t.negWh / 2, 1)} h at negative prices)` : ', all at negative prices'}, £${fmtN(t.paid)} paid to take power${t.hCoupled > 0 ? ` · continental links importing in ${fmtN(t.hCoupled)} h` : ''}. BM capture £${t.bmPerMwh.toFixed(0)}/MWh.` : ` <b>Prices:</b> 2025 actual day-ahead. <b>Wholesale:</b> ${fmtN(t.hEcon, 1)} h on merit, £${fmtN(t.paid)} paid to take power. BM capture £${t.bmPerMwh.toFixed(0)}/MWh.`);
+    $('yearWh').innerHTML = `<b>Wholesale, full year:</b> ${fmtN(t.hEcon, 1)} h on merit &middot; £${fmtN(t.paid)} paid to take power${t.hCoupled > 0 ? ` &middot; the links import in ${fmtN(t.hCoupled)} h` : ''}`;
     drawRevStack(); drawMonthBars(); drawYearChart(); buildYears(); todayDay = -1; tick(cur, true);
   }
 
@@ -7615,8 +7650,8 @@ const Scene3D = (() => {
     } else if (m === 1) {
       const margin = val - deliv; const mgTxt = margin < 0.15 ? margin.toFixed(2) : margin.toFixed(1);
       $('mcT').textContent = `Running ${MW.toFixed(0)} MW on cheap wholesale power`;
-      $('mcS').innerHTML = `No constraint, but day-ahead is <b>£${R.da[i].toFixed(0)}/MWh</b>: delivered power costs ${deliv.toFixed(2)}p against ${val.toFixed(1)}p of compute value, so the halls run on merit — no NESO instruction, full levies paid.`;
-      row([[`£${R.da[i].toFixed(0)}`, 'day-ahead /MWh'], [`${deliv.toFixed(2)}p`, 'delivered cost'], [`${mgTxt}p`, 'margin per kWh']]);
+      $('mcS').innerHTML = `No constraint, but day-ahead is <b>${R.da[i] < 0 ? '−£' + (-R.da[i]).toFixed(0) : '£' + R.da[i].toFixed(0)}/MWh</b>: delivered power costs ${deliv.toFixed(2)}p against ${val.toFixed(1)}p of compute value, so the halls run on merit — no NESO instruction, full levies paid.${M.icW[i] > 0.5 ? ' The continental links are importing continental surplus rather than exporting ours.' : ''}`;
+      row([[`${R.da[i] < 0 ? '−£' + (-R.da[i]).toFixed(0) : '£' + R.da[i].toFixed(0)}`, 'day-ahead /MWh'], [`${deliv.toFixed(2)}p`, 'delivered cost'], [`${mgTxt}p`, 'margin per kWh']]);
     } else if (m === 3) {
       $('mcT').textContent = 'Standing by for reserve';
       $('mcS').innerHTML = `The corridor has headroom and wholesale power would cost <b>${deliv.toFixed(1)}p</b> delivered — above the ${val.toFixed(1)}p breakeven — so the halls are idle, held in NESO's negative reserve and paid to be ready to turn up.`;
@@ -7682,19 +7717,21 @@ const Scene3D = (() => {
     const raw = (now - last) / 1000; const dt = Math.min(0.1, raw); last = now;
     if (playing && S.ready) { tf += dt / spSec; if (tf >= N) tf -= N; const ni = Math.floor(tf); if (ni !== cur) tick(ni, false); moveTodayCursor(); }
     // continuous sky / wind between settlement periods
-    if (S.ready && R) { const i = cur, j = Math.min(N - 1, cur + 1), f = tf - cur; const sn = M.sunAt(M.utc(i) + f * 1800000); S.state.sunEl = sn.el; S.state.sunAz = sn.az; const wc = (M.wind[i] * (1 - f) + M.wind[j] * f) / 30000; S.state.windCf = wc;
-      const pot = Math.max(0, Math.sin(sn.el)) * 17500; const sol = M.solar[i] * (1 - f) + M.solar[j] * f; const target = pot > 1500 ? Math.max(0, Math.min(1, 1 - sol / (pot * 0.72))) : 0.45; lastCloud += (target - lastCloud) * Math.min(1, dt * 0.35); S.state.cloud = lastCloud; }
+    if (S.ready && R) { const i = cur, j = Math.min(N - 1, cur + 1), f = tf - cur; const sn = M.sunAt(M.utc(i) + f * 1800000); S.state.sunEl = sn.el; S.state.sunAz = sn.az; const wc = (M.wind[i] * (1 - f) + M.wind[j] * f) / 30000; const wTarget = R.mode[i] === 2 ? Math.max(0.55, wc) : 0; lastWind += (wTarget - lastWind) * Math.min(1, dt * 0.7); S.state.windCf = lastWind;
+      const pot = Math.max(0, Math.sin(sn.el)) * 17500; const sol = M.solar[i] * (1 - f) + M.solar[j] * f; const dataCloud = pot > 1500 ? Math.max(0, Math.min(1, 1 - sol / (pot * 0.72))) : 0.45; const target = R.mode[i] === 2 ? Math.max(0.5, dataCloud) : Math.min(0.12, dataCloud); lastCloud += (target - lastCloud) * Math.min(1, dt * 0.35); S.state.cloud = lastCloud; }
     S.frame(dt, now / 1000, raw); requestAnimationFrame(loop);
   }
 
   // ---------------------------------------------------------------- controls
-  function setPlaying(p) { playing = p; $('play').textContent = p ? '❚❚' : '▶'; const pill = $('playPill'); pill.className = 'pill play' + (p ? '' : ' paused'); pill.textContent = p ? `▶ Playing · ${spSec === 12 ? 'slow' : spSec === 6 ? 'normal' : 'fast'}` : '❚❚ Paused'; }
+  function setPlaying(p) { playing = p; $('play').textContent = p ? '❚❚' : '▶'; const pill = $('playPill'); pill.className = 'pill play' + (p ? '' : ' paused'); pill.textContent = p ? `▶ Playing · ${spSec === 1 ? 'slow' : spSec === 0.5 ? 'normal' : 'fast'}` : '❚❚ Paused'; }
   $('play').onclick = () => setPlaying(!playing);
   [...document.querySelectorAll('.ctrls button[data-v]')].forEach(b => b.onclick = () => { spSec = +b.dataset.v; [...document.querySelectorAll('.ctrls button[data-v]')].forEach(x => x.classList.toggle('on', x === b)); setPlaying(true); });
   $('nextBtn').onclick = () => { const j = nextIdx(cur, k => R.mode[k] !== R.mode[cur]); if (j > 0) { jumpTo(j); setPlaying(true); } };
   $('deskmin').onclick = () => { const d = $('desk'); d.classList.toggle('collapsed'); $('deskmin').textContent = d.classList.contains('collapsed') ? '+' : '–'; };
-  const sc = $('scen'); sc.innerHTML = '<option value="-1">Jump to a day…</option>' + SCEN.map(s => `<option value="${s.d}">${s.name} · ${M.P.days[s.d].slice(5).split('-').reverse().join('/')}</option>`).join('');
-  sc.onchange = () => { const d = +sc.value; if (d >= 0) { jumpTo(M.dayStart[d]); setPlaying(true); } };
+  const sc = $('scen'); const FULL_YEAR_START = 20;
+  function buildScen() { sc.innerHTML = `<option value="-1">Full year · ${yr}</option>` + SCEN.map(s => `<option value="${s.d}">${s.name} · ${M.P.days[s.d].slice(5).split('-').reverse().join('/')}</option>`).join(''); }
+  buildScen();
+  sc.onchange = () => { const d = +sc.value; const s = SCEN.find(x => x.d === d); jumpTo(s ? M.dayStart[d] + (s.sp || 0) : FULL_YEAR_START); setPlaying(true); };
   function setViewBtn(v) { view = v; [...document.querySelectorAll('#views button')].forEach(x => x.classList.toggle('on', x.dataset.v === v)); S.setView(v); if (v === 'keith' || v === 'huntly') openSite(v); else if (siteOpen) closeSite(); }
   [...document.querySelectorAll('#views button[data-v]')].forEach(b => b.onclick = () => setViewBtn(b.dataset.v));
   $('howBtn').onclick = () => { stopTour(); const c = $('card'); c.classList.toggle('open'); $('cardH').textContent = 'How Demand for Constraints works here'; $('cardP').innerHTML = `Wind north of the <b>B4 corridor</b> often exceeds what the grid can carry south. NESO's day-ahead flow forecast (real 2025 data) tells us when the corridor binds; in those half hours NESO pays wind farms to turn down. RenewaBlox instead offers a <b>demand turn-up bid in the Balancing Mechanism</b> from Keith and Huntly: when NESO accepts it, the halls absorb 6 MW that would otherwise be spilled, earn the bid price and the DfC top-up, and pay <b>no Final Consumption Levies</b> for that half hour. Outside DfC the halls run on wholesale only when delivered power beats the 6p/kWh breakeven; otherwise they sit in NESO's reserve, paid to be ready. Each year tab applies the Atlas constraint share for the Moray cluster to the windiest 2025 half hours and re-prices wholesale for that year's wind and solar. Click a <b>BLOX</b> marker to visit a site; every assumption is editable under ⚙ Assumptions.`; };
@@ -7713,12 +7750,12 @@ const Scene3D = (() => {
   ];
   function runTourStep() { tourStep++; if (tourStep >= TOUR.length) { stopTour(); return; } const st = TOUR[tourStep]; jumpTo(M.dayStart[st.day] + st.sp); setPlaying(true); if (st.view === 'keith' || st.view === 'huntly') openSite(st.view); else { if (siteOpen) closeSite(); view = st.view; S.setView(st.view); [...document.querySelectorAll('#views button')].forEach(x => x.classList.toggle('on', x.dataset.v === st.view)); } $('card').classList.add('open'); $('cardH').textContent = `${tourStep + 1} / ${TOUR.length} · ${st.t}`; $('cardP').innerHTML = st.p + ' <span class="tiny">(tour · ✕ to stop)</span>'; tourTimer = setTimeout(runTourStep, 15000); }
   function stopTour() { if (tourTimer) clearTimeout(tourTimer); tourTimer = null; tourStep = -1; $('tourBtn').classList.remove('on'); }
-  $('tourBtn').onclick = () => { if (tourTimer) { stopTour(); $('card').classList.remove('open'); return; } $('tourBtn').classList.add('on'); spSec = 6; [...document.querySelectorAll('.ctrls button[data-v]')].forEach(x => x.classList.toggle('on', +x.dataset.v === 6)); tourStep = -1; runTourStep(); };
+  $('tourBtn').onclick = () => { if (tourTimer) { stopTour(); $('card').classList.remove('open'); return; } $('tourBtn').classList.add('on'); spSec = 0.5; [...document.querySelectorAll('.ctrls button[data-v]')].forEach(x => x.classList.toggle('on', +x.dataset.v === 0.5)); tourStep = -1; runTourStep(); };
 
   // ---------------------------------------------------------------- assumptions drawer
   function buildDrawer() {
     const D = $('drawer'); const num = (k, lbl, u, step = 1) => `<div class="inp"><span>${lbl}</span><input type="number" data-k="${k}" value="${(+A[k]).toFixed(step < 1 ? 2 : step < 10 ? 1 : 0)}" step="${step}"><span class="u">${u}</span></div>`;
-    const yrRow = (y) => { const p = A.pj[y]; return `<tr><td>${y}</td><td><input type="number" data-bm="${y}" value="${(+A.bmPath[y]).toFixed(0)}" step="1"></td><td><input type="number" data-pj="${y}:wind" value="${p.wind.toFixed(2)}" step="0.05"></td><td><input type="number" data-pj="${y}:solar" value="${p.solar.toFixed(2)}" step="0.05"></td><td><input type="number" data-pj="${y}:demand" value="${p.demand.toFixed(2)}" step="0.01"></td><td><input type="number" data-pj="${y}:flex" value="${p.flex.toFixed(1)}" step="0.5"></td><td><input type="number" data-y="${y}" value="${(A.pct[y] * 100).toFixed(1)}" step="0.5" min="0" max="100"></td></tr>`; };
+    const yrRow = (y) => { const p = A.pj[y]; return `<tr><td>${y}</td><td><input type="number" data-bm="${y}" value="${(+A.bmPath[y]).toFixed(0)}" step="1"></td><td><input type="number" data-pj="${y}:wind" value="${p.wind.toFixed(2)}" step="0.05"></td><td><input type="number" data-pj="${y}:solar" value="${p.solar.toFixed(2)}" step="0.05"></td><td><input type="number" data-pj="${y}:demand" value="${p.demand.toFixed(2)}" step="0.01"></td><td><input type="number" data-pj="${y}:flex" value="${p.flex.toFixed(1)}" step="0.5"></td><td><input type="number" data-y="${y}" value="${(A.pct[y] * 100).toFixed(1)}" step="0.5" min="0" max="100"></td><td><input type="number" data-ro="${y}" value="${(A.roPath && A.roPath[y] != null ? A.roPath[y] : 1).toFixed(2)}" step="0.05"></td></tr>`; };
     D.innerHTML = `<h3>Assumptions <span style="float:right;font-weight:500;text-transform:none;letter-spacing:0;color:#898781">live — every change re-runs the year</span></h3>
       <div class="grp2"><h4>Sites & compute</h4>${num('mwKeith', 'Keith hall', 'MW', 0.5)}${num('mwHuntly', 'Huntly hall', 'MW', 0.5)}${num('value', 'Breakeven compute value', 'p/kWh', 0.1)}</div>
       <div class="grp2"><h4>Demand for Constraints · dispatch</h4>
@@ -7729,12 +7766,17 @@ const Scene3D = (() => {
         <div class="inp"><span>BSUoS in DfC half hours</span><select data-k="bsuosDfc"><option value="paid">Paid · data centre is final demand</option><option value="exempt">Exempt · treated like storage</option></select></div>
         <div class="inp"><span>Skip rate (bids not accepted)</span><input type="number" data-k="skip" value="${(A.skip * 100).toFixed(0)}" step="5" min="0" max="100" data-pct="1"><span class="u">%</span></div></div>
       <div class="grp2"><h4>Wholesale prices</h4>
-        <div class="inp"><span>Day-ahead basis</span><select data-k="proj"><option value="yes">2028–33 projection · more wind & solar, deeper negatives</option><option value="no">2025 actual day-ahead</option></select></div>
+        <div class="inp"><span>Day-ahead basis</span><select data-k="proj"><option value="yes">2028–33 projection · more wind & solar, continental coupling</option><option value="no">2025 actual day-ahead</option></select></div>
         <div class="inp"><span>Carbon Price Support</span><select data-k="cps"><option value="no">Kept in 2025 prices</option><option value="yes">Removed from April 2028 (−£6.7/MWh where gas sets the price)</option></select></div>
         ${num('floor', 'Price floor (RO / must-run)', '£/MWh', 5)}${num('slopeNeg', 'Depth per GW of surplus', '£/GW', 0.5)}
-        <div class="inp" style="grid-template-columns:1fr"><span class="tiny">Projection: each 2025 half hour is re-priced on the 2025 price-vs-residual-demand curve after scaling transmission wind, solar and demand, with new flexible demand (storage, interconnector export, smart EV) absorbing surplus below ${(A.flexAt / 1000).toFixed(0)} GW residual.</span></div></div>
-      <div class="grp2"><h4>By year · BM £/MWh · wind × · solar × · demand × · new flex GW · constraint %</h4>
-        <table class="yt"><thead><tr><th></th><th>BM £/MWh</th><th>wind ×</th><th>solar ×</th><th>demand ×</th><th>flex GW</th><th>DfC %</th></tr></thead><tbody>${M.YEARS.map(yrRow).join('')}</tbody></table></div>
+        <div class="inp" style="grid-template-columns:1fr"><span class="tiny">Projection: each 2025 half hour is re-priced on the 2025 price-vs-residual-demand curve after scaling transmission wind, solar and demand, with new flexible demand (storage, smart EV, and interconnector export outside coupled hours) absorbing surplus below ${(A.flexAt / 1000).toFixed(0)} GW residual. Continental coupling (below) then swings the links to import in the continent's surplus hours; the surplus slope and the floor bound the depth (the 2025 curve itself implies ~2.9 £/MWh per GW; −£50 is the 2028–30 evidence bracket).</span></div></div>
+      <div class="grp2"><h4>Continental coupling · interconnectors in surplus hours</h4>
+        <div class="inp"><span>Links in continental-surplus half hours</span><select data-k="icOn"><option value="yes">Import the continent's surplus · NL · BE · FR · DE · DK coupled</option><option value="no">Export GB surplus as in 2025 · no coupling</option></select></div>
+        ${num('icPull', 'Price pull toward the continent (solar branch)', '× of gap', 0.05)}${num('icWkFac', 'Weekend & holiday surplus factor', '×', 0.05)}${num('icWkdayCap', 'Weekday cap on the solar branch', '× of weight', 0.05)}${num('icExpShare', 'Share of new flex that is export (0 = flex is batteries only)', '× of flex', 0.05)}${num('icWindGw', 'Wind branch · GB wind ≥ (nights, off-days)', 'GW', 1)}${num('icWindShare', 'Wind branch weight (DK1 · N-German wind)', '×', 0.05)}
+        <table class="yt"><thead><tr><th></th><th>import GW</th><th>continent £/MWh</th><th>coupled ≥ GW solar</th></tr></thead><tbody>${M.YEARS.map(y => { const c = A.ic[y]; return `<tr><td>${y}</td><td><input type="number" data-ic="${y}:gw" value="${c.gw.toFixed(1)}" step="0.5"></td><td><input type="number" data-ic="${y}:lvl" value="${c.lvl.toFixed(0)}" step="1"></td><td><input type="number" data-ic="${y}:at" value="${c.at.toFixed(1)}" step="0.5"></td></tr>`; }).join('')}</tbody></table>
+        <div class="inp" style="grid-template-columns:1fr"><span class="tiny">A half hour is coupled when GB transmission solar, scaled for the year, reaches the threshold (weekends and NW-European holidays count ${A.icWkFac.toFixed(2)}×; weekdays are capped at ${A.icWkdayCap.toFixed(2)} of full weight because the continent's surplus is weekend-weighted), or on a windy night or off-day at the wind-branch weight. In a coupled half hour the continental links swing from exporting GB surplus to importing the continent's: residual demand falls by the import and, on the solar branch, the price closes ${(A.icPull * 100).toFixed(0)}% of the gap to the continent's surplus price. Import GW is the change against 2025 flows, which are already in the 2025 curve. The pull changes the displayed day-ahead and DfC-hour energy on the day-ahead bases; under the BM-settled basis it does not enter the merit test. Depth is bounded by the price floor (${A.floor.toFixed(0)} £/MWh) and the ${A.slopeNeg.toFixed(1)} £/MWh-per-GW surplus slope.</span></div></div>
+      <div class="grp2"><h4>By year · BM £/MWh · wind × · solar × · demand × · new flex GW · constraint % · RO levy ×</h4>
+        <table class="yt"><thead><tr><th></th><th>BM £/MWh</th><th>wind ×</th><th>solar ×</th><th>demand ×</th><th>flex GW</th><th>DfC %</th><th>RO levy ×</th></tr></thead><tbody>${M.YEARS.map(yrRow).join('')}</tbody></table></div>
       <div class="grp2"><h4>Other revenues</h4>${num('availMw', 'DfC availability payment', '£/MW/yr', 1000)}
         <div class="inp"><span>Capacity Market · DSR agreement</span><select data-k="cmOn"><option value="yes">Included (T-1 route)</option><option value="no">Not included</option></select></div>
         ${num('cmPrice', 'CM clearing price', '£/kW/yr', 1)}${num('cmDerate', 'DSR de-rating factor', '×', 0.01)}${num('resPrice', 'Negative reserve availability', '£/MW/h', 0.25)}
@@ -7744,13 +7786,16 @@ const Scene3D = (() => {
       <div class="grp2"><h4>Network, taxes & fixed charges (always paid)</h4>${num('duosRed', 'SHEPD HV DUoS red · Mon–Fri 16–19h', '£/MWh', 0.1)}${num('duosAmber', 'DUoS amber', '£/MWh', 0.1)}${num('duosGreen', 'DUoS green', '£/MWh', 0.1)}${num('ccl', 'Climate Change Levy', '£/MWh', 0.05)}${num('aahedc', 'AAHEDC', '£/MWh', 0.05)}${num('duosCap', 'DUoS capacity charge', 'p/kVA/day', 0.1)}${num('duosFixed', 'DUoS fixed · HV band 4', 'p/site/day', 1)}${num('tnuosFixed', 'TNUoS residual · HV band 4', '£/site/day', 1)}<div class="inp" style="grid-template-columns:1fr"><span class="tiny">BSUoS fixed tariffs: £${A.bsuos[0]} (Jan–Mar, approx.) · £${A.bsuos[3]} (Apr–Sep) · £${A.bsuos[9]}/MWh (Oct–Dec).</span></div></div>
       <div class="btns"><button id="resetA">Reset to defaults</button><button id="closeA">Close</button></div>
       <div class="src"><b>BM path</b> — Elexon settlement bid stacks 2025 (SO-flagged accepted WIND bids in the modelled DfC half hours): NESO paid wind £30.8/MWh volume-weighted (£29 median; £9–17 in Jan–Mar, £38–48 May–Oct), wind was curtailed in 85% of those half hours, and a £40 bid undercut the expensive quartile only 47% of the time. The path starts at £30 and eases to £18 by 2033 for P462 (subsidy stripped from wind bids — Final Modification Report due May 2027, wind bids would settle near −£10 to −£25), RO stations accredited 2008–13 leaving support, more CfD-backed wind and more Scottish storage competing for the same turn-up.
-      <b>Wholesale projection</b> — 2025 residual-demand price curve; Clean Power 2030 ranges (offshore 43–50 GW, onshore 27–29 GW, solar 45–47 GW, batteries 23–27 GW by 2030) tempered by the Jan-2026 wind build-out downgrade (101 GW by 2040); benchmarks: 2024 176 negative hours, 2025 489 negative half hours (−£11 mean), April 2026 16.9% of midday half hours negative, sub-£10 periods heading for ~1,400/yr by 2030 (Modo). <b>Availability</b> £30k/MW/yr is NESO's DfC assessment sensitivity (Mar 2025). <b>Capacity Market</b>: DSR at £15/kW/yr on ~86% de-rated capacity — between the 2026/27 T-1 (£5) and the 2029/30 T-4 (£27.10); stress-event delivery when the halls are idle is the risk. <b>Reserve</b>: Negative Slow / Quick Reserve availability at £2/MW/h (Negative Quick Reserve cleared £2.5–4.4/MW/h 2025-26; Positive Slow Reserve day one £6.5–12.9 and expected to compress), 70% of days cleared, no utilisation value counted.
+      <b>Wholesale projection</b> — 2025 residual-demand price curve; Clean Power 2030 ranges (offshore 43–50 GW, onshore 27–29 GW, solar 45–47 GW, batteries 23–27 GW by 2030) tempered by the Jan-2026 wind build-out downgrade (101 GW by 2040); benchmarks: 2024 176 negative hours, 2025 489 negative half hours (−£11 mean), April 2026 16.9% of midday half hours negative, sub-£10 periods heading for ~1,400/yr (Modo P462 analysis, Dec 2025 — no year attached).
+      <b>Continental coupling</b> — the continent's day-ahead was negative in 573 h (DE, BNetzA), 584 h (NL, TenneT/Stratergy), 513 h (FR, RTE), 519 h (BE) and 441 h (DK1) in 2025, mostly 09:00–15:00 on spring and summer weekends, in a thick band at €0 to −€5 (means −€11 DE, −€14 NL, −€16 FR non-zero hours) with rare deep events (−€250 to −€460 on 11 May 2025, −€414 in Apr 2026). That negativity reaches GB by volume, not by depth: BritNed, Nemo and Viking imported in 79–92% of noon half hours and exported in 64–87% of pre-dawn ones in summer 2025, a ~3.6 GW swing on 3.4 GW of links, while IFA2/ElecLink imported 86% of the time (Ricardo/WSP via pv magazine, Jun 2026); CRE finds DE and BE negative in >80% of French negative hours with cross-border exchange halving, and France's exports to GB rising; NESO's Summer Outlook 2026 has GB £13–70/MWh above the continent, NESO expects GB to become a net exporter over the year by 2030–31, and the summer-2025 flow data show it importing at midday and exporting overnight. GB clears at £0 to −£30 in the same hours (2025 min −£30.5; Easter Sunday 2026 daily averages DE −€16, FR −€4, BE €0, NL €14, GB €7), because the links saturate and RO/REGO/CfD bidding floors sit at −£5 to −£30 — so the model pulls the GB price part-way to the continent's level rather than importing its depth. Import GW is the swing against 2025 flows: NeuConnect 1.4 GW (DE, 2028, under construction) plus fuller use of the 7.4 GW of continental links as surplus hours multiply (Aurora: low flexibility could more than double Dutch negative hours by 2030; ENTSO-E: flexibility needs double by 2033), then LionLink 1.8 GW and Nautilus 1.4 GW (Ofgem cap-and-floor, by end-2032; NESO's central path keeps GB at 11.7 GW to 2031 and 13.7 GW in 2033, so only part is counted). The continental level eases from −£12 to −£10 after 2030 as §51 EEG-type rules (Germany's negative hours fell 23% in H1 2026 while curtailment rose) convert negatives into zero-priced hours — Montel/Energy Brainpool expect that migration, not disappearance, and for a GB importer a €0 hour and a −€5 hour are the same cheap import. The coupling threshold rises 0.5 GW a year for the same reason. Surplus slope 2.5 £/MWh per GW and floor −£50 keep the depth inside the 2028–30 evidence (GB means −£11 to −£13; deeper only if LionLink/Nautilus land). Wind × (1.3 → 2.15) sits below full CP2030 delivery for slippage; flex GW (4.5 → 12) is FES 10YF battery GWh over a 6 h plateau plus LDES and EV turn-up. <b>RO roll-off</b> — ~5.1 GW of RO stations leave support on 31 Mar 2027 and ~10 GW by 2031; the per-MWh RO cost path 0.90 → 0.65 is a tracker-derived estimate, unverified against Ofgem; CfD and BSUoS are held flat. Sources: BNetzA SMARD 2025 release (4 Jan 2026) · FfE EPEX 2025 · TenneT annual market update 2025 · RTE Bilan électrique 2025 · CRE Note sur les prix négatifs (Nov 2024) · Forsyningstilsynet 2024 report · Montel/Energy Brainpool (Sep 2025) · Aurora NL flexibility release (Sep 2025) · ENTSO-E Flexibility from RES (Nov 2025) · pv magazine "How Britain became Europe's solar sink" (3 Jun 2026) · AleaSoft (Apr 2026) · NESO Summer Outlook 2026 · Ofgem Window 3 cap-and-floor decision (Nov 2024) · NESO FES 2025 workbook FLX1. <b>Availability</b> £30k/MW/yr is NESO's DfC assessment sensitivity (Mar 2025). <b>Capacity Market</b>: DSR at £15/kW/yr on ~86% de-rated capacity — between the 2026/27 T-1 (£5) and the 2029/30 T-4 (£27.10); stress-event delivery when the halls are idle is the risk. <b>Reserve</b>: Negative Slow / Quick Reserve availability at £2/MW/h (Negative Quick Reserve cleared £2.5–4.4/MW/h 2025-26; Positive Slow Reserve day one £6.5–12.9 and expected to compress), 70% of days cleared, no utilisation value counted.
       CPS: HM Treasury announced 16 Apr 2026 that Carbon Price Support (£18/tCO₂) ends April 2028. Sources: Ofgem RO 2025-26 (0.493 ROC/MWh × £67.06) · EMRS key figures 2025/26 (CfD ILR, Nuclear RAB, CM £1.89bn) · Ofgem FiT annual report FY24/25 · NESO BSUoS fixed tariffs 5 & 6 · SHEPD Use of System charging statement 2025/26 (HV site-specific) · NESO final TNUoS tariffs 2025/26 (HV4 residual £317.60/day) · HMRC CCL main rate 0.775 p/kWh · NESO Demand for Constraints assessment (Mar 2025): dispatch by BOA in the BM, <10 min response, contract options £5/MWh tariff or 50% of day-ahead, £30k/MW availability sensitivity; levy treatment sits with government/Ofgem (Clean Flexibility Roadmap, CARR).</div>`;
     D.querySelectorAll('input[data-k]').forEach(inp => inp.onchange = () => { const k = inp.dataset.k; let v = parseFloat(inp.value); if (isNaN(v)) return; if (inp.dataset.pct) v = v / 100; A[k] = v; recompute(); });
     D.querySelectorAll('select[data-k]').forEach(sel => { sel.value = A[sel.dataset.k]; sel.onchange = e => { A[sel.dataset.k] = e.target.value; recompute(); }; });
     D.querySelectorAll('input[data-y]').forEach(inp => inp.onchange = () => { const v = parseFloat(inp.value); if (isNaN(v)) return; A.pct[+inp.dataset.y] = Math.max(0, Math.min(1, v / 100)); recompute(); });
     D.querySelectorAll('input[data-bm]').forEach(inp => inp.onchange = () => { const v = parseFloat(inp.value); if (isNaN(v)) return; A.bmPath[+inp.dataset.bm] = v; recompute(); });
     D.querySelectorAll('input[data-pj]').forEach(inp => inp.onchange = () => { const v = parseFloat(inp.value); if (isNaN(v)) return; const [y, k] = inp.dataset.pj.split(':'); A.pj[y][k] = v; recompute(); });
+    D.querySelectorAll('input[data-ic]').forEach(inp => inp.onchange = () => { const v = parseFloat(inp.value); if (isNaN(v)) return; const [y, k] = inp.dataset.ic.split(':'); A.ic[y][k] = v; recompute(); });
+    D.querySelectorAll('input[data-ro]').forEach(inp => inp.onchange = () => { const v = parseFloat(inp.value); if (isNaN(v)) return; if (!A.roPath) A.roPath = {}; A.roPath[+inp.dataset.ro] = v; recompute(); });
     $('resetA').onclick = () => { const d = JSON.parse(JSON.stringify(M.DEF)); Object.keys(d).forEach(k => { A[k] = d[k]; }); buildDrawer(); recompute(); };
     $('closeA').onclick = () => D.classList.remove('open');
   }
@@ -7760,7 +7805,7 @@ const Scene3D = (() => {
   // ---------------------------------------------------------------- boot
   buildYears();
   const glb = Uint8Array.from(atob(window.__DFC_GLB__), c => c.charCodeAt(0)).buffer;
-  S.init(glb, () => { $('loading').classList.add('hide'); recompute(); const e = M.P.days.indexOf('2025-01-24'); jumpTo((e >= 0 ? M.dayStart[e] : 0) + 24); setPlaying(true); requestAnimationFrame(loop); });
+  S.init(glb, () => { $('loading').classList.add('hide'); recompute(); const e = M.P.days.indexOf('2025-01-24'); jumpTo(FULL_YEAR_START); setPlaying(true); requestAnimationFrame(loop); });
   window.__dfc = { get R() { return R; }, get cur() { return cur; }, jumpTo, setYear, openSite, setViewBtn, redrawDesk: () => { if (!R) return; todayDay = -1; drawToday(true); drawYearChart(); }, pause: () => setPlaying(false), play: () => setPlaying(true), S, M };
 })();
 
