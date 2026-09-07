@@ -437,7 +437,7 @@ body.dfc-peek #desk,body.dfc-peek #rightcol{opacity:.12;pointer-events:none}
       <div class="sent" id="b4txt">–</div>
       <div class="kv">
         <span>Wind on the system</span><b><span id="windMw">–</span><span class="u">MW · <span id="windCf">–</span>% of fleet</span></b>
-        <span id="daLbl">Day-ahead price</span><b>£<span id="daP">–</span><span class="u">/MWh</span></b>
+        <span id="daLbl">Day-ahead price</span><b><span id="daP">–</span><span class="u">/MWh</span></b>
         <span>Halls consuming</span><b><span id="siteMw">0.0</span><span class="u">of 6 MW</span></b>
       </div>
     </div>
@@ -7527,7 +7527,7 @@ const Scene3D = (() => {
     $('heroT').textContent = `${yr} · absorbing curtailed wind`; $('yearLbl').textContent = yr; $('yearPct').textContent = Math.round(A.pct[yr] * 100) + '%';
     const bi = M.P.atlas_years.indexOf(yr); const cap = (M.P.atlas_captions[bi] || '').replace(/^\d{4} — /, ''); const pj = A.pj[yr];
     $('yearCap').innerHTML = `<b>Atlas · ${yr}:</b> ${cap}` + (A.proj === 'yes' && pj ? ` <b>Prices:</b> 2025 shape re-priced for ${pj.wind.toFixed(2)}× wind and ${pj.solar.toFixed(2)}× solar — ${fmtN(t.negHH)} negative half hours (2025: ${fmtN(t.negHH25)}; ${fmtN(t.negDfc)} of them inside DfC hours, where energy is free). <b>Wholesale:</b> ${fmtN(t.hEcon, 1)} h on merit${t.negWh / 2 < t.hEcon ? ` (${fmtN(t.negWh / 2, 1)} h at negative prices)` : ', all at negative prices'}, £${fmtN(t.paid)} paid to take power${t.hCoupled > 0 ? ` · continental links importing in ${fmtN(t.hCoupled)} h` : ''}. BM capture £${t.bmPerMwh.toFixed(0)}/MWh.` : ` <b>Prices:</b> 2025 actual day-ahead. <b>Wholesale:</b> ${fmtN(t.hEcon, 1)} h on merit, £${fmtN(t.paid)} paid to take power. BM capture £${t.bmPerMwh.toFixed(0)}/MWh.`);
-    $('yearWh').innerHTML = `<b>Wholesale, full year:</b> ${fmtN(t.hEcon, 1)} h on merit &middot; £${fmtN(t.paid)} paid to take power${t.hCoupled > 0 ? ` &middot; the links import in ${fmtN(t.hCoupled)} h` : ''}`;
+    $('yearWh').innerHTML = `<b>Wholesale, full year:</b> ${fmtN(t.hEcon)} h on merit &middot; £${fmtN(t.paid)} paid to take power${t.hCoupled > 0 ? ` &middot; the links import in ${fmtN(t.hCoupled)} h` : ''}`;
     drawRevStack(); drawMonthBars(); drawYearChart(); buildYears(); todayDay = -1; tick(cur, true);
   }
 
@@ -7693,7 +7693,7 @@ const Scene3D = (() => {
     // right now
     const fl = M.b4f[i], lm = M.b4l[i]; $('b4flow').textContent = fmtN(fl); $('b4lim').textContent = fmtN(lm); const ratio = Math.min(1.35, fl / lm); const bar = $('b4bar'); bar.style.width = Math.min(100, ratio / 1.35 * 100) + '%'; bar.className = fl > lm ? 'over' : ''; $('b4mark').style.left = (1 / 1.35 * 100) + '%';
     $('b4txt').innerHTML = fl > lm ? `<b>${fmtN(fl - lm)} MW over the limit</b> — NESO is turning wind down behind B4${m === 2 ? ' and dispatching the halls instead' : ''}.` : `<b>${fmtN(lm - fl)} MW of headroom</b> — wind is flowing south unconstrained.`;
-    const cf = M.wind[i] / 30000; $('windMw').textContent = fmtN(M.wind[i]); $('windCf').textContent = Math.round(cf * 100); $('daP').textContent = R.da[i].toFixed(0); $('daLbl').textContent = A.proj === 'yes' ? `Day-ahead · ${yr}` : 'Day-ahead · 2025';
+    const cf = M.wind[i] / 30000; $('windMw').textContent = fmtN(M.wind[i]); $('windCf').textContent = Math.round(cf * 100); $('daP').textContent = (R.da[i] < 0 ? '−£' : '£') + Math.abs(R.da[i]).toFixed(0); $('daLbl').textContent = A.proj === 'yes' ? `Day-ahead · ${yr}` : 'Day-ahead · 2025';
     $('siteMw').textContent = (m === 1 || m === 2) ? (A.mwKeith + A.mwHuntly).toFixed(1) : '0.0';
     // year so far
     const h = cum.h[i]; $('yHours').textContent = fmtN(h); $('yProg').style.width = (R.tot.hDfc ? h / R.tot.hDfc * 100 : 0) + '%'; $('yProgTxt').textContent = `of ${fmtN(R.tot.hDfc)} h this year · ${Math.round(h / (i + 1) * 2 * 100)}% of the time so far`;
