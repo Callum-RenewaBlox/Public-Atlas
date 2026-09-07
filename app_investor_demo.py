@@ -92,14 +92,14 @@ GATE_CSS = """
   #rbx-gate .k{{font-size:11px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:#1f5f7f;
       margin:0 0 6px; display:flex; align-items:center; gap:8px;}}
   #rbx-gate .k::before{{content:""; width:20px; height:2px; background:#1f5f7f; border-radius:2px;}}
-  #rbx-gate h3{{margin:0 0 14px; font-size:17px; font-weight:700; letter-spacing:-.01em; line-height:1.35;}}
+  #rbx-gate h3{{margin:0 0 14px; font-size:15px; font-weight:600; letter-spacing:-.005em; line-height:1.45;}}
   #rbx-gate p{{margin:0 0 12px; font-size:13px; line-height:1.5; color:#4f6572;}}
   #rbx-gate a{{display:inline-flex; align-items:center; gap:8px; background:#1f5f7f; color:#fff; text-decoration:none;
       font-weight:600; font-size:13px; padding:9px 15px; border-radius:999px; transition:background .15s;}}
   #rbx-gate a:hover{{background:#16485f;}}
 """
 GATE_HTML = """<div id="rbx-gate"><div class="k">Investor data</div>
-<h3>Our live data can be accessed inside the Investor portal</h3>
+<h3>Access to the full, unredacted version is controlled via the RenewaBlox Investor Portal which requires registration</h3>
 <a href="{url}" target="_blank" rel="noopener">Open the investor portal &rarr;</a></div>
 """
 
