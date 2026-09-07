@@ -80,6 +80,13 @@ GATED = {
         "hide": "#gear",
         "top": "36%",
     },
+    # the card column, the status line under the headline, the year strip, the
+    # figures on the scene labels (their names stay), the How-it-works tables
+    "heat": {
+        "blur": "#right, #status, #stripwrap, #labels .lbl span, #about table",
+        "hide": "",
+        "top": "36%",
+    },
 }
 
 GATE_CSS = """
