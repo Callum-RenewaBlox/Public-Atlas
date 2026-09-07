@@ -10,8 +10,10 @@ a browser cookie so the model links never re-ask:
 
 * frictionless — the portal's link carries the key, ``?k=<key>``, where the
   key is the code's keyed hash (``portal_key.py`` prints it); an investor who
-  clicks through from the logged-in portal never sees a prompt, and the key is
-  removed from the address bar on arrival;
+  clicks through from the logged-in portal never sees a prompt, the key is
+  removed from the address bar on arrival, and the pack's own links carry it
+  on, so the pack also works embedded in the portal page, where browsers that
+  block third-party cookies would otherwise re-ask at every click;
 * fallback — a code prompt, for anyone you send the code to by other means.
 
 With no secret set the app is open, exactly like the demo. Note that the model
@@ -53,6 +55,7 @@ Run locally:  streamlit run app_investor_portal.py
 """
 import hashlib
 import hmac
+import re
 from pathlib import Path
 
 import streamlit as st
@@ -121,6 +124,7 @@ def passcode_ok() -> bool:
     if key and (hmac.compare_digest(key, token) or hmac.compare_digest(key, code)):
         del st.query_params["k"]
         st.session_state["portal_ok"] = True
+        st.session_state["portal_key"] = token   # carried on the pack's links
         st.session_state["portal_set_cookie"] = True
         st.rerun()
     try:
@@ -162,6 +166,12 @@ def passcode_ok() -> bool:
 
 if not passcode_ok():
     st.stop()
+
+
+def href(target: str) -> str:
+    """A pack link, carrying the key on when the visitor arrived with one."""
+    key = st.session_state.get("portal_key")
+    return f"?view={target}" + (f"&k={key}" if key else "")
 
 # Strip Streamlit's chrome and padding on every view. On model views the
 # scene fills the viewport edge to edge below a 46 px pack bar and nothing
@@ -239,6 +249,8 @@ if view == "home":
     # block and the indented remainder would render as a code block, so drop
     # blank lines before handing the fragment over.
     home = "\n".join(line for line in home.splitlines() if line.strip())
+    if st.session_state.get("portal_key"):
+        home = re.sub(r'href="\?view=([a-z]+)"', lambda m: f'href="{href(m.group(1))}"', home)
     st.markdown(home, unsafe_allow_html=True)
 else:
     # target="_self" matters: Streamlit's markdown renderer retargets plain
@@ -248,13 +260,13 @@ else:
         active = ' class="active"' if key == view else ""
         short = model.get("short", model["label"].split()[0])
         links.append(
-            f'<a href="?view={key}" target="_self"{active}>'
+            f'<a href="{href(key)}" target="_self"{active}>'
             f'<span class="lbl-f">{model["label"]}</span>'
             f'<span class="lbl-s">{short}</span></a>')
     st.markdown(
         f"""
         <div class="rbx-bar">
-          <a href="?view=home" target="_self" class="back">&larr; All models</a>
+          <a href="{href("home")}" target="_self" class="back">&larr; All models</a>
           <div class="crumb">Investor Portal &middot; {MODELS[view]["label"]}</div>
           <nav>{"".join(links)}</nav>
         </div>

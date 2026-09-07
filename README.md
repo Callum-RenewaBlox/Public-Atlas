@@ -183,4 +183,7 @@ subdomain yet — add their rows above once claimed. For the portal app, set
 `PORTAL_PASSCODE` in the app's secrets on Streamlit Cloud to lock it (the code
 never lives in this repo; `.streamlit/secrets.toml` is git-ignored), then run
 `python portal_key.py <code>` and put the printed `?k=…` on the end of the app's
-URL behind the portal's button. Rotate the code to expire every old link.
+URL behind the portal's button (a button that opens the app in a new tab is the
+best home for a full-screen 3D scene; the pack also works inside a Wix "Embed a
+site" element with `?embed=true&k=…`, because its own links carry the key on and
+do not depend on the cookie). Rotate the code to expire every old link.
