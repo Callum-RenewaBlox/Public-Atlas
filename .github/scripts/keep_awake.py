@@ -75,8 +75,8 @@ def visit(browser, url):
                 break
             page.wait_for_timeout(2_000)
         print("App is up (stApp rendered)." if up else "Could not see the app render.")
-        # Let the WebSocket session run briefly so it counts as real activity.
-        page.wait_for_timeout(8_000)
+        # Let the WebSocket session run a while so it counts as real activity.
+        page.wait_for_timeout(20_000)
         return up
     except Exception as exc:  # report and keep going to the next app
         print(f"FAILED to confirm app is up: {exc}")

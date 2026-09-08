@@ -5,17 +5,22 @@ name: Keep apps awake
 # up" button. A plain HTTP ping (UptimeRobot, curl, /_stcore/health) returns
 # 200 WITHOUT waking the app: the Python app only really wakes, and the idle
 # timer only resets, when a browser opens its WebSocket session. So this job
-# loads each app in headless Chromium (Playwright) every 3 hours, which is
-# well inside the sleep window and survives an occasional late run (GitHub does
-# not guarantee schedule timing). This repo is public, so Actions minutes are
-# free; the browser is cached, so a run is about a minute.
+# loads each app in headless Chromium (Playwright) every hour. Hourly, because
+# the visit does two jobs: it is traffic, which should keep the idle timer
+# from ever reaching 12 hours, and if an app has nodded off anyway it clicks
+# the wake button — so an app is never asleep for more than about an hour.
+# This repo is public, so Actions minutes are free (a run is about a minute
+# with the browser cached). GitHub does not guarantee schedule timing and
+# delays runs at the top of the hour, hence the odd minute.
 #
-# Same recipe as Eunice-Platform's keep-awake, which has held its apps up since
-# June 2026.
+# Eunice-Platform's earlier keep-awake looked for the wake button before the
+# host page had drawn it and for the app marker outside the app's iframe, so
+# it never clicked and always reported failure; this one polls for the button
+# and looks through frames.
 
 on:
   schedule:
-    - cron: "0 */3 * * *"   # every 3 hours, UTC
+    - cron: "17 * * * *"   # hourly at :17, UTC
   workflow_dispatch:
 
 permissions:
