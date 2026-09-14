@@ -222,6 +222,16 @@ header .title .hint{display:none}
   border:0;background:transparent;border-radius:9px;transition:background .14s,color .14s;white-space:nowrap}
 .chip:hover{background:var(--tint);color:var(--brand)}
 .chip.on{background:var(--tint-2);color:var(--brand)}
+/* the call to action: the plant room, in its own amber (the plant-room callouts'
+   colour), as Heat Network 3D's Basement button and DfC's "Where it binds" */
+.chip.cta{background:#ffb347;color:#1a1a19;font-weight:700;padding:7px 13px;box-shadow:0 0 0 3px rgba(255,179,71,.22)}
+.chip.cta:hover{background:#ffc46a;color:#1a1a19}
+.chip.cta.on{background:#ffb347;color:#1a1a19;box-shadow:0 0 0 3px rgba(255,179,71,.45)}
+/* the prompt at the end of the opening caption */
+.capcta{appearance:none;display:inline-flex;align-items:center;gap:5px;margin-left:8px;padding:4px 10px 4px 9px;border:0;
+  border-radius:var(--r-pill);background:#ffb347;color:#1a1a19;font:700 10.5px/1 var(--font);cursor:pointer;
+  vertical-align:middle;box-shadow:0 0 0 2px rgba(255,179,71,.22);transition:background .14s}
+.capcta:hover{background:#ffc46a}
 #legend{display:block;color:var(--ink-2);gap:0;font-size:11.8px;width:372px;max-width:100%}
 .krow{display:flex;align-items:flex-start;gap:9px;padding:2.5px 0;font-size:11px;color:var(--ink-2);line-height:1.4}
 /* every swatch on a dark strip, so the pale dashes read on the glass */
@@ -380,7 +390,7 @@ header .title .hint{display:none}
     <p id="viewcap" hidden></p>
     <div class="chips">
       <span class="lab">View</span>
-      <button class="chip" type="button" data-view="overview" title="The whole network, from the south">Overview</button><button class="chip" type="button" data-view="site" title="The Seward Street / Dance Square block">Seward St site</button><button class="chip" type="button" data-view="plant" title="The plant room, cut away under the block">Plant room</button><button class="chip" type="button" data-view="conn" title="The new DN125 connection to the main">Connection</button><button class="chip" type="button" data-view="ec1" title="Bunhill Energy Centre 1">EC1</button><button class="chip" type="button" data-view="ec2" title="Bunhill 2 Energy Centre">EC2 &middot; City Road</button><button class="chip" type="button" data-view="custom" title="The estates and buildings the main serves">Customers</button><button class="chip" type="button" data-view="sat" title="Straight down, 2.5 km above the site">Top-down</button>
+      <button class="chip" type="button" data-view="overview" title="The whole network, from the south">Overview</button><button class="chip cta" type="button" data-view="plant" title="Look inside the plant room, cut away under the block">&#9662; Plant room</button><button class="chip" type="button" data-view="ec1" title="Bunhill Energy Centre 1">EC1</button><button class="chip" type="button" data-view="ec2" title="Bunhill 2 Energy Centre, City Road">EC2</button>
       <span class="hr"></span>
       <button class="chip" type="button" id="btn-key">Key</button><button class="chip" type="button" id="btn-layers">Layers</button>
     </div>
@@ -4478,16 +4488,22 @@ void main() {
   // The scene marks the chosen chip .on and clears every .on the moment the
   // user starts to orbit, so the caption is tied to that state: it shows for
   // the view that is on and hides for a free orbit.
-  var CAP = {"overview": "The live Bunhill main along Central Street between the two energy centres, the new DN125 connection and the Seward Street plant room cut away beneath the block.", "site": "The Seward Street / Dance Square block, with the 76 × 25 m basement plant room under its east side, north end at the Seward Street frontage.", "plant": "Cut-away: Zone 1 gas-CHP room, Zone 2 biodiesel container room, Zone 3 Hoval gas boilers, storage A/B/C and the distribution pump sets. Schematic, not a survey.", "conn": "DN125 hot-tapped onto the Central Street main at location 1 (Seward Street junction) or 2 (opposite the block); roughly 60 m of trench from the boiler-house basement.", "ec1": "Bunhill Energy Centre 1, Central Street, east side: 2.3 MW<sub>th</sub> gas CHP with a 2.67 MW<sub>th</sub> thermal store; the borough intends to decommission it.", "ec2": "On the old City Road tube station shaft: 1 MW<sub>th</sub> heat pump recycling warm air from the Northern line, two 0.45 MW CHP units, 2.5 MW<sub>th</sub> store.", "custom": "The Bunhill main serves the King Square estate, Finsbury Leisure Centre, Ironmonger Row Baths and surrounding estates (customer spurs not drawn).", "sat": "Straight down: Esri World Imagery at 0.19 m/px, with the 100 m scale bar and north arrow on the Finsbury sports field. All pipework is buried."};
+  var CAP = {"overview": "The live Bunhill main along Central Street between the two energy centres, the new DN125 connection and the Seward Street plant room cut away beneath the block.", "plant": "Cut-away: Zone 1 gas-CHP room, Zone 2 biodiesel container room, Zone 3 Hoval gas boilers, storage A/B/C and the distribution pump sets. Schematic, not a survey.", "ec1": "Bunhill Energy Centre 1, Central Street, east side: 2.3 MW<sub>th</sub> gas CHP with a 2.67 MW<sub>th</sub> thermal store; the borough intends to decommission it.", "ec2": "Bunhill 2 Energy Centre, on the old City Road tube station shaft: 1 MW<sub>th</sub> heat pump recycling warm air from the Northern line, two 0.45 MW CHP units, 2.5 MW<sub>th</sub> store."};
+  // the opening caption ends with the invitation into the plant room
+  var PROMPT = '<button class="capcta" type="button">Look inside the plant room &#9662;</button>';
   var cap = document.getElementById('viewcap');
   var chips = Array.from(document.querySelectorAll('#viewrow [data-view]'));
   function syncCaption(){
     var on = chips.filter(function(b){ return b.classList.contains('on'); })[0];
     var html = on && CAP[on.dataset.view];
-    if (html) { cap.innerHTML = html; cap.hidden = false; } else { cap.hidden = true; }
+    if (html) { cap.innerHTML = html + (on.dataset.view === 'overview' ? PROMPT : ''); cap.hidden = false; }
+    else { cap.hidden = true; }
   }
   var mo = new MutationObserver(syncCaption);
   chips.forEach(function(b){ mo.observe(b, { attributes: true, attributeFilter: ['class'] }); });
+  cap.addEventListener('click', function(e){
+    if (e.target.closest('.capcta') && window.__ihn) window.__ihn.flyTo('plant');
+  });
 
   /* ------------------------------------------ the badge tracks the plant room */
   // Anchored on the plant room's own ground point — the point scene label 9
