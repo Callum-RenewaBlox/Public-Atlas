@@ -1,0 +1,48 @@
+<!-- ======================================================================
+  Heat Network 3D · IHN Atlas chrome
+  Appended to heat_network_3d.html at serve time by app_ihn_atlas.py, only on
+  the ?view=3d route. heat_network_3d.html itself is shared with the investor
+  apps and must stay untouched, so this is one addition layered on top: the
+  "Atlas" control that takes the visitor back to the IHN Atlas, first in the
+  header exactly where the SRV 3D Sim and the KLD atlas put theirs.
+======================================================================= -->
+<style>
+  #ihn-back{
+    flex:0 0 auto;order:-1;
+    display:inline-flex;align-items:center;gap:6px;
+    border:1px solid var(--rbx-line,#DDE5EA);background:var(--rbx-light,#F4F7F9);color:var(--rbx-blue,#1F5F7F);
+    font:650 11.5px var(--rbx-font,"Inter",system-ui,sans-serif);padding:7px 12px 7px 10px;border-radius:999px;
+    cursor:pointer;transition:background .15s,border-color .15s,color .15s;letter-spacing:0;
+  }
+  #ihn-back:hover{background:var(--rbx-blue,#1F5F7F);border-color:var(--rbx-blue,#1F5F7F);color:#fff}
+  #ihn-back svg{width:12px;height:12px;display:block}
+  @media (max-width:900px){#ihn-back{padding:6px 10px 6px 8px}#ihn-back span{display:none}}
+</style>
+
+<script>
+(function(){
+  var host = document.querySelector('header') || document.getElementById('stage') || document.body;
+  var b = document.createElement('button');
+  b.id = 'ihn-back';
+  b.type = 'button';
+  b.title = 'Back to the IHN Atlas';
+  b.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.9" ' +
+                'stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.6L4.6 8 10 13.4"/></svg>' +
+                '<span>Atlas</span>';
+  b.addEventListener('click', function(){
+    var href = '';
+    try { href = window.parent.location.href; } catch(e){}
+    if (!href) href = document.referrer || '';
+    var url = '?';
+    try {
+      var u = new URL(href);
+      u.searchParams.delete('view');
+      u.hash = '';
+      url = u.toString();
+    } catch(e){}
+    try { window.parent.location.assign(url); }
+    catch(e){ window.open(url, '_blank', 'noopener'); }
+  });
+  host.insertBefore(b, host.firstChild);
+})();
+</script>
