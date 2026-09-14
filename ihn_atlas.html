@@ -176,7 +176,9 @@ header .title .hint{display:none}
 /* ---- the stage: the scene owns everything below the bar ---- */
 #stage{position:relative;flex:1;min-height:0;overflow:hidden;background:#9cc3e6}
 #gl{position:absolute !important;inset:0;width:100% !important;height:100% !important}
-#labels{position:absolute;inset:0}
+#labels{position:absolute;inset:0;transition:opacity .35s}
+/* x-ray in the plant room: the callouts step aside while the user spins the room */
+body.ihn-xray #labels{opacity:0}
 #loading{background:var(--tint);color:var(--muted)}
 #loading .bar{background:var(--line)}
 #loading .bar i{background:var(--accent)}
@@ -4539,6 +4541,48 @@ void main() {
       // right-aligned with the caveat: the box's right edge on x
       return 'translate(' + x.toFixed(1) + 'px,' + y.toFixed(1) + 'px) translate(-100%,-50%)';
     }
+    /* ---- x-ray in the plant room ----
+       Once the camera is down at the plant room, the first click to spin the
+       scene fades the callouts out and ghosts the buildings around the room —
+       the two tall blocks either side of it first of all — so the cut-away
+       reads clearly from any angle. Everything comes back when the camera
+       leaves the room. The buildings are one merged mesh, so the ghosting is
+       done in their shaders by distance from the plant room: full inside 70 m,
+       none beyond 130 m. The glass block over the room is left as it is. */
+    var THREE = H.dbg.THREE, xray = false, fade = 0, near = false;
+    var U = { uFade: { value: 0 }, uPit: { value: new THREE.Vector2(pit.x, pit.z) } };
+    var ghosted = [];
+    H.dbg.buildingsGroup.children.forEach(function(o){
+      var m = o.material;
+      if (!m || m.isMeshPhysicalMaterial || (m.isLineBasicMaterial && m.opacity > .5)) return;  // the glass block and its edges
+      m.onBeforeCompile = function(sh){
+        sh.uniforms.uFade = U.uFade; sh.uniforms.uPit = U.uPit;
+        sh.vertexShader = 'varying vec3 vIhnWp;\n' + sh.vertexShader.replace('#include <begin_vertex>',
+          '#include <begin_vertex>\nvIhnWp = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+        sh.fragmentShader = 'uniform float uFade; uniform vec2 uPit; varying vec3 vIhnWp;\n' + sh.fragmentShader.replace('#include <dithering_fragment>',
+          '#include <dithering_fragment>\ngl_FragColor.a *= 1.0 - 0.9 * uFade * (1.0 - smoothstep(70.0, 130.0, distance(vIhnWp.xz, uPit)));');
+      };
+      m.customProgramCacheKey = function(){ return 'ihn-xray'; };
+      m.needsUpdate = true;
+      ghosted.push(m);
+    });
+    gl.addEventListener('pointerdown', function(){ if (near) xray = true; });
+    H.xray = function(){ return { xray: xray, near: near, fade: fade, uniform: U.uFade.value }; };
+    var lastT = performance.now();
+    function stepXray(){
+      if (!near) xray = false;
+      var target = xray ? 1 : 0, now = performance.now();
+      var dt = Math.min(.1, (now - lastT) / 1000); lastT = now;
+      fade += (target - fade) * (1 - Math.pow(.0005, dt));   // settles in about 0.4 s at any frame rate
+      if (Math.abs(target - fade) < .004) fade = target;
+      if (U.uFade.value !== fade) {
+        U.uFade.value = fade;
+        var on = fade > 0;
+        ghosted.forEach(function(m){ if (m.transparent !== on) m.transparent = on; });
+        document.body.classList.toggle('ihn-xray', xray);
+      }
+    }
+
     var viewrow = document.getElementById('viewrow'), flipped = false;
     function clearOf(el, x, y, w, half){
       // keep the badge's box above a panel it would otherwise run into
@@ -4551,8 +4595,9 @@ void main() {
     function track(){
       requestAnimationFrame(track);
       var p = H.project(anchor);
-      var valid = p.z <= 1 && p.x > -1.1 && p.x < 1.1 && p.y > -1.1 && p.y < 1.2
-                  && cam.position.distanceTo(pit) >= 150;
+      near = cam.position.distanceTo(pit) < 150;
+      stepXray();
+      var valid = p.z <= 1 && p.x > -1.1 && p.x < 1.1 && p.y > -1.1 && p.y < 1.2 && !near;
       if (valid !== !docked) setDocked(!valid);
       if (docked) { badge.style.transform = dockTarget(); return; }
       // the chip's centre 40 px under the anchor, just below the callout's

@@ -73,7 +73,7 @@ jobs:
               `not be confirmed running, so a visitor may be seeing the Streamlit sleep screen.`,
               ``,
               `- Failed run: ${runUrl}`,
-              `- Apps: https://investor-insight.streamlit.app/ · https://investor-demo.streamlit.app/ · https://investor-demo-aus.streamlit.app/ · https://peakerplant-3d.streamlit.app/`,
+              `- Apps: https://investor-insight.streamlit.app/ · https://investor-demo.streamlit.app/ · https://investor-demo-aus.streamlit.app/ · https://peakerplant-3d.streamlit.app/ · https://ihn-atlas.streamlit.app/`,
               ``,
               `Open each link to check. If a "get this app back up" button shows, the keep-alive`,
               `step needs a look (Streamlit may have changed the sleep page, or an app errored on boot).`,

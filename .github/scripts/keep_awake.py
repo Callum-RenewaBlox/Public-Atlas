@@ -33,6 +33,7 @@ APPS = [
     "https://investor-demo.streamlit.app/",        # public Investor Demo
     "https://investor-demo-aus.streamlit.app/",    # Investor Demo (Australia)
     "https://peakerplant-3d.streamlit.app/",       # Peaker Plant 3D standalone
+    "https://ihn-atlas.streamlit.app/",            # IHN Atlas (client-facing)
 ]
 
 WAKE_BUTTON = re.compile("get this app back up", re.IGNORECASE)

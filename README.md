@@ -196,11 +196,13 @@ per entry file, each with its own custom subdomain:
 | `app_investor_demo_aus.py` | `investor-demo-aus.streamlit.app` |
 | `app_peaker_3d.py` | `peakerplant-3d.streamlit.app` |
 | `app_investor_portal.py` | `investor-insight.streamlit.app` — linked from the members-only area of the Wix investor portal |
+| `app_ihn_atlas.py` | `ihn-atlas.streamlit.app` — the client-facing IHN Atlas, with Heat Network 3D at `?view=3d` |
 
-`app_peaker_demo.py` and `app_ihn_atlas.py` are ready to deploy and have no
-subdomain yet — add their rows above once one is claimed. The IHN Atlas serves
-Heat Network 3D with all of its data at `?view=3d`, so it belongs behind a
-client-facing link, not on the public demo's footing. For the portal app, set
+`app_peaker_demo.py` is ready to deploy and has no subdomain yet — add its row
+above once one is claimed. The IHN Atlas serves Heat Network 3D with all of its
+data at `?view=3d`, so its link is for the client, not the public demo's
+footing. All five deployed apps are visited hourly by the keep-awake workflow
+(`.github/workflows/keep-awake.yml`). For the portal app, set
 `PORTAL_PASSCODE` in the app's secrets on Streamlit Cloud to lock it (the code
 never lives in this repo; `.streamlit/secrets.toml` is git-ignored), then run
 `python portal_key.py <code>` and put the printed `?k=…` on the end of the app's
