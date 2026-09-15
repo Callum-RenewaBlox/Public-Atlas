@@ -8,10 +8,10 @@ navigation bar:
   site, with its half-hourly dispatch desk (``peaker_plant_3d.html``).
 * ``?view=hydro`` — Hydro 3D: the Kinlochdamph powerhouse and its in-room data
   centre, water to wire to rack (``kld_interactive.html``).
-* ``?view=heat`` — Heat Network 3D: the ISL heat network and the
+* ``?view=heat`` — Heat Network 3D: the IHN heat network and the
   data centre that heats it, a year half-hour by half-hour
   (``heat_network_3d.html``, built by ``build_heat_network_3d.py`` in the
-  ISL client's contract folder).
+  IHN client's contract folder).
 * ``?view=dfc`` — Demand for Constraints 3D: the Moray cluster north of the
   B4 constraint and the two BLOX halls NESO dispatches to absorb curtailed
   wind, a year half-hour by half-hour (``demand_for_constraints_3d.html``,
