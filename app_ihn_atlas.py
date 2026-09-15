@@ -33,7 +33,7 @@ VIEW_3D = st.query_params.get("view") == "3d"
 
 st.set_page_config(
     page_title="IHN Atlas — Heat Network 3D" if VIEW_3D else "IHN Atlas",
-    page_icon=":material/hub:",
+    page_icon=":material/device_thermostat:",
     layout="wide",
     initial_sidebar_state="collapsed",
 )
