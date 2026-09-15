@@ -895,6 +895,31 @@ footer .f2{text-align:right;color:var(--muted-2)}
     sync();
   })();
 
+  // Navigate the whole page from inside Streamlit's component iframe. The
+  // frame is sandboxed without allow-top-navigation, so setting
+  // parent.location is refused (silently — no exception) in real Chrome.
+  // What the sandbox does permit: 1) a click on an anchor that belongs to the
+  // PARENT document, which the browser attributes to the parent; 2) failing
+  // that, rewriting the parent's history entry and reloading it; 3) failing
+  // that, a new tab. A successful navigation unloads this document, which
+  // cancels the fallback timer via pagehide.
+  function rbxGo(url){
+    var fallback = setTimeout(function(){
+      try { window.parent.history.pushState(null, '', url); window.parent.location.reload(); }
+      catch(e) { window.open(url, '_blank', 'noopener'); }
+    }, 1200);
+    window.addEventListener('pagehide', function(){ clearTimeout(fallback); }, { once: true });
+    try {
+      var pd = window.parent.document;
+      var a = pd.createElement('a');
+      a.href = url; a.target = '_self'; a.style.display = 'none';
+      pd.body.appendChild(a); a.click(); a.remove();
+    } catch(e) {
+      clearTimeout(fallback);
+      try { window.parent.history.pushState(null, '', url); window.parent.location.reload(); }
+      catch(e2) { window.open(url, '_blank', 'noopener'); }
+    }
+  }
   /* ------------------------------------------------------ back to the atlas -- */
   // The atlas navigates the whole page here, so offer the return trip rather
   // than leaving the browser's Back button as the only way out.
@@ -910,8 +935,7 @@ footer .f2{text-align:right;color:var(--muted-2)}
       u.hash = "";
       url = u.toString();
     } catch (e) {}
-    try { window.parent.location.assign(url); }
-    catch (e) { window.open(url, "_blank", "noopener"); }
+    rbxGo(url);
   });
 
   /* --------------------------------------------------------- phone start -- */
