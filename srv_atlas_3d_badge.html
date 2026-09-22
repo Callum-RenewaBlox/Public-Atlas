@@ -1,8 +1,8 @@
 <!-- ======================================================================
   SRV Atlas · 3D sim gateway
   Appended to srv_atlas.html at serve time by app_srv_atlas.py. Adds two
-  pulsing BLOX badges on the yard — the 3D Dispatch Sim and the 3D Siting
-  Options — and matching CTA rows in the relevant asset popups. Each takes the
+  pulsing BLOX badges on the yard — the 3D Dispatch Sim and the 3D Compute
+  Kiosk — and matching CTA rows in the relevant asset popups. Each takes the
   visitor straight to a full-screen page via the app's own ?view= routes —
   no overlay, no nested chrome. A map can carry any number of these.
 ======================================================================= -->
@@ -160,14 +160,14 @@
   // "compute units" label boxes, pill reaching west over open field.
   var simBadge = badge(53.176703, -0.110826,
     '3D Dispatch Sim', '3D Sim', 'Launch the 3D Dispatch Sim', openSim);
-  // Siting options: where the grid-supply kiosk pin used to be, at the foot of
+  // Compute kiosk (the final siting scheme): where the grid-supply kiosk pin used to be, at the foot of
   // the switchroom label stack; the pill reaches east over the yard.
   // The kiosk point itself is wedged between the SWITCHROOM and CHP labels, so
   // the chip is offset in SCREEN space — 60 px east, 19 px south, where the old
   // "5 GRID SUPPLY" label sat — which keeps it clear of both at any viewport
   // (iconAnchor is a pixel offset, unaffected by map size or pan).
   var siteBadge = badge(53.176878, -0.110333,
-    '3D Siting Options', 'Siting', 'Compare the four siting options in 3D', openSiting, 'b3d-right', [-37, 4]);
+    '3D Compute Kiosk', 'Kiosk', 'See the compute kiosk in 3D', openSiting, 'b3d-right', [-37, 4]);
 
   // one gentle nudge each shortly after load, staggered, so the pills catch
   // the eye once without waving in unison
@@ -196,8 +196,8 @@
     if (!title) return;
     var t = title.textContent;
     if (SITE_ASSETS.test(t)) node.appendChild(row(
-      'Compare the four siting options',
-      'Where the 410 kW container and dry cooler sit — A to D, in 3D', openSiting));
+      'See the compute kiosk in 3D',
+      'One 4 m kiosk for the LV board, three DCX racks and the cooling loop', openSiting));
     if (SIM_ASSETS.test(t)) node.appendChild(row(
       'See it working in the 3D Dispatch Sim',
       'Watch the 350 kW block switch between grid and compute', openSim));

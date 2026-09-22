@@ -11,8 +11,9 @@ atlases behave identically and a new site is a copy of either:
   the yard, each with a standing call to action.
 * ``?view=3d`` — the 3D Dispatch Sim (``srv_3d_sim.html``): the peaker model
   over a real metered year.
-* ``?view=siting`` — the 3D Siting Options (``srv_siting_3d.html``): the
-  410 kW load bank container and its dry cooler placed four ways, A–D.
+* ``?view=siting`` — the 3D Compute Kiosk (``srv_siting_3d.html``): the final
+  siting scheme, one 4 m kiosk for the LV board, three DCX racks and their
+  cooling loop, with the dry cooler on the roof.
 
 A badge navigates the whole page to its route rather than opening an overlay,
 so the map page stays light and each model gets the entire browser window;
@@ -20,7 +21,7 @@ every model page carries its own "Atlas" control to come back. The badge
 layer lives in ``srv_atlas_3d_badge.html`` (built by
 ``Contracts/Scrivelsby Farm Ltd/Atlas/build_srv_atlas_badge.py``) and is
 appended at serve time, so the generated map file stays pristine. The model
-pages come from ``build_srv_3d_sim.py`` and ``build_srv_siting_3d.py`` in the
+pages come from ``build_srv_3d_sim.py`` and ``siting/build_siting.py`` in the
 same folder.
 
 Self-contained: every view reads local HTML (Leaflet / three.js, all data and
@@ -36,7 +37,7 @@ HERE = Path(__file__).resolve().parent
 
 VIEWS = {
     "3d":     ("srv_3d_sim.html",    "SRV Atlas — 3D Dispatch Sim"),
-    "siting": ("srv_siting_3d.html", "SRV Atlas — 3D Siting Options"),
+    "siting": ("srv_siting_3d.html", "SRV Atlas — 3D Compute Kiosk"),
 }
 # read before set_page_config so the tab title can follow the route
 view = st.query_params.get("view", "")
