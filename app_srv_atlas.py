@@ -11,9 +11,11 @@ atlases behave identically and a new site is a copy of either:
   the yard, each with a standing call to action.
 * ``?view=3d`` — the 3D Dispatch Sim (``srv_3d_sim.html``): the peaker model
   over a real metered year.
-* ``?view=siting`` — the 3D Compute Kiosk (``srv_siting_3d.html``): the final
-  siting scheme, one 4 m kiosk for the LV board, three DCX racks and their
-  cooling loop, with the dry cooler on the roof.
+* ``?view=siting`` — the 3D Compute Kiosk (``srv_siting_3d.html``): the two
+  siting schemes on one page. Option A, one 4 m kiosk for the LV board, three
+  DCX racks and their cooling loop with the dry cooler on the roof; option B,
+  the existing kiosk extended for the board and the Winchain 10 ft hydro
+  cooling container behind it with the dry cooler on the container roof.
 
 A badge navigates the whole page to its route rather than opening an overlay,
 so the map page stays light and each model gets the entire browser window;
