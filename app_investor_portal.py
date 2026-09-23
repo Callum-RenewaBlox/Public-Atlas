@@ -10,11 +10,15 @@ a browser cookie so the model links never re-ask:
 
 * frictionless — the portal's link carries the key, ``?k=<key>``, where the
   key is the code's keyed hash (``portal_key.py`` prints it); an investor who
-  clicks through from the logged-in portal never sees a prompt, the key is
-  removed from the address bar on arrival, and the pack's own links carry it
-  on, so the pack also works embedded in the portal page, where browsers that
-  block third-party cookies would otherwise re-ask at every click;
+  clicks through from the logged-in portal never sees a prompt and the key is
+  removed from the address bar on arrival;
 * fallback — a code prompt, for anyone you send the code to by other means.
+
+Whichever way in, the pack's own links carry the key on, so moving between the
+landing page and the models never re-asks. The cookie alone was not enough: on
+the deployed app the prompt came back at the first model link after the code
+was entered, and browsers that block third-party cookies drop it when the pack
+is embedded in the portal page.
 
 With no secret set the app is open, exactly like the demo. Note that the model
 files and this code are in a public repository whatever the gate says — the
@@ -98,11 +102,14 @@ def passcode_ok() -> bool:
 
     The code lives in Streamlit secrets as ``PORTAL_PASSCODE`` (never in the
     repo). The pack's navigation is plain links, and every link is a full page
-    load — a new Streamlit session — so the pass is remembered in a browser
-    cookie: a keyed hash of the code, set once on success and checked at the
-    start of each session. The same hash is the key a portal link can carry
-    (``?k=``), which opens the pack without a prompt. Clearing cookies, or
-    changing the code, asks again.
+    load — a new Streamlit session — so however the visitor got in (the key on
+    the portal's link, the cookie, or the code prompt) the session keeps the
+    key, a keyed hash of the code, and every card and pack-bar link carries it
+    on as ``?k=``, so the next page opens straight through whether or not the
+    browser hands the cookie back (on the deployed app it did not: the code
+    prompt came back at the first model link). The cookie is still set on
+    success, so a later return to the bare URL can also skip the prompt.
+    Changing the code expires every key and cookie.
     """
     try:
         code = str(st.secrets.get("PORTAL_PASSCODE", ""))
@@ -133,6 +140,7 @@ def passcode_ok() -> bool:
         seen = ""
     if seen and hmac.compare_digest(seen, token):
         st.session_state["portal_ok"] = True
+        st.session_state["portal_key"] = token
         return True
     st.markdown(
         """
@@ -158,6 +166,7 @@ def passcode_ok() -> bool:
     if submitted:
         if hmac.compare_digest(entered.strip(), code):
             st.session_state["portal_ok"] = True
+            st.session_state["portal_key"] = token
             st.session_state["portal_set_cookie"] = True
             st.rerun()
         st.error("That code was not recognised.")
