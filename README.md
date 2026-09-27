@@ -21,6 +21,7 @@ public, the apps deploy as **public apps** on Streamlit Community Cloud
 | `app_investor_demo_aus.py` | `investor_demo_aus_home.html` + `peaker_plant_3d.html` + `kld_interactive.html` + `nem_negative_price_atlas.html` | Investor Demo (Australia) — Peaker Plant 3D and Hydro 3D plus NEM 3D (mining economics across the Australian NEM, `?view=nem`), on its own URL for the investor group that model was built for |
 | `app_peaker_3d.py` | `peaker_plant_3d.html` | Peaker Plant 3D standalone — the same peaker model on its own link, for client brochures (AD operators): no landing page, no pack navigation, straight into the model, prices in **p/kWh** |
 | `app_peaker_demo.py` | `peaker_plant_3d.html` | Peaker Demo — the pack's Peaker Plant 3D on a link of its own, for sending the peaker without the rest of the pack: no landing page, no pack navigation, prices in **£/MWh**, and tailored for an energy-literate audience (strike opens at £80 on a £50–£100 range; the export price is named **DA + gDUoS**) |
+| `app_generator_demo.py` | `generator_demo_home.html` + `peaker_plant_3d.html` + `kld_interactive.html` | Generator Demo — the client pack for generators RenewaBlox is reaching out to, on its own URL: a landing page that sorts the models by the client's sector, with the peaker under **Fuelled Renewables** as the **Peaker Plant model** (`?view=peaker`, prices in **p/kWh**) and the hydro under **Stranded Renewables** as the **Run-of-River Hydro model** (`?view=hydro`). Each model's header carries its client-pack name, the pack bar names the sector and offers a "Talk to us" email link, and nothing is gated — the investor-portal blur is for investors |
 
 The two investor demos are separate apps on purpose: NEM 3D was built for one
 group of Australian investors, so it appears only in the pack they are sent to.
@@ -30,7 +31,7 @@ design; each has its own entry file and its own landing fragment. A stale
 `?view=nem` link against the main pack falls back to its landing page rather
 than erroring.
 
-Four surfaces serve the same `peaker_plant_3d.html`, and they differ only in
+Five surfaces serve the same `peaker_plant_3d.html`, and they differ only in
 framing — audience decides which link goes out:
 
 | Surface | Chrome | Prices | Strike | Export price reads |
@@ -38,6 +39,7 @@ framing — audience decides which link goes out:
 | the two packs, `?view=peaker` | landing page + pack bar | £/MWh | £100, £40–£160 | "Price of electricity" |
 | `app_peaker_demo.py` | none | £/MWh | £80, £50–£100 | "Export · DA + gDUoS" |
 | `app_peaker_3d.py` | none | p/kWh (AD operators) | £100, £40–£160 | "Price of electricity" |
+| `app_generator_demo.py`, `?view=peaker` | landing page + pack bar | p/kWh (generators) | £100, £40–£160 | "Price of electricity" |
 
 Standing the peaker up on its own did not take it out of the packs: both still
 carry their Peaker card, so `?view=peaker` links already sent out keep working.
@@ -83,19 +85,24 @@ them after an upstream rebuild:
 
 | Copy in this repo | Used by | Source of truth |
 | --- | --- | --- |
-| `peaker_plant_3d.html` | both packs + `app_peaker_3d.py` | internal Atlas 3D build (`peaker_plant_3d_2.html`) |
-| `kld_interactive.html` | both packs + KLD Atlas | `Contracts/Kinlochdamph/Atlas/kld_live_3.html` |
+| `peaker_plant_3d.html` | both packs + generator pack + `app_peaker_3d.py` + `app_peaker_demo.py` | internal Atlas 3D build (`peaker_plant_3d_2.html`) |
+| `kld_interactive.html` | both packs + generator pack + KLD Atlas | `Contracts/Kinlochdamph/Atlas/kld_live_3.html` |
 | `nem_negative_price_atlas.html` | Australia pack | internal Atlas 3D build (`nem_negative_price_atlas_2.html`) |
 
 Both packs and the standalone peaker serve their model pages with small
 presentation-only CSS patches (`PATCH_CSS` in the packs, inline in
 `app_peaker_3d.py`) — the peaker's guided-tour view strip is hidden in all
-three — so the files themselves stay byte-for-byte copies of upstream.
+three — so the files themselves stay byte-for-byte copies of upstream. The
+generator pack goes one step further and renames each model in its own header
+(`title` in `MODELS` in `app_generator_demo.py`, an exact-string swap of the
+`<h1>`): if an upstream rebuild changes that heading the swap simply misses and
+the model keeps its own title, so check the pack after refreshing a copy.
 `app_kld_atlas.py` does the same for `kld_interactive.html`, appending
 `kld_hydro_chrome.html` (design-system overrides plus the "Atlas" control back
 to the map). **Never edit `kld_interactive.html` to add atlas-specific chrome** —
-it is served by three apps, and a "back to the KLD Atlas" button baked into it
-would appear, pointing at the wrong place, in both investor packs.
+it is served by four apps, and a "back to the KLD Atlas" button baked into it
+would appear, pointing at the wrong place, in both investor packs and the
+generator pack.
 
 ## The site-atlas pattern
 
@@ -136,8 +143,9 @@ IHN Atlas): **never bake atlas chrome into it** — the IHN "Atlas" pill lives i
 `ihn_heat_chrome.html` and is appended at serve time, exactly as
 `kld_hydro_chrome.html` is for `kld_interactive.html`.
 
-`investor_demo_home.html` and `investor_demo_aus_home.html` are hand-authored
-(wordmark and scene thumbnails inlined as data URIs) — edit them directly. Each
+`investor_demo_home.html`, `investor_demo_aus_home.html` and
+`generator_demo_home.html` are hand-authored (wordmark and scene thumbnails
+inlined as data URIs) — edit them directly. Each
 is a fragment (`<style>` + one `<div>`, no `<html>`/`<body>`, no scripts, every
 class prefixed `rbx-`); the app strips blank lines before handing it to
 `st.markdown`, and any new link in it needs an explicit `target="_self"` or
@@ -150,7 +158,13 @@ window is the CSS default rather than a `checked` attribute: Streamlit's React
 tree treats a `checked` radio as controlled and snaps it back after a click.
 The Australia fragment still has the earlier single-grid design with NEM 3D as
 its third card; the tabbed design has not been ported to it yet, pending a
-decision on which window NEM 3D belongs to.
+decision on which window NEM 3D belongs to. The generator fragment is its own
+design for a client audience: a dark hero with a "Which describes your site?"
+picker, one feature section per sector (Fuelled Renewables, Stranded
+Renewables), a three-step "How we work with generators" strip and an email
+call to action. Its two scene frames are declared once each, as backgrounds on
+the `.rbx-img-peaker` / `.rbx-img-hydro` classes, and shared by the picker and
+the sector cards, so neither image is inlined twice.
 
 Card thumbnails are frames taken from the models themselves, so they go stale
 when a model is rebuilt. The three.js scenes render with `preserveDrawingBuffer`
@@ -160,7 +174,10 @@ camera (`__atlas.view('hall')`), size the canvas 2:1
 then `__atlas.shoot()` for a PNG data URL. Downscale to 1200×600 and inline it
 as WebP (~40 kB at quality 78 matches the other cards). Heat Network 3D has no
 `__atlas` hook: its card is a plain 2:1 crop of a `#stage` screenshot taken in
-Phase 2, when the thermal stores are lit.
+Phase 2, when the thermal stores are lit. The generator page's frames are 3:2
+(1320×880, WebP quality 76): the peaker from `pos [24,15,44]`, `tgt [-1,2,-8]`,
+the hydro from `__atlas.view('hall')`, both with the pins off
+(`__atlas.state.labels` false) and shot once the intro fly-in has settled.
 
 The SRV builder also lifts the 12 survey photographs out of
 `srv_contractor.html`, re-encodes them to WebP and wires them onto the 3D
@@ -186,6 +203,7 @@ builder at it would quietly strip the 3D sim's photography.
     streamlit run app_peaker_demo.py
     streamlit run app_investor_demo_aus.py
     streamlit run app_investor_portal.py
+    streamlit run app_generator_demo.py
 
 ## Deploy
 
@@ -202,9 +220,12 @@ per entry file, each with its own custom subdomain:
 | `app_ihn_atlas.py` | `ihn-atlas.streamlit.app` — the client-facing IHN Atlas, with Heat Network 3D at `?view=3d` |
 
 `app_peaker_demo.py` is ready to deploy and has no subdomain yet — add its row
-above once one is claimed. The IHN Atlas serves Heat Network 3D with all of its
-data at `?view=3d`, so its link is for the client, not the public demo's
-footing. All five deployed apps are visited hourly by the keep-awake workflow
+above once one is claimed. So is `app_generator_demo.py`, the generator pack;
+`generator-demo.streamlit.app` matches the investor pack's naming. Once it is
+live, add its row above and its URL to `APPS` in
+`.github/scripts/keep_awake.py` (and to the alert's app list in the workflow).
+The IHN Atlas serves Heat Network 3D with all of its data at `?view=3d`, so its
+link is for the client, not the public demo's footing. All five deployed apps are visited hourly by the keep-awake workflow
 (`.github/workflows/keep-awake.yml`). For the portal app, set
 `PORTAL_PASSCODE` in the app's secrets on Streamlit Cloud to lock it (the code
 never lives in this repo; `.streamlit/secrets.toml` is git-ignored), then run
