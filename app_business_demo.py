@@ -3,7 +3,7 @@
 For businesses that buy electricity, not experts in it. The pack tells one story:
 around half of a business electricity bill isn't the electricity, and tem and
 RenewaBlox work on it from either side of the meter. tem supplies the power
-(RED, priced against its UK renewable portfolio through the ROSSO platform) and
+(RED, priced against its UK renewable portfolio through the Rosso platform) and
 the RED Plus benefit (P442 exempt supply); RenewaBlox works on the site in
 three tiers, each including RED and RED Plus and building on the one before:
 
