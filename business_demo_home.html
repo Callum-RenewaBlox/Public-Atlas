@@ -102,8 +102,24 @@
   .rbx-fn.rbx-fn-rb .rbx-fsum { color:var(--rbx-accent); }
   .rbx-fn .rbx-tags { margin-top:10px; display:flex; flex-wrap:wrap; gap:5px; justify-content:center; }
   .rbx-fn .rbx-tags span { font-size:11px; font-weight:700; padding:4px 9px; border-radius:999px; }
+  /* tem's step: the bill, before and after. RED and RED Plus strike out two slices of it; the rest is the bill with tem */
+  .rbx-bill { display:grid; grid-template-columns:18px 54px minmax(0,1fr); grid-template-rows:44px 44px 86px; column-gap:9px; row-gap:5px;
+    width:100%; max-width:250px; margin:12px auto 0; text-align:left; }
+  .rbx-bill-today { grid-column:1; grid-row:1 / 4; position:relative; }
+  .rbx-bill-today::after { content:""; position:absolute; top:0; bottom:0; right:0; width:7px; border:1.5px solid var(--rbx-ink-2); border-right:0;
+    border-radius:3px 0 0 3px; }
+  .rbx-bill-today span { position:absolute; top:50%; left:-2px; transform:translateY(-50%) rotate(180deg); writing-mode:vertical-rl;
+    font-size:10.5px; font-weight:750; letter-spacing:.06em; color:var(--rbx-ink-2); white-space:nowrap; }
+  .rbx-bill-seg { grid-column:2; display:block; border-radius:5px; border:1.5px solid; }
+  .rbx-bill-cut { border-color:rgba(207,48,10,.72); background:#fff6f2 repeating-linear-gradient(135deg, rgba(207,48,10,.34) 0 1.3px, transparent 1.3px 7px); }
+  .rbx-bill-tem { border-color:var(--rbx-brand); background:var(--rbx-tint) repeating-linear-gradient(135deg, rgba(58,137,174,.38) 0 1.3px, transparent 1.3px 7px); }
+  .rbx-bill-lab { grid-column:3; align-self:center; display:flex; flex-direction:column; align-items:flex-start; gap:3px; }
+  .rbx-bill-pill { font-size:10.5px; font-weight:750; line-height:1; padding:4px 9px; border-radius:999px; background:var(--rbx-tem-bg); color:var(--rbx-tem-d); }
+  .rbx-bill-lab s { font-size:11.5px; line-height:1.3; color:rgba(165,40,10,.85); text-decoration-thickness:1.5px; white-space:nowrap; }
+  .rbx-bill-with { font-size:13px; font-weight:750; line-height:1.3; color:var(--rbx-brand); }
+  /* no pills under tem's diagram: its summary keeps the pill row's space, so it stays level with RenewaBlox's */
+  @media (min-width:1081px) { .rbx-fn.rbx-fn-tem .rbx-fsum { margin-bottom:32px; } }
   .rbx-fn.rbx-fn-tem .rbx-fi { background:var(--rbx-tem-bg); border:1px solid var(--rbx-tem-line); }
-  .rbx-fn.rbx-fn-tem .rbx-tags span { background:var(--rbx-tem-bg); color:var(--rbx-tem-d); }
   .rbx-fn.rbx-fn-rb .rbx-fi { width:136px; background:#fff; border:1px solid #d3e3ec; box-shadow:0 6px 18px rgba(0,80,140,.10); }
   .rbx-fn.rbx-fn-rb .rbx-fi picture { display:block; }
   /* the animated BLOX wordmark sits on the tile's white; multiply keeps any lossy off-white invisible */
@@ -336,8 +352,17 @@
         </div>
         <div class="rbx-fn rbx-fn-tem">
           <div class="rbx-fi"><img alt="" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='%23ff3f10' stroke-width='2' stroke-linejoin='round' d='M12 1.5c.7 5.6 4.9 9.8 10.5 10.5-5.6.7-9.8 4.9-10.5 10.5-.7-5.6-4.9-9.8-10.5-10.5C7.1 11.3 11.3 7.1 12 1.5z'/%3E%3C/svg%3E"></div>
-          <b>tem</b><small class="rbx-fl"><span>1) Rosso, tem&rsquo;s AI platform, cuts out market middlemen by matching supply with demand</span><span>2) Under P442, matched supply from renewables exempts businesses from certain government levies.</span></small><div class="rbx-fsum">Two mechanisms to achieve savings</div>
-          <div class="rbx-tags"><span>RED</span><span>RED Plus</span></div>
+          <b>tem</b>
+          <div class="rbx-bill" role="img" aria-label="Your bill today has three parts. RED removes the market middlemen; RED Plus removes applicable government levies; what remains is your bill with tem.">
+            <div class="rbx-bill-today"><span>Your bill today</span></div>
+            <i class="rbx-bill-seg rbx-bill-cut" style="grid-row:1"></i>
+            <i class="rbx-bill-seg rbx-bill-cut" style="grid-row:2"></i>
+            <i class="rbx-bill-seg rbx-bill-tem" style="grid-row:3"></i>
+            <div class="rbx-bill-lab" style="grid-row:1"><span class="rbx-bill-pill">RED</span><s>Market middlemen</s></div>
+            <div class="rbx-bill-lab" style="grid-row:2"><span class="rbx-bill-pill">RED Plus</span><s>Applicable Gov levies</s></div>
+            <div class="rbx-bill-lab rbx-bill-with" style="grid-row:3">Your bill with tem</div>
+          </div>
+          <div class="rbx-fsum">Two mechanisms to achieve savings</div>
         </div>
         <div class="rbx-fn rbx-fn-m">
           <div class="rbx-fi"><img alt="" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linejoin='round'%3E%3Cpath d='M13 2 4 14h7l-1 8 9-12h-7z'/%3E%3C/svg%3E"></div>
