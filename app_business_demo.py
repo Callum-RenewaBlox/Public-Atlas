@@ -33,23 +33,14 @@ iframe and scroll within it.
 
 Public tool. Run locally:  streamlit run app_business_demo.py
 """
-from pathlib import Path
-
 import streamlit as st
 
-HERE = Path(__file__).resolve().parent
+from packs import BUSINESS_HOME, BUSINESS_SUBJECT, BUSINESS_VIEWS, CONTACT, home_fragment, model_page
 
-CONTACT = "callum@renewablox.com"
-BILL_SUBJECT = "Business%20electricity%20%E2%80%94%20our%20bill"
-
-VIEWS = {
-    "site": {"file": "business_site_analysis.html", "tier": "Tier 1",
-             "label": "Holistic Site Analysis", "short": "Site"},
-    "haas": {"file": "business_haas.html", "tier": "Tier 2",
-             "label": "Heat-as-a-Service", "short": "HaaS"},
-    "heat": {"file": "heat_network_3d.html", "tier": "Tier 3",
-             "label": "Heat Network", "short": "Network"},
-}
+# The views and their files live in packs.py, shared with the static site
+# build (build_energy_site.py).
+VIEWS = BUSINESS_VIEWS
+BILL_SUBJECT = BUSINESS_SUBJECT
 
 view = st.query_params.get("view", "home")
 if view not in VIEWS:
@@ -135,7 +126,7 @@ st.markdown(
 # script but can keep imported modules cached, so reading here keeps the
 # embedded build current after every redeploy).
 if view == "home":
-    home = (HERE / "business_demo_home.html").read_text(encoding="utf-8")
+    home = home_fragment(BUSINESS_HOME)
     # st.markdown parses this as Markdown: a blank line ends a CommonMark HTML
     # block and the indented remainder would render as a code block, so drop
     # blank lines before handing the fragment over.
@@ -163,4 +154,4 @@ else:
         """,
         unsafe_allow_html=True,
     )
-    st.iframe((HERE / page["file"]).read_text(encoding="utf-8"), height=900)
+    st.iframe(model_page(page), height=900)

@@ -32,36 +32,13 @@ never change the app's URL.
 
 Public tool. Run locally:  streamlit run app_generator_demo.py
 """
-from pathlib import Path
-
 import streamlit as st
 
-HERE = Path(__file__).resolve().parent
+from packs import CONTACT, GENERATOR_HOME, GENERATOR_VIEWS, home_fragment, model_page
 
-CONTACT = "callum@renewablox.com"
-
-# ``title`` swaps the model's own header title for this pack's name for it: an
-# exact-string splice, so if an upstream rebuild changes the header the model
-# simply keeps its own title rather than failing to serve.
-MODELS = {
-    "peaker": {
-        "file": "peaker_plant_3d.html",
-        "sector": "Fuelled Renewables",
-        "label": "Peaker Plant model",
-        "short": "Peaker",
-        "title": ("<h1>Peaker Plant 3D</h1>", "<h1>Peaker Plant model</h1>"),
-        "head": ('<script>window.PEAKER_UNITS="p/kWh";</script>'
-                 "<style>#viewstrip{display:none !important;}</style>"),
-    },
-    "hydro": {
-        "file": "kld_interactive.html",
-        "sector": "Stranded Renewables",
-        "label": "Run-of-River Hydro model",
-        "short": "Hydro",
-        "title": ("<h1>Kinlochdamph — Living Site Model</h1>", "<h1>Run-of-River Hydro model</h1>"),
-        "head": "",
-    },
-}
+# The views, their files and their serve-time patches live in packs.py, shared
+# with the static site build (build_energy_site.py).
+MODELS = GENERATOR_VIEWS
 
 view = st.query_params.get("view", "home")
 if view not in MODELS:
@@ -148,7 +125,7 @@ st.markdown(
 # script but can keep imported modules cached, so reading here keeps the
 # embedded build current after every redeploy).
 if view == "home":
-    home = (HERE / "generator_demo_home.html").read_text(encoding="utf-8")
+    home = home_fragment(GENERATOR_HOME)
     # st.markdown parses this as Markdown: a blank line ends a CommonMark HTML
     # block and the indented remainder would render as a code block, so drop
     # blank lines before handing the fragment over.
@@ -176,8 +153,4 @@ else:
         """,
         unsafe_allow_html=True,
     )
-    model_html = (HERE / model["file"]).read_text(encoding="utf-8")
-    model_html = model_html.replace(*model["title"], 1)
-    if model["head"]:
-        model_html = model_html.replace("</head>", model["head"] + "</head>", 1)
-    st.iframe(model_html, height=900)
+    st.iframe(model_page(model), height=900)

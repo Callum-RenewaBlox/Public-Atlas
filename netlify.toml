@@ -1,0 +1,16 @@
+# energy.renewablox.co.uk — the client packs as a static site (build_energy_site.py).
+# Netlify builds on every push to main; the Streamlit apps are untouched by it.
+
+[build]
+  command = "python3 build_energy_site.py"
+  publish = "energy_site"
+
+[build.environment]
+  PYTHON_VERSION = "3.12"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Frame-Options = "SAMEORIGIN"

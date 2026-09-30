@@ -209,6 +209,51 @@ It reads the **contractor** atlas deliberately: `srv_atlas.html` is the
 minimalist client build and carries only a few exterior shots, so pointing the
 builder at it would quietly strip the 3D sim's photography.
 
+## energy.renewablox.co.uk — the client packs on RenewaBlox's own domain
+
+The Generator Demo and Business Electricity packs are plain pages, with no
+server logic and no secrets, so they are also published as a static site at
+**energy.renewablox.co.uk**. Streamlit Community Cloud only serves
+`*.streamlit.app`, and a client email reads better, and sits better with spam
+filters, when its links are on the sending domain. The Streamlit apps stay up,
+so links already sent keep working.
+
+| Address | Page |
+| --- | --- |
+| `/` | welcome page: which side of the meter are you on? (`energy_welcome.html`) |
+| `/business/` | Business Electricity landing |
+| `/business/site-analysis/`, `/business/heat-as-a-service/`, `/business/heat-network/` | the three tiers |
+| `/generators/` | Generator Demo landing |
+| `/generators/peaker-plant/`, `/generators/run-of-river-hydro/` | the two models |
+
+`build_energy_site.py` writes it to `energy_site/` (git-ignored); Netlify runs
+it on every push to main (`netlify.toml`, project `renewablox-energy`), so the
+site and the apps change together. Both read the packs through **`packs.py`**:
+each view's file, labels and serve-time patches (the model renames and the
+peaker's p/kWh) are defined there once. Add or rename a view in `packs.py`, not
+in an app. The build wraps each landing fragment in a document of its own,
+turns every `?view=<key>` link into a real address (and fails if a fragment
+links to a view it doesn't know), and puts each model under the same pack bar
+the apps draw, in an iframe of the patched model at `<slug>/model.html`, exactly
+as Streamlit frames it. An old Streamlit-style link with only its domain swapped
+(`energy.renewablox.co.uk/?view=site`) is forwarded from the welcome page to its
+page: the two packs' view keys never collide, and the build checks that they don't.
+`energy_site_assets/` holds the 404 page and the 1200×630 share-preview images
+(`og-*.jpg`, frames of each landing page's headline): re-shoot them if a
+headline changes.
+
+Domain: `renewablox.co.uk`'s DNS is at Wix. The subdomain is a CNAME record
+`energy` → `renewablox-energy.netlify.app` there, with `energy.renewablox.co.uk`
+added as the project's domain in Netlify, which issues the HTTPS certificate.
+The apex and `www` records keep redirecting `.co.uk` to `.com`. Netlify's
+visitor access controls ask for a team login on preview deploys only; the
+production site is public.
+
+Build and look at it locally:
+
+    python build_energy_site.py
+    python -m http.server 8800 -d energy_site     # then open http://localhost:8800/
+
 ## Run locally
 
     pip install -r requirements.txt
