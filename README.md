@@ -23,6 +23,7 @@ public, the apps deploy as **public apps** on Streamlit Community Cloud
 | `app_peaker_demo.py` | `peaker_plant_3d.html` | Peaker Demo — the pack's Peaker Plant 3D on a link of its own, for sending the peaker without the rest of the pack: no landing page, no pack navigation, prices in **£/MWh**, and tailored for an energy-literate audience (strike opens at £80 on a £50–£100 range; the export price is named **DA + gDUoS**) |
 | `app_generator_demo.py` | `generator_demo_home.html` + `peaker_plant_3d.html` + `kld_interactive.html` | Generator Demo — the client pack for generators RenewaBlox is reaching out to, on its own URL: a landing page that sorts the models by the client's sector, with the peaker under **Fuelled Renewables** as the **Peaker Plant model** (`?view=peaker`, prices in **p/kWh**) and the hydro under **Stranded Renewables** as the **Run-of-River Hydro model** (`?view=hydro`). Each model's header carries its client-pack name, the pack bar names the sector and offers a "Talk to us" email link, and nothing is gated — the investor-portal blur is for investors |
 | `app_business_demo.py` | `business_demo_home.html` + `business_site_analysis.html` + `business_haas.html` + `heat_network_3d.html` | Business Electricity — RenewaBlox with tem, the client pack for businesses that buy electricity: a landing page that explains what's in a business bill and who works on which side of the meter (the animated BLOX wordmark marks RenewaBlox's side), sets out tem's supply (RED, priced against tem's UK renewable portfolio through its Rosso platform) and the RED Plus benefit (P442 exempt supply) as the foundation of every tier, then offers three tiers, each including RED and RED Plus and building on the one before: **Tier 1, Holistic Site Analysis** (`?view=site`, an interactive example report on an illustrative site built from tem's example quote — capacity, night-rate timing, power factor, levies and bands, with a running total), **Tier 2, Heat-as-a-Service** (`?view=haas`, an animated isometric site heated by Bitcoin miners through a large dry cooler or as space heaters) and **Tier 3, Heat Network** (`?view=heat`, Heat Network 3D, served with all of its data) |
+| `app_citygate_electricity.py` | `citygate_electricity.html` | Citygate Church — Electricity Portrait: fourteen months of half-hourly meter readings for Citygate Church (138a Holdenhurst Road, Bournemouth) told in plain English for the church's leaders, who are not energy people: the short version up top (four ways the data points to lower bills, and how ready each one is), kW, kWh and kVA in one card each, then six numbered findings — the whole year in one half-hourly picture with numbered markers, a winter and a summer week, where the electricity goes, the seasons, the grid connection drawn as a 250-seat hall, and what it could be worth with a sensible order to act in |
 
 The two investor demos are separate apps on purpose: NEM 3D was built for one
 group of Australian investors, so it appears only in the pack they are sent to.
@@ -209,6 +210,21 @@ It reads the **contractor** atlas deliberately: `srv_atlas.html` is the
 minimalist client build and carries only a few exterior shots, so pointing the
 builder at it would quietly strip the 3D sim's photography.
 
+`citygate_electricity.html` is a hand-authored full page served in the app's
+iframe, in the same house style as the business pack's tier pages (the brand
+bar, petrol tokens, numbered finding cards and the dark summary panel). It is
+the one page in the repo that carries Inter itself rather than naming it: the
+Latin subset of the variable font (weights 100–900, SIL Open Font License) is
+inlined as a WOFF2 data URI, so the client sees the brand face on machines
+that don't have Inter installed. The meter data is inlined as `DATA` — 424
+days × 48 half-hours of demand in tenths of a kW, each day's busiest
+half-hour, a winter and a summer average week, and the monthly totals — and
+every chart is drawn from it in the page, at the container's real width, so
+labels stay legible on a phone. The page prints to A4 (the header's print
+button). In-page links scroll with script rather than following `#anchors`,
+because inside Streamlit's `srcdoc` frame a bare anchor resolves against the
+app's own URL and would load the app inside itself.
+
 ## energy.renewablox.co.uk — the client packs on RenewaBlox's own domain
 
 The Generator Demo and Business Electricity packs are plain pages, with no
@@ -270,6 +286,7 @@ Build and look at it locally:
     streamlit run app_investor_portal.py
     streamlit run app_generator_demo.py
     streamlit run app_business_demo.py
+    streamlit run app_citygate_electricity.py
 
 ## Deploy
 
@@ -292,6 +309,8 @@ live, add its row above and its URL to `APPS` in
 `.github/scripts/keep_awake.py` (and to the alert's app list in the workflow).
 The same goes for `app_business_demo.py`, the business pack
 (`business-demo.streamlit.app` would match).
+`app_citygate_electricity.py`, Citygate Church's electricity portrait, is ready
+to deploy too and has no subdomain yet.
 The IHN Atlas serves Heat Network 3D with all of its data at `?view=3d`, so its
 link is for the client, not the public demo's footing. All five deployed apps are visited hourly by the keep-awake workflow
 (`.github/workflows/keep-awake.yml`). For the portal app, set
