@@ -166,6 +166,8 @@ section.find{padding:28px 32px 30px;scroll-margin-top:90px}
 .opp .val small{font-size:13px;font-weight:600;color:var(--muted);margin-left:5px;letter-spacing:0}
 .opp h4{margin:0;font-size:16px;font-weight:750;line-height:1.3;color:var(--ink)}
 .opp p{font-size:13.5px;line-height:1.58;color:var(--ink-2)}
+.opp.later{background:var(--tint);border-style:dashed}
+.opp.later .val{color:var(--accent)}
 .tag{display:inline-flex;align-items:center;gap:7px;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:5px 10px;border-radius:999px;white-space:nowrap}
 .tag::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor}
 .tag.now{background:var(--good-bg);color:var(--good)}
@@ -308,9 +310,9 @@ th:first-child,td:first-child{text-align:left}
       <div class="kpi"><div class="k">Used in a year</div><div class="v">161,500<small>kWh</small></div><div class="s">About what 60 typical homes use in a year.</div></div>
       <div class="kpi"><div class="k">Busiest moment</div><div class="v">80<small>kW</small></div><div class="s">1pm, Monday 5 January 2026, the first working day after Christmas. Like 27 kettles boiling at once.</div></div>
       <div class="kpi"><div class="k">Running at night</div><div class="v">8.6<small>kW</small></div><div class="s">The average from 1am to 5am, with the building empty. It never drops to zero.</div></div>
-      <div class="kpi"><div class="k">Versus last year</div><div class="v good">&minus;25<small>%</small></div><div class="s">August and September 2026, against the same weeks of 2025.</div></div>
+      <div class="kpi"><div class="k">Year on year</div><div class="v good">&darr;&thinsp;25<small>%</small></div><div class="s">Good news: 1 August to 28 September 2026, against the same dates in 2025.</div></div>
     </div>
-    <p class="note-ill">&ldquo;A year&rdquo; means the 365 days to 28 September 2026. A typical home uses about 2,700 kWh a year.</p>
+    <p class="note-ill">kW, kWh and kVA are explained just below. &ldquo;A year&rdquo; means the 365 days to 28 September 2026; a typical home uses about 2,700 kWh a year.</p>
   </div>
 
   <!-- ===== the short version ===== -->
@@ -321,11 +323,11 @@ th:first-child,td:first-child{text-align:left}
       <p class="sub">What each could be worth in a year, at today&rsquo;s usage.</p>
       <div class="rows">
         <div class="row"><div class="n">Charity rate of VAT and no Climate Change Levy</div><div class="st now">Ready now</div><div class="a">£8k&ndash;£10k<small>a year</small></div></div>
-        <div class="row"><div class="n">Right-size the grid connection</div><div class="st now">Ready now</div><div class="a">£3.3k&ndash;£6.5k<small>a year</small></div></div>
+        <div class="row"><div class="n">Reduce the grid connection to 110 kVA</div><div class="st now">Ready now</div><div class="a">£3.3k&ndash;£6.5k<small>a year</small></div></div>
         <div class="row"><div class="n">Find what is left on overnight</div><div class="st walk">Needs a walk-round</div><div class="a">£3.8k<small>a year per 2 kW</small></div></div>
-        <div class="row"><div class="n">A lower network charging band</div><div class="st later">Possible later</div><div class="a">up to £12k<small>a year</small></div></div>
+        <div class="row"><div class="n">A lower network charging band</div><div class="st later">From 2031</div><div class="a">£1k&ndash;£12k<small>a year</small></div></div>
       </div>
-      <p class="foot">Before any change of supplier. They overlap in places, so they should not simply be added together.</p>
+      <p class="foot">Assuming you stay with your current supplier on today&rsquo;s prices. They overlap in places, so they should not simply be added together.</p>
       <a class="cta" href="mailto:callum@renewablox.com?subject=Citygate%20Church%20%E2%80%94%20electricity%20next%20steps" target="_blank" rel="noopener">Talk to us about next steps</a>
     </div>
     <nav class="card toc" aria-label="In this portrait">
@@ -382,13 +384,13 @@ th:first-child,td:first-child{text-align:left}
           <div class="fp-x fp-x-row" id="fp-x" aria-hidden="true"></div>
         </div>
         <div class="fp-foot">
-          <div class="ramp"><span>Quiet</span><span class="ramp-bar" id="ramp-bar"></span><span>Busy (80 kW)</span></div>
+          <div class="ramp"><span>Empty building</span><span class="ramp-bar" id="ramp-bar"></span><span>Busiest ever (80 kW)</span></div>
           <div class="ramp" style="color:var(--muted)">Numbered circles match the notes below.</div>
         </div>
       </figure>
       <div class="points">
-        <div class="point"><div class="pn">1</div><h4>The stripes every seventh day are Sundays</h4><p>Every week the building fills up from about 6am for morning services and eases after lunch. In winter it picks up again on Sunday evenings.</p></div>
-        <div class="point"><div class="pn">2</div><h4>Winter is the busiest stretch</h4><p>From November to February, heating and lighting push weekday use up from about 8am to mid-afternoon.</p></div>
+        <div class="point"><div class="pn">1</div><h4>The stripes every seventh day are the weekend</h4><p>Saturday is the palest column, the quietest day of the week. Sunday, beside it, fills up from about 6am for morning services and eases after lunch; in winter it picks up again in the evening.</p></div>
+        <div class="point"><div class="pn">2</div><h4>Winter is the busiest stretch</h4><p>From October to February, heating and lighting push weekday use up from about 8am to mid-afternoon.</p></div>
         <div class="point"><div class="pn">3</div><h4>The building never fully goes quiet</h4><p>Even at 3am the picture is never blank: typically about 7 kW is running, and it rarely drops below 5 kW.</p></div>
       </div>
     </section>
@@ -396,14 +398,14 @@ th:first-child,td:first-child{text-align:left}
     <!-- ===== 02 the week ===== -->
     <section class="card find" id="s-week" aria-labelledby="h-week">
       <div class="shead"><div class="num">02</div><div><div class="eyebrow">A week in the life</div><h3 id="h-week">Sunday mornings and weekday working hours set the rhythm</h3></div></div>
-      <p class="explain">An average week, hour by hour. <b>The blue line is a typical winter week</b> (November to February) and <b>the orange line a typical summer week</b> (May to August). The gap between them is mostly heating and lighting.</p>
+      <p class="explain">An average week, hour by hour. <b>The blue line is a typical winter week</b> (November to February) and <b>the orange line a typical summer week</b> (May to August). The gap between them is partly heating and lighting, and partly the general drop in use since spring 2026.</p>
       <div class="chartbox">
-        <div class="legend" aria-hidden="true"><span><i class="line" style="background:var(--winter)"></i>Winter week (Nov&ndash;Feb)</span><span><i class="line" style="background:var(--summer)"></i>Summer week (May&ndash;Aug)</span><span><i class="band"></i>Sunday</span></div>
+        <div class="legend" aria-hidden="true"><span><i class="line" style="background:var(--winter)"></i>Winter week (Nov&ndash;Feb)</span><span><i class="line" style="background:var(--summer)"></i>Summer week (May&ndash;Aug)</span><span><i class="band"></i>Sunday</span><span style="color:var(--muted)">Small ticks mark 6am, noon and 6pm</span></div>
         <div class="chart" id="week"></div>
       </div>
       <div class="points">
         <div class="point"><div class="fig" id="f-sun">48<small>kW</small></div><h4>Sundays start early</h4><p>Use climbs from about 6am and reaches about 48 kW in winter during morning services. It eases after lunch, then rises again to about 30 kW on winter Sunday evenings.</p></div>
-        <div class="point"><div class="fig">45<small>kW</small></div><h4>Weekdays run long</h4><p>From 8am to 3pm the offices, caf&eacute;, groups and heating keep the building at around 45 kW in winter, nearly twice the summer level.</p></div>
+        <div class="point"><div class="fig">45<small>kW</small></div><h4>Weekdays run long</h4><p>From 8am to mid-afternoon the offices, caf&eacute;, groups and heating keep the building at around 45 kW in winter, nearly twice the summer level.</p></div>
         <div class="point"><div class="fig">7&ndash;9<small>kW</small></div><h4>Nights are quiet, not empty</h4><p>Between midnight and 6am the building usually draws about 7 to 9 kW. Winter nights are only 1 to 2 kW higher than summer nights, so most of the overnight load is equipment left on.</p></div>
       </div>
     </section>
@@ -411,28 +413,28 @@ th:first-child,td:first-child{text-align:left}
     <!-- ===== 03 the split ===== -->
     <section class="card find" id="s-split" aria-labelledby="h-split">
       <div class="shead"><div class="num">03</div><div><div class="eyebrow">Where the electricity goes</div><h3 id="h-split">Almost half of the electricity goes on things that run around the clock</h3></div></div>
-      <p class="explain">We split the last 12 months into the <b>always-on load</b> &mdash; the level the building runs at overnight, which carries on through every hour of the day, busy or empty &mdash; and the extra electricity used on top of it at different times of the week.</p>
+      <p class="explain">We split the last 12 months into <b>always-on use</b> &mdash; the level the building runs at overnight, with nobody in, which carries on through every hour of the day &mdash; and the extra electricity used on top of it at different times of the week.</p>
       <div class="chartbox" style="padding-top:18px">
         <div class="split" id="split" role="img" aria-label="Always on 44%, weekdays 8am to 5pm 33%, Sundays 8%, weekday evenings 7%, Saturdays 4%, weekday early mornings 3%"></div>
         <div class="split-list" id="split-list"></div>
       </div>
       <div class="callouts">
-        <div class="callout"><div class="ic">!</div><div><h4>Why the always-on load matters</h4>About 70,000 kWh a year &mdash; roughly £15,000 at about 22p a kWh &mdash; goes on things that run around the clock: fridges, IT, water heaters and heating on standby. Every 2 kW found and switched off for good saves about 17,500 kWh a year.</div></div>
-        <div class="callout"><div class="ic">i</div><div><h4>Why weekdays matter</h4>Weekday working hours, 8am to 5pm, use about 45% of all the electricity, a third of it on top of the always-on load. That is also when the caf&eacute; and room hire run, so it is the part to measure most carefully for VAT purposes.</div></div>
+        <div class="callout"><div class="ic">!</div><div><h4>Why always-on use matters</h4>About 70,000 kWh a year &mdash; roughly £15,000 at about 22p a kWh &mdash; goes on things that run around the clock: fridges, IT, water heaters and heating on standby. Every 2 kW found and switched off for good saves about 17,500 kWh a year.</div></div>
+        <div class="callout"><div class="ic">i</div><div><h4>Why weekdays matter</h4>Weekday working hours, 8am to 5pm, use about 45% of all the electricity, a third of it on top of the always-on use. That is also when the caf&eacute; and room hire run, which count as business use for VAT, so it is the part your VAT adviser will look at most closely.</div></div>
       </div>
     </section>
 
     <!-- ===== 04 the seasons ===== -->
     <section class="card find" id="s-season" aria-labelledby="h-season">
       <div class="shead"><div class="num">04</div><div><div class="eyebrow">Through the year</div><h3 id="h-season">A winter day uses nearly two thirds more electricity than a summer day</h3></div></div>
-      <p class="explain">A typical winter day uses about <b>580 kWh</b> and a summer day about <b>354 kWh</b>. Heating and lighting in the colder months add roughly 40,000 kWh a year, about a quarter of the total.</p>
+      <p class="explain">A typical winter day uses about <b>580 kWh</b> and a summer day about <b>354 kWh</b>. Heating and lighting in the colder months add up to about 40,000 kWh a year, as much as a quarter of the total; part of the gap is the general drop in use since spring 2026.</p>
       <div class="chartbox">
-        <div class="legend" aria-hidden="true"><span><i style="background:var(--winter)"></i>Winter months (Nov&ndash;Feb)</span><span><i style="background:var(--idle)"></i>Other months</span><span><i class="ghost"></i>Same month in 2025</span></div>
+        <div class="legend" aria-hidden="true"><span><i style="background:var(--winter)"></i>Winter months (Nov&ndash;Feb)</span><span><i style="background:var(--idle)"></i>Other months</span><span><i class="ghost"></i>Same month in 2025</span><span style="color:var(--muted)">kWh used each month</span></div>
         <div class="chart" id="months"></div>
         <details><summary>See the monthly numbers</summary><div class="tbl" id="months-tbl"></div></details>
       </div>
       <div class="callouts">
-        <div class="callout good"><div class="ic">&darr;</div><div><h4>Use has dropped this year</h4>August and September 2026 used 25% less than the same weeks of 2025, and April to August 2026 were the quietest months on record. The drop came from daytime use: nights are unchanged, so the always-on load is still there to find. If the drop lasts, it should shape the next contract.</div></div>
+        <div class="callout good"><div class="ic">&darr;</div><div><h4>Use has dropped this year</h4>August and September 2026 used 25% less than the same dates in 2025, and April to August 2026 were the quietest months on record. The drop came from daytime use: nights are unchanged, so the always-on use is still there to find. If the drop lasts, the next contract should be priced on it. Do you know what changed in the spring?</div></div>
         <div class="callout"><div class="ic">i</div><div><h4>The church year shows up too</h4>Easter Sunday used 587 kWh, the busiest day of April, and the carol service on 14 December reached 66 kW. Boxing Day used 650 kWh, more than a normal weekday, holding about 30 kW from 7am to 11pm: worth checking the heating knows about bank holidays.</div></div>
       </div>
     </section>
@@ -440,45 +442,45 @@ th:first-child,td:first-child{text-align:left}
     <!-- ===== 05 the connection ===== -->
     <section class="card find" id="s-cap" aria-labelledby="h-cap">
       <div class="shead"><div class="num">05</div><div><div class="eyebrow">The size of the connection</div><h3 id="h-cap">The building pays to reserve about three times the power it ever uses</h3></div></div>
-      <p class="explain">The grid connection is reserved at <b>250 kVA</b>, and Citygate pays for that every day whether it is used or not. In 14 months the busiest half-hour reached <b>80 kW</b>, which in connection terms is roughly 80 to 90 kVA. It is like booking a 250-seat hall every day when the most people who ever came was under 90.</p>
+      <p class="explain">The grid connection is reserved at <b>250 kVA</b>, and Citygate pays for that every day whether it is used or not. In 14 months the busiest half-hour reached <b>80 kW</b>, which in connection terms is roughly 80 to 90 kVA. It is like booking a 250-seat hall every day when a typical day&rsquo;s biggest crowd is about 37 and the most who ever came was under 90.</p>
       <div class="chartbox">
         <div class="cap"><span class="ttl">The connection as a 250-seat hall: each square is 1 kVA</span><span class="readout">The busiest moment is drawn as 80 squares; in kVA it would be a few more.</span></div>
         <div class="chart" id="seats" role="img" aria-label="250 squares, one per kVA reserved. 80 are filled for the busiest moment on record, 30 more show the headroom kept at 110 kVA, and 140 are paid for but never used."></div>
         <div class="seats-legend" aria-hidden="true"><span><i style="background:var(--winter)"></i>Busiest moment on record (80 kW)</span><span><i style="background:#9dc3d6"></i>Room kept at 110 kVA</span><span><i style="background:#fff;border:1.5px solid #c9d6dd"></i>Paid for, never used (140)</span></div>
       </div>
       <div class="chartbox">
-        <div class="cap"><span class="ttl">Each day&rsquo;s busiest half-hour, 424 days</span><span class="readout">On a typical day it is about 37 kW. Only 6 days reached 70 kW.</span></div>
+        <div class="cap"><span class="ttl">Each day&rsquo;s busiest half-hour, 424 days</span><span class="readout">On a typical day it is about 37 kW; only 6 days reached 70 kW. Dots are spread up and down only so they don&rsquo;t overlap.</span></div>
         <div class="chart" id="cap"></div>
       </div>
       <div class="callouts">
-        <div class="callout good"><div class="ic">&check;</div><div><h4>What we recommend</h4>Reduce the reserved capacity to 110 kVA. That is still a quarter to a third more than the busiest half-hour on record, and it lowers the daily capacity charge on every bill from then on. Confirm the busiest kVA figure on the invoices first.</div></div>
-        <div class="callout"><div class="ic">i</div><div><h4>Why it matters later too</h4>Network charges are banded by connection size. At 250 kVA the church sits in the most expensive band for its type of connection. At 110 kVA it would qualify for a lower band when the network operator next reassesses.</div></div>
+        <div class="callout good"><div class="ic">&check;</div><div><h4>What we recommend</h4>Reduce the reserved capacity to 110 kVA. That is still a quarter to a third more than the busiest half-hour on record, and it lowers the daily capacity charge on every bill from then on. Confirm the busiest kVA figure on the invoices first, and allow for any heat pumps or car chargers you are planning: SSEN allows one reduction a year, and capacity given up can cost money to get back.</div></div>
+        <div class="callout"><div class="ic">i</div><div><h4>Why it matters later too</h4>Part of every bill is a fixed daily charge for the local and national network, set in four bands by connection size. Since April 2026 a 250 kVA connection normally sits in the second-highest band; your bill shows which. At 110 kVA the church would fall into a lower band when the bands are next reset, in April 2031.</div></div>
       </div>
     </section>
 
     <!-- ===== 06 what it's worth ===== -->
     <section class="card find" id="s-opps" aria-labelledby="h-opps">
       <div class="shead"><div class="num">06</div><div><div class="eyebrow">What this could be worth</div><h3 id="h-opps">Four ways the data points to lower bills</h3></div></div>
-      <p class="explain">Annual values at today&rsquo;s usage, before any change of supplier. They overlap in places, so they should not simply be added together.</p>
+      <p class="explain">What each could be worth in a year, at today&rsquo;s usage, assuming you stay with your current supplier on today&rsquo;s prices. They overlap in places, so they should not simply be added together.</p>
       <div class="opps">
-        <div class="opp"><div class="top"><span class="val">£8,000&ndash;£10,000<small>a year</small></span><span class="tag now">Ready now</span></div><h4>Charity rate of VAT and no Climate Change Levy</h4><p>Electricity used for the church&rsquo;s charitable activities qualifies for 5% VAT (0% until 31 March 2027) and no Climate Change Levy. One declaration to the supplier switches both on. The exact figure depends on the charitable share your VAT adviser confirms.</p></div>
-        <div class="opp"><div class="top"><span class="val">£3,300&ndash;£6,500<small>a year</small></span><span class="tag now">Ready now</span></div><h4>Right-size the connection to 110 kVA</h4><p>A smaller reserved capacity means a smaller capacity charge on every bill. The saving depends on the supplier&rsquo;s rate per kVA.</p></div>
-        <div class="opp"><div class="top"><span class="val">£3,800<small>a year per 2 kW</small></span><span class="tag walk">Needs a walk-round</span></div><h4>Find the always-on load</h4><p>A night-time walk-round of fridges, IT, water heaters, heating settings and outside lights. Every 2 kW switched off for good is about 17,500 kWh a year.</p></div>
-        <div class="opp"><div class="top"><span class="val">up to £12,000<small>a year</small></span><span class="tag later">Possible later</span></div><h4>A lower network band</h4><p>Once the capacity is reduced, the site could move from the top band to a lower one when the network operator next reassesses bands. Timing and rules need confirming.</p></div>
+        <div class="opp"><div class="top"><span class="val">£8,000&ndash;£10,000<small>a year</small></span><span class="tag now">Ready now</span></div><h4>Charity rate of VAT and no Climate Change Levy</h4><p>Electricity used for the church&rsquo;s non-business activities, such as worship and free community groups, qualifies for 5% VAT instead of 20% (0% from 1 October 2026 to 31 March 2027) and is free of the Climate Change Levy, a government tax on business energy. One declaration to the supplier switches both on. If at least 60% of the building&rsquo;s use qualifies, the whole bill does; the exact figure depends on the share your VAT adviser confirms.</p></div>
+        <div class="opp"><div class="top"><span class="val">£3,300&ndash;£6,500<small>a year</small></span><span class="tag now">Ready now</span></div><h4>Reduce the grid connection to 110 kVA</h4><p>A smaller reserved capacity means a smaller daily capacity charge on every bill. The saving depends on the rate per kVA and on the supplier passing the charge straight through.</p></div>
+        <div class="opp"><div class="top"><span class="val">£3,800<small>a year per 2 kW</small></span><span class="tag walk">Needs a walk-round</span></div><h4>Find what is left on overnight</h4><p>A night-time walk-round of fridges, IT, water heaters, heating settings and outside lights. Every 2 kW switched off for good is about 17,500 kWh a year, about £3,800 at roughly 22p a kWh.</p></div>
+        <div class="opp later"><div class="top"><span class="val">£1,000&ndash;£12,000<small>a year</small></span><span class="tag later">Possible from 2031</span></div><h4>A lower network band</h4><p>With the smaller connection in place, the site would move to a lower band when the bands are next reset, in April 2031. Up to £12,000 a year if the bill shows the top band today; nearer £1,000 if it shows the band below.</p></div>
       </div>
       <h4 class="steps-h">A sensible order to take them in</h4>
       <ol class="steps">
-        <li><div class="n">1</div><div><h4>Confirm the charitable share, then tell the supplier</h4><p>Your VAT adviser confirms how much of the building&rsquo;s use is charitable; one declaration to the supplier then switches on the charity VAT rate and removes the Climate Change Levy.</p></div><span class="tag now">Ready now</span></li>
-        <li><div class="n">2</div><div><h4>Ask for the connection to be reduced to 110 kVA</h4><p>A request to the network operator. The capacity charge falls on every bill after the change.</p></div><span class="tag now">Ready now</span></li>
-        <li><div class="n">3</div><div><h4>Walk the building one evening</h4><p>After everyone has gone home, look for what is still running: fridges, IT, water heaters, heating settings and outside lights.</p></div><span class="tag walk">Walk-round</span></li>
-        <li><div class="n">4</div><div><h4>Revisit the network band</h4><p>With the smaller connection in place, check the band when the network operator next reassesses.</p></div><span class="tag later">Later</span></li>
+        <li><div class="n">1</div><div><h4>Confirm the non-business share, then tell the supplier</h4><p>Your VAT adviser confirms how much of the building&rsquo;s use is non-business; one declaration to British Gas then switches on the lower VAT rate and removes the Climate Change Levy. Ask too whether VAT and levy overpaid in the past can be refunded: claims can go back four years.</p></div><span class="tag now">Ready now</span></li>
+        <li><div class="n">2</div><div><h4>Ask for the connection to be reduced to 110 kVA</h4><p>An application to SSEN, the local network operator, once the busiest kVA figure is confirmed from the invoices and any future heat pumps or car chargers are allowed for. The capacity charge falls on every bill after the change.</p></div><span class="tag now">Ready now</span></li>
+        <li><div class="n">3</div><div><h4>Walk the building one evening</h4><p>After everyone has gone home, go room by room and note what is still running: fridges and drinks chillers, urns and water heaters, IT and the sound desk, heating controls, signs and outside lights. Two timers to ask about: an extra load from 2am to 4am on most Sundays, and heating that ran all day on Boxing Day.</p></div><span class="tag walk">Walk-round</span></li>
+        <li><div class="n">4</div><div><h4>Check the network band</h4><p>Your bill shows which band the church is in today. With the smaller connection in place well before the next reset, the band can drop from April 2031.</p></div><span class="tag later">From 2031</span></li>
       </ol>
     </section>
 
   </main>
 
   <footer class="foot-note">
-    <p><b>Prepared by RenewaBlox for Citygate Church, October 2026.</b> Figures are estimates for discussion, based on the meter data described here and current published network charges. Opportunity values assume today&rsquo;s usage and rates.</p>
+    <p><b>Prepared by RenewaBlox for Citygate Church, October 2026.</b> Figures are estimates for discussion, based on the meter data described here and current published network charges. Savings figures assume today&rsquo;s usage and rates. The temporary 0% VAT rate on qualifying electricity runs from 1 October 2026 to 31 March 2027 (HMRC Revenue and Customs Brief 10 (2026)).</p>
     <p><b>Data:</b> half-hourly meter readings for the church&rsquo;s electricity meter (MPAN ending 4329), 1 August 2025 to 28 September 2026, checked against British Gas invoices. &ldquo;A year&rdquo; and &ldquo;the last 12 months&rdquo; mean the 365 days to 28 September 2026. A typical home uses about 2,700 kWh a year (Ofgem typical consumption value).</p>
   </footer>
 
@@ -588,7 +590,7 @@ track(cv, e => {
 function drawWeek(){
   const host = $('#week'); host.innerHTML = '';
   const W = host.clientWidth, sm = W < 560, H = sm ? 250 : 330;
-  const L = 34, R = 10, T = 30, B = 34, pw = W - L - R, ph = H - T - B, ymax = 55;
+  const L = 34, R = 10, T = 30, B = 36, pw = W - L - R, ph = H - T - B, ymax = 55;
   const xb = i => L + i / 168 * pw, x = i => xb(i + .5), y = v => T + ph - v / ymax * ph;
   const svg = el('svg', {width:W, height:H, viewBox:`0 0 ${W} ${H}`, role:'img', 'aria-label':'Average week of electricity use, winter compared with summer, hour by hour'}, host);
   el('rect', {x:xb(144), y:T, width:xb(168) - xb(144), height:ph, fill:'rgba(13,27,35,.055)'}, svg);
@@ -596,6 +598,7 @@ function drawWeek(){
   el('text', {x:L - 8, y:T - 12, 'text-anchor':'end', class:'t-tick'}, svg, 'kW');
   for (let d = 0; d < 7; d++) {
     if (d) el('line', {x1:xb(d * 24), x2:xb(d * 24), y1:T, y2:T + ph, class:'gl'}, svg);
+    [6, 12, 18].forEach(h => el('line', {x1:xb(d * 24 + h), x2:xb(d * 24 + h), y1:T + ph, y2:T + ph + 4, class:'ax'}, svg));
     el('text', {x:xb(d * 24 + 12), y:H - 12, 'text-anchor':'middle', class: d === 6 ? 't-lab-b' : 't-lab'}, svg, sm ? DAYS[d].slice(0, 3) : DAYS[d]);
   }
   const wv = DATA.week.winter, sv = DATA.week.summer;
@@ -632,8 +635,8 @@ function drawWeek(){
 /* ---------- 03 where the electricity goes ---------- */
 const SPLIT = [
   {k:'Always on', v:43.8, kwh:70700, c:'#12475e', d:'The overnight level, running through every hour: equipment, IT, refrigeration, water heating and heating on standby.'},
-  {k:'Weekdays 8am–5pm', v:33.1, kwh:53400, c:'#5f7b8a', d:'Offices, café, groups, staff and daytime heating, on top of the always-on load.'},
-  {k:'Sundays', v:8.3, kwh:13500, c:'#8ea3ae', d:'Services and Sunday activities, on top of the always-on load.'},
+  {k:'Weekdays 8am–5pm', v:33.1, kwh:53400, c:'#5f7b8a', d:'Offices, café, groups, staff and daytime heating, on top of the always-on use.'},
+  {k:'Sundays', v:8.3, kwh:13500, c:'#8ea3ae', d:'Services and Sunday activities, on top of the always-on use.'},
   {k:'Weekday evenings', v:7.3, kwh:11900, c:'#adbec7', d:'Evening groups, meetings and any evening hire.'},
   {k:'Saturdays', v:4.2, kwh:6900, c:'#c8d5dc', d:'Weekend events and activities.'},
   {k:'Weekday early mornings', v:3.2, kwh:5200, c:'#dde6eb', d:'Heating and lights coming on before 8am.'},
@@ -657,7 +660,7 @@ function drawMonths(){
   const host = $('#months'); host.innerHTML = '';
   const M = DATA.monthly, n = M.length;
   const W = host.clientWidth, sm = W < 560, H = sm ? 250 : 300;
-  const L = 4, R = 4, T = 26, B = 44, pw = W - L - R, ph = H - T - B;
+  const L = 4, R = 4, T = 26, B = 46, pw = W - L - R, ph = H - T - B;
   const mx = 20500, band = pw / n, bw = Math.max(10, Math.min(30, band * .58));
   const y = v => T + ph - v / mx * ph;
   const svg = el('svg', {width:W, height:H, viewBox:`0 0 ${W} ${H}`, role:'img', 'aria-label':'Electricity used each month, August 2025 to September 2026'}, host);
@@ -668,9 +671,10 @@ function drawMonths(){
     const ly = prior[m.m + ' ' + (+m.y - 1)];
     if (ly) { const gt = y(ly.kwh); el('path', {d:`M${cx - bw / 2 - 3},${T + ph} V${gt + r} Q${cx - bw / 2 - 3},${gt} ${cx - bw / 2 - 3 + r},${gt} H${cx + bw / 2 + 3 - r} Q${cx + bw / 2 + 3},${gt} ${cx + bw / 2 + 3},${gt + r} V${T + ph}`, fill:'none', stroke:'#93a2aa', 'stroke-width':1.5}, svg); }
     el('path', {d:`M${cx - bw / 2},${T + ph} V${top + r} Q${cx - bw / 2},${top} ${cx - bw / 2 + r},${top} H${cx + bw / 2 - r} Q${cx + bw / 2},${top} ${cx + bw / 2},${top + r} V${T + ph} Z`, fill: winter ? css('--winter') : css('--idle')}, svg);
-    if (!sm || winter || i === 0) el('text', {x:cx, y:top - 7, 'text-anchor':'middle', class: winter ? 't-lab-b' : 't-lab'}, svg, (m.kwh / 1000).toFixed(1) + 'k');
+    if (!sm || m.kwh === Math.max(...M.map(o => o.kwh)) || i === 0) el('text', {x:cx, y:top - 7, 'text-anchor':'middle', class: (winter ? 't-lab-b' : 't-lab') + ' halo'}, svg, fmt(Math.round(m.kwh / 100) * 100));
     el('text', {x:cx, y:T + ph + 18, 'text-anchor':'middle', class:'t-lab'}, svg, sm ? m.m[0] : m.m);
     if (m.m === 'Jan' || i === 0) el('text', {x:cx, y:T + ph + 35, 'text-anchor':'middle', class:'t-tick'}, svg, m.y);
+    if (i === n - 1) el('text', {x:cx, y:T + ph + 35, 'text-anchor':'middle', class:'t-tick'}, svg, sm ? '28th' : 'to 28th');
     const hit = el('rect', {x:L + band * i, y:T, width:band, height:ph, fill:'transparent'}, svg);
     track(hit, e => showTip(`<b>${m.m} ${m.y}${i === n - 1 ? ' (to the 28th)' : ''}</b><br>${fmt(m.kwh)} kWh${ly ? `<br><span class="m">${m.m} ${ly.y}: ${fmt(ly.kwh)} kWh</span>` : ''}<br>Busiest half-hour ${m.pk} kW`, e.clientX, e.clientY), hideTip);
   });
@@ -720,7 +724,7 @@ function drawCap(){
   if (!sm) el('text', {x:(x(110) + x(250)) / 2, y:T + stripH / 2 + 4, 'text-anchor':'middle', class:'t-ann-s'}, svg, 'Reserved and paid for, never used');
   [0,50,100,150,200,250].forEach(v => { el('line', {x1:x(v), x2:x(v), y1:base, y2:base + 5, class:'ax'}, svg); el('text', {x:x(v), y:base + 19, 'text-anchor':'middle', class:'t-tick'}, svg, v); });
   el('line', {x1:x(0), x2:x(260), y1:base, y2:base, class:'ax'}, svg);
-  el('text', {x:x(260), y:base + 36, 'text-anchor':'end', class:'t-tick'}, svg, 'kVA');
+  el('text', {x:x(260), y:base + 36, 'text-anchor':'end', class:'t-tick'}, svg, 'kW / kVA');
   let s = 7; const rnd = () => (s = (s * 9301 + 49297) % 233280) / 233280;
   const dots = DATA.dpk.map((v, i) => ({v, i, cy:T + 8 + rnd() * (stripH - 16)}));
   dots.forEach(o => { if (o.v !== PEAK) el('circle', {cx:x(o.v), cy:o.cy, r:3, fill:'#7f949f', 'fill-opacity':.5}, svg); });
