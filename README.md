@@ -223,6 +223,7 @@ so links already sent keep working.
 | `/` | welcome page: which side of the meter are you on? (`energy_welcome.html`) |
 | `/business/` | Business Electricity landing |
 | `/business/site-analysis/`, `/business/heat-as-a-service/`, `/business/heat-network/` | the three tiers |
+| `/business/thanks/` | after the savings check, if it was sent without its script |
 | `/generators/` | Generator Demo landing |
 | `/generators/peaker-plant/`, `/generators/run-of-river-hydro/` | the two models |
 
@@ -241,6 +242,22 @@ page: the two packs' view keys never collide, and the build checks that they don
 `energy_site_assets/` holds the 404 page and the 1200×630 share-preview images
 (`og-*.jpg`, frames of each landing page's headline): re-shoot them if a
 headline changes.
+
+**The savings check.** Beside the Business landing's headline, a card asks for
+the client's MPAN and contract end date, or a recent bill (dropped on the card,
+chosen as a file, or photographed on a phone; PDF or image, up to 8 MB), plus
+their email. On the energy site it is a working form, `energy_save_form.html`,
+which the build puts in place of the fragment's `<!--save-form-->` stand-in
+(Streamlit can't run a form, so the app's card links to this one and offers
+email instead). **Netlify Forms** receives it as the form `bill-check`: it is
+found in the built page at each deploy (Forms must be enabled on the project),
+each submission is kept with its bill under the project's **Forms** tab, and an
+email notification sends it to **energy@renewablox.co.uk** (Project
+configuration → Notifications → Emails and webhooks → Form submission
+notifications). The script checks the MPAN's check digit before sending, posts
+in the background and thanks the client in the card; without the script it
+posts as a plain form and lands on `/business/thanks/`. A honeypot field turns
+away most bots.
 
 Domain: `renewablox.co.uk`'s DNS is at Wix. The subdomain is a CNAME record
 `energy` → `renewablox-energy.netlify.app` there, with `energy.renewablox.co.uk`

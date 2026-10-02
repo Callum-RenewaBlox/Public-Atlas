@@ -1,0 +1,285 @@
+<!-- The savings check form on energy.renewablox.co.uk/business/. build_energy_site.py puts this in
+     place of the fallback between the save-form markers in business_demo_home.html (the Streamlit fragment
+     can't run a form, so there the card links here instead).
+
+     Netlify Forms receives it (form "bill-check"): Netlify finds the form in the built page at
+     deploy, stores each submission with any bill attached, and emails it to
+     energy@renewablox.co.uk (Netlify: Project configuration → Notifications → Form submission
+     notifications). The script posts it in the background and thanks the visitor in the card;
+     without the script it posts as a plain form and lands on /business/thanks/.
+
+     A submission is the visitor's email plus either their MPAN and contract end date or a bill
+     (PDF or photo, up to 8 MB — Netlify's limit per submission). The MPAN is checked against
+     its check digit before it is sent, so a mistyped number is caught while they're here. -->
+<style>
+  .rbx-sf { margin-top:20px; display:flex; flex-direction:column; gap:14px; }
+  .rbx-sf-hp { position:absolute !important; left:-9999px; width:1px; height:1px; overflow:hidden; }
+  .rbx-sf-row { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); gap:12px; }
+  .rbx-sf-f label { display:block; font-size:12.5px; font-weight:650; color:var(--rbx-ink-2); margin-bottom:6px; }
+  .rbx-sf input[type=text], .rbx-sf input[type=email], .rbx-sf input[type=date] {
+    display:block; width:100%; height:46px; padding:0 14px; font:inherit; font-size:15px; color:var(--rbx-ink);
+    background:#fbfdfe; border:1px solid #cfdde5; border-radius:12px; outline:none; -webkit-appearance:none; appearance:none;
+    transition:border-color .15s, box-shadow .15s, background .15s; }
+  .rbx-sf input[type=date] { padding-right:10px; }
+  .rbx-sf input::placeholder { color:#9aabb4; }
+  .rbx-sf input:hover { border-color:#b3c7d2; }
+  .rbx-sf input:focus { border-color:var(--rbx-accent-l); background:#fff; box-shadow:0 0 0 4px rgba(58,137,174,.16); }
+  .rbx-sf input[aria-invalid=true] { border-color:#c8410f; box-shadow:0 0 0 4px rgba(200,65,15,.12); }
+  #sf-mpan { font-variant-numeric:tabular-nums; letter-spacing:.02em; }
+  /* where to find the MPAN: the supply number box as it's printed on a bill */
+  .rbx-sf-help { margin-top:-4px; }
+  .rbx-sf-help summary { display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:650; color:var(--rbx-accent);
+    cursor:pointer; list-style:none; border-radius:6px; }
+  .rbx-sf-help summary::-webkit-details-marker { display:none; }
+  .rbx-sf-help summary::before { content:"?"; display:grid; place-items:center; width:16px; height:16px; border-radius:50%;
+    font-size:10.5px; font-weight:800; color:#fff; background:var(--rbx-accent-l); }
+  .rbx-sf-help summary:hover { color:var(--rbx-brand); }
+  .rbx-sf-help summary:focus-visible { outline:2px solid var(--rbx-accent-l); outline-offset:2px; }
+  .rbx-sf-help-b { margin-top:10px; display:flex; align-items:center; gap:16px; padding:14px 16px; border-radius:14px;
+    background:var(--rbx-tint); border:1px solid var(--rbx-line-2); }
+  .rbx-sf-help-b p { font-size:12.5px; line-height:1.5; color:var(--rbx-ink-2); }
+  .rbx-sf-sn { flex:none; display:grid; grid-template-columns:auto auto auto auto; grid-template-rows:auto auto;
+    font-size:11px; font-weight:700; font-variant-numeric:tabular-nums; color:var(--rbx-ink-2); background:#fff;
+    border:1.5px solid var(--rbx-ink-2); border-radius:4px; }
+  .rbx-sf-sn span { padding:4px 6px; border-left:1px solid #9fb0b9; text-align:center; white-space:nowrap; }
+  .rbx-sf-sn .s { grid-row:1 / 3; border-left:0; display:grid; place-items:center; font-size:15px; font-weight:800; color:var(--rbx-ink); }
+  .rbx-sf-sn .core { grid-column:2 / 5; border-top:1px solid #9fb0b9; color:#fff; background:var(--rbx-accent); letter-spacing:.04em; }
+  /* or: the bill itself */
+  .rbx-sf-or { display:flex; align-items:center; gap:12px; font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--rbx-muted-2); }
+  .rbx-sf-or::before, .rbx-sf-or::after { content:""; flex:1; height:1px; background:var(--rbx-line); }
+  .rbx-sf-drop { position:relative; display:flex; align-items:center; gap:14px; padding:14px 16px; cursor:pointer;
+    border:1.5px dashed #b9cdd8; border-radius:14px; background:var(--rbx-tint); transition:border-color .2s, background .2s, transform .2s; }
+  .rbx-sf-drop:hover { border-color:var(--rbx-accent-l); background:#eef6fa; }
+  .rbx-sf-drop:focus-within { border-color:var(--rbx-accent-l); box-shadow:0 0 0 4px rgba(58,137,174,.16); }
+  .rbx-sf-drop.rbx-over { border-style:solid; border-color:var(--rbx-accent-l); background:#e3f0f7; transform:scale(1.015); }
+  .rbx-sf-drop input { position:absolute; width:1px; height:1px; opacity:0; overflow:hidden; }
+  .rbx-sf-drop b { display:block; font-size:14.5px; font-weight:750; color:var(--rbx-brand); }
+  .rbx-sf-drop small { display:block; margin-top:2px; font-size:12.5px; line-height:1.4; color:var(--rbx-muted); }
+  .rbx-sf-drop small u { color:var(--rbx-accent); text-decoration-thickness:1px; text-underline-offset:2px; }
+  .rbx-sf-touch { display:none; }
+  @media (hover:none) and (pointer:coarse) { .rbx-sf-mouse { display:none; } .rbx-sf-touch { display:inline; } }
+  .rbx-sf-file { display:flex; align-items:center; gap:12px; padding:10px 10px 10px 12px; border-radius:14px;
+    background:#eef6fa; border:1.5px solid var(--rbx-accent-l); }
+  .rbx-sf-drop[hidden], .rbx-sf-file[hidden] { display:none; }
+  .rbx-sf-thumb { width:42px; height:42px; flex:none; border-radius:10px; object-fit:cover; background:#fff; box-shadow:0 0 0 1px var(--rbx-line); }
+  .rbx-sf-file .rbx-save-doc { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2312475e' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z'/%3E%3Cpath d='M14 3v5h5'/%3E%3Cpath d='M9 15.5l2 2 4-4.5'/%3E%3C/svg%3E"); }
+  .rbx-sf-fn { min-width:0; flex:1; }
+  .rbx-sf-fn b { display:block; font-size:13.5px; font-weight:700; color:var(--rbx-ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .rbx-sf-fn small { display:block; margin-top:1px; font-size:12px; color:var(--rbx-muted); }
+  button.rbx-sf-x { flex:none; width:34px; height:34px; border:0; border-radius:50%; background:transparent; cursor:pointer;
+    font:inherit; font-size:20px; line-height:1; color:var(--rbx-muted); transition:background .15s, color .15s; }
+  button.rbx-sf-x:hover { background:#fff; color:var(--rbx-ink); }
+  button.rbx-sf-x:focus-visible { outline:2px solid var(--rbx-accent-l); outline-offset:1px; }
+  /* send */
+  button.rbx-sf-go { margin-top:4px; display:flex; align-items:center; justify-content:center; gap:9px; width:100%; height:50px;
+    border:0; border-radius:999px; cursor:pointer; font:inherit; font-size:15px; font-weight:700; color:#fff; background:var(--rbx-brand);
+    box-shadow:0 10px 24px rgba(18,71,94,.22); transition:background .2s, transform .2s; }
+  button.rbx-sf-go:hover { background:var(--rbx-accent-d); }
+  button.rbx-sf-go:hover .rbx-arrow { transform:translateX(4px); }
+  button.rbx-sf-go:focus-visible { outline:2px solid var(--rbx-accent-l); outline-offset:3px; }
+  button.rbx-sf-go[disabled] { cursor:progress; opacity:.75; }
+  .rbx-sf-msg { font-size:13px; line-height:1.5; color:#b0380c; }
+  .rbx-sf-msg:empty { display:none; }
+  .rbx-sf-msg a { color:inherit !important; font-weight:700; }
+  .rbx-sf-note { display:flex; align-items:center; justify-content:center; gap:7px; font-size:12px; color:var(--rbx-muted); }
+  .rbx-sf-note::before { content:""; width:13px; height:13px; flex:none;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2361717a' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4.5' y='10.5' width='15' height='10' rx='2'/%3E%3Cpath d='M8 10.5V7.5a4 4 0 0 1 8 0v3'/%3E%3C/svg%3E") center / contain no-repeat; }
+  /* sent */
+  .rbx-save.rbx-sent .rbx-save-hd, .rbx-save.rbx-sent .rbx-sf { display:none; }
+  .rbx-save.rbx-sent { display:flex; flex-direction:column; justify-content:center; }
+  .rbx-sf-done { padding:18px 4px 6px; text-align:center; outline:none; }
+  .rbx-sf-done[hidden] { display:none; }
+  .rbx-sf-tick { width:60px; height:60px; margin:0 auto; border-radius:50%;
+    background:var(--rbx-tint-2) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231f5f7f' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 12.5l4 4 8-9'/%3E%3C/svg%3E") center / 30px no-repeat;
+    animation:rbx-pop .45s cubic-bezier(.2,1.4,.4,1) both; }
+  @keyframes rbx-pop { from { transform:scale(.4); opacity:0; } }
+  .rbx-sf-done .rbx-save-h { margin-top:18px; }
+  .rbx-sf-done p { margin-top:10px; font-size:14.5px; line-height:1.6; color:var(--rbx-ink-2); }
+  .rbx-sf-done p b { color:var(--rbx-ink); overflow-wrap:anywhere; }
+  button.rbx-sf-again { margin-top:18px; border:1px solid var(--rbx-line); background:#fff; border-radius:999px; padding:10px 18px; cursor:pointer;
+    font:inherit; font-size:13.5px; font-weight:700; color:var(--rbx-brand); }
+  button.rbx-sf-again:hover { border-color:var(--rbx-accent-l); }
+  @media (max-width: 420px) { .rbx-sf-row { grid-template-columns:minmax(0,1fr); } .rbx-sf-help-b { flex-direction:column; align-items:flex-start; } }
+  @media (prefers-reduced-motion: reduce) { .rbx-sf-tick { animation:none; } .rbx-sf-drop { transition:none; } }
+</style>
+<form class="rbx-sf" name="bill-check" method="POST" action="/business/thanks/" enctype="multipart/form-data"
+      data-netlify="true" netlify-honeypot="bot-field">
+  <input type="hidden" name="form-name" value="bill-check">
+  <input type="hidden" name="subject" value="Bill check from energy.renewablox.co.uk">
+  <p class="rbx-sf-hp" aria-hidden="true"><label>Leave this empty <input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
+  <div class="rbx-sf-row">
+    <div class="rbx-sf-f">
+      <label for="sf-mpan">MPAN</label>
+      <input id="sf-mpan" name="mpan" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="13-digit number" maxlength="40">
+    </div>
+    <div class="rbx-sf-f">
+      <label for="sf-end">Contract end date</label>
+      <input id="sf-end" name="contract_end" type="date">
+    </div>
+  </div>
+  <details class="rbx-sf-help">
+    <summary>Where do I find my MPAN?</summary>
+    <div class="rbx-sf-help-b">
+      <div class="rbx-sf-sn" aria-hidden="true"><span class="s">S</span><span>01</span><span>801</span><span>100</span><span class="core">12 3456 7890 123</span></div>
+      <p>It&rsquo;s on your bill, in a box marked <b>Supply number</b> or <b>S</b>. Your MPAN is the 13 digits on the bottom row.</p>
+    </div>
+  </details>
+  <div class="rbx-sf-or">or</div>
+  <label class="rbx-sf-drop" for="sf-bill">
+    <input id="sf-bill" name="bill" type="file" accept=".pdf,application/pdf,image/*">
+    <span class="rbx-save-doc"></span>
+    <span><b>Upload a recent bill</b>
+      <small><span class="rbx-sf-mouse">Drop the PDF here, or <u>choose a file</u></span><span class="rbx-sf-touch">Tap to choose a PDF, or take a photo of it</span></small></span>
+  </label>
+  <div class="rbx-sf-file" hidden>
+    <span class="rbx-save-doc"></span>
+    <div class="rbx-sf-fn"><b></b><small></small></div>
+    <button type="button" class="rbx-sf-x" aria-label="Remove this bill">&times;</button>
+  </div>
+  <div class="rbx-sf-f">
+    <label for="sf-email">Your email</label>
+    <input id="sf-email" name="email" type="email" autocomplete="email" spellcheck="false" placeholder="you@yourcompany.co.uk" required>
+  </div>
+  <button class="rbx-sf-go" type="submit">Find out what I can save <span class="rbx-arrow">&rarr;</span></button>
+  <div class="rbx-sf-msg" role="alert"></div>
+  <div class="rbx-sf-note">Sent straight to energy@renewablox.co.uk</div>
+</form>
+<div class="rbx-sf-done" hidden tabindex="-1">
+  <div class="rbx-sf-tick"></div>
+  <div class="rbx-save-h" role="heading" aria-level="2">Thank you &mdash; it&rsquo;s with us.</div>
+  <p>We&rsquo;ll take a look and come back to you at <b class="rbx-sf-to"></b> with what you could save.</p>
+  <button type="button" class="rbx-sf-again">Send another</button>
+</div>
+<script>
+(function () {
+  var form = document.querySelector('form[name="bill-check"]');
+  if (!form || !window.fetch || !window.FormData) return;   // no script support: it posts as a plain form
+  form.noValidate = true;                                     // checked below, with messages in the card's own words
+  var card = document.getElementById("rbx-save"), done = card.querySelector(".rbx-sf-done");
+  var mpan = form.elements.mpan, end = form.elements.contract_end, email = form.elements.email, pick = form.elements.bill;
+  var drop = form.querySelector(".rbx-sf-drop"), chip = form.querySelector(".rbx-sf-file"), msg = form.querySelector(".rbx-sf-msg");
+  var go = form.querySelector(".rbx-sf-go"), goLabel = go.innerHTML;
+  var MAX = 8 * 1024 * 1024, TO = "energy@renewablox.co.uk", bill = null, thumb = null;
+  var WEIGHTS = [3, 5, 7, 13, 17, 19, 23, 29, 31, 37, 41, 43];
+
+  // The MPAN core: 13 digits, the last a check digit over the other twelve. Someone who types the
+  // whole supply number (S, the top line and the core, 21 digits) gets the core taken from its end.
+  function core(v) { var d = (v || "").replace(/\D/g, ""); return d.length === 21 ? d.slice(8) : d; }
+  function checks(d) {
+    if (!/^\d{13}$/.test(d)) return false;
+    for (var t = 0, i = 0; i < 12; i++) t += (d.charCodeAt(i) - 48) * WEIGHTS[i];
+    return t % 11 % 10 === d.charCodeAt(12) - 48;
+  }
+  function spaced(d) { return d.slice(0, 2) + " " + d.slice(2, 6) + " " + d.slice(6, 10) + " " + d.slice(10); }
+  function mb(n) { return n < 1048576 ? Math.max(1, Math.round(n / 1024)) + " KB" : (n / 1048576).toFixed(1) + " MB"; }
+  function longDate(iso) {
+    var d = new Date(iso + "T00:00:00Z");
+    return isNaN(d) ? iso : d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+  }
+  function mail(subject) { return "mailto:" + TO + "?subject=" + encodeURIComponent(subject || "Bill check"); }
+
+  function say(text, fields, link, stay) {
+    [mpan, end, email].forEach(function (f) { f.removeAttribute("aria-invalid"); });
+    (fields || []).forEach(function (f) { f.setAttribute("aria-invalid", "true"); });
+    msg.textContent = text || "";
+    if (link) { var a = document.createElement("a"); a.href = mail(); a.textContent = TO; msg.append(" ", a, "."); }
+    if (fields && fields[0] && !stay) fields[0].focus();
+  }
+
+  mpan.addEventListener("blur", function () {
+    var d = core(mpan.value);
+    if (d.length === 13) mpan.value = spaced(d);
+    if (d && !checks(d)) say("That MPAN doesn’t look right — it’s the 13 digits on the bottom row of the supply number.", [mpan], false, true);
+  });
+  [mpan, end, email].forEach(function (f) {
+    f.addEventListener("input", function () { if (f.hasAttribute("aria-invalid")) say(""); });
+  });
+
+  // the bill: chosen, dropped on the card, or (on a phone) photographed
+  function take(file) {
+    if (!file) return;
+    var isPdf = /pdf$/i.test(file.type) || /\.pdf$/i.test(file.name);
+    var isImg = /^image\//i.test(file.type) || /\.(jpe?g|png|heic|heif|webp)$/i.test(file.name);
+    if (!isPdf && !isImg) return say("Please upload your bill as a PDF or a photo.", []);
+    if (file.size > MAX) return say("That file is " + mb(file.size) + " — the limit is 8 MB. Try a smaller copy, or email it to", [], true);
+    bill = file; say("");
+    chip.querySelector("b").textContent = file.name;
+    chip.querySelector("small").textContent = (isPdf ? "PDF" : "Photo") + " · " + mb(file.size);
+    var icon = chip.firstElementChild;
+    if (thumb) { URL.revokeObjectURL(thumb); thumb = null; }
+    if (isImg && /^image\/(jpeg|png|webp|gif)$/i.test(file.type)) {
+      var img = document.createElement("img"); img.className = "rbx-sf-thumb"; img.alt = "";
+      img.onerror = function () { var doc = document.createElement("span"); doc.className = "rbx-save-doc"; chip.replaceChild(doc, img); };
+      img.src = thumb = URL.createObjectURL(file); chip.replaceChild(img, icon);
+    } else if (icon.tagName === "IMG") {
+      var doc = document.createElement("span"); doc.className = "rbx-save-doc"; chip.replaceChild(doc, icon);
+    }
+    drop.hidden = true; chip.hidden = false;
+  }
+  pick.addEventListener("change", function () { take(pick.files && pick.files[0]); pick.value = ""; });
+  chip.querySelector(".rbx-sf-x").addEventListener("click", function () {
+    bill = null; chip.hidden = true; drop.hidden = false; pick.focus();
+  });
+  function carriesFiles(e) { return e.dataTransfer && Array.prototype.indexOf.call(e.dataTransfer.types || [], "Files") > -1; }
+  ["dragenter", "dragover"].forEach(function (t) {
+    card.addEventListener(t, function (e) {
+      if (!carriesFiles(e) || drop.hidden) return;
+      e.preventDefault(); e.dataTransfer.dropEffect = "copy"; drop.classList.add("rbx-over");
+    });
+  });
+  card.addEventListener("dragleave", function (e) { if (!card.contains(e.relatedTarget)) drop.classList.remove("rbx-over"); });
+  card.addEventListener("drop", function (e) {
+    if (!carriesFiles(e)) return;
+    e.preventDefault(); drop.classList.remove("rbx-over");
+    if (!drop.hidden) take(e.dataTransfer.files[0]);
+  });
+  // a file let go anywhere else on the page shouldn't open in the browser and take the visitor away
+  window.addEventListener("dragover", function (e) { if (carriesFiles(e)) e.preventDefault(); });
+  window.addEventListener("drop", function (e) { if (carriesFiles(e)) e.preventDefault(); });
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    if (form.elements["bot-field"].value) return;
+    var d = core(mpan.value), hasMpan = d.length > 0, hasEnd = !!end.value;
+    if (hasMpan && !checks(d)) return say("That MPAN doesn’t look right — it’s the 13 digits on the bottom row of the supply number.", [mpan]);
+    if (!bill) {
+      if (!hasMpan && !hasEnd) return say("Add your MPAN and contract end date, or upload a recent bill.", [mpan, end]);
+      if (!hasEnd) return say("Add your contract end date too — or upload a recent bill instead.", [end]);
+      if (!hasMpan) return say("Add your MPAN too — or upload a recent bill instead.", [mpan]);
+    }
+    var to = email.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return say("Add your email, so we can come back to you with what you could save.", [email]);
+    say("");
+
+    var parts = [];
+    if (hasMpan) parts.push("MPAN " + spaced(d));
+    if (hasEnd) parts.push("contract ends " + longDate(end.value));
+    if (bill) parts.push("bill attached");
+    var data = new FormData(form);
+    data.set("mpan", hasMpan ? spaced(d) : "");
+    data.set("email", to);
+    data.set("subject", "Bill check: " + parts.join(", ") + " — " + to);
+    data.delete("bill");                                       // an empty file part trips some browsers
+    if (bill) data.append("bill", bill, bill.name);
+
+    go.disabled = true; go.textContent = bill ? "Uploading your bill…" : "Sending…";
+    fetch("/", { method: "POST", body: data })
+      .then(function (r) {
+        if (!r.ok) throw new Error(r.status);
+        done.querySelector(".rbx-sf-to").textContent = to;
+        card.style.minHeight = card.offsetHeight + "px";      // thank them in the same space, so the page doesn't jump
+        card.classList.add("rbx-sent"); done.hidden = false; done.focus({ preventScroll: true });
+      })
+      .catch(function () {
+        say("Sorry — that didn’t send. Please try again, or email your MPAN or bill to", [], true);
+        msg.querySelector("a").href = mail("Bill check: " + parts.join(", "));
+      })
+      .then(function () { go.disabled = false; go.innerHTML = goLabel; });
+  });
+
+  done.querySelector(".rbx-sf-again").addEventListener("click", function () {
+    form.reset(); bill = null; chip.hidden = true; drop.hidden = false;
+    card.classList.remove("rbx-sent"); card.style.minHeight = ""; done.hidden = true; mpan.focus();
+  });
+})();
+</script>

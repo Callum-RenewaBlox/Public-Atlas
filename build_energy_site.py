@@ -9,6 +9,7 @@ here each is a real address on RenewaBlox's own domain:
     /business/site-analysis/            Tier 1 · Holistic Site Analysis
     /business/heat-as-a-service/        Tier 2 · Heat-as-a-Service
     /business/heat-network/             Tier 3 · Heat Network 3D
+    /business/thanks/                   after the savings check, if it was sent without its script
     /generators/                        Generator Demo landing
     /generators/peaker-plant/           Peaker Plant model
     /generators/run-of-river-hydro/     Run-of-River Hydro model
@@ -19,6 +20,10 @@ are wrapped in a document of their own, and each model page sits under the
 same slim navigation bar the apps draw, in an iframe of the model with its
 serve-time patches applied (``<slug>/model.html``) — exactly how Streamlit
 frames it, so every model lays out as it does there.
+
+One thing the Streamlit surface can't have is a working form, so the Business
+landing's savings check is a link there; here the build puts the real form
+(energy_save_form.html, received by Netlify Forms) in its marked place.
 
 Run:  python build_energy_site.py        (writes energy_site/, git-ignored)
 Netlify runs it on every push to main (netlify.toml).
@@ -52,6 +57,7 @@ PACKS = {
         "back": "&larr; Overview",
         "cta": ("Send us a bill", f"mailto:{CONTACT}?subject={BUSINESS_SUBJECT}"),
         "og": "og-business.jpg",
+        "form": "energy_save_form.html",
     },
     "generators": {
         "home": GENERATOR_HOME,
@@ -126,6 +132,12 @@ def landing(pack_key, pack):
             raise SystemExit(f"{pack['home']}: link to unknown view ?view={key}")
         return f'href="/{pack_key}/{slugs[key]}/"'
 
+    if pack.get("form"):
+        # the fragment's stand-in for the form, between <!--save-form--> markers, makes way for the form
+        form = (HERE / pack["form"]).read_text(encoding="utf-8")
+        frag, n = re.subn(r"<!--save-form-->.*?<!--/save-form-->", lambda m: form, frag, flags=re.S)
+        if n != 1:
+            raise SystemExit(f"{pack['home']}: expected one <!--save-form--> block, found {n}")
     frag = re.sub(r'href="\?view=([a-z]+)"', to_path, frag)
     frag = frag.replace('href="?view=home"', f'href="/{pack_key}/"')
     if "?view=" in frag:
@@ -179,6 +191,20 @@ def welcome():
     return page.replace("</head>", forward + "</head>", 1)
 
 
+def thanks():
+    """Where the savings check lands if it was posted without its script (it otherwise thanks in place)."""
+    page = (ASSETS / "404.html").read_text(encoding="utf-8")
+    body = re.search(r'<div class="card">.*</div>', page, re.S).group(0)
+    card = ("""<div class="card">
+  <div class="k">Free bill check</div>
+  <h1>Thank you &mdash; it&rsquo;s with us.</h1>
+  <p>We&rsquo;ll take a look and come back to you by email with what you could save.</p>
+  <nav><a class="pri" href="/business/">Back to Business Electricity</a></nav>
+</div>""")
+    return (page.replace(body, card)
+            .replace("<title>Page not found — RenewaBlox Energy</title>", "<title>Thank you — RenewaBlox Energy</title>"))
+
+
 def write(path, text):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
@@ -189,6 +215,7 @@ def main():
         shutil.rmtree(OUT)
     OUT.mkdir()
     write(OUT / "index.html", welcome())
+    write(OUT / "business" / "thanks" / "index.html", thanks())
     for pack_key, pack in PACKS.items():
         write(OUT / pack_key / "index.html", landing(pack_key, pack))
         for key, view in pack["views"].items():

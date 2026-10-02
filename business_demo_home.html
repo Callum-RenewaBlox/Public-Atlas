@@ -56,11 +56,11 @@
   a.rbx-contact { font-size:13px; color:var(--rbx-accent) !important; text-decoration:none; font-weight:650; padding:9px 16px;
     border:1px solid var(--rbx-line); border-radius:999px; background:rgba(255,255,255,.9); transition:border-color .2s, box-shadow .2s; }
   a.rbx-contact:hover { border-color:var(--rbx-accent-l); box-shadow:var(--rbx-sh-1); }
-  .rbx-hero { padding:72px 0 84px; max-width:860px; }
+  .rbx-hero { padding:64px 0 76px; display:grid; grid-template-columns:minmax(0,1fr) minmax(0,408px); gap:48px; align-items:center; }
   .rbx-kicker { font-size:12px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; color:var(--rbx-accent);
     margin-bottom:18px; display:flex; align-items:center; gap:10px; }
   .rbx-kicker::before { content:""; width:22px; height:2px; background:currentColor; border-radius:2px; }
-  .rbx-h1 { font-size:clamp(38px, 5.4vw, 70px); line-height:1.02; letter-spacing:-.032em; font-weight:800; color:var(--rbx-brand); }
+  .rbx-h1 { font-size:clamp(38px, 4.4vw, 58px); line-height:1.02; letter-spacing:-.032em; font-weight:800; color:var(--rbx-brand); }
   .rbx-h1 em { font-style:normal; background:linear-gradient(90deg, var(--rbx-accent-l), #d9551f);
     -webkit-background-clip:text; background-clip:text; color:transparent; padding:0 .1em .12em 0; -webkit-box-decoration-break:clone; box-decoration-break:clone; }
   .rbx-sub { margin-top:24px; font-size:18.5px; line-height:1.64; color:var(--rbx-ink-2); max-width:680px; }
@@ -73,6 +73,34 @@
   a.rbx-btn.rbx-sec { color:var(--rbx-brand) !important; background:#fff; border:1px solid var(--rbx-line); }
   a.rbx-btn.rbx-sec:hover { border-color:var(--rbx-accent-l); box-shadow:var(--rbx-sh-1); }
   .rbx-foundline { margin-top:22px; display:flex; align-items:center; gap:8px; font-size:13px; color:var(--rbx-muted); }
+  /* the savings check, in the hero's right-hand column. On the energy site the build swaps the
+     marked fallback below for the working form (energy_save_form.html); here it links there */
+  .rbx-save { position:relative; overflow:hidden; background:#fff; border:1px solid var(--rbx-line); border-radius:24px; padding:28px 28px 24px;
+    box-shadow:var(--rbx-sh-2); scroll-margin-top:24px; }
+  .rbx-save::before { content:""; position:absolute; left:0; right:0; top:0; height:3px;
+    background:linear-gradient(90deg, var(--rbx-brand), var(--rbx-accent-l) 55%, var(--rbx-tem)); }
+  .rbx-save-k { display:inline-flex; align-items:center; gap:7px; font-size:11px; font-weight:750; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--rbx-accent); background:var(--rbx-tint-2); border-radius:999px; padding:5px 11px 5px 9px; }
+  .rbx-save-k::before { content:""; width:14px; height:14px; flex:none;
+    background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231f5f7f' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='9.5'/%3E%3Cpath d='M7.8 12.3l2.9 2.9 5.5-5.9'/%3E%3C/svg%3E") center / contain no-repeat; }
+  .rbx-save-h { margin-top:14px; font-size:23px; line-height:1.18; letter-spacing:-.02em; text-wrap:balance; font-weight:800; color:var(--rbx-brand); }
+  .rbx-save-t { margin-top:8px; font-size:14.5px; line-height:1.55; color:var(--rbx-ink-2); text-wrap:pretty; }
+  .rbx-save-fb { margin-top:22px; display:flex; flex-direction:column; gap:12px; }
+  a.rbx-save-go { display:flex; align-items:center; justify-content:center; gap:9px; height:50px; border-radius:999px; font-size:15px; font-weight:700;
+    color:#fff !important; background:var(--rbx-brand); text-decoration:none !important; box-shadow:0 10px 24px rgba(18,71,94,.22); transition:background .2s; }
+  a.rbx-save-go:hover { background:var(--rbx-accent-d); }
+  .rbx-save-or { display:flex; align-items:center; gap:12px; font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--rbx-muted-2); }
+  .rbx-save-or::before, .rbx-save-or::after { content:""; flex:1; height:1px; background:var(--rbx-line); }
+  a.rbx-save-mail { display:flex; align-items:center; gap:14px; padding:14px 16px; border:1.5px dashed #b9cdd8; border-radius:14px; background:var(--rbx-tint);
+    text-decoration:none !important; transition:border-color .2s, background .2s; }
+  a.rbx-save-mail:hover { border-color:var(--rbx-accent-l); background:#eef6fa; }
+  .rbx-save-doc { width:42px; height:42px; flex:none; border-radius:12px; box-shadow:0 0 0 1px var(--rbx-line), 0 2px 6px rgba(9,26,35,.06);
+    background:#fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2312475e' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z'/%3E%3Cpath d='M14 3v5h5'/%3E%3Cpath d='M12 17v-6M9.5 13.5 12 11l2.5 2.5'/%3E%3C/svg%3E") center / 22px no-repeat; }
+  .rbx-save-mail b { display:block; font-size:14.5px; font-weight:750; color:var(--rbx-brand); }
+  .rbx-save-mail small { display:block; margin-top:2px; font-size:12.5px; color:var(--rbx-muted); }
+  a.rbx-save-go:focus-visible, a.rbx-save-mail:focus-visible { outline:2px solid var(--rbx-accent-l); outline-offset:3px; }
+  /* beside the card the hero needs no second way to it; stacked on narrow screens, this button leads down to it */
+  a.rbx-btn.rbx-to-save { display:none; }
   /* ------- sections ------- */
   .rbx-sec { padding:96px 0 0; }
   .rbx-sec-head { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,.9fr); gap:18px 56px; align-items:end; margin-bottom:38px; }
@@ -279,7 +307,10 @@
   }
   .rbx-c-short { display:none; }
   @media (max-width: 1080px) {
-    .rbx-hero { padding:52px 0 60px; }
+    .rbx-hero { padding:52px 0 60px; grid-template-columns:minmax(0,1fr); gap:40px; }
+    .rbx-h1 { font-size:clamp(38px, 5.4vw, 64px); }
+    .rbx-save { max-width:560px; }
+    a.rbx-btn.rbx-to-save { display:inline-flex; }
     .rbx-tiers { grid-template-columns:1fr; max-width:640px; margin:0 auto; }
     .rbx-flow { grid-template-columns:1fr; gap:26px; padding:34px 22px 26px; }
     .rbx-fn + .rbx-fn::before { left:50%; top:-22px; width:2px; height:18px; background:repeating-linear-gradient(180deg, var(--rbx-muted-2) 0 4px, transparent 4px 8px); animation:none; }
@@ -323,9 +354,24 @@
             Explore how we can save you money off your electricity bill today</div>
           <div class="rbx-actions rbx-rise rbx-d3">
             <a class="rbx-btn rbx-pri" href="#rbx-tiers" target="_self">Explore the three tiers <span class="rbx-arrow">&darr;</span></a>
-            <a class="rbx-btn rbx-sec" href="mailto:callum@renewablox.com?subject=Business%20electricity%20%E2%80%94%20our%20bill" target="_self">Send us a bill</a>
+            <a class="rbx-btn rbx-sec rbx-to-save" href="#rbx-save" target="_self">Send us a bill</a>
           </div>
           <div class="rbx-foundline rbx-rise rbx-d3"><span class="rbx-star"></span>RED and RED Plus from tem, in every tier</div>
+        </div>
+        <div class="rbx-save rbx-rise rbx-d2" id="rbx-save">
+          <div class="rbx-save-hd">
+            <div class="rbx-save-k">Free bill check</div>
+            <div class="rbx-save-h" role="heading" aria-level="2">Find out what you can save</div>
+            <div class="rbx-save-t">Submit your MPAN and contract end date or send a recent electricity bill.</div>
+          </div>
+<!--save-form-->
+          <div class="rbx-save-fb">
+            <a class="rbx-save-go" href="https://energy.renewablox.co.uk/business/#rbx-save" target="_self">Enter your MPAN and end date <span class="rbx-arrow">&rarr;</span></a>
+            <div class="rbx-save-or">or</div>
+            <a class="rbx-save-mail" href="mailto:energy@renewablox.co.uk?subject=Bill%20check" target="_self"><span class="rbx-save-doc"></span>
+              <span><b>Email us a recent bill</b><small>energy@renewablox.co.uk</small></span></a>
+          </div>
+<!--/save-form-->
         </div>
       </div>
     </div>
