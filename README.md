@@ -21,7 +21,7 @@ public, the apps deploy as **public apps** on Streamlit Community Cloud
 | `app_investor_demo_aus.py` | `investor_demo_aus_home.html` + `peaker_plant_3d.html` + `kld_interactive.html` + `nem_negative_price_atlas.html` | Investor Demo (Australia) — Peaker Plant 3D and Hydro 3D plus NEM 3D (mining economics across the Australian NEM, `?view=nem`), on its own URL for the investor group that model was built for |
 | `app_peaker_3d.py` | `peaker_plant_3d.html` | Peaker Plant 3D standalone — the same peaker model on its own link, for client brochures (AD operators): no landing page, no pack navigation, straight into the model, prices in **p/kWh** |
 | `app_peaker_demo.py` | `peaker_plant_3d.html` | Peaker Demo — the pack's Peaker Plant 3D on a link of its own, for sending the peaker without the rest of the pack: no landing page, no pack navigation, prices in **£/MWh**, and tailored for an energy-literate audience (strike opens at £80 on a £50–£100 range; the export price is named **DA + gDUoS**) |
-| `app_generator_demo.py` | `generator_demo_home.html` + `peaker_plant_3d.html` + `kld_interactive.html` | Generator Demo — the client pack for generators RenewaBlox is reaching out to, with tem, on its own URL: a landing page that puts the two partners together (through tem and P442, a better PPA for renewables of all types; through RenewaBlox, any excess monetised by compute at the point of generation, drawn as an illustrative week of output split at the export limit), then sorts the models by the client's sector, each sector led by the same two steps (a better PPA through tem, then RenewaBlox), with the peaker under **Fuelled Renewables** as the **Peaker Plant model** (`?view=peaker`, prices in **p/kWh**) and the hydro under **Stranded Renewables** as the **Run-of-River Hydro model** (`?view=hydro`). Each model's header carries its client-pack name, the pack bar names the sector and offers a "Talk to us" email link, and nothing is gated — the investor-portal blur is for investors |
+| `app_generator_demo.py` | `generator_demo_home.html` + `peaker_plant_3d.html` + `kld_interactive.html` | Generator Demo — the client pack for generators RenewaBlox is reaching out to, with tem, on its own URL: a landing page that puts the two partners together (through tem and P442, a better PPA for renewables of all types; through RenewaBlox, any excess monetised by compute at the point of generation, drawn as an illustrative week of output split at the export limit), with a PPA check beside the headline (export MPAN and PPA end date, or a PPA statement), then sorts the models by the client's sector, each sector led by the same two steps (a better PPA through tem, then RenewaBlox), with the peaker under **Fuelled Renewables** as the **Peaker Plant model** (`?view=peaker`, prices in **p/kWh**) and the hydro under **Stranded Renewables** as the **Run-of-River Hydro model** (`?view=hydro`). Each model's header carries its client-pack name, the pack bar names the sector and offers a "Talk to us" email link, and nothing is gated — the investor-portal blur is for investors |
 | `app_business_demo.py` | `business_demo_home.html` + `business_site_analysis.html` + `business_haas.html` + `heat_network_3d.html` | Business Electricity — RenewaBlox with tem, the client pack for businesses that buy electricity: a landing page that explains what's in a business bill and who works on which side of the meter (the animated BLOX wordmark marks RenewaBlox's side), sets out tem's supply (RED, priced against tem's UK renewable portfolio through its Rosso platform) and the RED Plus benefit (P442 exempt supply) as the foundation of every tier, then offers three tiers, each including RED and RED Plus and building on the one before: **Tier 1, Holistic Site Analysis** (`?view=site`, an interactive example report on an illustrative site built from tem's example quote — capacity, night-rate timing, power factor, levies and bands, with a running total), **Tier 2, Heat-as-a-Service** (`?view=haas`, an animated isometric site heated by Bitcoin miners through a large dry cooler or as space heaters) and **Tier 3, Heat Network** (`?view=heat`, Heat Network 3D, served with all of its data) |
 | `outreach/app_outreach.py` | none — native Streamlit (`outreach/sections.py`, `outreach/toolkit.py`, `outreach/ui.py`) | Outreach Strategy — RenewaBlox × tem's business outreach strategy (working draft of 2 October 2026) as an app: seven pages under a sticky tab rail, each on its own address (`/`, `/offer`, `/linkedin`, `/strategies`, `/plan`, `/compliance`, `/toolkit`). Overview (the Bill X-ray hook, the five-channel map, the four plays, the first week's moves); Offer & targets (the edge, the claims and whose they are, the three limits, the segments and a **segment playbook** that gathers each segment's buyer, hook, LinkedIn angle, Demand Atlas source and opener on one card); LinkedIn (foundations to paid, with the funnel as a **live model**: its planning rates are sliders, and the paid stop rule follows them); Three strategies (Demand Atlas, Local Power with a generator **sizing calculator**, Borrowed trust); The plan (the 14 weeks on a chart with a **today line and live status** from the viewer's date, `?date=YYYY-MM-DD` to preview another day, and the tasks **filtered by owner**); Compliance (the two decisions, the checklist, the sources and how each was checked); Toolkit (every template and crew prompt, with the common fields **filled once** for all of them, length checks against the strategy's limits, search and a copy button on each) |
 
@@ -240,6 +240,7 @@ so links already sent keep working.
 | `/business/thanks/` | after the savings check, if it was sent without its script |
 | `/generators/` | Generator Demo landing |
 | `/generators/peaker-plant/`, `/generators/run-of-river-hydro/` | the two models |
+| `/generators/thanks/` | after the PPA check, if it was sent without its script |
 
 `build_energy_site.py` writes it to `energy_site/` (git-ignored); Netlify runs
 it on every push to main (`netlify.toml`, project `renewablox-energy`), so the
@@ -257,21 +258,26 @@ page: the two packs' view keys never collide, and the build checks that they don
 (`og-*.jpg`, frames of each landing page's headline): re-shoot them if a
 headline changes.
 
-**The savings check.** Beside the Business landing's headline, a card asks for
-the client's MPAN and contract end date, or a recent bill (dropped on the card,
-chosen as a file, or photographed on a phone; PDF or image, up to 8 MB), plus
-their email. On the energy site it is a working form, `energy_save_form.html`,
-which the build puts in place of the fragment's `<!--save-form-->` stand-in
-(Streamlit can't run a form, so the app's card links to this one and offers
-email instead). **Netlify Forms** receives it as the form `bill-check`: it is
-found in the built page at each deploy (Forms must be enabled on the project),
-each submission is kept with its bill under the project's **Forms** tab, and an
-email notification sends it to **energy@renewablox.co.uk** (Project
-configuration → Notifications → Emails and webhooks → Form submission
-notifications). The script checks the MPAN's check digit before sending, posts
-in the background and thanks the client in the card; without the script it
-posts as a plain form and lands on `/business/thanks/`. A honeypot field turns
-away most bots.
+**The savings check and the PPA check.** Beside each landing's headline, a
+card asks for an MPAN and an end date, or a document, plus the client's email:
+on Business, the MPAN and contract end date or a recent bill (the savings
+check); on Generators, the export MPAN and PPA end date or a recent PPA
+statement or self-billing invoice (the PPA check, "Find out your PPA uplift
+now"). The document can be dropped on the card, chosen as a file, or
+photographed on a phone (PDF or image, up to 8 MB). On the energy site each is
+a working form built from one template, `energy_save_form.html`, in its pack's
+wording (`FORMS` in `build_energy_site.py`), which the build puts in place of
+the fragment's `<!--save-form-->` stand-in (Streamlit can't run a form, so the
+apps' cards link to these and offer email instead). **Netlify Forms** receives
+them as two forms, `bill-check` and `ppa-check`: each is found in the built page
+at every deploy (Forms must be enabled on the project), each submission is kept
+with its document under the project's **Forms** tab, and email notifications
+send them to **energy@renewablox.co.uk** (Project configuration → Notifications
+→ Emails and webhooks → Form submission notifications; one per form, or one for
+any form). The script checks the MPAN's check digit before sending, posts in the
+background and thanks the client in the card; without the script it posts as a
+plain form and lands on `/business/thanks/` or `/generators/thanks/`. A honeypot
+field turns away most bots.
 
 Domain: `renewablox.co.uk`'s DNS is at Wix. The subdomain is a CNAME record
 `energy` → `renewablox-energy.netlify.app` there, with `energy.renewablox.co.uk`

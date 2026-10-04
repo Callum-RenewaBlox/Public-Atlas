@@ -13,6 +13,7 @@ here each is a real address on RenewaBlox's own domain:
     /generators/                        Generator Demo landing
     /generators/peaker-plant/           Peaker Plant model
     /generators/run-of-river-hydro/     Run-of-River Hydro model
+    /generators/thanks/                 after the PPA check, if it was sent without its script
 
 Everything is read from the same files the Streamlit apps serve, through
 packs.py, so both surfaces always show the same pages: the landing fragments
@@ -21,9 +22,10 @@ same slim navigation bar the apps draw, in an iframe of the model with its
 serve-time patches applied (``<slug>/model.html``) — exactly how Streamlit
 frames it, so every model lays out as it does there.
 
-One thing the Streamlit surface can't have is a working form, so the Business
-landing's savings check is a link there; here the build puts the real form
-(energy_save_form.html, received by Netlify Forms) in its marked place.
+One thing the Streamlit surface can't have is a working form, so each landing's
+check (the savings check on Business, the PPA check on Generators) is a link
+there; here the build puts the real form (energy_save_form.html, in that pack's
+wording from FORMS, received by Netlify Forms) in its marked place.
 
 Run:  python build_energy_site.py        (writes energy_site/, git-ignored)
 Netlify runs it on every push to main (netlify.toml).
@@ -46,6 +48,38 @@ SITE_URL = "https://energy.renewablox.co.uk"
 FAVICON = ('<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 '
            'viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%227%22 fill=%22%231F5F7F%22/></svg>">')
 
+# The check form's wording on each landing: energy_save_form.html's {{key}}s, its script's words
+# (WORDS) and the pack's thanks page. Each is its own Netlify form, so submissions say which it was.
+FORMS = {
+    "business": {
+        "form": "bill-check", "thanks": "/business/thanks/", "subject": "Bill check",
+        "mpan_label": "MPAN", "mpan_name": "mpan", "mpan": "MPAN", "mpanTag": "MPAN",
+        "end_label": "Contract end date", "end_name": "contract_end", "end": "contract end date", "ends": "contract ends",
+        "help": ("It&rsquo;s on your bill, in a box marked <b>Supply number</b> or <b>S</b>. "
+                 "Your MPAN is the 13 digits on the bottom row."),
+        "doc": "bill", "doc_name": "bill",
+        "drop_mouse": "Drop the PDF here, or <u>choose a file</u>",
+        "drop_touch": "Tap to choose a PDF, or take a photo of it",
+        "go": "Find out what I can save", "done": "with what you could save",
+        "badMpan": "That MPAN doesn’t look right — it’s the 13 digits on the bottom row of the supply number.",
+        "kicker": "Free bill check", "back": "Back to Business Electricity",
+    },
+    "generators": {
+        "form": "ppa-check", "thanks": "/generators/thanks/", "subject": "PPA check",
+        "mpan_label": "Export MPAN", "mpan_name": "export_mpan", "mpan": "export MPAN", "mpanTag": "export MPAN",
+        "end_label": "PPA end date", "end_name": "ppa_end", "end": "PPA end date", "ends": "PPA ends",
+        "help": ("It&rsquo;s on your PPA statement and your export meter&rsquo;s paperwork, in a box marked <b>S</b>. "
+                 "Your export MPAN is the 13 digits on the bottom row."),
+        "doc": "PPA statement", "doc_name": "ppa_statement",
+        "drop_mouse": "Or a self-billing invoice. Drop the PDF here, or <u>choose a file</u>",
+        "drop_touch": "Or a self-billing invoice. Tap to choose a PDF, or take a photo",
+        "go": "Find my PPA uplift", "done": "with your PPA uplift",
+        "badMpan": "That export MPAN doesn’t look right — it’s the 13 digits on the bottom row of the supply number.",
+        "kicker": "Free PPA check", "back": "Back to For Generators",
+    },
+}
+WORDS = ("form", "subject", "mpan", "mpanTag", "end", "ends", "doc", "done", "badMpan")
+
 PACKS = {
     "business": {
         "home": BUSINESS_HOME,
@@ -57,7 +91,7 @@ PACKS = {
         "back": "&larr; Overview",
         "cta": ("Send us a bill", f"mailto:{CONTACT}?subject={BUSINESS_SUBJECT}"),
         "og": "og-business.jpg",
-        "form": "energy_save_form.html",
+        "form": FORMS["business"],
     },
     "generators": {
         "home": GENERATOR_HOME,
@@ -69,6 +103,7 @@ PACKS = {
         "back": "&larr; All models",
         "cta": ("Talk to us", f"mailto:{CONTACT}?subject=Our%20generation%20site"),
         "og": "og-generators.jpg",
+        "form": FORMS["generators"],
     },
 }
 
@@ -134,7 +169,7 @@ def landing(pack_key, pack):
 
     if pack.get("form"):
         # the fragment's stand-in for the form, between <!--save-form--> markers, makes way for the form
-        form = (HERE / pack["form"]).read_text(encoding="utf-8")
+        form = check_form(pack["form"])
         frag, n = re.subn(r"<!--save-form-->.*?<!--/save-form-->", lambda m: form, frag, flags=re.S)
         if n != 1:
             raise SystemExit(f"{pack['home']}: expected one <!--save-form--> block, found {n}")
@@ -191,15 +226,22 @@ def welcome():
     return page.replace("</head>", forward + "</head>", 1)
 
 
-def thanks():
-    """Where the savings check lands if it was posted without its script (it otherwise thanks in place)."""
+def check_form(f):
+    """energy_save_form.html in one pack's wording."""
+    words = json.dumps({k: f[k] for k in WORDS}, ensure_ascii=False).replace("</", "<\\/")
+    page = (HERE / "energy_save_form.html").read_text(encoding="utf-8")
+    return re.sub(r"\{\{(\w+)\}\}", lambda m: words if m.group(1) == "words" else f[m.group(1)], page)
+
+
+def thanks(f, pack_key):
+    """Where a pack's check lands if it was posted without its script (it otherwise thanks in place)."""
     page = (ASSETS / "404.html").read_text(encoding="utf-8")
     body = re.search(r'<div class="card">.*</div>', page, re.S).group(0)
-    card = ("""<div class="card">
-  <div class="k">Free bill check</div>
+    card = (f"""<div class="card">
+  <div class="k">{f["kicker"]}</div>
   <h1>Thank you &mdash; it&rsquo;s with us.</h1>
-  <p>We&rsquo;ll take a look and come back to you by email with what you could save.</p>
-  <nav><a class="pri" href="/business/">Back to Business Electricity</a></nav>
+  <p>We&rsquo;ll take a look and come back to you by email {f["done"]}.</p>
+  <nav><a class="pri" href="/{pack_key}/">{f["back"]}</a></nav>
 </div>""")
     return (page.replace(body, card)
             .replace("<title>Page not found — RenewaBlox Energy</title>", "<title>Thank you — RenewaBlox Energy</title>"))
@@ -215,7 +257,9 @@ def main():
         shutil.rmtree(OUT)
     OUT.mkdir()
     write(OUT / "index.html", welcome())
-    write(OUT / "business" / "thanks" / "index.html", thanks())
+    for pack_key, pack in PACKS.items():
+        if pack.get("form"):
+            write(OUT / pack_key / "thanks" / "index.html", thanks(pack["form"], pack_key))
     for pack_key, pack in PACKS.items():
         write(OUT / pack_key / "index.html", landing(pack_key, pack))
         for key, view in pack["views"].items():

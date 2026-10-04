@@ -1,16 +1,19 @@
-<!-- The savings check form on energy.renewablox.co.uk/business/. build_energy_site.py puts this in
-     place of the fallback between the save-form markers in business_demo_home.html (the Streamlit fragment
-     can't run a form, so there the card links here instead).
+<!-- The check form on energy.renewablox.co.uk: the savings check on /business/ and the PPA check
+     on /generators/. One form, two wordings: build_energy_site.py fills each double-braced key below from
+     its FORMS table and puts the result in place of the fallback between the save-form markers in
+     that pack's landing fragment (the Streamlit fragment can't run a form, so there the card links
+     here instead).
 
-     Netlify Forms receives it (form "bill-check"): Netlify finds the form in the built page at
-     deploy, stores each submission with any bill attached, and emails it to
-     energy@renewablox.co.uk (Netlify: Project configuration → Notifications → Form submission
-     notifications). The script posts it in the background and thanks the visitor in the card;
-     without the script it posts as a plain form and lands on /business/thanks/.
+     Netlify Forms receives each as its own form ("bill-check", "ppa-check"): Netlify finds them
+     in the built pages at deploy, stores each submission with any document attached, and emails
+     it to energy@renewablox.co.uk (Netlify: Project configuration → Notifications → Form
+     submission notifications). The script posts it in the background and thanks the visitor in
+     the card; without the script it posts as a plain form and lands on the pack's thanks page.
 
-     A submission is the visitor's email plus either their MPAN and contract end date or a bill
-     (PDF or photo, up to 8 MB — Netlify's limit per submission). The MPAN is checked against
-     its check digit before it is sent, so a mistyped number is caught while they're here. -->
+     A submission is the visitor's email plus either an MPAN and an end date (the supply contract
+     on /business/, the PPA on /generators/) or a document (a bill, or a PPA statement; PDF or
+     photo, up to 8 MB — Netlify's limit per submission). The MPAN is checked against its check
+     digit before it is sent, so a mistyped number is caught while they're here. -->
 <style>
   .rbx-sf { margin-top:20px; display:flex; flex-direction:column; gap:14px; }
   .rbx-sf-hp { position:absolute !important; left:-9999px; width:1px; height:1px; overflow:hidden; }
@@ -44,7 +47,7 @@
   .rbx-sf-sn span { padding:4px 6px; border-left:1px solid #9fb0b9; text-align:center; white-space:nowrap; }
   .rbx-sf-sn .s { grid-row:1 / 3; border-left:0; display:grid; place-items:center; font-size:15px; font-weight:800; color:var(--rbx-ink); }
   .rbx-sf-sn .core { grid-column:2 / 5; border-top:1px solid #9fb0b9; color:#fff; background:var(--rbx-accent); letter-spacing:.04em; }
-  /* or: the bill itself */
+  /* or: the document itself */
   .rbx-sf-or { display:flex; align-items:center; gap:12px; font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--rbx-muted-2); }
   .rbx-sf-or::before, .rbx-sf-or::after { content:""; flex:1; height:1px; background:var(--rbx-line); }
   .rbx-sf-drop { position:relative; display:flex; align-items:center; gap:14px; padding:14px 16px; cursor:pointer;
@@ -102,64 +105,66 @@
   @media (max-width: 420px) { .rbx-sf-row { grid-template-columns:minmax(0,1fr); } .rbx-sf-help-b { flex-direction:column; align-items:flex-start; } }
   @media (prefers-reduced-motion: reduce) { .rbx-sf-tick { animation:none; } .rbx-sf-drop { transition:none; } }
 </style>
-<form class="rbx-sf" name="bill-check" method="POST" action="/business/thanks/" enctype="multipart/form-data"
+<form class="rbx-sf" name="{{form}}" method="POST" action="{{thanks}}" enctype="multipart/form-data"
       data-netlify="true" netlify-honeypot="bot-field">
-  <input type="hidden" name="form-name" value="bill-check">
-  <input type="hidden" name="subject" value="Bill check from energy.renewablox.co.uk">
+  <input type="hidden" name="form-name" value="{{form}}">
+  <input type="hidden" name="subject" value="{{subject}} from energy.renewablox.co.uk">
   <p class="rbx-sf-hp" aria-hidden="true"><label>Leave this empty <input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
   <div class="rbx-sf-row">
     <div class="rbx-sf-f">
-      <label for="sf-mpan">MPAN</label>
-      <input id="sf-mpan" name="mpan" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="13-digit number" maxlength="40">
+      <label for="sf-mpan">{{mpan_label}}</label>
+      <input id="sf-mpan" name="{{mpan_name}}" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="13-digit number" maxlength="40">
     </div>
     <div class="rbx-sf-f">
-      <label for="sf-end">Contract end date</label>
-      <input id="sf-end" name="contract_end" type="date">
+      <label for="sf-end">{{end_label}}</label>
+      <input id="sf-end" name="{{end_name}}" type="date">
     </div>
   </div>
   <details class="rbx-sf-help">
-    <summary>Where do I find my MPAN?</summary>
+    <summary>Where do I find my {{mpan}}?</summary>
     <div class="rbx-sf-help-b">
       <div class="rbx-sf-sn" aria-hidden="true"><span class="s">S</span><span>01</span><span>801</span><span>100</span><span class="core">12 3456 7890 123</span></div>
-      <p>It&rsquo;s on your bill, in a box marked <b>Supply number</b> or <b>S</b>. Your MPAN is the 13 digits on the bottom row.</p>
+      <p>{{help}}</p>
     </div>
   </details>
   <div class="rbx-sf-or">or</div>
   <label class="rbx-sf-drop" for="sf-bill">
-    <input id="sf-bill" name="bill" type="file" accept=".pdf,application/pdf,image/*">
+    <input id="sf-bill" name="{{doc_name}}" type="file" accept=".pdf,application/pdf,image/*">
     <span class="rbx-save-doc"></span>
-    <span><b>Upload a recent bill</b>
-      <small><span class="rbx-sf-mouse">Drop the PDF here, or <u>choose a file</u></span><span class="rbx-sf-touch">Tap to choose a PDF, or take a photo of it</span></small></span>
+    <span><b>Upload a recent {{doc}}</b>
+      <small><span class="rbx-sf-mouse">{{drop_mouse}}</span><span class="rbx-sf-touch">{{drop_touch}}</span></small></span>
   </label>
   <div class="rbx-sf-file" hidden>
     <span class="rbx-save-doc"></span>
     <div class="rbx-sf-fn"><b></b><small></small></div>
-    <button type="button" class="rbx-sf-x" aria-label="Remove this bill">&times;</button>
+    <button type="button" class="rbx-sf-x" aria-label="Remove this {{doc}}">&times;</button>
   </div>
   <div class="rbx-sf-f">
     <label for="sf-email">Your email</label>
     <input id="sf-email" name="email" type="email" autocomplete="email" spellcheck="false" placeholder="you@yourcompany.co.uk" required>
   </div>
-  <button class="rbx-sf-go" type="submit">Find out what I can save <span class="rbx-arrow">&rarr;</span></button>
+  <button class="rbx-sf-go" type="submit">{{go}} <span class="rbx-arrow">&rarr;</span></button>
   <div class="rbx-sf-msg" role="alert"></div>
   <div class="rbx-sf-note">Sent straight to energy@renewablox.co.uk</div>
 </form>
 <div class="rbx-sf-done" hidden tabindex="-1">
   <div class="rbx-sf-tick"></div>
   <div class="rbx-save-h" role="heading" aria-level="2">Thank you &mdash; it&rsquo;s with us.</div>
-  <p>We&rsquo;ll take a look and come back to you at <b class="rbx-sf-to"></b> with what you could save.</p>
+  <p>We&rsquo;ll take a look and come back to you at <b class="rbx-sf-to"></b> {{done}}.</p>
   <button type="button" class="rbx-sf-again">Send another</button>
 </div>
 <script>
 (function () {
-  var form = document.querySelector('form[name="bill-check"]');
+  // this pack's wording, filled in by build_energy_site.py
+  var T = {{words}};
+  var form = document.querySelector('form[name="' + T.form + '"]');
   if (!form || !window.fetch || !window.FormData) return;   // no script support: it posts as a plain form
   form.noValidate = true;                                     // checked below, with messages in the card's own words
   var card = document.getElementById("rbx-save"), done = card.querySelector(".rbx-sf-done");
-  var mpan = form.elements.mpan, end = form.elements.contract_end, email = form.elements.email, pick = form.elements.bill;
+  var mpan = form.querySelector("#sf-mpan"), end = form.querySelector("#sf-end"), email = form.elements.email, pick = form.querySelector("#sf-bill");
   var drop = form.querySelector(".rbx-sf-drop"), chip = form.querySelector(".rbx-sf-file"), msg = form.querySelector(".rbx-sf-msg");
   var go = form.querySelector(".rbx-sf-go"), goLabel = go.innerHTML;
-  var MAX = 8 * 1024 * 1024, TO = "energy@renewablox.co.uk", bill = null, thumb = null;
+  var MAX = 8 * 1024 * 1024, TO = "energy@renewablox.co.uk", picked = null, thumb = null;
   var WEIGHTS = [3, 5, 7, 13, 17, 19, 23, 29, 31, 37, 41, 43];
 
   // The MPAN core: 13 digits, the last a check digit over the other twelve. Someone who types the
@@ -176,7 +181,7 @@
     var d = new Date(iso + "T00:00:00Z");
     return isNaN(d) ? iso : d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
   }
-  function mail(subject) { return "mailto:" + TO + "?subject=" + encodeURIComponent(subject || "Bill check"); }
+  function mail(subject) { return "mailto:" + TO + "?subject=" + encodeURIComponent(subject || T.subject); }
 
   function say(text, fields, link, stay) {
     [mpan, end, email].forEach(function (f) { f.removeAttribute("aria-invalid"); });
@@ -189,20 +194,20 @@
   mpan.addEventListener("blur", function () {
     var d = core(mpan.value);
     if (d.length === 13) mpan.value = spaced(d);
-    if (d && !checks(d)) say("That MPAN doesn’t look right — it’s the 13 digits on the bottom row of the supply number.", [mpan], false, true);
+    if (d && !checks(d)) say(T.badMpan, [mpan], false, true);
   });
   [mpan, end, email].forEach(function (f) {
     f.addEventListener("input", function () { if (f.hasAttribute("aria-invalid")) say(""); });
   });
 
-  // the bill: chosen, dropped on the card, or (on a phone) photographed
+  // the document: chosen, dropped on the card, or (on a phone) photographed
   function take(file) {
     if (!file) return;
     var isPdf = /pdf$/i.test(file.type) || /\.pdf$/i.test(file.name);
     var isImg = /^image\//i.test(file.type) || /\.(jpe?g|png|heic|heif|webp)$/i.test(file.name);
-    if (!isPdf && !isImg) return say("Please upload your bill as a PDF or a photo.", []);
+    if (!isPdf && !isImg) return say("Please upload your " + T.doc + " as a PDF or a photo.", []);
     if (file.size > MAX) return say("That file is " + mb(file.size) + " — the limit is 8 MB. Try a smaller copy, or email it to", [], true);
-    bill = file; say("");
+    picked = file; say("");
     chip.querySelector("b").textContent = file.name;
     chip.querySelector("small").textContent = (isPdf ? "PDF" : "Photo") + " · " + mb(file.size);
     var icon = chip.firstElementChild;
@@ -218,7 +223,7 @@
   }
   pick.addEventListener("change", function () { take(pick.files && pick.files[0]); pick.value = ""; });
   chip.querySelector(".rbx-sf-x").addEventListener("click", function () {
-    bill = null; chip.hidden = true; drop.hidden = false; pick.focus();
+    picked = null; chip.hidden = true; drop.hidden = false; pick.focus();
   });
   function carriesFiles(e) { return e.dataTransfer && Array.prototype.indexOf.call(e.dataTransfer.types || [], "Files") > -1; }
   ["dragenter", "dragover"].forEach(function (t) {
@@ -241,28 +246,28 @@
     e.preventDefault();
     if (form.elements["bot-field"].value) return;
     var d = core(mpan.value), hasMpan = d.length > 0, hasEnd = !!end.value;
-    if (hasMpan && !checks(d)) return say("That MPAN doesn’t look right — it’s the 13 digits on the bottom row of the supply number.", [mpan]);
-    if (!bill) {
-      if (!hasMpan && !hasEnd) return say("Add your MPAN and contract end date, or upload a recent bill.", [mpan, end]);
-      if (!hasEnd) return say("Add your contract end date too — or upload a recent bill instead.", [end]);
-      if (!hasMpan) return say("Add your MPAN too — or upload a recent bill instead.", [mpan]);
+    if (hasMpan && !checks(d)) return say(T.badMpan, [mpan]);
+    if (!picked) {
+      if (!hasMpan && !hasEnd) return say("Add your " + T.mpan + " and " + T.end + ", or upload a recent " + T.doc + ".", [mpan, end]);
+      if (!hasEnd) return say("Add your " + T.end + " too — or upload a recent " + T.doc + " instead.", [end]);
+      if (!hasMpan) return say("Add your " + T.mpan + " too — or upload a recent " + T.doc + " instead.", [mpan]);
     }
     var to = email.value.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return say("Add your email, so we can come back to you with what you could save.", [email]);
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) return say("Add your email, so we can come back to you " + T.done + ".", [email]);
     say("");
 
     var parts = [];
-    if (hasMpan) parts.push("MPAN " + spaced(d));
-    if (hasEnd) parts.push("contract ends " + longDate(end.value));
-    if (bill) parts.push("bill attached");
+    if (hasMpan) parts.push(T.mpanTag + " " + spaced(d));
+    if (hasEnd) parts.push(T.ends + " " + longDate(end.value));
+    if (picked) parts.push(T.doc + " attached");
     var data = new FormData(form);
-    data.set("mpan", hasMpan ? spaced(d) : "");
+    data.set(mpan.name, hasMpan ? spaced(d) : "");
     data.set("email", to);
-    data.set("subject", "Bill check: " + parts.join(", ") + " — " + to);
-    data.delete("bill");                                       // an empty file part trips some browsers
-    if (bill) data.append("bill", bill, bill.name);
+    data.set("subject", T.subject + ": " + parts.join(", ") + " — " + to);
+    data.delete(pick.name);                                    // an empty file part trips some browsers
+    if (picked) data.append(pick.name, picked, picked.name);
 
-    go.disabled = true; go.textContent = bill ? "Uploading your bill…" : "Sending…";
+    go.disabled = true; go.textContent = picked ? "Uploading your " + T.doc + "…" : "Sending…";
     fetch("/", { method: "POST", body: data })
       .then(function (r) {
         if (!r.ok) throw new Error(r.status);
@@ -271,14 +276,14 @@
         card.classList.add("rbx-sent"); done.hidden = false; done.focus({ preventScroll: true });
       })
       .catch(function () {
-        say("Sorry — that didn’t send. Please try again, or email your MPAN or bill to", [], true);
-        msg.querySelector("a").href = mail("Bill check: " + parts.join(", "));
+        say("Sorry — that didn’t send. Please try again, or email your " + T.mpan + " or " + T.doc + " to", [], true);
+        msg.querySelector("a").href = mail(T.subject + ": " + parts.join(", "));
       })
       .then(function () { go.disabled = false; go.innerHTML = goLabel; });
   });
 
   done.querySelector(".rbx-sf-again").addEventListener("click", function () {
-    form.reset(); bill = null; chip.hidden = true; drop.hidden = false;
+    form.reset(); picked = null; chip.hidden = true; drop.hidden = false;
     card.classList.remove("rbx-sent"); card.style.minHeight = ""; done.hidden = true; mpan.focus();
   });
 })();
