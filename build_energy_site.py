@@ -62,9 +62,9 @@ PACKS = {
     "generators": {
         "home": GENERATOR_HOME,
         "views": GENERATOR_VIEWS,
-        "title": "RenewaBlox — For Generators",
-        "description": ("Compute at the point of generation: working models of how RenewaBlox data "
-                        "centres optimise fuelled and stranded renewable generation."),
+        "title": "RenewaBlox × tem — For Generators",
+        "description": ("Through tem and P442, a better PPA for renewables of all types. Through RenewaBlox, "
+                        "any excess monetised, with compute at the point of generation."),
         "crumb": None,
         "back": "&larr; All models",
         "cta": ("Talk to us", f"mailto:{CONTACT}?subject=Our%20generation%20site"),

@@ -1,9 +1,11 @@
 """Generator Demo — the RenewaBlox client pack for generators.
 
-For clients with generation that RenewaBlox is reaching out to: the same
-interactive 3D models the investor pack carries, framed by sector rather than by
-delivery window, on a URL of its own. A landing page introduces the service and
-links to each model, rendered full-bleed behind a slim navigation bar:
+For clients with generation that RenewaBlox is reaching out to, with tem: the
+landing page puts the two partners together (through tem and P442, a better PPA
+for renewables of all types; through RenewaBlox, any excess monetised by compute
+at the point of generation), then frames the investor pack's interactive 3D
+models by sector rather than by delivery window, on a URL of its own. Each model
+renders full-bleed behind a slim navigation bar:
 
 * ``?view=peaker`` — Fuelled Renewables: the **Peaker Plant model**, a biogas
   CHP whose tradable block follows price, with its half-hourly dispatch desk
@@ -45,7 +47,7 @@ if view not in MODELS:
     view = "home"
 
 st.set_page_config(
-    page_title=("RenewaBlox — For Generators" if view == "home"
+    page_title=("RenewaBlox × tem — For Generators" if view == "home"
                 else f"RenewaBlox — {MODELS[view]['label']}"),
     page_icon=":material/bolt:",
     layout="wide",
