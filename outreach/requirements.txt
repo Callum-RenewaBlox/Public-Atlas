@@ -1,0 +1,9 @@
+# Streamlit Community Cloud reads the requirements beside the entry file
+# before the repo root's. This app uses newer Streamlit features than the
+# wrapped-page apps (horizontal keyed containers, a script-level theme with
+# light and dark variants), so it asks for a recent release.
+streamlit>=1.65
+
+# The same starlette pin as the root requirements.txt (see the note there):
+# starlette 1.4.0 broke Streamlit's gzip middleware.
+starlette<1.4

@@ -23,6 +23,7 @@ public, the apps deploy as **public apps** on Streamlit Community Cloud
 | `app_peaker_demo.py` | `peaker_plant_3d.html` | Peaker Demo — the pack's Peaker Plant 3D on a link of its own, for sending the peaker without the rest of the pack: no landing page, no pack navigation, prices in **£/MWh**, and tailored for an energy-literate audience (strike opens at £80 on a £50–£100 range; the export price is named **DA + gDUoS**) |
 | `app_generator_demo.py` | `generator_demo_home.html` + `peaker_plant_3d.html` + `kld_interactive.html` | Generator Demo — the client pack for generators RenewaBlox is reaching out to, on its own URL: a landing page that sorts the models by the client's sector, with the peaker under **Fuelled Renewables** as the **Peaker Plant model** (`?view=peaker`, prices in **p/kWh**) and the hydro under **Stranded Renewables** as the **Run-of-River Hydro model** (`?view=hydro`). Each model's header carries its client-pack name, the pack bar names the sector and offers a "Talk to us" email link, and nothing is gated — the investor-portal blur is for investors |
 | `app_business_demo.py` | `business_demo_home.html` + `business_site_analysis.html` + `business_haas.html` + `heat_network_3d.html` | Business Electricity — RenewaBlox with tem, the client pack for businesses that buy electricity: a landing page that explains what's in a business bill and who works on which side of the meter (the animated BLOX wordmark marks RenewaBlox's side), sets out tem's supply (RED, priced against tem's UK renewable portfolio through its Rosso platform) and the RED Plus benefit (P442 exempt supply) as the foundation of every tier, then offers three tiers, each including RED and RED Plus and building on the one before: **Tier 1, Holistic Site Analysis** (`?view=site`, an interactive example report on an illustrative site built from tem's example quote — capacity, night-rate timing, power factor, levies and bands, with a running total), **Tier 2, Heat-as-a-Service** (`?view=haas`, an animated isometric site heated by Bitcoin miners through a large dry cooler or as space heaters) and **Tier 3, Heat Network** (`?view=heat`, Heat Network 3D, served with all of its data) |
+| `outreach/app_outreach.py` | none — native Streamlit (`outreach/sections.py`, `outreach/toolkit.py`, `outreach/ui.py`) | Outreach Strategy — RenewaBlox × tem's business outreach strategy (working draft of 2 October 2026) as an app: seven pages under a sticky tab rail, each on its own address (`/`, `/offer`, `/linkedin`, `/strategies`, `/plan`, `/compliance`, `/toolkit`). Overview (the Bill X-ray hook, the five-channel map, the four plays, the first week's moves); Offer & targets (the edge, the claims and whose they are, the three limits, the segments and a **segment playbook** that gathers each segment's buyer, hook, LinkedIn angle, Demand Atlas source and opener on one card); LinkedIn (foundations to paid, with the funnel as a **live model**: its planning rates are sliders, and the paid stop rule follows them); Three strategies (Demand Atlas, Local Power with a generator **sizing calculator**, Borrowed trust); The plan (the 14 weeks on a chart with a **today line and live status** from the viewer's date, `?date=YYYY-MM-DD` to preview another day, and the tasks **filtered by owner**); Compliance (the two decisions, the checklist, the sources and how each was checked); Toolkit (every template and crew prompt, with the common fields **filled once** for all of them, length checks against the strategy's limits, search and a copy button on each) |
 
 The two investor demos are separate apps on purpose: NEM 3D was built for one
 group of Australian investors, so it appears only in the pack they are sent to.
@@ -50,6 +51,19 @@ model at load — `window.PEAKER_UNITS` for p/kWh, `window.PEAKER_CFG` for the
 strike range and the export-price labels — so the HTML never forks. Both
 default to the packs' behaviour when a surface declares neither. Tailor a
 surface by editing its entry file, never by editing `peaker_plant_3d.html`.
+
+The outreach strategy is the exception to the wrapped-page pattern: it is
+native Streamlit (custom HTML blocks through `st.html`, with Streamlit widgets
+for the parts the reader drives), so its funnel, sizing and plan status can
+respond. It lives in `outreach/` because its theme does: Streamlit reads a
+`.streamlit/config.toml` beside the entry script after the project one, so
+`outreach/.streamlit/config.toml` (petrol and tem palette, Inter and IBM Plex
+Mono, light and dark variants that follow the viewer's system) styles that
+app alone and leaves every app at the root on Streamlit's default theme. Its
+`outreach/requirements.txt` asks for Streamlit 1.65 or later. Two things to
+know before editing it: `st.html` strips inline `<svg>` (the diagrams are HTML
+and CSS), and its sanitiser drops a whole `<style>` block that contains a
+`<` anywhere, so any SVG data URI in the stylesheet must be URL-encoded.
 
 Each app reads its HTML inline and renders it with `st.iframe`, so a redeploy
 always serves the current map. The one exception is the investor demos' landing
@@ -287,6 +301,7 @@ Build and look at it locally:
     streamlit run app_investor_portal.py
     streamlit run app_generator_demo.py
     streamlit run app_business_demo.py
+    streamlit run outreach/app_outreach.py
 
 ## Deploy
 
@@ -309,6 +324,8 @@ live, add its row above and its URL to `APPS` in
 `.github/scripts/keep_awake.py` (and to the alert's app list in the workflow).
 The same goes for `app_business_demo.py`, the business pack
 (`business-demo.streamlit.app` would match).
+And for `outreach/app_outreach.py`, the outreach strategy: set the main file path
+to `outreach/app_outreach.py` (`renewablox-outreach.streamlit.app` would suit).
 The IHN Atlas serves Heat Network 3D with all of its data at `?view=3d`, so its
 link is for the client, not the public demo's footing. All five deployed apps are visited hourly by the keep-awake workflow
 (`.github/workflows/keep-awake.yml`). For the portal app, set

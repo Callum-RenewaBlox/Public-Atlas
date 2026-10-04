@@ -1,0 +1,35 @@
+# Theme for the outreach strategy app only. Streamlit reads a .streamlit/
+# folder beside the entry script after the project one, so this styles
+# outreach/app_outreach.py and leaves every app at the repo root untouched.
+# Palette and type follow energy.renewablox.co.uk; the light and dark themes
+# follow the viewer's system setting.
+
+[client]
+toolbarMode = "minimal"
+
+[theme]
+font = "Inter:https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300..800;1,400..800&display=swap"
+codeFont = "IBM Plex Mono:https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+baseRadius = "10px"
+buttonRadius = "full"
+showWidgetBorder = true
+
+[theme.light]
+primaryColor = "#1f5f7f"
+backgroundColor = "#f4f8fa"
+secondaryBackgroundColor = "#eaf1f5"
+textColor = "#0d1b23"
+linkColor = "#1f5f7f"
+borderColor = "#dfe8ed"
+codeBackgroundColor = "#f7fafb"
+codeTextColor = "#33454f"
+
+[theme.dark]
+primaryColor = "#6fb3d3"
+backgroundColor = "#0b161c"
+secondaryBackgroundColor = "#162c37"
+textColor = "#e8f0f4"
+linkColor = "#6fb3d3"
+borderColor = "#22363f"
+codeBackgroundColor = "#0f1f27"
+codeTextColor = "#c3d2da"
