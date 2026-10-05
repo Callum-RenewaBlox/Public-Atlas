@@ -234,7 +234,7 @@ so links already sent keep working.
 
 | Address | Page |
 | --- | --- |
-| `/` | welcome page: which side of the meter are you on? (`energy_welcome.html`) |
+| `/` | welcome page: which side of the meter are you on? One island, two routes, two doors (`energy_welcome.html`) |
 | `/business/` | Business Electricity landing |
 | `/business/site-analysis/`, `/business/heat-as-a-service/`, `/business/heat-network/` | the three tiers |
 | `/business/thanks/` | after the savings check, if it was sent without its script |
@@ -257,6 +257,26 @@ page: the two packs' view keys never collide, and the build checks that they don
 `energy_site_assets/` holds the 404 page and the 1200×630 share-preview images
 (`og-*.jpg`, frames of each landing page's headline): re-shoot them if a
 headline changes.
+
+**The welcome page** (`energy_welcome.html`) is one island with the meter line
+down the middle: generators (AD, wind, solar) on the supply side, businesses on
+the demand side, tem's marketplace on the line between them, and the usual
+route (the wholesale market, a row of market middlemen and a levy gate) along
+the back. It is a Blender build exported to GLB and drawn with three.js, with
+the GLB, three.js, the wordmark and a poster frame all inlined, so the file is
+about 1.6 MB and makes no requests; where WebGL is unavailable the poster frame
+stands in. A first visit sees **the usual route first**: the power drawn stop
+by stop from the generators through the wholesale market, the market middlemen
+and the levy gate, each label lit as it is reached, then out to the businesses;
+then the page switches to **RenewaBlox × tem** and stays there, and the scene
+plays its own introduction (the BLOX links, the site scan, each generator's
+pairings). That opening is the readable script at the end of the file, driving
+the scene through `window.rbxScene`; the bundled scene script is minified (its
+source isn't in this repo) and carries five one-line hooks for it, each marked
+`rbx-opening`. A click on either route button or on pause ends the opening,
+and reduced motion or no WebGL skips it. The two doors flank the island on
+wide screens (304 px, 356 px from 1720 px) and sit under it below 1360 px; each
+carries its pack's CTA and a link to its check.
 
 **The savings check and the PPA check.** Beside each landing's headline, a
 card asks for an MPAN and an end date, or a document, plus the client's email:
