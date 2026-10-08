@@ -12,6 +12,7 @@ public, the apps deploy as **public apps** on Streamlit Community Cloud
 | --- | --- | --- |
 | `app_srv_atlas.py` | `srv_atlas.html` + `srv_atlas_3d_badge.html` + `srv_3d_sim.html` + `srv_siting_3d.html` | SRV Atlas — the client view of the Scrivelsby (Home Farm AD) scheme: where the compute load bank sits, how it connects, and the site around it, kept deliberately minimal (LN9 6JB). Two pulsing BLOX badges on the yard open the 3D Dispatch Sim (`?view=3d`) and the 3D Compute Kiosk (`?view=siting`, two siting schemes on one page: option A, one 4 m kiosk for the LV board, three DCX hydro racks and their cooling loop with the dry cooler on the roof; option B, the existing kiosk extended for the board and the Winchain 10 ft hydro cooling container behind it with the dry cooler on the container roof) full-screen — the same app serving each route, so the map page carries none of the models' weight |
 | `app_srv_contractor.py` | `srv_contractor.html` | SRV Contractor Atlas — the same site surveyed for the LV connection RFQ: switchgear detail, the full 12-photo survey including switchroom interiors, the feeder route with its tie-in and containment notes, and OSM/DNO context |
+| `app_bryn_atlas.py` | `bryn_atlas.html` + `bryn_atlas_3d_badge.html` + `bryn_3d_sim.html` | Bryn Atlas — the client view of the Bryn Power AD plant scheme (Gelliargwellt Farm, Gelligaer CF82 8FY): where a BLOX data centre would stand, right beside the LV room at the CHP engines, to take about 200 kW of the site's surplus power with no cable route across the site, kept deliberately minimal. A pulsing BLOX badge on the proposed plot opens the 3D Site Model full-screen (`?view=3d`): a three.js model of the plant, built in Blender from aerial imagery, with the data centre in place, and the three ways of funding it (RBX CapEx, 50/50, Bryn CapEx) drawn from the revenue-share model. The funding panel opens docked — a short card listing the three options with one figure each, so the model has the stage — and widens to most of the stage on "Compare" (or on any option) for the discussion: the three options side by side on one scale, how the chosen one works in three plain steps, who receives the revenue month by month, and every model figure in a table; "Minimise" docks it again, and `?view=3d&deal=open` starts it open. This site is surplus power to compute, not peaker arbitrage, so the model has no dispatch desk — the same app serving each route, so the map page carries none of the model's weight |
 | `app_kld_atlas.py` | `kld_atlas.html` + `kld_hydro_chrome.html` + `kld_interactive.html` | KLD Atlas — Kinlochdamph 999 kW run-of-river hydro (Loch Damh, Wester Ross): site assets, the 11/33/132 kV network and the two SSEN connection options. A pulsing BLOX badge on the powerhouse opens the 3D Revenue Sim full-screen — the same app serving `?view=3d`, so the atlas page carries none of the model's weight |
 | `app_ihn_atlas.py` | `ihn_atlas.html` + `ihn_heat_chrome.html` + `heat_network_3d.html` | IHN Atlas — the IHN heat network: a still, daytime three.js satellite atlas of the district with the network main, the existing and proposed connections, the 11 kV route and the HNES blocks drawn on the imagery, and the 76 × 25 m plant room cut away under the block; four camera views (Overview, the Plant room as an amber call to action, EC1, EC2) with a caption that follows the view, a key, layers and a Council site-map overlay. A pulsing BLOX badge over the plant room opens the dispatch model, Heat Network 3D, full-screen — the same app serving `?view=3d` with the same model file the investor pack serves, all data included, so the atlas page carries none of the model's weight |
 | `app_moray_atlas.py` | `moray_atlas.html` | Moray Cluster Atlas — the Keith & Huntly primaries (the only two green-headroom primaries in the Savills Moray screen): candidate plots, ownership areas, GSP saturation, the 33/132/275/400 kV network and the offshore wind landing on it |
@@ -74,7 +75,7 @@ inside one can never drive the app's `?view=` navigation.
 ## Generated files
 
 `kld_atlas.html`, `moray_atlas.html`, `srv_3d_sim.html`, `srv_siting_3d.html`,
-`srv_atlas_3d_badge.html`, `heat_network_3d.html`, `demand_for_constraints_3d.html` and `ihn_atlas.html` are built, not hand-edited. Each builder re-skins its
+`srv_atlas_3d_badge.html`, `bryn_atlas.html`, `bryn_atlas_3d_badge.html`, `bryn_3d_sim.html`, `heat_network_3d.html`, `demand_for_constraints_3d.html` and `ihn_atlas.html` are built, not hand-edited. Each builder re-skins its
 hand-authored source in the shared RenewaBlox design system (petrol brand
 tokens, Inter, brand bar — and glass panels where the build re-skins the panels) and re-uses the source's data and
 vendored payloads byte-for-byte:
@@ -86,6 +87,8 @@ vendored payloads byte-for-byte:
 | `srv_3d_sim.html` | `Contracts/Scrivelsby Farm Ltd/Atlas/build_srv_3d_sim.py` |
 | `srv_siting_3d.html` | `Contracts/Scrivelsby Farm Ltd/Atlas/siting/build_siting.py` (three.js viewer bundled with esbuild; the schemes live in `siting/src/scheme.js` (option A) and `siting/src/scheme_b.js` (option B)) |
 | `srv_atlas_3d_badge.html` | `Contracts/Scrivelsby Farm Ltd/Atlas/build_srv_atlas_badge.py` |
+| `bryn_atlas.html` + `bryn_atlas_3d_badge.html` | `Contracts/Bryn/Atlas/atlas/build_bryn_atlas.py` — from the site layout in `bryn_site.py`, the one source the 3D model is also built from, so the plot and the features agree between the map and the model |
+| `bryn_3d_sim.html` | `Contracts/Bryn/Atlas/viewer/build.mjs` (three.js viewer bundled with esbuild; both are loaded from `tools/node_modules`, so the folder can live anywhere). The scene is generated in Blender by `blender/build_scene.py` from `bryn_site.py` and compressed by `tools/optimize_glb.mjs`; the commercial figures live in `viewer/src/data.js`, transcribed from the revenue-share model's three output screens, and `viewer/src/ui.js` lists the few values it derives from them |
 | `heat_network_3d.html` | `Contracts/<IHN client>/Atlas/build_heat_network_3d.py` — from the client edition of the IHN heat-network model, with the site anonymised to IHN: the brand bar, house type and chips go on, the Google Fonts links come off, and the scene, panels, data and payloads pass through byte-for-byte |
 | `ihn_atlas.html` | `Contracts/<IHN client>/Atlas/build_ihn_atlas.py` — from the in-house IHN Atlas 3D scene (`IHN_Atlas_3D_1.html`): the house bar, light glass panels and white callouts go on, the live-dispatch inset, the dispatch desk, the settlement clock and the sky switcher come off (the dispatch series with them, so the page is lighter than its source), the sky is fixed at day, and the scene, its data, the imagery and the vendored three.js pass through byte-for-byte. The scene script is minified, so every cut is an exact-string splice that must match once or the build fails; the build also fails if the source's link to the investor portal, or its access key, survives |
 | `demand_for_constraints_3d.html` | `Data Room/Inhouse IP/Atlas 3D/DfC/build_dfc_3d.py` — from edition 4 of the in-house DfC model (`make_edition_4.py` derives it from edition 3: Heat Network pacing, a full-year opening run with three highlight days, state-keyed weather, and the wholesale projection's continental coupling with a consistent price stack and RO roll-off, all editable in the assumptions drawer): the brand bar, house type and chips go on, the footer row comes off, the layout is tidied for a laptop screen, and the scene, model, data and payloads pass through byte-for-byte |
@@ -94,6 +97,8 @@ vendored payloads byte-for-byte:
 badge, the popup call-to-action rows and the overlay. `app_srv_atlas.py`
 appends it to `srv_atlas.html` at serve time, so the hand-maintained map file
 stays pristine and the sim loads through `?view=3d` only when opened.
+`bryn_atlas_3d_badge.html` does the same job for `app_bryn_atlas.py`, with one
+badge: the BLOX logo on the proposed plot.
 
 The investor demos' model pages are copies of their upstream sources — refresh
 them after an upstream rebuild:
@@ -121,10 +126,10 @@ generator pack.
 
 ## The site-atlas pattern
 
-`app_srv_atlas.py`, `app_kld_atlas.py` and `app_ihn_atlas.py` are deliberately
-the same shape, so a new site can be stood up by copying any of them:
+`app_srv_atlas.py`, `app_kld_atlas.py`, `app_ihn_atlas.py` and `app_bryn_atlas.py`
+are deliberately the same shape, so a new site can be stood up by copying any of them:
 
-* one app, two views — the atlas by default (a Leaflet map for SRV and KLD, a
+* one app, two views — the atlas by default (a Leaflet map for SRV, KLD and Bryn, a
   still three.js satellite scene for IHN), its 3D model at `?view=3d`, both
   rendered full-bleed through the same Streamlit chrome-stripping CSS;
 * the model is a route, never an in-page overlay, so the map page stays small
@@ -146,8 +151,16 @@ on 20 km of 33 kV spur and shows the short form until zoom 13.5. IHN's badge is
 tracked to the plant room in the 3D scene (and docks above the caveat when the
 camera is down in the plant room), and its header carries the same house bar
 as the Heat Network 3D page it opens, so the two read as one product.
+Bryn's badge sits on the proposed plot itself — the BLOX logo marks where the
+data centre would go — and its model carries the three funding options instead
+of a dispatch desk, because that site is surplus power to compute rather than
+peaker arbitrage; the funding panel opens docked and widens on demand, so the
+first view is the site and the wide view is for the discussion. Opened as a
+plain file, outside Streamlit, Bryn's model page finds the map page by
+relative link (`bryn_atlas.html`); the map page's route to the model lives in
+the badge layer, which only the app appends at serve time.
 
-One consequence of Streamlit's component sandbox for all three: the gateway and
+One consequence of Streamlit's component sandbox for all four: the gateway and
 the model's "Atlas" pill try to navigate the page they sit in and, when the
 sandbox refuses, open the destination in a new tab instead — so on Streamlit
 Cloud the model opens in a new tab and the Atlas pill opens the atlas in
@@ -316,6 +329,7 @@ Build and look at it locally:
     pip install -r requirements.txt
     streamlit run app_srv_atlas.py
     streamlit run app_srv_contractor.py
+    streamlit run app_bryn_atlas.py
     streamlit run app_kld_atlas.py
     streamlit run app_ihn_atlas.py
     streamlit run app_moray_atlas.py
@@ -352,6 +366,9 @@ The same goes for `app_business_demo.py`, the business pack
 (`business-demo.streamlit.app` would match).
 And for `outreach/app_outreach.py`, the outreach strategy: set the main file path
 to `outreach/app_outreach.py` (`renewablox-outreach.streamlit.app` would suit).
+And for `app_bryn_atlas.py`, the Bryn Atlas (`bryn-atlas.streamlit.app` would
+match the IHN Atlas's naming); its 3D Site Model carries the proposal's figures
+at `?view=3d`, so its link is for the client.
 The IHN Atlas serves Heat Network 3D with all of its data at `?view=3d`, so its
 link is for the client, not the public demo's footing. All five deployed apps are visited hourly by the keep-awake workflow
 (`.github/workflows/keep-awake.yml`). For the portal app, set
