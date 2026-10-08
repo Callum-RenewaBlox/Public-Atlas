@@ -356,6 +356,7 @@ per entry file, each with its own custom subdomain:
 | `app_peaker_3d.py` | `peakerplant-3d.streamlit.app` |
 | `app_investor_portal.py` | `investor-insight.streamlit.app` — linked from the members-only area of the Wix investor portal |
 | `app_ihn_atlas.py` | `ihn-atlas.streamlit.app` — the client-facing IHN Atlas, with Heat Network 3D at `?view=3d` |
+| `app_bryn_atlas.py` | `bryn-atlas.streamlit.app` — the client-facing Bryn Atlas, with the 3D Site Model at `?view=3d` |
 
 `app_peaker_demo.py` is ready to deploy and has no subdomain yet — add its row
 above once one is claimed. So is `app_generator_demo.py`, the generator pack;
@@ -366,11 +367,9 @@ The same goes for `app_business_demo.py`, the business pack
 (`business-demo.streamlit.app` would match).
 And for `outreach/app_outreach.py`, the outreach strategy: set the main file path
 to `outreach/app_outreach.py` (`renewablox-outreach.streamlit.app` would suit).
-And for `app_bryn_atlas.py`, the Bryn Atlas (`bryn-atlas.streamlit.app` would
-match the IHN Atlas's naming); its 3D Site Model carries the proposal's figures
-at `?view=3d`, so its link is for the client.
-The IHN Atlas serves Heat Network 3D with all of its data at `?view=3d`, so its
-link is for the client, not the public demo's footing. All five deployed apps are visited hourly by the keep-awake workflow
+The IHN and Bryn atlases serve their models with all of their data at
+`?view=3d`, so their links are for the client, not the public demo's footing.
+All six deployed apps are visited hourly by the keep-awake workflow
 (`.github/workflows/keep-awake.yml`). For the portal app, set
 `PORTAL_PASSCODE` in the app's secrets on Streamlit Cloud to lock it (the code
 never lives in this repo; `.streamlit/secrets.toml` is git-ignored), then run
