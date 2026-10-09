@@ -1,0 +1,180 @@
+<!-- ======================================================================
+  Bryn Atlas · 3D model gateway
+  Appended to bryn_atlas.html at serve time by app_bryn_atlas.py. Adds the
+  pulsing BLOX badge on the proposed plot and a matching CTA row in the
+  relevant popups. The badge takes the visitor straight to the full-screen
+  3D site model via the app's own ?view=3d route — no overlay, no nested
+  chrome. Same layer as srv_atlas_3d_badge.html; a map can carry any number.
+======================================================================= -->
+<style>
+  :root{
+    --b3d-brand:#12475e; --b3d-accent:#1f5f7f;
+    --b3d-font:"Inter","Inter var",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  }
+
+  /* ---- the badge on the map ---- */
+  .b3d-badge{pointer-events:auto;cursor:pointer}
+  .b3d-badge .ring{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;
+    border-radius:50%;background:rgba(31,95,127,.32);animation:b3dpulse 2.1s cubic-bezier(.2,.6,.35,1) infinite}
+  .b3d-badge .ring2{animation-delay:1.05s}
+  .b3d-badge .chip{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    width:44px;height:44px;max-width:none;border-radius:50%;border:2.5px solid #fff;background:#fff;
+    box-shadow:0 2px 12px rgba(9,26,35,.5);transition:transform .18s cubic-bezier(.2,.8,.3,1)}
+  .b3d-badge:hover .chip{transform:translate(-50%,-50%) scale(1.12)}
+  .b3d-badge .cta{
+    /* the chip is 48px wide centred in the 46px badge div (edges at -1 and 47),
+       so the pill must end left of -1 or it covers the B of BLOX */
+    position:absolute;right:53px;top:50%;transform:translateY(-50%);
+    display:flex;align-items:center;gap:7px;white-space:nowrap;
+    background:linear-gradient(135deg,var(--b3d-brand),var(--b3d-accent) 85%);
+    color:#fff;font:700 12px/1 var(--b3d-font);letter-spacing:.015em;
+    padding:9px 20px 9px 14px;border-radius:999px;
+    box-shadow:0 3px 16px rgba(9,26,35,.45);
+    overflow:hidden;transition:transform .18s cubic-bezier(.2,.8,.3,1),box-shadow .18s;
+  }
+  .b3d-badge:hover .cta{transform:translateY(-50%) translateX(-2px);box-shadow:0 5px 22px rgba(9,26,35,.55)}
+  .b3d-badge .cta::after{content:"";position:absolute;inset:0;
+    background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.28) 48%,transparent 62%);
+    transform:translateX(-110%);animation:b3dsheen 4.6s ease-in-out infinite}
+  .b3d-badge .cta i{font-style:normal;font-size:10px;transition:transform .18s}
+  .b3d-badge:hover .cta i{transform:translateX(3px)}
+  .b3d-badge .cta .s{display:none}
+  .b3d-badge:focus-visible .chip{outline:3px solid #fff;outline-offset:2px}
+  @keyframes b3dpulse{0%{transform:scale(.4);opacity:.95}72%{transform:scale(1.7);opacity:0}100%{opacity:0}}
+  @keyframes b3dsheen{0%,55%{transform:translateX(-110%)}72%,100%{transform:translateX(115%)}}
+  @keyframes b3dnudge{0%,100%{transform:translateY(-50%)}30%{transform:translateY(-50%) translateX(-7px)}55%{transform:translateY(-50%)}}
+  .b3d-badge.nudge .cta{animation:b3dnudge 1s cubic-bezier(.3,.7,.3,1) .9s 2}
+  @media (max-width:620px){
+    .b3d-badge .cta .f{display:none}
+    .b3d-badge .cta .s{display:inline}
+    /* the short form stays beside the chip: above it is the CHP pin, below it the plot label */
+    .b3d-badge .cta{padding:8px 16px 8px 12px}
+    .b3d-badge.nudge .cta{animation:none}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .b3d-badge .ring,.b3d-badge .cta::after{animation:none}
+    .b3d-badge .ring{opacity:.5;transform:scale(1.15)}
+    .b3d-badge .ring2{display:none}
+  }
+
+  /* ---- CTA row inside the popups ---- */
+  .b3d-poprow{
+    display:flex;align-items:center;gap:9px;margin-top:10px;padding:8px 10px;
+    background:linear-gradient(135deg,var(--b3d-brand),var(--b3d-accent) 90%);
+    border-radius:9px;cursor:pointer;transition:filter .15s;
+  }
+  .b3d-poprow:hover{filter:brightness(1.15)}
+  .b3d-poprow img{width:26px;height:26px;max-width:none;border-radius:50%;border:1.5px solid #fff;flex:0 0 auto}
+  .b3d-poprow b{color:#fff!important;font:700 11.5px/1.3 var(--b3d-font);letter-spacing:.01em;display:block}
+  .b3d-poprow span{color:rgba(255,255,255,.72);font:500 10px/1.3 var(--b3d-font);display:block;margin-top:1px}
+</style>
+
+<script>
+(function(){
+  if (typeof map === 'undefined' || !window.L) return;
+  var ROUNDEL = "data:image/png;base64,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";
+  // where the model lives when this page is opened on its own (a file on disk,
+  // or a published preview) rather than inside the Streamlit app
+  var STANDALONE_3D = "bryn_3d_sim.html";
+
+  /* ------------------------------------------------ route back into the app */
+  // Inside the app the page is a same-origin frame of the Streamlit page, so the
+  // parent document is reachable; anywhere else it is not.
+  function hostDoc(){
+    try { return window.parent !== window ? window.parent.document : null; } catch(e){ return null; }
+  }
+  function viewUrl(view){
+    var href = '';
+    try { href = window.parent.location.href; } catch(e){}
+    if (!href) href = document.referrer || '';
+    try {
+      var u = new URL(href);
+      u.searchParams.set('view', view);
+      u.searchParams.delete('embed');
+      u.hash = '';
+      return u.toString();
+    } catch(e) { return '?view=' + view; }
+  }
+  // Navigate the whole page from inside Streamlit's component iframe. The
+  // frame is sandboxed without allow-top-navigation, so setting
+  // parent.location is refused (silently — no exception) in real Chrome.
+  // What the sandbox does permit: 1) a click on an anchor that belongs to the
+  // PARENT document, which the browser attributes to the parent; 2) failing
+  // that, rewriting the parent's history entry and reloading it; 3) failing
+  // that, a new tab. A successful navigation unloads this document, which
+  // cancels the fallback timer via pagehide.
+  function rbxGo(url){
+    var fallback = setTimeout(function(){
+      try { window.parent.history.pushState(null, '', url); window.parent.location.reload(); }
+      catch(e) { window.open(url, '_blank', 'noopener'); }
+    }, 1200);
+    window.addEventListener('pagehide', function(){ clearTimeout(fallback); }, { once: true });
+    try {
+      var pd = window.parent.document;
+      var a = pd.createElement('a');
+      a.href = url; a.target = '_self'; a.style.display = 'none';
+      pd.body.appendChild(a); a.click(); a.remove();
+    } catch(e) {
+      clearTimeout(fallback);
+      try { window.parent.history.pushState(null, '', url); window.parent.location.reload(); }
+      catch(e2) { window.open(url, '_blank', 'noopener'); }
+    }
+  }
+  // Straight to the full-screen model: navigate the whole window, not an
+  // overlay, so the model gets the entire browser and the browser's own Back
+  // returns to the atlas (the model page also carries its own "Atlas" control).
+  function open3d(){
+    if (hostDoc()) rbxGo(viewUrl('3d'));
+    else window.location.href = STANDALONE_3D;
+  }
+  window.__openBryn3D = open3d;
+
+  /* -------------------------------------------------- the badge on the map */
+  function badge(lat, lon, full, short, alt, onOpen){
+    var m = L.marker([lat, lon], {
+      zIndexOffset: 4000, keyboard: true, title: alt, alt: alt,
+      icon: L.divIcon({
+        className: 'b3d-badge',
+        iconSize: [46,46], iconAnchor: [23,23],
+        html: '<div class="ring"></div><div class="ring ring2"></div>' +
+              '<img class="chip" src="' + ROUNDEL + '" alt="' + alt + '">' +
+              '<div class="cta"><span class="f">' + full + '</span><span class="s">' + short + '</span><i>▶</i></div>'
+      })
+    });
+    m.on('click', onOpen);
+    m.on('keypress', function(e){ var k = e.originalEvent && e.originalEvent.key; if (k === 'Enter' || k === ' ') onOpen(); });
+    m.addTo(map);
+    return m;
+  }
+  // On the proposed plot beside the CHP engines; the pill reaches west along the yard.
+  var simBadge = badge(51.662121, -3.267544, '3D Site Model', '3D Model', 'Open the 3D site model', open3d);
+
+  // one gentle nudge shortly after load so the pill catches the eye once
+  setTimeout(function(){
+    var el = simBadge.getElement && simBadge.getElement();
+    if (el){ el.classList.add('nudge'); setTimeout(function(){ el.classList.remove('nudge'); }, 4200); }
+  }, 900);
+
+  /* ------------------------------------ CTA row inside the relevant popups */
+  var SIM_ASSETS = /BLOX data centre|CHP engines/i;
+  function row(title, sub, onOpen){
+    var r = document.createElement('div');
+    r.className = 'b3d-poprow';
+    r.setAttribute('role', 'button'); r.tabIndex = 0;
+    r.innerHTML = '<img src="' + ROUNDEL + '" alt="">' +
+      '<div><b>' + title + '</b><span>' + sub + '</span></div>';
+    r.addEventListener('click', onOpen);
+    r.addEventListener('keydown', function(e){ if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpen(); } });
+    return r;
+  }
+  map.on('popupopen', function(e){
+    var node = e.popup && e.popup._contentNode;
+    if (!node || node.querySelector('.b3d-poprow')) return;
+    var title = node.querySelector('b, h3');
+    if (!title) return;
+    if (SIM_ASSETS.test(title.textContent)) node.appendChild(row(
+      'See it in the 3D site model',
+      'The plant, the data centre and three ways to fund it', open3d));
+  });
+})();
+</script>
