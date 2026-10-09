@@ -2,8 +2,9 @@
 
 A standalone Leaflet map of the Bryn Power anaerobic-digestion site at
 Gelliargwellt Farm, Gelligaer (CF82 8FY), showing where a BLOX data centre
-would stand: right beside the LV room at the CHP engines, where it would take
-about 200 kW of the site's surplus power with no cable route across the site.
+would stand: on the yard a few metres from the LV room at the CHP engines,
+where it would take about 200 kW of the site's surplus power by a short
+connection, with no cable route across the site.
 
 One app, two views — the same shape as ``app_srv_atlas.py`` and
 ``app_kld_atlas.py``, so the site atlases behave identically and a new site is
@@ -12,7 +13,7 @@ a copy of any of them:
 * default — the map (``bryn_atlas.html``), carrying a pulsing BLOX badge on the
   proposed plot with a standing call to action.
 * ``?view=3d`` — the 3D Site Model (``bryn_3d_sim.html``): a model of the plant
-  with the data centre in place at the LV room, and the three ways of funding
+  with the data centre in place by the LV room, and the three ways of funding
   it (RBX CapEx, 50/50, Bryn CapEx) drawn from the revenue-share model. This
   site is surplus power to compute, not peaker arbitrage, so there is no
   dispatch desk.
