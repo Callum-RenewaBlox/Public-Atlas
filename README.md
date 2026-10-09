@@ -299,6 +299,19 @@ background and thanks the client in the card; without the script it posts as a
 plain form and lands on `/business/thanks/` or `/generators/thanks/`. A honeypot
 field turns away most bots.
 
+Netlify's own notification emails have not been reliable (and on a credit-based
+plan they are one more thing that can stop), so the route the inbox actually
+relies on is **`tools/forward_form_submissions.py`**, run every 15 minutes by
+GitHub Actions (`.github/workflows/forward-form-submissions.yml`): it reads the
+site's verified submissions from Netlify's API and emails each new one, from
+energy@renewablox.co.uk to itself through AgentMail, with the same details a
+Netlify notification would carry and a link to any attached document. The inbox
+is its only state: each email's subject carries the submission's tag
+(`[bill-check #3]`), and a submission whose tag is already in the inbox is not
+sent again. It needs two repository secrets, `NETLIFY_AUTH_TOKEN` (a Netlify
+personal access token) and `AGENTMAIL_API_KEY`, and does nothing until both
+exist; "Run workflow" on the Actions tab runs it on demand.
+
 Domain: `renewablox.co.uk`'s DNS is at Wix. The subdomain is a CNAME record
 `energy` → `renewablox-energy.netlify.app` there, with `energy.renewablox.co.uk`
 added as the project's domain in Netlify, which issues the HTTPS certificate.

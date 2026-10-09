@@ -1,0 +1,34 @@
+# Every 15 minutes, send any new submission of the energy site's forms to energy@renewablox.co.uk
+# (tools/forward_form_submissions.py). Does nothing until the two secrets exist in this
+# repository (Settings > Secrets and variables > Actions): NETLIFY_AUTH_TOKEN, AGENTMAIL_API_KEY.
+# "Run workflow" on the Actions tab runs it on demand.
+name: Forward form submissions
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: forward-form-submissions
+  cancel-in-progress: false
+
+jobs:
+  forward:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: tools
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Forward new submissions
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          AGENTMAIL_API_KEY: ${{ secrets.AGENTMAIL_API_KEY }}
+        run: python tools/forward_form_submissions.py
