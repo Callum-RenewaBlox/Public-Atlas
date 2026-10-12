@@ -256,6 +256,7 @@ so links already sent keep working.
 | `/generators/` | Generator Demo landing |
 | `/generators/peaker-plant/`, `/generators/run-of-river-hydro/` | the two models |
 | `/generators/thanks/` | after the PPA check, if it was sent without its script |
+| `/privacy/` | the privacy notice (`energy_privacy.html`), linked from the welcome page's footer with the registered company details |
 
 `build_energy_site.py` writes it to `energy_site/` (git-ignored); Netlify runs
 it on every push to main (`netlify.toml`, project `renewablox-energy`), so the

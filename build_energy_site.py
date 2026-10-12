@@ -14,6 +14,7 @@ here each is a real address on RenewaBlox's own domain:
     /generators/peaker-plant/           Peaker Plant model
     /generators/run-of-river-hydro/     Run-of-River Hydro model
     /generators/thanks/                 after the PPA check, if it was sent without its script
+    /privacy/                           the privacy notice (energy_privacy.html)
 
 Everything is read from the same files the Streamlit apps serve, through
 packs.py, so both surfaces always show the same pages: the landing fragments
@@ -257,6 +258,7 @@ def main():
         shutil.rmtree(OUT)
     OUT.mkdir()
     write(OUT / "index.html", welcome())
+    write(OUT / "privacy" / "index.html", (HERE / "energy_privacy.html").read_text(encoding="utf-8"))
     for pack_key, pack in PACKS.items():
         if pack.get("form"):
             write(OUT / pack_key / "thanks" / "index.html", thanks(pack["form"], pack_key))
