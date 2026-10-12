@@ -267,6 +267,7 @@ body.ready #bar{transition-delay:.12s} body.ready #deck{transition-delay:.2s}
 .cap .b-head{background:var(--slate-4)}
 .cap .b-brk{background:var(--rbx)}
 .cap .b-brk2{background:var(--rbx-soft);border-radius:0 4px 4px 0}
+.cap .b-bud{background:var(--teal)}
 .cap .b-new{background:repeating-linear-gradient(135deg,rgba(23,105,156,.34) 0 2px,rgba(23,105,156,.1) 2px 5px);box-shadow:inset 0 0 0 1px var(--rbx-soft)}
 .cap .dot{position:absolute;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:var(--ink);box-shadow:0 0 0 2px #fbfdfe}
 .cap .dia{position:absolute;top:50%;width:11px;height:11px;margin:-5.5px 0 0 -5.5px;background:var(--ink);transform:rotate(45deg);box-shadow:0 0 0 2px #fbfdfe}
@@ -5281,7 +5282,8 @@ var SITES = {
     kv: "33/11 kV, two 7.5/15 MVA transformers, beside the Keith grid supply points",
     savillsSite: 9, connAddress: "Drum Farm, Keith, Banffshire AB55 5NP", landowner: "the Drum Farm landowner",
     ref: "FKB616/1", date: "4 September 2026", dateShort: "4 Sep 2026", designer: "Calum Corbett",
-    low: 150000, high: 150000, mva: 1.3, mvaLabel: "1.3 MVA", kva: "1,300 kVA",
+    /* applied for 1,300 kVA; SSEN's headline "Budget estimate 01 999kVA" budgets a 1,999 kVA supply */
+    low: 150000, high: 150000, mva: 1.999, mvaLabel: "1,999 kVA", kva: "1,300 kVA", budgetedLabel: "1,999 kVA",
     cable: { runs: 2, m: 255, label: "2 × 255 m" },
     scope: [
       { who: "ssen", h: "Only SSEN can do", tag: "Non-contestable", items: ["Two HV straight joints onto the existing 185mm AL underground cable outside the Keith grid supply point", "An 11 kV network shutdown (listed on the drawing)", "Reinforcement: none"] },
@@ -5289,12 +5291,12 @@ var SITES = {
       { who: "rbx", h: "Left to RenewaBlox", tag: "Not in the figure", items: ["Everything after the meter. The letter does not list it; with an HV metered supply that would normally be the transformer, the LV switchgear and the data centre"] }
     ],
     excluded: ["VAT", "Transmission impact. Savills expects SSEN to raise a ModApp at each site, with any resulting cost added to the connection charge", "Network studies. None has been done, so the capacity is not guaranteed and reinforcement could still appear in a formal offer", "Third-party land. The cable crosses it; consent may be needed and SSEN says it may change the charge", "Temporary diversions, which the letter says are not assessed", "Use of system charges once connected"],
-    capacity: { headroom: 6.42, breakers: [1, 1.5], newBreakers: 4, applied: 1.3, study: [1, 2, 3], studyLabel: "1, 2 and 3 MVA", rmu: 1.5,
-      note: "At the surgery SSEN would not give firm figures. Savills inferred roughly 1 to 1.5 MVA left in the existing breakers, with perhaps room for up to 4 MVA of new breakers in the switch room, not confirmed. Above the existing breakers Savills expects reinforcement: SSEN's designers put new breakers and ring main units at around £105k, with about a year to procure. Two significant projects are already in the queue (a 50 MW battery on Drum Farm and one unnamed, recently submitted), so a connection here is likely to be non-firm or under Active Network Management." },
+    capacity: { headroom: 6.42, breakers: [1, 1.5], newBreakers: 4, applied: 1.3, budgeted: 1.999, study: [1, 2, 3], studyLabel: "1, 2 and 3 MVA", rmu: 1.5,
+      note: "At the surgery SSEN would not give firm figures. Savills inferred roughly 1 to 1.5 MVA left in the existing breakers, with perhaps room for up to 4 MVA of new breakers in the switch room, not confirmed. The budget estimate then priced 1,999 kVA with no reinforcement listed, above that inference. Above the existing breakers Savills expects reinforcement: SSEN's designers put new breakers and ring main units at around £105k, with about a year to procure. Two significant projects are already in the queue (a 50 MW battery on Drum Farm and one unnamed, recently submitted), so a connection here is likely to be non-firm or under Active Network Management." },
     /* the siting options and the scene geometry are the working page's, byte for byte */
     options: [{rank:1,name:"Land West of Sub",title:"SCT0000130603",x:-117.8,y:-2.5,note:"Against the west fence of the compound. SSEN has not been asked to price a connection here."},{rank:2,name:"Land North of Sub",title:"SCT0004770417",x:69.9,y:141.3,note:"North of the farm track, and the closest of the five to the joint position. SSEN has not been asked to price a connection here."},{rank:3,name:"Land South of Sub",title:"Un-Registered",x:112,y:-59.6,note:"Off the south-east corner of the compound. The compound sits between it and the joint position, so a cable would run further than the straight line."},{rank:9,name:"Land East of Sub",title:"SCT0001933603",x:254,y:122,applied:!0,note:'The site in the application ("RenewaBlox Keith Site 9"), and the one SSEN priced.'},{rank:10,name:"Swale West of Sub",title:"SCT0008496503",x:-285.3,y:37.9,note:"Furthest from the substation of the five. Highlighted alongside Site 9 in the appendix to Savills' report."}],
     questions: [
-      { q: "Which capacity does £150,000 buy?", a: 'The letter’s headline reads "Budget estimate 01 999kVA", which SSEN does not explain. Savills read it as 1,999 kVA offered against the 1,300 kVA applied for. The body says 1.3 MVA was requested, specifies a 1.5 MVA ring main unit and lists no reinforcement, which sits more easily with 1.3 MVA. Per MVA the figure is £115k at 1.3 MVA, £75k at 1,999 kVA and £150k at 999 kVA.' },
+      { q: "£150,000 budgets 1,999 kVA, not the 1,300 kVA applied for.", a: 'The letter’s headline, "Budget estimate 01 999kVA", is SSEN’s budget for a 1,999 kVA supply, which RenewaBlox would take; the body records the 1,300 kVA requested. Per MVA the figure is £75k at 1,999 kVA (£115k at 1,300 kVA). The works list a 1.5 MVA metered ring main unit, so confirm with SSEN that the metered unit is sized for 1,999 kVA.', fact: true },
       { q: "A 33 kV overhead line crosses the plot.", a: "On SSEN’s drawing it runs through the plot Savills drew, about 40 m south of where SSEN put the substation, and one pole stands inside the outline. SSEN quotes no diversion at Keith. At Huntly a line over the plot added 150 m of undergrounding, so ask SSEN whether the Keith figure assumes this line stays." },
       { q: "Why Site 9 and not ranks 1 or 2?", a: "Savills’ list ranks three Keith sites above it. Ranks 1 and 2 are closer to the joint position than SSEN’s substation on Site 9: about 145 m and 90 m in a straight line, against 210 m. Savills notes the contestable works look high cost on this job and suggests tendering them to an IDNO." },
       { q: "Is traffic management in or out?", a: "The standard wording says the estimate makes no assessment of traffic management. The site-specific wording says SSEN’s traffic management is priced in." },
@@ -5354,7 +5356,7 @@ var OWN_WORKS = {
 /* the questions to settle before anything is lodged, grouped */
 var ASKS = {
   keith: [
-    { q: "Which capacity does £150,000 buy?", a: 'The headline reads "Budget estimate 01 999kVA", unexplained; the body says 1.3 MVA requested, a 1.5 MVA RMU, no reinforcement. Per MVA: £115k at 1.3, £75k at 1.999, £150k at 0.999.' },
+    { q: "Is the 1.5 MVA metered RMU in the works sized for the 1,999 kVA budgeted?", a: '£150,000 budgets a 1,999 kVA supply (the headline "Budget estimate 01 999kVA") against the 1,300 kVA applied for, with no reinforcement listed; the works list a 1.5 MVA HV metered ring main unit.' },
     { q: "Does the figure assume the 33 kV overhead line across the plot stays?", a: "It runs about 40 m south of SSEN’s substation with one pole inside the outline; no diversion is quoted (at Huntly a line over the plot added 150 m of undergrounding)." },
     { q: "Is traffic management in or out?", a: "The standard paragraph says not assessed; the site-specific wording says priced in." },
     { q: "Why site 9 and not ranks 1 or 2?", a: "Ranks 1 and 2 are about 145 m and 90 m from the joint position against about 210 m to SSEN’s substation on site 9; Savills suggests tendering the contestable works to an IDNO." }
@@ -5372,7 +5374,7 @@ var ASKS = {
     { q: "Whether to tender Keith’s contestable works to an IDNO.", a: "Savills’ suggestion." }
   ],
   facts: [
-    "Keith’s cable, substation, digging and reinstatement are already inside the £150,000; the internal note of 4 Sep that called it 2 MW excluding cabling and civils is contradicted by the letter.",
+    "Keith’s cable, substation, digging and reinstatement are already inside the £150,000, and the figure is for 1,999 kVA: the internal note of 4 Sep had the capacity about right (2 MW) but was wrong to call cabling and civils excluded.",
     "Site 9 is on Drum Farm, the farm Savills names for the 50 MW BESS in Keith’s queue (the Moray atlas lists it as under construction in the same field block); landowner commitments unknown, ownership not verified.",
     "Drawn versus stated lengths: Keith 255 m (letter) / 250 m (drawing) / about 223 m as drawn; Huntly 150 m / about 125 m as drawn, approx. 2 × 60 m (the letter’s word) / about 2 × 49 m as drawn.",
     "A ModApp to the transmission operator is likely at each site, handled by SSEN; any cost is added to the connection charge after the study.",
@@ -5413,7 +5415,7 @@ function pinsFor(s, roundel) {
         html: "<p>From the joints SSEN would dig one trench for both cables along the north side of the compound and the farm track, lay 2 × 255 m of 3C 300mm XLPE and reinstate. Excavation, reinstatement and traffic management are priced in.</p><p>The drawing gives 250 m; the route as drawn measures about 223 m.</p><p class=\"src\">SSEN budget estimate and drawing FKB616</p>" } });
     out.push({ id: "k-rmu", x: t.kiosk.x, y: t.kiosk.y, h: 2.9, prio: 6.5, boost: "works plot", layer: "works", maxDist: 560, html: lbl("New metered substation", "1.5 MVA RMU"),
       card: { t: "New substation: 1.5 MVA metered ring main unit", sub: "Contestable, priced here by SSEN",
-        html: "<p>SSEN would build a plinth, assemble a GRP enclosure holding a 1.5 MVA HV metered ring main unit and terminate both cables into it.</p><p>RenewaBlox’s own equipment starts on the far side of the meter.</p><p class=\"src\">SSEN budget estimate and drawing FKB616</p>" } });
+        html: "<p>SSEN would build a plinth, assemble a GRP enclosure holding a 1.5 MVA HV metered ring main unit and terminate both cables into it.</p><p>The estimate budgets a 1,999 kVA supply, so confirm with SSEN that the metered unit is sized for it. RenewaBlox’s own equipment starts on the far side of the meter.</p><p class=\"src\">SSEN budget estimate and drawing FKB616</p>" } });
     out.push({ id: "k-ehv-plot", x: 256.5, y: 97.2, h: 10.6, prio: 8.5, layer: "ehv", maxDist: 1400, html: lbl("33 kV line over the plot", "", "var(--m-ehv)"),
       card: { t: "33 kV overhead line across the plot", sub: "Existing network, from SSEN’s drawing",
         html: "<p>A 33 kV overhead line leaves the compound eastwards and crosses the plot applied for, about 40 m south of where SSEN put the substation. One pole stands inside the outline.</p><p>SSEN quotes no diversion at Keith. At Huntly a line over the plot added one, so ask SSEN whether the Keith figure assumes this line stays.</p><p class=\"src\">SSEN drawing FKB616; Savills application screenshot</p>" } });
@@ -5500,7 +5502,7 @@ function ladder(state) {
     return '<div class="lrow-' + s.id + '"><div class="site">' + s.name + "</div>" +
       cell("r1", 2, "from " + gbp(s.id === "keith" ? FEES.feasKeith : FEES.feasHuntly), s.id === "keith" ? "1, 2 and 3 MVA · the 1–3 MVA band" : "three capacities, 2 to 6 MVA · the 3–10 MVA band if one is above 3", "1 Find out") +
       cell("r2", 2, "from " + gbp(FEES.formalPerSite), "one capacity", "2 Secure a place") +
-      cell("r3 big", s.id === "keith" ? 3 : 5, s.low === s.high ? gbp(s.low) : gbp(s.low) + "–" + gbp(s.high), s.id === "keith" ? "1.3 MVA · SSEN digs · RMU inside" : "2.78 MVA · we dig · 150 m diversion inside", "3 Connect") +
+      cell("r3 big", s.id === "keith" ? 3 : 5, s.low === s.high ? gbp(s.low) : gbp(s.low) + "–" + gbp(s.high), s.id === "keith" ? "1,999 kVA budgeted (1,300 applied for) · SSEN digs · RMU inside" : "2.78 MVA · we dig · 150 m diversion inside", "3 Connect") +
       cell("r4 tbc", 7, "to be costed", OWN_WORKS[s.id], "4 Our own works") + "</div>";
   };
   return '<div class="ladder sel-' + state.option + '" id="ladder">' +
@@ -5527,6 +5529,9 @@ function mvaStrip(s) {
   rows.push({ n: "In the existing breakers", small: "Savills’ inference",
     inner: '<i class="bar b-brk" style="left:0;width:' + pc(e.breakers[0]) + ';border-radius:0"></i><i class="bar b-brk2" style="left:' + pc(e.breakers[0]) + ";width:" + pc(e.breakers[1] - e.breakers[0]) + '"></i>' + (e.newBreakers ? '<i class="bar b-new" style="left:' + pc(e.breakers[1]) + ";width:" + pc(e.newBreakers - e.breakers[1]) + '"></i>' : ""),
     x: "~" + e.breakers[0] + " to " + e.breakers[1] + (e.newBreakers ? "<small>up to " + e.newBreakers + " with new breakers, not confirmed; Savills: “a stretch”</small>" : "<small>above that, reinforcement like Keith’s</small>") });
+  if (e.budgeted) rows.push({ n: "Budgeted by SSEN", small: "no reinforcement listed",
+    inner: '<i class="bar b-bud" style="left:0;width:' + pc(e.budgeted) + '"></i>',
+    x: e.budgeted + "<small>" + gbp(s.low) + " for " + s.budgetedLabel + "</small>" });
   var study = e.study.length === 3 ? e.study.map(function (v) { return '<i class="dot" style="left:' + pc(v) + '"></i>'; }).join("") :
     '<i class="rng" style="left:' + pc(e.study[0]) + ";width:" + pc(e.study[1] - e.study[0]) + '"></i><i class="dot" style="left:' + pc(e.study[0]) + '"></i><i class="dot" style="left:' + pc(e.study[1]) + '"></i>';
   rows.push({ n: "Applied for ◆ · study would test ●", small: "", inner: study + '<i class="dia" style="left:' + pc(e.applied) + '"></i>', x: e.applied + "<small>study: " + e.studyLabel + "</small>" });
@@ -5541,7 +5546,8 @@ function capChart(s) {
   t.push({ n: "Headroom screen", x: e.headroom.toFixed(2) + " MVA", tip: ["Demand headroom, " + e.headroom.toFixed(2) + " MVA", "From SSEN’s headroom dashboard (March 2026), the screen that put the substation on the list. SSEN would not give firm figures at the surgery."], inner: '<i class="bar b-head" style="left:0;width:' + pc(e.headroom) + '"></i>' });
   t.push({ n: "Existing breakers", x: e.breakers[0] + " to " + e.breakers[1] + " MVA", tip: ["Headroom in the existing breakers", "Roughly " + e.breakers[0] + " to " + e.breakers[1] + " MVA, inferred by Savills from the designers’ answers at the surgery. Not a figure SSEN stated."], inner: '<i class="bar b-brk" style="left:0;width:' + pc(e.breakers[0]) + ';border-radius:0"></i><i class="bar b-brk2" style="left:' + pc(e.breakers[0]) + ";width:" + pc(e.breakers[1] - e.breakers[0]) + '"></i>' });
   if (e.newBreakers) t.push({ n: "With new breakers", x: "up to " + e.newBreakers + " MVA<small>not confirmed</small>", tip: ["Room for new breakers", "From the discussion there could be space for up to " + e.newBreakers + " MVA of new breakers in the switch room. SSEN did not confirm it, and Savills thinks " + e.newBreakers + " MVA would be a stretch."], inner: '<i class="bar b-new" style="left:0;width:' + pc(e.newBreakers) + '"></i>' });
-  t.push({ n: "Applied for", x: s.mvaLabel, tip: ["In the budget estimate application", s.kva + " requested for Savills’ Site " + s.savillsSite + "."], inner: '<i class="dia" style="left:' + pc(e.applied) + '"></i>' });
+  if (e.budgeted) t.push({ n: "Budgeted by SSEN", x: s.budgetedLabel, tip: ["SSEN’s budget estimate", gbp(s.low) + " for a " + s.budgetedLabel + " supply, with no reinforcement listed: above Savills’ inference of what is left in the existing breakers. The works list a 1.5 MVA metered RMU."], inner: '<i class="bar b-bud" style="left:0;width:' + pc(e.budgeted) + '"></i>' });
+  t.push({ n: "Applied for", x: s.kva, tip: ["In the budget estimate application", s.kva + " requested for Savills’ Site " + s.savillsSite + "."], inner: '<i class="dia" style="left:' + pc(e.applied) + '"></i>' });
   var n = e.study.length === 3 ? e.study.map(function (r) { return '<i class="dot" style="left:' + pc(r) + '"></i>'; }).join("") : '<i class="rng" style="left:' + pc(e.study[0]) + ";width:" + pc(e.study[1] - e.study[0]) + '"></i><i class="dot" style="left:' + pc(e.study[0]) + '"></i><i class="dot" style="left:' + pc(e.study[1]) + '"></i>';
   t.push({ n: "Feasibility study", x: e.studyLabel, tip: ["What Savills would test next", e.study.length === 3 ? "A study can assess three capacities. Savills suggests 1, 2 and 3 MVA here, from a 1 to 4 MVA range." : "A study can assess three capacities. Savills suggests picking them from a 2 to 6 MVA range here."], inner: n });
   return '<div class="cap" role="img" aria-label="Capacity at ' + esc(s.name) + ' in MVA: headroom screen ' + e.headroom + ", existing breakers " + e.breakers[0] + " to " + e.breakers[1] + ", applied for " + e.applied + ", feasibility study " + esc(e.studyLabel) + '">' +
@@ -5582,7 +5588,7 @@ var BEATS = [
     layers: { works: 1, ehv: 1, hv: 1, ug: 1, labels: 1, titles: 1 }, pins: ["k-poc", "k-cable", "k-rmu", "k-blox", "k-tx"],
     render: function () {
       return '<p class="kicker">Keith primary, Westerton Road · SSEN budget estimate FKB616/1 · 4 Sep 2026 · Calum Corbett</p>' +
-        hl("£150,000") + '<p class="hlsub">for <b>1.3 MVA</b> applied for (1.5 MVA RMU specified) · before VAT · <b>a budget estimate, not an offer</b>: SSEN says a formal offer may differ considerably</p>' +
+        hl("£150,000") + '<p class="hlsub">for a <b>1,999 kVA</b> supply, budgeted by SSEN against the 1,300 kVA applied for · before VAT · <b>a budget estimate, not an offer</b>: SSEN says a formal offer may differ considerably</p>' +
         '<div class="cols"><div class="col"><h4>Inside the figure · SSEN does</h4><ul>' +
         li("in", "Two HV straight joints onto its 185mm AL 11 kV cable outside the Keith GSP, during an 11 kV shutdown") +
         li("in", "<b>2 × 255 m</b> of 3C 300mm XLPE cable to the new substation; <b>SSEN digs</b>, reinstates and manages traffic") +
@@ -5593,7 +5599,7 @@ var BEATS = [
         li("open", "VAT") + li("open", "Transmission ModApp: not priced") +
         li("open", "Consent for the third-party land the cable crosses: may change the charge") +
         li("open", "Use-of-system charges once connected") + "</ul></div></div>" +
-        flag("f", "The headline reads <b>“Budget estimate 01 999kVA”</b>, unexplained; the body requests 1.3 MVA. Per MVA: £115k at 1.3, £75k at 1.999, £150k at 0.999.") +
+        flag("f", "<b>1,999 kVA budgeted, 1,300 kVA applied for.</b> SSEN’s headline “Budget estimate 01 999kVA” prices a 1,999 kVA supply, which RenewaBlox would take: £75k per MVA (£115k at the 1,300 kVA requested). The works list a 1.5 MVA metered RMU, so confirm the unit is sized for 1,999 kVA.") +
         '<p class="foot">Cable: 255 m in the letter, 250 m on the drawing, about 223 m as drawn. Savills: the contestable works look high cost here; consider tendering them to an IDNO.</p>' +
         srcLine("SSEN FKB616/1 and drawing FKB616, 4 Sep 2026 · Savills email, 4 Sep 2026", "keith");
     } },
@@ -5604,6 +5610,7 @@ var BEATS = [
         hl("~1 to 1.5 MVA", "approx") + '<p class="hlsub">left in the existing breakers, on Savills’ reading of the designers’ answers</p>' +
         mvaStrip(SITES.keith) +
         '<ul class="facts">' +
+        "<li><b>SSEN then budgeted 1,999 kVA</b> with no reinforcement listed, above that inference; the study would test 1, 2 and 3 MVA.</li>" +
         "<li><b>Queue:</b> two significant projects ahead, a 50 MW BESS on Drum Farm, the farm our plot sits on, and one anonymous application recently submitted.</li>" +
         "<li>Any connection here is likely <b>interactive</b>: non-firm, or under Active Network Management.</li>" +
         "<li>Above the existing breakers: new breakers and RMUs, designers’ indication <b>around £105k</b> at 11 kV (cabling and civils extra), about 1 year to procure.</li></ul>" +
@@ -5653,11 +5660,11 @@ var BEATS = [
       return '<p class="kicker">What each figure covers · from the two letters and drawings</p>' +
         hl("Not like for like", "phrase") +
         '<div class="lkey">' + Object.keys(mkLabel).map(function (k) { return '<span class="st">' + mk(k) + "<span>" + mkLabel[k] + "</span></span>"; }).join("") + "</div>" +
-        '<table class="ledger"><thead><tr><th scope="col">Work</th><th scope="col">Keith<small>£150,000 for 1.3 MVA · SSEN digs</small></th><th scope="col">Huntly<small>£110,000–£121,000 for 2.78 MVA · we dig; 150 m diversion inside</small></th></tr></thead><tbody>' +
+        '<table class="ledger"><thead><tr><th scope="col">Work</th><th scope="col">Keith<small>£150,000 for 1,999 kVA · SSEN digs</small></th><th scope="col">Huntly<small>£110,000–£121,000 for 2.78 MVA · we dig; 150 m diversion inside</small></th></tr></thead><tbody>' +
         LEDGER.map(function (r) { return '<tr><th scope="row">' + esc(r.k) + '</th><td data-site="Keith">' + st(r.keith) + '</td><td data-site="Huntly">' + st(r.huntly) + "</td></tr>"; }).join("") +
         "</tbody></table>" +
         '<p class="foot">Inside both: two joints by SSEN, the new 11 kV cable (2 × 255 m at Keith, about 2 × 60 m at Huntly) and the metered RMU (1.5 MVA in GRP at Keith; SF6 on a 5 × 5 m plot at Huntly).</p>' +
-        '<p class="foot">Per MVA applied for: Keith £115k at 1.3 MVA (£75k if the “01 999kVA” headline means 1.999 MVA) · Huntly £40k to £44k before RenewaBlox’s own works. Not comparable until those works are costed.</p>' +
+        '<p class="foot">Per MVA: Keith £75k at the 1,999 kVA budgeted (£115k at the 1,300 kVA applied for) · Huntly £40k to £44k at 2.78 MVA, before RenewaBlox’s own works. Not comparable until those works are costed.</p>' +
         '<p class="close">Keith’s £150,000 buys more of the job: SSEN digs about 250 m of trench and builds the base. Huntly’s £110,000–£121,000 leaves the digging, ducts, civils, transformer and LV side to RenewaBlox and carries a diversion a different plot might avoid.</p>' +
         srcLine("SSEN FKB616/1 and FKB625/1 with drawings FKB616 and FKB625", "huntly");
     } },
@@ -5669,7 +5676,7 @@ var BEATS = [
         '<div class="gates"><div class="gate"><h4>Gate 1 · The landowner</h4><p><b>Keith:</b> Drum Farm, AB55 5NP, the farm Savills names for the 50 MW BESS in Keith’s queue; commitments unknown, ownership not verified. <b>Huntly:</b> Richmond Mills, Linnorie, AB54 4PT; ranks 4 and 5 share one Scotlis reference, so probably one holding. This is Savills’ Stage 4 land work: fee TBC.</p></div>' +
         '<div class="gate"><h4>Gate 2 · Savills’ fee for the step</h4><p><b>Not yet agreed;</b> each step so far was engaged by its own letter. Done: Stage 1 £16,100 fixed + VAT (12 instalments from 28 Feb 2026); grid surgery £1,200 per session + VAT. For scale only, the Oct 2025 proposal schedule lists £7,500 for submitting a connection application (Stage 5) and Stage 4 land procurement as TBC. To check, not a cost: the proposal mentions a 1.5% transaction fee for power connections, absent from the signed letters.</p></div></div>' +
         '<h4 class="lh">Ask before we lodge</h4><ol class="asks">' +
-        "<li><b>SSEN, Keith:</b> what does “01 999kVA” mean, and does £150,000 assume the 33 kV line over the plot stays?</li>" +
+        "<li><b>SSEN, Keith:</b> is the 1.5 MVA metered RMU in the works sized for the 1,999 kVA budgeted, and does £150,000 assume the 33 kV line over the plot stays?</li>" +
         "<li><b>SSEN, Huntly:</b> how much of £110,000–£121,000 is the diversion, and would rank 4 avoid it?</li>" +
         "<li><b>Savills:</b> the fee for Stages 4 and 5 at each site, and whether the 1.5% transaction fee applies.</li></ol>" +
         '<p class="foot">A study holds no place in the queue (step 2). The full question list is under Detail.</p>' +
