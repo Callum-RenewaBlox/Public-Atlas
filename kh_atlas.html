@@ -524,7 +524,7 @@ body.ready #keys{transform:translate(-50%,-50%)}
   </div>
   <button class="strip" id="strip" type="button" hidden title="Jump to the decision">
     <b>Next step, SSEN fee &middot; &pound;930 Keith &middot; &pound;1,240 Huntly &middot; &pound;2,170 both</b>
-    <span>feasibility study minimum charges by capacity band, off a later offer &middot; + landowner&rsquo;s letter &middot; + Savills&rsquo; fee, not agreed</span>
+    <span>feasibility study minimum charges by capacity band, off a later offer &middot; + Savills &pound;1,200 per DNO meeting, &pound;7,500 to submit &middot; + landowner&rsquo;s letter</span>
   </button>
   <div class="chips">
     <span class="chip">SSEN budget estimates, Sep 2026</span>
@@ -5259,6 +5259,11 @@ var mkLabel = { "in": "inside SSEN's figure", rbx: "RenewaBlox, outside the figu
 
 /* ----------------------------------------------------------------- data -- */
 var FEES = { feasKeith: 930, feasHuntly: 1240, both: 2170, formalPerSite: 2189 };
+/* Savills' fee schedule for the next steps, from the Site Procurement Proposal
+   of Oct 2025 (excl. VAT): Stage 2 DNO engagement £1,200 per pre-application
+   meeting; Stage 5 submit a connection application £7,500; Stage 4 land
+   procurement TBC. The schedule does not say whether £7,500 is per site. */
+var SAVILLS = { meeting: 1200, submit: 7500 };
 
 var SOURCES = {
   kq: { t: "SSEN budget estimate FKB616/1 (Keith)", d: "4 Sep 2026", by: "Calum Corbett, Network Connections Designer; service request 260825-001059" },
@@ -5369,8 +5374,8 @@ var ASKS = {
     { q: "What are the reinforcement and the point of connection?", a: 'The drawing marks both "TBC under formal application following 11kV and 33kV network studies".' }
   ],
   savills: [
-    { q: "The fee for Stages 4 (land, Letter of Authority) and 5 (submit application) at each site.", a: "The proposal schedule lists £7,500 for Stage 5 and Stage 4 as TBC." },
-    { q: "Whether the 1.5% transaction fee for power connections in the Oct 2025 proposal applies.", a: "It is not in the signed letters." },
+    { q: "The Stage 4 land fee, and whether £7,500 to submit a connection application is per site.", a: "The Oct 2025 proposal lists Stage 2 DNO engagement at £1,200 per pre-application meeting, Stage 5 at £7,500 (not stated as per site) and Stage 4 land procurement as TBC on the land strategy." },
+    { q: "How the 1.5% transaction fee for power connections would apply.", a: "The proposal provides it if a purchase completes with a site Savills introduced within 24 months of the appointment ending; the signed engagement letters do not mention it." },
     { q: "Whether to tender Keith’s contestable works to an IDNO.", a: "Savills’ suggestion." }
   ],
   facts: [
@@ -5479,9 +5484,9 @@ var OPTIONS = [
    site (1-3 MVA £930, 3-10 MVA £1,240): Keith's figure follows from the 1, 2
    and 3 MVA Savills recommends; Huntly's assumes a capacity above 3 MVA */
 var COND = {
-  both: "Savills’ recommendation, written before the estimates came back · SSEN minimum charges by capacity band: 1–3 MVA £930, 3–10 MVA £1,240 · discounted off a later formal offer · needs a landowner’s <a data-go=\"8\">Letter of Authority</a> at each site · Savills’ fee for the step not agreed",
-  huntly: "SSEN minimum charge for the 3–10 MVA band; £930 if all three capacities tested are 3 MVA or below · discounted off a later formal offer · needs a <a data-go=\"8\">Letter of Authority</a> from the Richmond Mills landowner · Savills’ fee for the step not agreed",
-  keith: "SSEN minimum charge for the 1–3 MVA band (1, 2 and 3 MVA) · discounted off a later formal offer · needs a <a data-go=\"8\">Letter of Authority</a> from the Drum Farm landowner · Savills’ fee for the step not agreed",
+  both: "Savills’ recommendation, written before the estimates came back · SSEN minimum charges by capacity band: 1–3 MVA £930, 3–10 MVA £1,240, discounted off a later formal offer · plus <a data-go=\"8\">Savills: £1,200 per DNO pre-application meeting, £7,500 to submit a connection application</a> (Oct 2025 proposal) · needs a landowner’s <a data-go=\"8\">Letter of Authority</a> at each site",
+  huntly: "SSEN minimum charge for the 3–10 MVA band; £930 if all three capacities tested are 3 MVA or below; discounted off a later formal offer · plus <a data-go=\"8\">Savills: £1,200 per DNO pre-application meeting, £7,500 to submit a connection application</a> · needs a <a data-go=\"8\">Letter of Authority</a> from the Richmond Mills landowner",
+  keith: "SSEN minimum charge for the 1–3 MVA band (1, 2 and 3 MVA); discounted off a later formal offer · plus <a data-go=\"8\">Savills: £1,200 per DNO pre-application meeting, £7,500 to submit a connection application</a> · needs a <a data-go=\"8\">Letter of Authority</a> from the Drum Farm landowner",
   neither: "£0 · nothing lodged · a budget estimate cannot be accepted and holds no queue place · a third party’s formal application lodged meanwhile takes priority and can change the capacity figures"
 };
 
@@ -5507,8 +5512,8 @@ function ladder(state) {
   };
   return '<div class="ladder sel-' + state.option + '" id="ladder">' +
     '<div class="lh"></div>' +
-    '<div class="lh"><b><em>1</em>Find out</b><small>feasibility study · three capacities · minimum charge by band: 1–3 MVA £930, 3–10 MVA £1,240 · SSEN aims for 65 days · no queue place</small></div>' +
-    '<div class="lh"><b><em>2</em>Secure a place</b><small>formal application, per site · one capacity · a connection offer · 65 days</small></div>' +
+    '<div class="lh"><b><em>1</em>Find out</b><small>feasibility study · three capacities · SSEN minimum charge by band: 1–3 MVA £930, 3–10 MVA £1,240 · plus Savills £1,200 per DNO meeting · 65 days · no queue place</small></div>' +
+    '<div class="lh"><b><em>2</em>Secure a place</b><small>formal application, per site · one capacity · a connection offer · 65 days · plus Savills £7,500 to submit</small></div>' +
     '<div class="lh"><b><em>3</em>Connect</b><small>SSEN budget estimate · before VAT · not an offer</small></div>' +
     '<div class="lh"><b><em>4</em>Our own works</b><small>in no source</small></div>' +
     row(SITES.keith) + row(SITES.huntly) +
@@ -5576,8 +5581,8 @@ var BEATS = [
         hl("2029") + '<p class="hlsub">likely delivery of a connection at either site, on Savills’ timeline</p>' +
         '<ol class="track">' +
         '<li class="done"><i>✓</i><div><b>Budget estimate · £0 · done at both, Sep 2026</b><span>no network studies; cannot be accepted</span></div></li>' +
-        '<li class="next"><i>2</i><div><b>Feasibility study · £930 minimum for 1–3 MVA, £1,240 for 3–10 MVA</b><span>Keith £930 at 1, 2 and 3 MVA; Huntly £1,240 if a capacity above 3 MVA is tested · three capacities each, an indicative connection assessment and outline scheme · SSEN aims for 65 days · capacity not secured, no queue place · fee comes off a later offer · needs a Letter of Authority</span></div></li>' +
-        '<li><i>3</i><div><b>Formal application · from £2,189 per site</b><span>one capacity · full network study, full costs, a connection offer · 65 days, standardised · Letter of Authority</span></div></li>' +
+        '<li class="next"><i>2</i><div><b>Feasibility study · SSEN £930 minimum for 1–3 MVA, £1,240 for 3–10 MVA · plus Savills £1,200 per DNO meeting</b><span>Keith £930 at 1, 2 and 3 MVA; Huntly £1,240 if a capacity above 3 MVA is tested · three capacities each, an indicative connection assessment and outline scheme · SSEN aims for 65 days · capacity not secured, no queue place · SSEN’s fee comes off a later offer · needs a Letter of Authority</span></div></li>' +
+        '<li><i>3</i><div><b>Formal application · SSEN from £2,189 per site · plus Savills £7,500 to submit</b><span>one capacity · full network study, full costs, a connection offer · 65 days, standardised · Letter of Authority</span></div></li>' +
         '<li><i>4</i><div><b>Procure an 11 kV RMU and breaker · about 1 year</b></div></li>' +
         '<li><i>5</i><div><b>Connection · likely 2029</b></div></li></ol>' +
         '<p class="msg">Feasibility study through formal application: about 6 months, about 2 of them the application.</p>' +
@@ -5674,11 +5679,11 @@ var BEATS = [
       return '<p class="kicker">Before anything can be lodged · Savills Grid Surgery Outcomes, 26 Aug 2026 · Savills terms of engagement and Oct 2025 proposal</p>' +
         hl("Letter of Authority", "phrase") + '<p class="hlsub">a feasibility study or formal application needs one from the landowner at each site</p>' +
         '<div class="gates"><div class="gate"><h4>Gate 1 · The landowner</h4><p><b>Keith:</b> Drum Farm, AB55 5NP, the farm Savills names for the 50 MW BESS in Keith’s queue; commitments unknown, ownership not verified. <b>Huntly:</b> Richmond Mills, Linnorie, AB54 4PT; ranks 4 and 5 share one Scotlis reference, so probably one holding. This is Savills’ Stage 4 land work: fee TBC.</p></div>' +
-        '<div class="gate"><h4>Gate 2 · Savills’ fee for the step</h4><p><b>Not yet agreed;</b> each step so far was engaged by its own letter. Done: Stage 1 £16,100 fixed + VAT (12 instalments from 28 Feb 2026); grid surgery £1,200 per session + VAT. For scale only, the Oct 2025 proposal schedule lists £7,500 for submitting a connection application (Stage 5) and Stage 4 land procurement as TBC. To check, not a cost: the proposal mentions a 1.5% transaction fee for power connections, absent from the signed letters.</p></div></div>' +
+        '<div class="gate"><h4>Gate 2 · Savills’ fees for the next steps</h4><p>Per the <b>Oct 2025 proposal</b> (excl. VAT): Stage 2 DNO engagement <b>£1,200 per pre-application meeting</b>; Stage 5 submit a connection application <b>£7,500</b> (not stated as per site); Stage 3 planning advisory £3,500 per site; Stage 4 land procurement, the Letter of Authority work, <b>TBC</b> on the land strategy. Done so far, each on its own letter: Stage 1 £16,100 + VAT; grid surgery £1,200 per session + VAT. The proposal also carries a <b>1.5% transaction fee</b> for power connections if a purchase completes with a site Savills introduced.</p></div></div>' +
         '<h4 class="lh">Ask before we lodge</h4><ol class="asks">' +
         "<li><b>SSEN, Keith:</b> is the 1.5 MVA metered RMU in the works sized for the 1,999 kVA budgeted, and does £150,000 assume the 33 kV line over the plot stays?</li>" +
         "<li><b>SSEN, Huntly:</b> how much of £110,000–£121,000 is the diversion, and would rank 4 avoid it?</li>" +
-        "<li><b>Savills:</b> the fee for Stages 4 and 5 at each site, and whether the 1.5% transaction fee applies.</li></ol>" +
+        "<li><b>Savills:</b> the Stage 4 land fee (TBC), whether £7,500 is per site, and how the 1.5% transaction fee would apply.</li></ol>" +
         '<p class="foot">A study holds no place in the queue (step 2). The full question list is under Detail.</p>' +
         srcLine("Savills Earth, Grid Surgery Outcomes, 26 Aug 2026 · Savills Terms of Engagement, 22 Jan 2026 and 6 Aug 2026 · Savills Site Procurement Proposal, Oct 2025", "huntly");
     } },
@@ -5692,8 +5697,8 @@ var BEATS = [
         '<h4 class="lh">Decisions</h4><ul class="decisions">' +
         chk("d1", "<b>Which sites go to feasibility study:</b> both £2,170 · Huntly £1,240 · Keith £930 · neither £0 (SSEN minimum charges by capacity band, 1–3 MVA £930 and 3–10 MVA £1,240; Huntly’s assumes a capacity above 3 MVA; off a later formal offer)") +
         chk("d2", "<b>Capacities to test:</b> Keith 1, 2 and 3 MVA · Huntly three between 2 and 6 MVA") +
-        chk("d3", "<b>Open the landowner conversation</b> at the chosen site(s) for the Letter of Authority; agree Savills’ fee for the step") + "</ul>" +
-        '<p class="footrow">Not in any figure: VAT · transmission ModApp · use-of-system charges · reinforcement if triggered (designers’ indication around £105k for 11 kV breakers and RMUs, cabling and civils extra, about 1 year to procure) · Savills’ fee for the step (proposal schedule, not agreed: £7,500 for Stage 5, Stage 4 TBC) · landowner costs.</p>' +
+        chk("d3", "<b>Open the landowner conversation</b> at the chosen site(s) for the Letter of Authority; instruct Savills on the proposal’s schedule (£1,200 per DNO meeting, £7,500 to submit; land procurement TBC)") + "</ul>" +
+        '<p class="footrow">Not in any figure: VAT · transmission ModApp · use-of-system charges · reinforcement if triggered (designers’ indication around £105k for 11 kV breakers and RMUs, cabling and civils extra, about 1 year to procure) · Savills’ Stage 4 land fee (TBC) and the 1.5% transaction fee on a power connection · landowner costs.</p>' +
         srcLine("Savills Earth, Grid Surgery Outcomes, 26 Aug 2026 · SSEN FKB616/1 and FKB625/1 · Savills Terms of Engagement and Oct 2025 proposal");
     } }
 ];
@@ -5722,7 +5727,7 @@ function detailHtml(site) {
 function sourcesHtml() {
   return "<h3>Sources</h3><ul class=\"plain\">" + Object.keys(SOURCES).map(function (k) { var n = SOURCES[k]; return "<li>" + esc(n.t) + ", " + esc(n.d) + (n.by ? " <span class=\"small\">(" + esc(n.by) + ")</span>" : "") + "</li>"; }).join("") + "</ul>" +
     "<h3>Savills’ fees</h3><table class=\"fees\"><tr><td>Stage 1, market advisory and site identification (signed 5 Feb 2026)</td><td>£16,100 fixed + VAT, 12 instalments</td></tr><tr><td>Grid surgery sessions (signed 6 Aug 2026)</td><td>£1,200 per session + VAT</td></tr><tr><td>Proposal schedule, Oct 2025: Stage 2 DNO engagement</td><td>£1,200 per meeting</td></tr><tr><td>Stage 3 planning advisory</td><td>£3,500 per site</td></tr><tr><td>Stage 4 development land procurement</td><td>TBC</td></tr><tr><td>Stage 5 submit connection application to DNO</td><td>£7,500</td></tr><tr><td>Stage 6 (optional) private-wire opportunities</td><td>£6,800 per site</td></tr><tr><td>Stage 7 IDNO tendering / delivery management</td><td>TBC</td></tr></table>" +
-    "<p class=\"small\">Each step so far has been engaged by its own letter; the fee for lodging feasibility studies or formal applications is not yet agreed. The proposal also mentions a 1.5% transaction fee for power connections if a site Savills introduced completes within 24 months of termination; it is not in the signed letters, so it is listed to check, not as a cost.</p>" +
+    "<p class=\"small\">Each step so far has been engaged by its own letter. The proposal’s schedule is the basis for the next steps: DNO engagement at £1,200 per pre-application meeting and £7,500 to submit a connection application (not stated as per site); the land-procurement fee (Stage 4, the Letter of Authority work) is TBC on the land strategy. The proposal also provides a transaction fee if a purchase completes with a site Savills introduced within 24 months of the appointment ending: 1.5% of the transaction for power connections, £1,500 per MW for renewable energy projects. The signed engagement letters do not mention it.</p>" +
     "<h3>Marks</h3><div class=\"lkey\">" + Object.keys(mkLabel).map(function (k) { return '<span class="st">' + mk(k) + "<span>" + mkLabel[k] + "</span></span>"; }).join("") + "</div>" +
     "<h3>How this was drawn</h3><p class=\"small\">" + esc(METHOD) + "</p>" +
     "<p class=\"small\"><b>" + esc(DISCLAIMER) + "</b></p><p class=\"small\">" + esc(INTERNAL) + "</p>";
