@@ -13,10 +13,13 @@ a copy of any of them:
 * default — the map (``bryn_atlas.html``), carrying a pulsing BLOX badge on the
   proposed plot with a standing call to action.
 * ``?view=3d`` — the 3D Site Model (``bryn_3d_sim.html``): a model of the plant
-  with the data centre in place by the LV room, and the three ways of funding
-  it (RBX CapEx, 50/50, Bryn CapEx) drawn from the revenue-share model. This
-  site is surplus power to compute, not peaker arbitrage, so there is no
-  dispatch desk.
+  with the data centre in place by the LV room, in three tabs. It opens on Site,
+  the model alone. Dispatch plays the site's power half hour by half hour,
+  season by season, against the 1.8 MW export limit: export held at 1,725 kW
+  with the data centre load following, rising to 1,775 kW when solar takes it
+  past its 200 kW cap, and what the extra export earns Bryn at 10p/kWh over a
+  typical and a sunny year. Finance carries the three ways of funding it (RBX
+  CapEx, 50/50, Bryn CapEx) drawn from the revenue-share model.
 * ``?view=compute`` — the Compute Render (``bryn_compute_3d.html``): the yard
   south of the feed tank rebuilt in metres from imagery and the 13 October
   2026 site photos, with the Green Hash 10 ft compute container in place by
