@@ -17,8 +17,8 @@ a copy of any of them:
   the model alone. Dispatch plays the site's power half hour by half hour,
   season by season, against the 1.8 MW export limit: export held at 1,725 kW
   with the data centre load following, rising to 1,775 kW when solar takes it
-  past its 200 kW cap, and what the extra export earns Bryn at 10p/kWh over a
-  typical and a sunny year. Finance carries the three ways of funding it (RBX
+  past its 200 kW cap, what the extra export earns Bryn at 10p/kWh over a
+  typical and a sunny year, and 150 against 200 kW of compute. Finance carries the three ways of funding it (RBX
   CapEx, 50/50, Bryn CapEx) drawn from the revenue-share model.
 * ``?view=compute`` — the Compute Render (``bryn_compute_3d.html``): the yard
   south of the feed tank rebuilt in metres from imagery and the 13 October
