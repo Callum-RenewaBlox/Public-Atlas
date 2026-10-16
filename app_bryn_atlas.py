@@ -17,11 +17,11 @@ a copy of any of them:
   the model alone. Dispatch plays the site's power half hour by half hour,
   season by season, against the 1.8 MW export limit: export held at 1,725 kW
   with the data centre load following, rising to 1,775 kW when solar takes it
-  past its 200 kW cap, what the extra export earns Bryn at 10p/kWh over a
-  typical and a sunny year, and 150 against 200 kW of compute. Finance 200 kW
-  carries the three ways of funding it (RBX CapEx, 50/50, Bryn CapEx) drawn
-  from the revenue-share model; Finance 150 kW shows the same figures derived
-  for 150 kW overclocking to 200 kW, with Bryn's extra export on its side.
+  past 200 kW, and Bryn's extra export (350,400 kWh a year at 16p/kWh).
+  Finance carries the three ways of funding it (RenewaBlox funds it, shared
+  equally, Bryn funds it) from the revenue-share model for the final 150 kW
+  deployment, with Bryn's extra export on its side; Export only shows Bryn's
+  income and paybacks on that export alone, as if the Bitcoin earned nothing.
 * ``?view=compute`` — the Compute Render (``bryn_compute_3d.html``): the yard
   south of the feed tank rebuilt in metres from imagery and the 13 October
   2026 site photos, with the Green Hash 10 ft compute container in place by
