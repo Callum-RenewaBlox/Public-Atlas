@@ -1,17 +1,21 @@
 """Build ai.renewablox.com — RenewaBlox's AI tools — into ai/site/.
 
     /           the front door (index.html)
-    /oscar/     OSCAR, the site model (oscar.html)
+    /oscar/     OSCAR, the site model (oscar.html), behind the team's Google sign-in
+                (netlify/edge-functions/oscar-auth.js)
     /atlas/     Atlas, served by proxy from its own Netlify project (netlify.toml)
     404.html    for any other address
 
 The pages are hand-authored and self-contained, so the build copies them into place and checks
-the three things that would otherwise break quietly:
+the four things that would otherwise break quietly:
 
   * OSCAR stores saved scenarios by input id, so every id a saved scenario can hold must still be
     on the page (SCENARIO_IDS);
   * no page loads a script, stylesheet, font, image or frame from elsewhere;
-  * the live sources OSCAR calls are exactly the ones netlify.toml proxies under /oscar/api/.
+  * the live sources OSCAR calls are exactly the ones netlify.toml proxies under /oscar/api/, and
+    the ones the sign-in function's Content-Security-Policy for OSCAR allows;
+  * the sign-in function is there and still covers /oscar and everything under it, so OSCAR is
+    never published without it.
 
 Run:  python ai/build.py            (writes ai/site/, git-ignored)
       python -m http.server 8900 -d ai/site
@@ -23,6 +27,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "site"
+GATE = HERE / "netlify" / "edge-functions" / "oscar-auth.js"
 
 PAGES = {
     "index.html": "index.html",
@@ -81,8 +86,16 @@ def check_oscar(page):
         rule = f'from = "/oscar/api/{name}/*"\n  to = "{origin}:splat"'
         if rule not in toml:
             raise SystemExit(f"netlify.toml: no proxy rule /oscar/api/{name}/* -> {origin}:splat")
-        if origin.rstrip("/") not in toml.split("Content-Security-Policy", 1)[1].split("\n", 1)[0]:
-            raise SystemExit(f"netlify.toml: OSCAR's Content-Security-Policy doesn't allow {origin}")
+    if not GATE.exists():
+        raise SystemExit(f"{GATE.relative_to(HERE)} is missing: OSCAR would be published without its sign-in")
+    gate = GATE.read_text(encoding="utf-8")
+    if not re.search(r"export const config = \{ path: \['/oscar', '/oscar/\*'\] \};", gate):
+        raise SystemExit(f"{GATE.name}: its path no longer covers '/oscar' and '/oscar/*'")
+    block = re.search(r"const OSCAR_HEADERS = \{(.*?)\n\};", gate, re.S)
+    policy = block.group(1) if block else ""
+    for origin in LIVE_SOURCES.values():
+        if origin.rstrip("/") not in policy:
+            raise SystemExit(f"{GATE.name}: OSCAR's Content-Security-Policy doesn't allow {origin}")
 
 
 def main():

@@ -13,6 +13,7 @@
 # ---- OSCAR's live market inputs ----
 # The page asks each source directly first; these same-origin rewrites are its fallback when a
 # browser or network refuses the direct call. build.py checks they match the sources the page uses.
+# They sit under /oscar, so only a signed-in browser can use them.
 [[redirects]]
   from = "/oscar/api/coingecko/*"
   to = "https://api.coingecko.com/:splat"
@@ -62,17 +63,14 @@
   to = "/atlas/portal/:splat"
   status = 301
 
-# ---- headers ----
-# Every page here is self-contained, so the policy allows inline code and data images only; OSCAR
-# may also call its three live sources.
-[[headers]]
-  for = "/oscar/*"
-  [headers.values]
-    Content-Security-Policy = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'self' https://api.coingecko.com https://mempool.space https://api.blockchain.info; base-uri 'none'; form-action 'none'; frame-ancestors 'self'"
-    X-Content-Type-Options = "nosniff"
-    Referrer-Policy = "no-referrer"
-    X-Robots-Tag = "noindex"
+# ---- OSCAR's team sign-in ----
+# Everything under /oscar passes through netlify/edge-functions/oscar-auth.js (its path is declared
+# in the function), which sends anyone without a session to Google and serves OSCAR only to the
+# accounts in OSCAR_ALLOWED_EMAILS / OSCAR_ALLOWED_DOMAINS. Header rules here don't reach responses
+# an edge function makes, so OSCAR's headers are set in that function.
 
+# ---- headers ----
+# Every page here is self-contained, so the policy allows inline code and data images only.
 [[headers]]
   for = "/"
   [headers.values]

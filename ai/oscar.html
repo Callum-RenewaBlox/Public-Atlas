@@ -933,7 +933,7 @@
 
 <footer class="foot">
   <span>OSCAR · RenewaBlox Ltd · a planning model, not an offer: check live values and supplier quotes before any investment decision.</span>
-  <span class="no-print"><a href="/" id="homeLink2">RenewaBlox AI tools</a></span>
+  <span class="no-print"><span id="whoami" hidden></span><a href="/" id="homeLink2">RenewaBlox AI tools</a></span>
 </footer>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -2667,6 +2667,25 @@ function init() {
   });
   addEventListener('beforeprint', beforePrint);
   addEventListener('afterprint', afterPrint);
+
+  // Signed in through ai.renewablox.com's team sign-in (netlify/edge-functions/oscar-auth.js):
+  // say who, offer the way out, and put back the ?query#fragment the sign-in round trip dropped
+  // (a shared scenario travels in the fragment, which never reaches a server).
+  const who = (document.cookie.match(/(?:^|;\s*)oscar_user=([^;]+)/) || [])[1];
+  if (who) {
+    const box = $('whoami');
+    box.textContent = `Signed in as ${decodeURIComponent(who)} · `;
+    const out = document.createElement('a');
+    out.href = '/oscar/auth/sign-out';
+    out.textContent = 'Sign out';
+    box.append(out, ' · ');
+    box.hidden = false;
+  }
+  try {
+    const back = sessionStorage.getItem('oscar.returnTo');
+    sessionStorage.removeItem('oscar.returnTo');
+    if (back && !location.search && !location.hash) history.replaceState(null, '', location.pathname + back);
+  } catch (e) { /* no storage: nothing to restore */ }
 
   const fromUrl = scenarioFromUrl();
   const savedMode = store.get(KEY.mode, null) || store.get('uiMode', 'expert');

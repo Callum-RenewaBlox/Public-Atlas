@@ -410,6 +410,29 @@ market and Phase 2); the results answer on the right and recalculate as anything
 * **PDF.** Printing (or "Save as PDF") gives a report of the current scenario: a header with its
   name and date, the results, and an assumptions block, with the charts redrawn to the page width.
 * Light and dark follow the system until chosen in the header; the page works from 360 px up.
+* **Team sign-in.** Every request under `/oscar` passes through the edge function
+  `ai/netlify/edge-functions/oscar-auth.js` first. Without a session it sends the visitor to
+  "Sign in with Google" and lets in only the accounts on OSCAR's list: `OSCAR_ALLOWED_EMAILS`
+  (addresses on any domain, gmail.com included) and `OSCAR_ALLOWED_DOMAINS` (Google Workspace
+  domains: an account that Workspace manages, by Google's `hd` claim, not just any address ending
+  in it). A signed session cookie lasts 7 days and the list is checked on every request, so
+  removing someone takes effect with the next deploy. It fails closed: until `GOOGLE_CLIENT_ID`,
+  `GOOGLE_CLIENT_SECRET` and a list are set, OSCAR shows a locked page, never the model. The
+  secret also keys the session cookies, so changing it signs everyone out. Because Netlify's
+  header rules don't reach responses that pass through an edge function, OSCAR's headers (its
+  Content-Security-Policy among them) are set there, and `ai/build.py` fails the build if the
+  function goes missing, stops covering `/oscar`, or its policy stops allowing a live source.
+  A shared-scenario link survives the trip to Google: the sign-in page keeps the address's
+  `?query#fragment` in the tab's session storage and OSCAR puts it back. The footer shows who is
+  signed in, with a way out (`/oscar/auth/sign-out`).
+
+  Setting it up, once: in Google Cloud, an OAuth client of type *Web application* with the
+  authorised redirect URIs `https://ai.renewablox.com/oscar/auth/callback` and
+  `https://renewablox-ai.netlify.app/oscar/auth/callback` (its consent screen *Internal* if
+  everyone signs in with a renewablox.com Workspace account); then in Netlify, environment
+  variables `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` (secret) with the Functions scope, and a
+  new deploy, since edge functions read their environment at deploy time. The site itself is
+  public; only `/oscar` asks for a sign-in.
 
 Deploy: the Netlify project is `renewablox-ai` (renewablox-ai.netlify.app). Link it to this
 repository with production branch `main` and its **base directory set to `ai`** (it then reads
@@ -417,7 +440,8 @@ repository with production branch `main` and its **base directory set to `ai`** 
 record `ai` at `renewablox-ai.netlify.app` at the renewablox.com DNS host, as for `atlas.` and
 `crm.`. The `/atlas/` proxy targets `https://atlas.renewablox.com`, so that domain must resolve.
 Netlify then builds on every push to main. The project was created private (a team login on every
-deploy, production included); the energy and Atlas projects ask for one on previews only.
+deploy, production included); with OSCAR behind its own sign-in, production can be public like the
+energy and Atlas projects, which ask for a team login on previews only.
 
 Build and look at it locally (or open `ai/index.html` and `ai/oscar.html` straight from the
 folder, where the live sources are called directly):
