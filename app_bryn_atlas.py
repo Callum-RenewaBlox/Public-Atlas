@@ -15,13 +15,15 @@ a copy of any of them:
 * ``?view=3d`` — the 3D Site Model (``bryn_3d_sim.html``): a model of the plant
   with the data centre in place by the LV room, in four tabs. It opens on Site,
   the model alone. Dispatch plays the site's power half hour by half hour,
-  season by season, against the 1.8 MW export limit: export held at 1,725 kW
-  with the data centre load following, rising to 1,775 kW when solar takes it
-  past 200 kW, and Bryn's extra export (350,400 kWh a year at 16p/kWh).
-  Finance carries the three ways of funding it (RenewaBlox funds it, shared
-  equally, Bryn funds it) from the revenue-share model for the final 150 kW
-  deployment, with Bryn's extra export on its side; Export only shows Bryn's
-  income and paybacks on that export alone, as if the Bitcoin earned nothing.
+  season by season, against the 1.8 MW export limit: export held at 1,715 kW
+  with the data centre load following (1,675 kW today), set so a typical year
+  matches Finance: 350,400 kWh of extra export at 16p/kWh and about 1,500 MWh
+  into the data centre.
+  Finance carries the three ways of funding it (RenewaBlox funds it, 50:50
+  CAPEX share, Bryn funds it) from the revenue-share model for the final
+  150 kW deployment, with Bryn's extra export on its side; Export only
+  (assumes no Bitcoin) shows Bryn's income and paybacks on that export
+  alone, anchored on the 50:50 CAPEX share.
 * ``?view=compute`` — the Compute Render (``bryn_compute_3d.html``): the yard
   south of the feed tank rebuilt in metres from imagery and the 13 October
   2026 site photos, with the Green Hash 10 ft compute container in place by
