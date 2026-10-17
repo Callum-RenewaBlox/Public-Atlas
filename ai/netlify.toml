@@ -65,9 +65,10 @@
 
 # ---- OSCAR's team sign-in ----
 # Everything under /oscar passes through netlify/edge-functions/oscar-auth.js (its path is declared
-# in the function), which sends anyone without a session to Google and serves OSCAR only to the
-# accounts in OSCAR_ALLOWED_EMAILS / OSCAR_ALLOWED_DOMAINS. Header rules here don't reach responses
-# an edge function makes, so OSCAR's headers are set in that function.
+# in the function), which sends anyone without a session to Google (through the renewablox-crm
+# Supabase project, as the CRM does) and serves OSCAR only to the accounts in OSCAR_ALLOWED_EMAILS /
+# OSCAR_ALLOWED_DOMAINS. Header rules here don't reach responses an edge function makes, so OSCAR's
+# headers are set in that function.
 
 # ---- headers ----
 # Every page here is self-contained, so the policy allows inline code and data images only.

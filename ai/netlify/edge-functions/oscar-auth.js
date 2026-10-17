@@ -1,21 +1,26 @@
 /* OSCAR's team sign-in: every request under /oscar passes through here first.
 
-   A visitor without a session is sent to "Sign in with Google". Google's answer comes back to
-   /oscar/auth/callback; if the account is on OSCAR's list, a signed session cookie lets it in for
-   SESSION_SECONDS and the list is checked again on every request, so taking someone off it
-   shuts them out at once (after the redeploy any environment change needs). Anything missing
-   or wrong fails closed: OSCAR is never served without a valid session.
+   A visitor without a session is sent to "Sign in with Google" through the RenewaBlox Supabase
+   project (renewablox-crm), the same Google sign-in crm.renewablox.com uses, so there is no
+   second Google client to keep. Supabase sends the browser back to /oscar/auth/callback with a
+   one-time code, which only this browser can redeem (PKCE: the verifier sits in a signed cookie
+   here). If the Google account is on OSCAR's list, a signed session cookie lets it in for
+   SESSION_SECONDS, and the list is checked again on every request, so taking someone off it
+   shuts them out at once (after the redeploy any environment change needs). Anything missing or
+   wrong fails closed: OSCAR is never served without a valid session.
 
    Set in Netlify (Project configuration > Environment variables, scope including Functions):
-     GOOGLE_CLIENT_ID        the OAuth client from Google Cloud (Web application)
-     GOOGLE_CLIENT_SECRET    its secret; it also keys the session cookies, so changing it signs
-                             everyone out
-     OSCAR_ALLOWED_EMAILS    comma-separated Google accounts, any domain (gmail.com included)
-     OSCAR_ALLOWED_DOMAINS   comma-separated Google Workspace domains, e.g. renewablox.com: any
-                             account that Workspace manages (Google's "hd" claim), not merely any
-                             address ending in it
-   The OAuth client's authorised redirect URIs are https://<host>/oscar/auth/callback for each
-   host OSCAR is served on.
+     SUPABASE_URL              https://<project ref>.supabase.co
+     SUPABASE_PUBLISHABLE_KEY  the project's publishable (public) key
+     OSCAR_SESSION_SECRET      a long random secret that signs the cookies; changing it signs
+                               everyone out
+     OSCAR_ALLOWED_EMAILS      comma-separated Google accounts, any domain (gmail.com included)
+     OSCAR_ALLOWED_DOMAINS     comma-separated Google Workspace domains, e.g. renewablox.com: any
+                               account that Workspace manages (Google's "hd" claim), not merely any
+                               address ending in it
+   And in Supabase (Authentication > URL Configuration > Redirect URLs), the callback for each host
+   OSCAR is served on: https://ai.renewablox.com/oscar/auth/callback. Without it Supabase sends the
+   browser to the CRM instead and the sign-in can't finish.
 
    Netlify's [[headers]] rules don't reach responses an edge function makes, so OSCAR's own
    headers (its Content-Security-Policy among them) are set here; ai/build.py checks the policy
@@ -26,9 +31,6 @@ const STATE_COOKIE = 'oscar_signin';
 const USER_COOKIE = 'oscar_user';              // the signed-in address, for the page to show; not a credential
 const SESSION_SECONDS = 7 * 24 * 3600;
 const STATE_SECONDS = 10 * 60;
-const GOOGLE_AUTH = 'https://accounts.google.com/o/oauth2/v2/auth';
-const GOOGLE_TOKEN = 'https://oauth2.googleapis.com/token';
-const GOOGLE_ISSUERS = ['https://accounts.google.com', 'accounts.google.com'];
 
 const OSCAR_HEADERS = {
   'content-security-policy': "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; " +
@@ -53,7 +55,7 @@ export default async (request, context) => {
   const cfg = settings();
   if (!cfg) {
     return page(503, 'OSCAR&rsquo;s sign-in isn&rsquo;t set up yet',
-      'Google sign-in needs its settings in Netlify before OSCAR can open. Until then it stays locked.');
+      'The sign-in needs its settings in Netlify before OSCAR can open. Until then it stays locked.');
   }
   if (url.pathname === '/oscar/auth/start') return start(url, cfg);
   if (url.pathname === '/oscar/auth/callback') return callback(request, url, cfg);
@@ -76,7 +78,7 @@ export const config = { path: ['/oscar', '/oscar/*'] };
 
 /* ---- the sign-in round trip ---- */
 
-// A signed-out page request: hand over to Google, keeping whatever followed the path (a shared
+// A signed-out page request: hand over to the sign-in, keeping whatever followed the path (a shared
 // scenario travels in the #fragment, which never reaches a server) for OSCAR to restore after.
 function signInPage(url) {
   const go = `/oscar/auth/start?r=${encodeURIComponent(safeReturn(url.pathname))}`;
@@ -88,12 +90,13 @@ function signInPage(url) {
 }
 
 async function start(url, cfg) {
-  const state = randomToken(), nonce = randomToken();
-  const sealed = await seal({ t: 'state', s: state, n: nonce, r: safeReturn(url.searchParams.get('r')), x: now() + STATE_SECONDS }, cfg);
-  const auth = new URL(GOOGLE_AUTH);
+  const verifier = randomToken(48);
+  const challenge = b64url(await crypto.subtle.digest('SHA-256', encoder.encode(verifier)));
+  const sealed = await seal({ t: 'state', v: verifier, r: safeReturn(url.searchParams.get('r')), x: now() + STATE_SECONDS }, cfg);
+  const auth = new URL(`${cfg.supabaseUrl}/auth/v1/authorize`);
   auth.search = new URLSearchParams({
-    client_id: cfg.clientId, redirect_uri: `${url.origin}/oscar/auth/callback`, response_type: 'code',
-    scope: 'openid email', state, nonce, prompt: 'select_account'
+    provider: 'google', redirect_to: `${url.origin}/oscar/auth/callback`,
+    code_challenge: challenge, code_challenge_method: 's256', prompt: 'select_account'
   }).toString();
   // With one Workspace domain and no one from outside it, Google offers only that domain's accounts.
   if (cfg.domains.length === 1 && !cfg.emails.length) auth.searchParams.set('hd', cfg.domains[0]);
@@ -105,43 +108,41 @@ async function callback(request, url, cfg) {
   const clearState = cookie(STATE_COOKIE, '', '/oscar/auth', 0);
   const retry = { href: '/oscar/auth/start', label: 'Try again' };
   if (q.get('error')) {
-    return page(401, 'Sign-in didn&rsquo;t finish', `Google answered: ${esc(q.get('error'))}.`, retry, '', [clearState]);
+    return page(401, 'Sign-in didn&rsquo;t finish', `The sign-in answered: ${esc(q.get('error_description') || q.get('error'))}.`, retry, '', [clearState]);
   }
   const st = await unseal(readCookie(request, STATE_COOKIE), 'state', cfg);
-  if (!st || !q.get('code') || q.get('state') !== st.s) {
+  if (!st || !q.get('code')) {
     return page(400, 'That sign-in has expired', 'Sign-ins have ten minutes to finish, in the browser they started in.', retry, '', [clearState]);
   }
-  let tokens;
+  let session;
   try {
-    // Straight from Google's token endpoint over HTTPS, authenticated with the client secret, so
-    // the ID token needs its claims checked but not its signature (Google's OpenID Connect guide).
-    const res = await fetch(GOOGLE_TOKEN, {
+    // The code is only good with this browser's verifier, straight from Supabase over HTTPS.
+    const res = await fetch(`${cfg.supabaseUrl}/auth/v1/token?grant_type=pkce`, {
       method: 'POST',
-      headers: { 'content-type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ code: q.get('code'), client_id: cfg.clientId, client_secret: cfg.clientSecret,
-        redirect_uri: `${url.origin}/oscar/auth/callback`, grant_type: 'authorization_code' })
+      headers: { 'content-type': 'application/json', apikey: cfg.supabaseKey },
+      body: JSON.stringify({ auth_code: q.get('code'), code_verifier: st.v })
     });
     if (!res.ok) throw new Error(`token endpoint answered ${res.status}`);
-    tokens = await res.json();
+    session = await res.json();
   } catch (err) {
-    console.error('OSCAR sign-in: no token from Google:', err && err.message);
-    return page(502, 'Google didn&rsquo;t answer', 'The sign-in couldn&rsquo;t be completed. Try again in a moment.', retry, '', [clearState]);
+    console.error('OSCAR sign-in: no session from Supabase:', err && err.message);
+    return page(400, 'That sign-in couldn&rsquo;t be completed', 'It may have expired or been used already. Try again.', retry, '', [clearState]);
   }
-  const c = jwtClaims(tokens && tokens.id_token);
-  const aud = c && (Array.isArray(c.aud) ? c.aud : [c.aud]);
-  if (!c || !GOOGLE_ISSUERS.includes(c.iss) || !aud.includes(cfg.clientId) || !(Number(c.exp) > now()) || c.nonce !== st.n) {
-    return page(400, 'That sign-in couldn&rsquo;t be checked', 'Try again; if it keeps happening, the sign-in settings need a look.', retry, '', [clearState]);
-  }
-  const email = String(c.email || '').toLowerCase();
-  if (!email || !(c.email_verified === true || c.email_verified === 'true') || !allowed(email, c.hd, cfg)) {
+  const user = session && session.user;
+  const google = user && (user.identities || []).find(i => i && i.provider === 'google');
+  const claims = (google && google.identity_data) || {};
+  const email = String(claims.email || '').toLowerCase();
+  const hd = String((claims.custom_claims && claims.custom_claims.hd) || '').toLowerCase();
+  const verified = claims.email_verified === true || claims.email_verified === 'true';
+  if (!google || !email || !verified || email !== String(user.email || '').toLowerCase() || !allowed(email, hd, cfg)) {
     return page(403, 'This account can&rsquo;t open OSCAR',
       `${esc(email || 'That account')} isn&rsquo;t on OSCAR&rsquo;s list. Use your RenewaBlox Google account, or ask for this one to be added.`,
       { href: '/oscar/auth/start', label: 'Use a different account' }, '', [clearState]);
   }
-  const session = await seal({ t: 'session', e: email, h: String(c.hd || '').toLowerCase(), x: now() + SESSION_SECONDS }, cfg);
+  const sealed = await seal({ t: 'session', e: email, h: hd, x: now() + SESSION_SECONDS }, cfg);
   return redirect(new URL(st.r, url.origin).toString(), [
     clearState,
-    cookie(SESSION_COOKIE, session, '/oscar', SESSION_SECONDS),
+    cookie(SESSION_COOKIE, sealed, '/oscar', SESSION_SECONDS),
     cookie(USER_COOKIE, encodeURIComponent(email), '/oscar', SESSION_SECONDS, false)
   ]);
 }
@@ -158,9 +159,10 @@ function signOut(url) {
 function settings() {
   const env = k => String((globalThis.Netlify && Netlify.env.get(k)) || '').trim();
   const list = k => env(k).toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
-  const cfg = { clientId: env('GOOGLE_CLIENT_ID'), clientSecret: env('GOOGLE_CLIENT_SECRET'),
-    emails: list('OSCAR_ALLOWED_EMAILS'), domains: list('OSCAR_ALLOWED_DOMAINS') };
-  const missing = [!cfg.clientId && 'GOOGLE_CLIENT_ID', !cfg.clientSecret && 'GOOGLE_CLIENT_SECRET',
+  const cfg = { supabaseUrl: env('SUPABASE_URL').replace(/\/+$/, ''), supabaseKey: env('SUPABASE_PUBLISHABLE_KEY'),
+    secret: env('OSCAR_SESSION_SECRET'), emails: list('OSCAR_ALLOWED_EMAILS'), domains: list('OSCAR_ALLOWED_DOMAINS') };
+  const missing = [!/^https:\/\//.test(cfg.supabaseUrl) && 'SUPABASE_URL', !cfg.supabaseKey && 'SUPABASE_PUBLISHABLE_KEY',
+    cfg.secret.length < 32 && 'OSCAR_SESSION_SECRET (32 characters or more)',
     !cfg.emails.length && !cfg.domains.length && 'OSCAR_ALLOWED_EMAILS or OSCAR_ALLOWED_DOMAINS'].filter(Boolean);
   if (missing.length) { console.error('OSCAR sign-in is locked until these are set:', missing.join(', ')); return null; }
   return cfg;
@@ -180,19 +182,19 @@ function safeReturn(r) {
   try { return new URL(r, 'https://oscar.invalid').pathname === r ? r : '/oscar/'; } catch (e) { return '/oscar/'; }
 }
 
-/* ---- signed values: payload.signature, HMAC-SHA-256 under a key derived from the client secret ---- */
+/* ---- signed values: payload.signature, HMAC-SHA-256 under a key derived from the session secret ---- */
 
 const encoder = new TextEncoder(), decoder = new TextDecoder();
 const keys = new Map();
 async function keyFor(cfg) {
-  if (!keys.has(cfg.clientSecret)) {
-    keys.set(cfg.clientSecret, (async () => {
-      const raw = await crypto.subtle.importKey('raw', encoder.encode(cfg.clientSecret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  if (!keys.has(cfg.secret)) {
+    keys.set(cfg.secret, (async () => {
+      const raw = await crypto.subtle.importKey('raw', encoder.encode(cfg.secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
       const derived = await crypto.subtle.sign('HMAC', raw, encoder.encode('oscar-sign-in-v1'));
       return crypto.subtle.importKey('raw', derived, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign', 'verify']);
     })());
   }
-  return keys.get(cfg.clientSecret);
+  return keys.get(cfg.secret);
 }
 async function seal(obj, cfg) {
   const body = b64url(encoder.encode(JSON.stringify(obj)));
@@ -207,9 +209,6 @@ async function unseal(token, purpose, cfg) {
     return obj && obj.t === purpose && Number(obj.x) > now() ? obj : null;
   } catch (e) { return null; }
 }
-function jwtClaims(jwt) {
-  try { return JSON.parse(decoder.decode(unb64url(String(jwt).split('.')[1]))); } catch (e) { return null; }
-}
 
 /* ---- small things ---- */
 
@@ -223,7 +222,7 @@ function unb64url(s) {
   s = s.replace(/-/g, '+').replace(/_/g, '/');
   return Uint8Array.from(atob(s + '='.repeat((4 - s.length % 4) % 4)), c => c.charCodeAt(0));
 }
-function randomToken() { return b64url(crypto.getRandomValues(new Uint8Array(24))); }
+function randomToken(bytes = 24) { return b64url(crypto.getRandomValues(new Uint8Array(bytes))); }
 function readCookie(request, name) {
   for (const part of (request.headers.get('cookie') || '').split(';')) {
     const i = part.indexOf('=');
