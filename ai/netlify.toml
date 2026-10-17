@@ -1,0 +1,83 @@
+# ai.renewablox.com — RenewaBlox's AI tools (build.py beside this file).
+# A Netlify project of its own (renewablox-ai) whose base directory is ai/, so this file, not the
+# energy site's netlify.toml at the root of the repository, configures it. Netlify builds on every
+# push to main that changes something under ai/.
+
+[build]
+  command = "python3 build.py"
+  publish = "site"
+  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- ."
+
+[build.environment]
+  PYTHON_VERSION = "3.12"
+
+# ---- OSCAR's live market inputs ----
+# The page asks each source directly first; these same-origin rewrites are its fallback when a
+# browser or network refuses the direct call. build.py checks they match the sources the page uses.
+[[redirects]]
+  from = "/oscar/api/coingecko/*"
+  to = "https://api.coingecko.com/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/oscar/api/mempool/*"
+  to = "https://mempool.space/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/oscar/api/blockchain/*"
+  to = "https://api.blockchain.info/:splat"
+  status = 200
+  force = true
+
+# ---- Atlas ----
+# Atlas is its own Netlify project (renewablox-atlas, atlas.renewablox.com) and keeps deploying as it
+# does; this site serves it under /atlas/ by proxy. Its pages were published at the root of their own
+# domain, so a link of theirs that starts with / is sent back under /atlas/.
+[[redirects]]
+  from = "/atlas"
+  to = "/atlas/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/atlas/*"
+  to = "https://atlas.renewablox.com/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/investors/*"
+  to = "/atlas/investors/:splat"
+  status = 301
+
+[[redirects]]
+  from = "/market/*"
+  to = "/atlas/market/:splat"
+  status = 301
+
+[[redirects]]
+  from = "/portal/*"
+  to = "/atlas/portal/:splat"
+  status = 301
+
+# ---- headers ----
+# Every page here is self-contained, so the policy allows inline code and data images only; OSCAR
+# may also call its three live sources.
+[[headers]]
+  for = "/oscar/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'self' https://api.coingecko.com https://mempool.space https://api.blockchain.info; base-uri 'none'; form-action 'none'; frame-ancestors 'self'"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"
+    X-Robots-Tag = "noindex"
+
+[[headers]]
+  for = "/"
+  [headers.values]
+    Content-Security-Policy = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'; frame-ancestors 'self'"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Robots-Tag = "noindex"
