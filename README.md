@@ -411,11 +411,13 @@ market and Phase 2); the results answer on the right and recalculate as anything
   name and date, the results, and an assumptions block, with the charts redrawn to the page width.
 * Light and dark follow the system until chosen in the header; the page works from 360 px up.
 
-Deploy: create a Netlify project (`renewablox-ai`) from this repository with its **base directory
-set to `ai`** (it then reads `ai/netlify.toml`, not the root one), add `ai.renewablox.com` as its
-domain, and point a CNAME record `ai` at `renewablox-ai.netlify.app` at the renewablox.com DNS
-host, as for `atlas.` and `crm.`. The `/atlas/` proxy targets `https://atlas.renewablox.com`, so
-that domain must resolve. Netlify then builds on every push to main that changes `ai/`.
+Deploy: the Netlify project is `renewablox-ai` (renewablox-ai.netlify.app). Link it to this
+repository with production branch `main` and its **base directory set to `ai`** (it then reads
+`ai/netlify.toml`, not the root one), add `ai.renewablox.com` as its domain, and point a CNAME
+record `ai` at `renewablox-ai.netlify.app` at the renewablox.com DNS host, as for `atlas.` and
+`crm.`. The `/atlas/` proxy targets `https://atlas.renewablox.com`, so that domain must resolve.
+Netlify then builds on every push to main. The project was created private (a team login on every
+deploy, production included); the energy and Atlas projects ask for one on previews only.
 
 Build and look at it locally (or open `ai/index.html` and `ai/oscar.html` straight from the
 folder, where the live sources are called directly):

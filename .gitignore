@@ -7,3 +7,4 @@ __pycache__/
 Thumbs.db
 energy_site/
 ai/site/
+.netlify/

@@ -1,12 +1,11 @@
 # ai.renewablox.com — RenewaBlox's AI tools (build.py beside this file).
 # A Netlify project of its own (renewablox-ai) whose base directory is ai/, so this file, not the
 # energy site's netlify.toml at the root of the repository, configures it. Netlify builds on every
-# push to main that changes something under ai/.
+# push to main (the build is a copy and three checks, so it takes seconds).
 
 [build]
   command = "python3 build.py"
   publish = "site"
-  ignore = "git diff --quiet $CACHED_COMMIT_REF $COMMIT_REF -- ."
 
 [build.environment]
   PYTHON_VERSION = "3.12"

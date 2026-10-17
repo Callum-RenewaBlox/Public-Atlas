@@ -15,7 +15,7 @@ the three things that would otherwise break quietly:
 
 Run:  python ai/build.py            (writes ai/site/, git-ignored)
       python -m http.server 8900 -d ai/site
-Netlify runs it on every push to main that changes ai/ (ai/netlify.toml). Standard library only.
+Netlify runs it on every push to main (ai/netlify.toml). Standard library only.
 """
 import re
 import shutil
