@@ -17,11 +17,12 @@ a copy of any of them:
   the model alone. Dispatch plays the site's power half hour by half hour,
   season by season, against the 1.8 MW export limit: export held at 1,715 kW
   with the data centre load following (1,675 kW today), set so a typical year
-  matches Finance: 350,400 kWh of extra export at 16p/kWh and about 1,500 MWh
-  into the data centre.
+  matches Finance: 350,400 kWh of extra export at 16p/kWh, and 1,548,857 kWh
+  into the data centre (24 miners, 172.8 kW installed), with site load 25 kW
+  lower at weekends and on bank holidays.
   Finance carries the three ways of funding it (RenewaBlox funds it, 50:50
   CAPEX share, Bryn funds it) from the revenue-share model for the final
-  150 kW deployment, with Bryn's extra export on its side; Export only
+  172.8 kW deployment, with Bryn's extra export on its side; Export only
   (assumes no Bitcoin) shows Bryn's income and paybacks on that export
   alone, anchored on the 50:50 CAPEX share.
 * ``?view=compute`` — the Compute Render (``bryn_compute_3d.html``): the yard
