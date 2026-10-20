@@ -231,7 +231,10 @@ path.leaflet-interactive:focus-visible{outline:none;stroke:#fff;stroke-width:4;s
 // The powerhouse on the imagery: the centre of its slab, and the compass bearing of its long axis
 // (west gable to east gable). The footprints below are the 3D model's own plan, in metres, so the map
 // and the render agree; moving the powerhouse is this one line (open the page with ?place to set it).
-const SITE={lat:56.547520,lon:-3.668300,bearing:90,confirmed:false};
+// Estimated, not yet checked on the imagery: on the burn's east bank about 105 m upstream of the road
+// bridge (listed position), below the farm at the mouth of the glen, which suits a floor at +184 m AOD
+// a little above the strath; the axis east-west as the model assumes.
+const SITE={lat:56.546362,lon:-3.671191,bearing:90,confirmed:false};
 
 // Plan in the model's metres: x along the axis from grid 1 (east when the bearing is 90), z across it
 // (south positive), the same axes as the glTF. Centre of the slab: x 4.689, z 0.

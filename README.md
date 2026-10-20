@@ -445,8 +445,9 @@ standing above it (not along the building, where it would cover the inlet chambe
 the powerhouse's popup and a "3D render" button in the bar, which stays live when the bar fades at
 close zoom. Each opens `3d/` in the same window; the render's "Atlas" pill and the browser's Back come
 back. The labels appear from zoom 18, the inlet's from 19. The powerhouse's place on the imagery is one line, `SITE` (the slab's centre and the compass
-bearing of its long axis, west gable to east gable). It was set from published records, not from the
-imagery, so it carries `confirmed:false` and the build warns until it is checked: open
+bearing of its long axis, west gable to east gable). It is an estimate from published records (the
+burn's east bank about 105 m upstream of the listed road bridge, which suits the powerhouse's floor
+level), not from the imagery, so it carries `confirmed:false` and the build warns until it is checked: open
 `/bln/?place` (the drawing and the badge then let clicks through to the imagery), click the middle
 of the roof, turn the footprint with `[` and `]` (Shift for 10°) until it sits on the building, copy
 the line it prints into `SITE` and rebuild.
