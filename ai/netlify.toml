@@ -62,6 +62,12 @@
   to = "/atlas/portal/:splat"
   status = 301
 
+# the client pages Atlas carries (atlas/ in this repository), BLN first
+[[redirects]]
+  from = "/bln/*"
+  to = "/atlas/bln/:splat"
+  status = 301
+
 # ---- headers ----
 # Every page here is self-contained, so the policy allows inline code and data images only; OSCAR
 # may also call its three live sources.

@@ -1,0 +1,9 @@
+# Header rules for the client pages on atlas.renewablox.com. `python atlas/build.py --merge DIR`
+# adds them to the Atlas site's own _headers between marker lines; they cover /bln/ and nothing else.
+# The pages load their own files and, for the map, the satellite imagery; the 3D viewer fetches its
+# models from the same folder (and compiles its mesh decoder, so WebAssembly is allowed, not eval).
+/bln/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://server.arcgisonline.com; font-src 'self'; connect-src 'self' blob: data:; media-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'self'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Robots-Tag: noindex, nofollow

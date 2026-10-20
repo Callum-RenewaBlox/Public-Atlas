@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>BLN 3D · RenewaBlox</title>
+<meta name="description" content="BLN 3D: the hydro powerhouse with the RenewaBlox BLOX data-centre cabinet. Interactive 3D model, flythrough and stills, and what is measured against what is assumed."/>
+<meta name="robots" content="noindex, nofollow"/>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%2312475e'/%3E%3Cpath%20d='M16%205.6c4.5%205.5%206.8%209.1%206.8%2012A6.8%206.8%200%200%201%2016%2024.4a6.8%206.8%200%200%201-6.8-6.8C9.2%2014.7%2011.5%2011.1%2016%205.6z'%20fill='%23fff'/%3E%3C/svg%3E"/>
+<script>
+// The page's files sit beside it (../assets/), so it must be read as a folder: /bln/3d/, not /bln/3d.
+if (!/\/$/.test(location.pathname) && !/\.html?$/.test(location.pathname)) location.replace(location.pathname + '/' + location.search + location.hash);
+</script>
+<link rel="preload" href="../assets/bln_powerhouse.glb" as="fetch" crossorigin="anonymous"/>
+<style>
+/* ===================================================================
+   RenewaBlox design system — BLN 3D
+   The same house bar, tabs and glass panels as the Bryn 3D page, so the
+   atlas and its render read as one product.
+   =================================================================== */
+@font-face{font-family:"Inter";font-style:normal;font-display:swap;font-weight:100 900;src:url(../assets/inter.woff2) format("woff2")}
+:root{
+  --brand:#12475e; --accent:#1f5f7f; --accent-l:#3a89ae;
+  --ink:#0d1b23; --ink-2:#33454f; --muted:#5a6a73; --muted-2:#93a2aa;
+  --surface:#ffffff; --tint:#f4f8fa; --tint-2:#eaf1f5; --line:#dfe8ed; --line-2:#edf3f6;
+  --glass:rgba(251,253,254,.94);
+  --teal:#0f9d77; --site:#2e9e4f; --amber:#b7791f; --amber-soft:#fbf1df;
+  --cold:#2f7fd6; --hot:#e0711f;
+  --sh-1:0 1px 2px rgba(9,26,35,.09), 0 4px 14px rgba(9,26,35,.12);
+  --sh-2:0 2px 6px rgba(9,26,35,.12), 0 14px 44px rgba(9,26,35,.22);
+  --font:"Inter","Inter var",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --ease:cubic-bezier(.2,.8,.3,1);
+  --r-s:8px; --r-m:12px; --r-l:16px; --r-pill:999px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden}
+body{display:flex;flex-direction:column;height:100dvh;font-family:var(--font);color:var(--ink-2);background:var(--tint);
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
+*:focus{outline:none}
+*:focus-visible{outline:2px solid var(--accent-l);outline-offset:2px}
+::selection{background:rgba(31,95,127,.22)}
+button{font-family:inherit}
+[hidden]{display:none!important}
+
+/* ================================================================ header == */
+header{position:relative;flex:0 0 auto;z-index:5;padding:11px 20px;background:linear-gradient(180deg,#fff,#f8fbfc);
+  border-bottom:1px solid var(--line);display:flex;align-items:center;gap:15px;flex-wrap:nowrap}
+header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2.5px;background:linear-gradient(90deg,var(--brand),var(--accent-l) 48%,var(--teal))}
+#backatlas{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--tint);color:var(--accent);
+  font:650 11.3px var(--font);padding:7px 12px 7px 10px;border-radius:var(--r-pill);text-decoration:none;transition:background .15s,border-color .15s,color .15s}
+#backatlas:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+#backatlas svg{width:12px;height:12px;display:block}
+.logo{flex:0 0 auto}
+.logo img{height:21px;width:auto;display:block}
+.divider{flex:0 0 auto;width:1px;height:30px;background:var(--line)}
+.title{flex:1 1 auto;min-width:0}
+.title h1{margin:0;font-size:14.5px;font-weight:700;letter-spacing:-.005em;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.title p{margin:2px 0 0;font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ptabs{flex:0 0 auto;display:flex;gap:3px;padding:3px;background:var(--tint-2);border:1px solid var(--line);border-radius:13px}
+.ptabs button{border:0;background:transparent;font:650 12.2px var(--font);color:var(--muted);padding:6px 14px;border-radius:10px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:7px;white-space:nowrap;transition:background .16s,color .16s,box-shadow .16s}
+.ptabs button svg{width:14px;height:14px;display:block;flex:0 0 auto}
+.ptabs button:hover{color:var(--brand);background:rgba(255,255,255,.7)}
+.ptabs button[aria-selected="true"]{background:var(--brand);color:#fff;box-shadow:0 1px 2px rgba(9,26,35,.18),0 3px 10px rgba(18,71,94,.28)}
+/* chips that do not fit wrap onto a hidden second row, so none is ever cut in half */
+.chips{display:flex;flex-wrap:wrap;justify-content:flex-end;align-content:flex-start;gap:6px;flex:0 1 auto;overflow:hidden;max-height:26px;min-width:0}
+.chip{flex:0 0 auto;background:var(--tint);color:var(--brand);border:1px solid var(--line);border-radius:var(--r-pill);padding:3.5px 11px;
+  font-size:10.8px;font-weight:650;letter-spacing:.01em;white-space:nowrap}
+.chip.blox{background:#e9f6f1;border-color:#c9e6db;color:#0b7a5c}
+@media (max-width:1499px){ .chips{display:none} }
+@media (max-width:860px){
+  header{flex-wrap:wrap;row-gap:9px;padding:9px 12px 10px;gap:10px}
+  .logo img{height:16px}
+  .divider{height:24px}
+  .title h1{font-size:13px}
+  .title p{display:none}
+  .ptabs{order:5;margin-left:0;flex:1 1 100%;overflow-x:auto;scrollbar-width:none}
+  .ptabs::-webkit-scrollbar{display:none}
+  .ptabs button{flex:1 0 auto;justify-content:center;padding:6px 11px;font-size:12px}
+}
+@media (min-width:861px) and (max-width:1140px){ .logo,.divider{display:none} .ptabs button svg{display:none} }
+@media (max-width:520px){ .logo,.divider{display:none} }
+@media (max-width:480px){ .ptabs button svg{display:none} }
+@media (max-width:400px){ .ptabs button{padding:6px 7px;font-size:11.5px} #backatlas span{display:none} #backatlas{padding:7px 9px} }
+/* a phone on its side: one header row, so the model keeps the height */
+@media (max-height:500px) and (orientation:landscape){
+  header{flex-wrap:nowrap;padding:6px 12px} .title{display:none} .ptabs{order:0;flex:0 1 auto;margin-left:auto}
+}
+
+/* ================================================================= stage == */
+#stage{position:relative;flex:1 1 auto;min-height:0}
+.view{position:absolute;inset:0}
+.page{overflow:auto;background:var(--tint);-webkit-overflow-scrolling:touch}
+.wrap{max-width:1180px;margin:0 auto;padding:26px 24px 48px}
+.page h2{margin:0;font-size:20px;letter-spacing:-.01em;color:var(--ink)}
+.page .sub{margin:6px 0 18px;color:var(--muted);font-size:13.5px;line-height:1.55;max-width:760px}
+@media (max-width:620px){ .wrap{padding:18px 14px 40px} .page h2{font-size:18px} }
+
+/* ------------------------------------------------------------------ model -- */
+model-viewer{position:absolute;inset:0;width:100%;height:100%;display:block;
+  background:radial-gradient(130% 90% at 50% 18%,#fbfdfe 0%,#e9f0f4 52%,#d3e0e7 100%);--poster-color:transparent;
+  --progress-bar-color:transparent}
+#loading{position:absolute;inset:0;z-index:9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  background:linear-gradient(180deg,#f8fafb,#e4ecf1);font-size:12px;color:var(--muted);font-weight:600;transition:opacity .6s;text-align:center;padding:24px}
+#loading.hide{opacity:0;pointer-events:none}
+#loading::before{content:"";width:34px;height:34px;border-radius:50%;border:2.5px solid rgba(31,95,127,.18);border-top-color:var(--accent);animation:spin .85s linear infinite}
+#loading.failed::before{display:none}
+#loading .bar{width:180px;height:3px;border-radius:3px;background:rgba(31,95,127,.14);overflow:hidden}
+#loading .bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+#loading.failed .bar{display:none}
+#loading a{color:var(--accent);font-weight:700}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* a thin progress line under the header while the cutaway model streams in */
+#swapbar{position:absolute;left:0;right:0;top:0;height:2.5px;z-index:8;pointer-events:none;opacity:0;transition:opacity .3s}
+#swapbar.on{opacity:1}
+#swapbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--brand),var(--accent-l));transition:width .2s}
+
+.panel{position:absolute;z-index:6;background:var(--glass);-webkit-backdrop-filter:blur(14px) saturate(1.7);backdrop-filter:blur(14px) saturate(1.7);
+  border-radius:var(--r-l);box-shadow:var(--sh-1)}
+/* one arrival, together, once the model is on screen */
+.panel,.hint{opacity:0;transform:translateY(6px);transition:opacity .7s ease,transform .7s var(--ease)}
+body.ready .panel,body.ready .hint{opacity:1;transform:none}
+
+/* the camera and model rail, down the left */
+#rail{left:16px;top:16px;width:198px;padding:8px;display:flex;flex-direction:column;gap:2px;max-height:calc(100% - 32px);overflow:auto;scrollbar-width:thin}
+.rail-h{font-size:9.6px;font-weight:750;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);padding:7px 9px 4px}
+.sep{height:1px;background:var(--line);margin:6px 4px}
+#rail button{display:flex;align-items:center;gap:9px;width:100%;border:0;background:transparent;border-radius:10px;padding:7.5px 9px;
+  font:620 12.4px var(--font);color:var(--ink-2);cursor:pointer;text-align:left;transition:background .14s,color .14s}
+#rail button:hover{background:var(--tint-2);color:var(--brand)}
+#rail button .ic{width:16px;height:16px;flex:0 0 auto;color:var(--accent)}
+#rail button[aria-current="true"]{background:var(--brand);color:#fff}
+#rail button[aria-current="true"] .ic{color:#fff}
+/* toggles: a small switch on the right. The knob is the last flex item, so it reaches back over the
+   button's 9px gap and the 24px track to sit 2px inside the track's left end */
+#rail button.tg::after{content:"";margin-left:auto;flex:0 0 auto;width:24px;height:14px;border-radius:9px;background:#7d8d96;
+  box-shadow:inset 0 0 0 1px rgba(9,26,35,.06);transition:background .16s}
+#rail button.tg::before{content:"";order:3;position:relative;margin-left:-31px;margin-right:12px;width:10px;height:10px;border-radius:50%;background:#fff;
+  box-shadow:0 1px 2px rgba(9,26,35,.3);transition:transform .16s var(--ease);flex:0 0 auto}
+#rail button.tg{position:relative}
+#rail button.tg::after{order:2}
+#rail button.tg[aria-pressed="true"]::after{background:var(--teal)}
+#rail button.tg[aria-pressed="true"]::before{transform:translateX(10px)}
+
+/* the caption that follows the view, top right */
+#caption{right:16px;top:16px;width:min(330px,calc(100% - 246px));padding:13px 15px 13px}
+#caption .k{font-size:9.6px;font-weight:750;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+#caption h2{margin:4px 0 0;font-size:15px;line-height:1.3;color:var(--ink);letter-spacing:-.005em}
+#caption p{margin:6px 0 0;font-size:12px;line-height:1.55;color:var(--ink-2)}
+#legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:9px;font-size:11px;font-weight:600;color:var(--ink-2)}
+#legend span{display:inline-flex;align-items:center;gap:6px}
+#legend i{width:18px;height:4px;border-radius:2px;display:block}
+#capmore{display:none}
+
+.hint{position:absolute;z-index:5;left:50%;bottom:14px;translate:-50% 0;font-size:11px;font-weight:600;color:var(--muted);
+  background:rgba(251,253,254,.82);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);padding:5px 12px;border-radius:var(--r-pill);
+  box-shadow:0 1px 3px rgba(9,26,35,.1);white-space:nowrap;pointer-events:none}
+body.moved .hint{opacity:0!important}
+.hint .s{display:none}
+
+/* hotspots: the house pin, a label on hover or tap */
+.hotspot{--d:20px;width:var(--d);height:var(--d);border-radius:50%;border:2.5px solid #fff;background:var(--accent);padding:0;cursor:pointer;
+  box-shadow:0 0 0 4px rgba(31,95,127,.22),0 2px 8px rgba(9,26,35,.45);position:relative;transition:opacity .2s,transform .15s}
+.hotspot:hover,.hotspot:focus-visible{transform:scale(1.12)}
+.hotspot.blox{background:var(--teal);box-shadow:0 0 0 4px rgba(15,157,119,.25),0 2px 8px rgba(9,26,35,.45)}
+/* behind something solid: dimmed, as model-viewer dims one facing away, until it is pointed at or opened */
+.hotspot.behind{opacity:.28}
+.hotspot:is(:hover,:focus-visible,.open){opacity:1}
+.hotspot .lbl{position:absolute;left:calc(100% + 9px);top:50%;transform:translateY(-50%);display:none;width:max-content;max-width:250px;
+  background:var(--glass);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:var(--ink-2);text-align:left;
+  border-radius:var(--r-m);box-shadow:var(--sh-2);padding:9px 11px;font:500 11.6px/1.5 var(--font);white-space:normal;pointer-events:none}
+.hotspot .lbl b{display:block;color:var(--brand);font-weight:750;font-size:12px;margin-bottom:2px}
+.hotspot .lbl i{font-style:normal;font-weight:700;color:var(--accent)}
+.hotspot:focus-visible .lbl,.hotspot.open .lbl{display:block}
+@media (hover:hover){ .hotspot:hover .lbl{display:block} }
+.hotspot.left .lbl{left:auto;right:calc(100% + 9px)}
+model-viewer.markers-off .hotspot{display:none}
+/* a marker only shows on the model it describes */
+model-viewer[data-model="ext"] .hotspot.cut-only,model-viewer[data-model="cut"] .hotspot.ext-only{display:none}
+
+@media (max-width:860px){
+  #rail{left:10px;right:10px;top:auto;bottom:10px;width:auto;flex-direction:row;align-items:center;overflow-x:auto;overflow-y:hidden;padding:6px;gap:4px;
+    scrollbar-width:none;border-radius:14px}
+  #rail::-webkit-scrollbar{display:none}
+  .rail-h{display:none}
+  .sep{width:1px;height:26px;margin:0 2px;flex:0 0 auto}
+  #rail button{width:auto;flex:0 0 auto;padding:7px 10px;font-size:12px;white-space:nowrap}
+  #caption{left:10px;right:10px;top:10px;width:auto;padding:10px 12px}
+  #caption h2{font-size:13.5px}
+  #caption p{font-size:11.5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  #caption.more p{-webkit-line-clamp:unset;display:block}
+  #capmore{display:inline;border:0;background:none;padding:0;margin-top:4px;font:700 11px var(--font);color:var(--accent);cursor:pointer}
+  .hint{bottom:70px;font-size:10.5px}
+  .hint .f{display:none} .hint .s{display:inline}
+  /* the strip scrolls sideways: fade whichever edge has more beyond it */
+  #rail.more-r{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent)}
+  #rail.more-l{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px);mask-image:linear-gradient(90deg,transparent,#000 40px)}
+  #rail.more-l.more-r{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent)}
+  .hotspot{--d:18px}
+  .hotspot .lbl{max-width:min(220px,calc(50vw - 30px));font-size:11px}
+}
+/* ...and on its side, the caption shrinks to its heading in the corner */
+@media (max-height:500px) and (orientation:landscape){
+  #caption{width:min(330px,45%);left:auto} #caption p,#capmore,#legend{display:none} .hint{display:none}
+}
+
+/* ------------------------------------------------------------ flythrough -- */
+.vidcard{background:#0d1b23;border-radius:var(--r-l);overflow:hidden;box-shadow:var(--sh-2)}
+video{display:block;width:100%;height:auto;max-height:calc(100dvh - 210px);aspect-ratio:16/9;background:#0d1b23}
+.vidmeta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+
+/* ---------------------------------------------------------------- stills -- */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+/* a button centres its content, so each card is a column that starts at the top */
+.still{margin:0;padding:0;border:0;text-align:left;cursor:zoom-in;background:var(--surface);border-radius:var(--r-l);overflow:hidden;
+  box-shadow:var(--sh-1);font:inherit;color:inherit;transition:transform .18s var(--ease),box-shadow .18s;
+  display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch}
+.still:hover{transform:translateY(-2px);box-shadow:var(--sh-2)}
+.still img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:var(--tint-2)}
+.still span{display:block;padding:11px 14px 13px;font-size:12.5px;line-height:1.5;color:var(--muted)}
+.still span b{display:block;color:var(--ink);font-size:13.5px;font-weight:700;margin-bottom:1px}
+#lb{position:fixed;inset:0;z-index:50;background:rgba(9,20,26,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;padding:56px 64px 22px}
+#lb img{max-width:100%;max-height:calc(100% - 60px);border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.5);object-fit:contain}
+#lb .cap{color:#cfdbe2;font-size:13px;line-height:1.5;text-align:center;max-width:760px}
+#lb .cap b{display:block;color:#fff;margin-bottom:2px}
+#lb button{position:absolute;border:0;cursor:pointer;color:#fff;background:rgba(255,255,255,.12);border-radius:var(--r-pill);font:650 13px var(--font);
+  transition:background .15s}
+#lb button:hover{background:rgba(255,255,255,.24)}
+#lb .x{top:14px;right:16px;padding:8px 14px}
+#lb .pv,#lb .nx{top:50%;translate:0 -50%;width:42px;height:42px;font-size:18px}
+#lb .pv{left:12px} #lb .nx{right:12px}
+@media (max-width:620px){ #lb{padding:56px 10px 18px} #lb .pv,#lb .nx{top:auto;bottom:16px;translate:none} }
+
+/* ----------------------------------------------------------------- facts -- */
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.card{background:var(--surface);border-radius:var(--r-l);box-shadow:var(--sh-1);padding:18px 20px;border-top:3px solid var(--site)}
+.card.est{border-top-color:var(--amber)}
+.card h3{margin:0 0 4px;font-size:15px;color:var(--ink)}
+.card .src{margin:0 0 10px;font-size:12px;color:var(--muted)}
+.card ul{margin:0;padding-left:18px;color:var(--ink-2);font-size:13px;line-height:1.55}
+.card li{margin:7px 0}
+.card li b{color:var(--ink);font-weight:650}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:16px}
+.kpi{background:var(--surface);border-radius:var(--r-m);box-shadow:var(--sh-1);padding:14px 16px}
+.kpi .v{font-size:24px;font-weight:750;color:var(--brand);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.kpi .k{font-size:12px;color:var(--muted);margin-top:2px}
+.foot{margin-top:22px;font-size:11.5px;color:var(--muted);line-height:1.6}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
+</style>
+</head>
+<body class="tab-model">
+<header>
+  <a id="backatlas" href="../" title="Back to the BLN Atlas">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.6L4.6 8 10 13.4"/></svg>
+    <span>Atlas</span>
+  </a>
+  <div class="logo"><img alt="RenewaBlox" src="../assets/renewablox-wordmark.png"/></div>
+  <div class="divider"></div>
+  <div class="title">
+    <h1>BLN 3D: the BLOX cabinet in the powerhouse</h1>
+    <p>300 kW run-of-river hydro · concept, October 2026</p>
+  </div>
+  <nav class="ptabs" id="ptabs" role="tablist" aria-label="What the page shows">
+    <button type="button" role="tab" id="t-model" data-tab="model" aria-selected="true" aria-controls="p-model"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.8l5.6 3.1v6.2L8 14.2l-5.6-3.1V4.9z"/><path d="M2.4 4.9L8 8l5.6-3.1M8 8v6.2"/></svg>Model</button>
+    <button type="button" role="tab" id="t-flythrough" data-tab="flythrough" aria-selected="false" aria-controls="p-flythrough" tabindex="-1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.8" y="3.2" width="12.4" height="9.6" rx="1.6"/><path d="M6.6 6v4l3.6-2z"/></svg>Flythrough</button>
+    <button type="button" role="tab" id="t-stills" data-tab="stills" aria-selected="false" aria-controls="p-stills" tabindex="-1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.8" y="2.8" width="12.4" height="10.4" rx="1.6"/><circle cx="5.6" cy="6.4" r="1.2"/><path d="M2.4 12l3.6-3.4 2.6 2.4 2.2-2 3 2.8"/></svg>Stills</button>
+    <button type="button" role="tab" id="t-facts" data-tab="facts" aria-selected="false" aria-controls="p-facts" tabindex="-1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2.4h7.2L13 5.2v8.4H3z"/><path d="M5.4 8.2l1.6 1.6 3-3.2"/></svg>Measured &amp; assumed</button>
+  </nav>
+  <div class="chips" aria-label="The scheme in three figures">
+    <span class="chip" title="Generation">300 kW</span><span class="chip" title="Export limit">250 kW export</span><span class="chip blox" title="The surplus the BLOX cabinet takes">50 kW to BLOX</span>
+  </div>
+</header>
+
+<main id="stage">
+  <!-- ============================================================ model -->
+  <section class="view" id="p-model" role="tabpanel" aria-labelledby="t-model">
+    <nav class="panel" id="rail" aria-label="Camera and model">
+      <div class="rail-h">Camera</div>
+      <button type="button" data-v="exterior" aria-current="true" title="The powerhouse from outside (click again to reset the view)"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6.6L8 2.4l6 4.2v6.2a.8.8 0 0 1-.8.8H2.8a.8.8 0 0 1-.8-.8z"/><path d="M6.4 13.6V9.8h3.2v3.8"/></svg><span>Exterior</span></button>
+      <button type="button" data-v="cutaway" title="The north wall and roof slope lifted off"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6.6L8 2.4l6 4.2v6.2a.8.8 0 0 1-.8.8H2.8a.8.8 0 0 1-.8-.8z"/><path d="M2.6 13.4L13.4 6.4" stroke-dasharray="1.6 1.8"/></svg><span>Cutaway</span></button>
+      <button type="button" data-v="inside" title="The turbine hall, towards the east gable"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.6 8s2.4-4.4 6.4-4.4S14.4 8 14.4 8s-2.4 4.4-6.4 4.4S1.6 8 1.6 8z"/><circle cx="8" cy="8" r="2"/></svg><span>Inside</span></button>
+      <button type="button" data-v="cabinet" title="The BLOX cabinet from the walkway"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.4" y="1.8" width="9.2" height="12.4" rx="1.2"/><path d="M3.4 5.8h9.2M3.4 9.8h9.2M6 3.8h.01M6 7.8h.01M6 11.8h.01"/></svg><span>BLOX cabinet</span></button>
+      <button type="button" data-v="vent" title="The hot-air space behind the cabinet, and the wall fan"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M8 8c0-2.2.9-3.6 2.4-3.6M8 8c1.9 1.1 2.7 2.6 1.9 3.9M8 8c-1.9 1.1-3.6 1-4.3-.3"/><circle cx="8" cy="8" r=".9" fill="currentColor"/></svg><span>Ventilation</span></button>
+      <div class="sep"></div>
+      <div class="rail-h">Show</div>
+      <button type="button" class="tg" id="b-door" aria-pressed="false" title="Swing the cabinet's filter door open to see the miners"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 14.2V1.8h6.4v12.4"/><path d="M9.8 1.8l3 1.4v12.2l-3-1.2"/></svg><span>Open cabinet</span></button>
+      <button type="button" class="tg" id="b-air" aria-pressed="false" title="Draw the cold-in, hot-out airflow"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.8 5.6h8.4a2 2 0 1 0-2-2M1.8 10.4h10.4a2 2 0 1 1-2 2M1.8 8h6"/></svg><span>Airflow</span></button>
+      <button type="button" class="tg" id="b-hs" aria-pressed="true" title="Show or hide the markers"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 14.4s4.6-4.2 4.6-7.6A4.6 4.6 0 0 0 3.4 6.8c0 3.4 4.6 7.6 4.6 7.6z"/><circle cx="8" cy="6.8" r="1.6"/></svg><span>Markers</span></button>
+      <button type="button" class="tg" id="b-rot" aria-pressed="false" title="Turn the model slowly"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13.4 8A5.4 5.4 0 1 1 11.8 4.2"/><path d="M13.6 2.2v3h-3"/></svg><span>Turn slowly</span></button>
+    </nav>
+    <model-viewer id="mv" data-model="ext"
+      src="../assets/bln_powerhouse.glb"
+      alt="3D model of the BLN hydro powerhouse with the BLOX data-centre cabinet"
+      camera-controls touch-action="none" interaction-prompt="none"
+      camera-orbit="135deg 66deg 30m" camera-target="4.3m 1.4m 0m" field-of-view="30deg" max-field-of-view="70deg"
+      min-camera-orbit="auto 10deg 1.5m" max-camera-orbit="auto 89deg 80m"
+      environment-image="neutral" exposure="0.95" shadow-intensity="0.7" shadow-softness="0.8"
+      tone-mapping="neutral" loading="eager" reveal="auto">
+
+      <!-- glTF space is Y-up, in metres: x east along the axis (grid 1 = 0), y up from the floor, z south -->
+      <button class="hotspot blox" slot="hotspot-blox" data-position="7.75m 1.1m 0.27m" data-normal="-1 0 0" aria-label="BLOX cabinet" aria-describedby="n-blox" aria-expanded="false">
+        <span class="lbl" id="n-blox"><b>BLOX cabinet</b>A 47U air-cooled cabinet, 800 × 1000 × 2200 mm: 15 Whatsminer M50S-class miners on 7 shelves behind a three-filter door. It stands in line with the Gilkes panels, in the gap between the HMI panel and the gable post. <i>Open cabinet</i> shows inside.</span></button>
+      <button class="hotspot cut-only" slot="hotspot-vent" data-position="9.15m 1.6m 0.27m" data-normal="-1 0 0" aria-label="Hot-air space" aria-describedby="n-vent" aria-expanded="false">
+        <span class="lbl" id="n-vent"><b>0.75 m hot-air space</b>Between the cabinet's custom rear panel and the gable. Each miner exhausts through a shroud into this space and the wall fan pulls it outside, so none recirculates to the cold side. <i>Airflow</i> draws the path.</span></button>
+      <button class="hotspot cut-only" slot="hotspot-fan" data-position="9.45m 2.85m 0.27m" data-normal="-1 0 0" aria-label="Extraction fan" aria-describedby="n-fan" aria-expanded="false">
+        <span class="lbl" id="n-fan"><b>Wall extraction fan</b>A 630 mm axial fan in the east gable, about 9,000 m³/h, with a louvred cowl outside: it carries the cabinet's hot exhaust out of the building.</span></button>
+      <button class="hotspot cut-only" slot="hotspot-panels" data-position="7.75m 1.0m -1.4m" data-normal="-1 0 0" aria-label="Control panels" aria-describedby="n-panels" aria-expanded="false">
+        <span class="lbl" id="n-panels"><b>Gilkes control panels</b>The existing four-door control and protection suite, 800 mm deep, standing 950 mm off the east gable, with the walkway in front of it from the turbine casing.</span></button>
+      <button class="hotspot cut-only" slot="hotspot-gen" data-position="3.6m 1.15m 0m" data-normal="0 1 0" aria-label="Generator" aria-describedby="n-gen" aria-expanded="false">
+        <span class="lbl" id="n-gen"><b>Generator</b>The 300 kW set on its plinth. Export is limited to 250 kW: the 50 kW surplus is what the BLOX cabinet takes.</span></button>
+      <button class="hotspot cut-only" slot="hotspot-turgo" data-position="5.75m 0.9m 0m" data-normal="0 1 0" aria-label="Turgo turbine" aria-describedby="n-turgo" aria-expanded="false">
+        <span class="lbl" id="n-turgo"><b>Gilkes twin-jet Turgo</b>Casing and bifurcation on the building's axis, with a spear valve either side.</span></button>
+      <button class="hotspot" slot="hotspot-chamber" data-position="-2.8m 1.4m 0m" data-normal="0 1 0" aria-label="Inlet chamber" aria-describedby="n-chamber" aria-expanded="false">
+        <span class="lbl" id="n-chamber"><b>Inlet chamber and penstock</b>A concrete chamber, 5.6 × 2.85 m, on the west gable; the penstock enters on the axis.</span></button>
+      <button class="hotspot" slot="hotspot-dno" data-position="13.15m 1.2m 2.3m" data-normal="0 1 0" aria-label="Grid compound" aria-describedby="n-dno" aria-expanded="false">
+        <span class="lbl" id="n-dno"><b>Grid compound</b>The connection compound east of the building, 5.0 × 4.7 m, at +183.2 m.</span></button>
+      <button class="hotspot ext-only" slot="hotspot-door" data-position="6.5m 1.1m -3.1m" data-normal="0 0 -1" aria-label="Access door" aria-describedby="n-door" aria-expanded="false">
+        <span class="lbl" id="n-door"><b>Access door</b>A 1.75 m double door on the north wall, with a concrete apron.</span></button>
+    </model-viewer>
+    <div id="swapbar"><i></i></div>
+    <div id="loading" role="status"><span id="loadmsg">Loading the powerhouse</span><div class="bar"><i id="loadbar"></i></div></div>
+
+    <div class="panel" id="caption" aria-live="polite">
+      <div class="k" id="cap-k">Camera · Exterior</div>
+      <h2 id="cap-h">The powerhouse</h2>
+      <p id="cap-p"></p>
+      <div id="legend" hidden><span><i style="background:var(--cold)"></i>Cold air in through the filter door</span><span><i style="background:var(--hot)"></i>Hot exhaust out through the wall fan</span></div>
+      <button type="button" id="capmore">More</button>
+    </div>
+    <div class="hint"><span class="f">Drag to turn · scroll or pinch to zoom · right-drag or two fingers to pan · the markers explain each part</span><span class="s">Drag to turn · pinch to zoom · tap a marker</span></div>
+  </section>
+
+  <!-- ======================================================= flythrough -->
+  <section class="view page" id="p-flythrough" role="tabpanel" aria-labelledby="t-flythrough" hidden>
+    <div class="wrap">
+      <h2>Flythrough</h2>
+      <p class="sub">54 seconds: up the track to the powerhouse, round the building, in through the door and across the turbine hall to the BLOX cabinet, which opens on its miners.</p>
+      <div class="vidcard">
+        <video id="fly" controls preload="none" playsinline poster="../assets/flythrough_poster.jpg">
+          <source src="../assets/bln_flythrough_720p.mp4" type="video/mp4"/>
+          This browser cannot play the video. <a href="../assets/bln_flythrough_720p.mp4">Download the MP4</a>.
+        </video>
+      </div>
+      <div class="vidmeta"><span class="chip">54 s</span><span class="chip">720p · H.264</span><span class="chip">Terrain indicative</span></div>
+    </div>
+  </section>
+
+  <!-- =========================================================== stills -->
+  <section class="view page" id="p-stills" role="tabpanel" aria-labelledby="t-stills" hidden>
+    <div class="wrap">
+      <h2>Stills</h2>
+      <p class="sub">Rendered views of the model. Click one to see it full size; the arrow keys step through them.</p>
+      <div class="grid" id="gallery">
+        <button type="button" class="still" data-full="../assets/approach.jpg"><img src="../assets/approach_thumb.jpg" alt="The powerhouse from the north-east" loading="lazy"/><span><b>Approach</b>The north-east corner, the door and the north louvre</span></button>
+        <button type="button" class="still" data-full="../assets/aerial.jpg"><img src="../assets/aerial_thumb.jpg" alt="Aerial view of the powerhouse" loading="lazy"/><span><b>Aerial</b>The powerhouse, the grid compound, the pole line and the track (terrain indicative)</span></button>
+        <button type="button" class="still" data-full="../assets/turbine-hall.jpg"><img src="../assets/turbine-hall_thumb.jpg" alt="The turbine hall" loading="lazy"/><span><b>Turbine hall</b>The Gilkes Turgo set and the panels, with the BLOX cabinet beyond</span></button>
+        <button type="button" class="still" data-full="../assets/blox-cabinet.jpg"><img src="../assets/blox-cabinet_thumb.jpg" alt="The BLOX cabinet beside the control panels" loading="lazy"/><span><b>BLOX cabinet</b>In line with the Gilkes panels in the gap beside the HMI panel: 0.75 m to the wall behind it, the extraction fan above</span></button>
+        <button type="button" class="still" data-full="../assets/blox-open.jpg"><img src="../assets/blox-open_thumb.jpg" alt="The BLOX cabinet with its filter door open" loading="lazy"/><span><b>Inside the cabinet</b>The filter door open: 15 M50S-class miners on 7 shelves, their exhausts ducted to the rear panel</span></button>
+        <button type="button" class="still" data-full="../assets/cutaway.jpg"><img src="../assets/cutaway_thumb.jpg" alt="Cutaway of the powerhouse" loading="lazy"/><span><b>Cutaway</b>The north wall and roof slope removed</span></button>
+        <button type="button" class="still" data-full="../assets/west-gable.jpg"><img src="../assets/west-gable_thumb.jpg" alt="The west gable and the inlet chamber" loading="lazy"/><span><b>West gable</b>The inlet chamber and the high louvre</span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================ facts -->
+  <section class="view page" id="p-facts" role="tabpanel" aria-labelledby="t-facts" hidden>
+    <div class="wrap">
+      <h2>What is measured, and what is assumed</h2>
+      <p class="sub">So the engineering review knows what to trust. The building and machine come from the drawing and the site photographs; where neither says, the model says so here.</p>
+      <div class="cols">
+        <div class="card">
+          <h3>From the drawing and the site photographs</h3>
+          <p class="src">Substructure drawing C-301 rev A (2016), the October 2026 site photographs and the Design Overview of 16 October 2026</p>
+          <ul>
+            <li><b>Portal frame</b>: 3 frames at 4.264 m centres, 5.486 m span; slab 9.0 × 6.1 m</li>
+            <li><b>Levels</b>: floor +184.000, machine area +183.700, grid compound +183.200</li>
+            <li><b>Door and apron</b>: a 1.75 m opening on the north wall, a 3.55 × 1.60 m apron, a 600 mm manhole</li>
+            <li><b>Machine</b>: the gate valve, bifurcation, generator, spear valves and casing at their positions along the axis</li>
+            <li><b>Inlet chamber</b>: 5.6 × 2.85 m, wall top +185.323</li>
+            <li><b>Inside</b>: white liner, monorail crane, louvres and trenches; the Gilkes panels 950 mm off the east gable with a clear walkway from the turbine casing; the BLOX cabinet in line with them in the gap beside the HMI panel, with 0.75 m of hot-air space behind it</li>
+            <li><b>BLOX cabinet and fan</b>: an 800 × 1000 × 2200 mm cabinet and a 630 mm extraction fan</li>
+          </ul>
+        </div>
+        <div class="card est">
+          <h3>Assumed: please check</h3>
+          <p class="src">Each is one setting in the model, so a measurement replaces it directly</p>
+          <ul>
+            <li><b>Room length</b>: the east bay is drawn 0.85 m longer than the 2016 drawing (grid 3 at 9.38 m, not 8.53 m) so that the walkway seen on site <i>and</i> the service space behind the panels and the cabinet both fit. The engineers confirm both exist; two tape measurements (casing end to panel front, panel back to wall) will replace the stretch</li>
+            <li><b>Exterior colours</b>: green vertical-rib cladding and a grey roof; no exterior photograph was available</li>
+            <li><b>Heights</b>: eaves 3.95 m, a 15° pitch, ridge 4.77 m, scaled from photographs</li>
+            <li><b>South-wall louvre</b>, and the exact bracing and trench layout</li>
+            <li><b>Terrain, burn, track, fence and pole line</b>: procedural and indicative, not surveyed</li>
+            <li><b>Orientation</b>: the building's axis east–west with the door facing north, lit from the south-east</li>
+          </ul>
+        </div>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><div class="v">300 kW</div><div class="k">generation</div></div>
+        <div class="kpi"><div class="v">250 kW</div><div class="k">export limit</div></div>
+        <div class="kpi"><div class="v">50 kW</div><div class="k">surplus to the BLOX cabinet</div></div>
+        <div class="kpi"><div class="v">15</div><div class="k">Whatsminer M50S-class miners, air-cooled</div></div>
+      </div>
+      <p class="foot">RenewaBlox · BLN concept visualisation, October 2026. A procedural model built in Blender; the building's dimensions come from the substructure drawing, the terrain is indicative. In the browser the procedural finishes (cladding ribs, concrete) show as flat colours. Not for construction.</p>
+    </div>
+  </section>
+</main>
+
+<div id="lb" role="dialog" aria-modal="true" aria-label="Still" hidden>
+  <button type="button" class="x" id="lb-x">Close ✕</button>
+  <button type="button" class="pv" id="lb-pv" aria-label="Previous still">‹</button>
+  <img id="lb-img" alt=""/>
+  <div class="cap" id="lb-cap"></div>
+  <button type="button" class="nx" id="lb-nx" aria-label="Next still">›</button>
+</div>
+
+<script type="module" src="../assets/model-viewer.min.js"></script>
+<script>
+(function(){
+  const $ = (id) => document.getElementById(id);
+  const mv = $('mv');
+  const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ------------------------------------------------------------ the tabs */
+  const TABS = ['model', 'flythrough', 'stills', 'facts'];
+  const tabBtns = [...document.querySelectorAll('#ptabs [role=tab]')];
+  function setTab(t, focus){
+    if (!TABS.includes(t)) t = 'model';
+    tabBtns.forEach((b) => {
+      const on = b.dataset.tab === t;
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+      b.tabIndex = on ? 0 : -1;
+      if (on && focus) b.focus();
+    });
+    TABS.forEach((k) => { $('p-' + k).hidden = k !== t; });
+    document.body.className = document.body.className.replace(/\btab-\w+/, '') + ' tab-' + t;
+    if (t !== 'flythrough') $('fly').pause();
+    // the model's panels were measured while hidden: measure them again now they show
+    if (t === 'model') { clampCaption(); railEdges(); requestAnimationFrame(occlusion); }
+    // the address remembers the tab (in the hash, replacing any ?tab=), without a history step per click
+    const u = new URL(location.href);
+    u.searchParams.delete('tab');
+    u.hash = t === 'model' ? '' : t;
+    history.replaceState(null, '', u);
+  }
+  tabBtns.forEach((b, i) => {
+    b.addEventListener('click', () => setTab(b.dataset.tab));
+    b.addEventListener('keydown', (e) => {
+      const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+      if (d) { e.preventDefault(); setTab(tabBtns[(i + d + tabBtns.length) % tabBtns.length].dataset.tab, true); }
+    });
+  });
+
+  /* ---------------------------------------------------- the two models */
+  const SRC = { ext: '../assets/bln_powerhouse.glb', cut: '../assets/bln_powerhouse_cutaway.glb' };
+  // Camera presets from the handover: orbit theta 0 looks from the south, 90 from the east,
+  // 180 from the north, negative from the west. max-field-of-view on the element lets the wide ones through.
+  const VIEWS = {
+    exterior: { model: 'ext', orbit: '135deg 66deg 30m', target: '4.3m 1.4m 0m', fov: '30deg',
+      k: 'Exterior', h: 'The powerhouse',
+      p: 'A steel portal-frame building, 9.85 × 6.1 m, with the inlet chamber on its west gable and the grid compound to the east. The BLOX cabinet is inside, by the east gable. Terrain is indicative.' },
+    cutaway: { model: 'cut', orbit: '160deg 52deg 24m', target: '4.3m 1.4m 0m', fov: '30deg',
+      k: 'Cutaway', h: 'Inside, with the north wall lifted off',
+      p: 'The north wall and its roof slope are removed and the door is open. The penstock, turbine and generator run along the axis; the control panels and the BLOX cabinet stand by the east gable.' },
+    inside: { model: 'cut', orbit: '-152deg 72deg 7.5m', target: '8.1m 1.1m 0m', fov: '55deg',
+      k: 'Inside', h: 'The turbine hall',
+      p: 'From the turbine casing towards the east gable: the Gilkes panel suite, and the BLOX cabinet in line with it in the gap beside the HMI panel, with the walkway in front.' },
+    cabinet: { model: 'cut', orbit: '-104deg 83deg 1.75m', target: '8.26m 1.15m 0.27m', fov: '65deg',
+      k: 'BLOX cabinet', h: 'The BLOX cabinet',
+      p: '800 × 1000 × 2200 mm and air-cooled: 15 Whatsminer M50S-class miners on 7 shelves behind a three-filter door. It takes the 50 kW the export limit leaves. Open cabinet swings the door.' },
+    vent: { model: 'cut', orbit: '-32deg 78deg 2.9m', target: '9.1m 1.7m 0.4m', fov: '60deg', air: true,
+      k: 'Ventilation', h: 'The hot-air space and the wall fan',
+      p: 'The 0.75 m between the cabinet’s rear panel and the gable. Each miner exhausts into it and the 630 mm wall fan, about 9,000 m³/h, pulls the heat outside, so none returns to the cold side.' },
+  };
+  let view = 'exterior', current = 'ext', airOn = false, doorOpen = false, doorRaf = 0, firstLoad = true;
+  let doorQueued = null;   // a door opening asked for while the cutaway model is still on its way
+  let pending = null;      // the view to apply once the other model has loaded
+  let settleT = 0;         // the second application of that view, cancelled by any later choice
+
+  function go(v){ mv.cameraOrbit = v.orbit; mv.cameraTarget = v.target; mv.fieldOfView = v.fov; }
+  const swapping = () => $('swapbar').classList.contains('on');
+  // A new model re-frames the camera when it loads, so a view that needs the other model is applied
+  // on its load event (and once more a moment later, after model-viewer's own framing has settled).
+  function show(name, note){
+    const v = VIEWS[name];
+    clearTimeout(settleT);
+    view = name;
+    document.querySelectorAll('#rail [data-v]').forEach((b) => b.setAttribute('aria-current', b.dataset.v === name ? 'true' : 'false'));
+    $('cap-k').textContent = 'Camera · ' + v.k; $('cap-h').textContent = v.h; $('cap-p').textContent = note || v.p;
+    $('caption').classList.remove('more');
+    clampCaption();
+    if (v.air && !airOn) setAir(true);
+    else if (v.model === 'ext' && airOn) setAir(false);   // the arrows are inside: none to draw from outside
+    if (v.model === current) { pending = null; go(v); return; }
+    pending = v;
+    current = v.model;
+    mv.dataset.model = v.model;
+    mv.src = SRC[v.model];
+    $('swapbar').classList.add('on');
+  }
+  mv.addEventListener('load', () => {
+    doorOpen = false; pressed('b-door', false);
+    applyAir();
+    $('swapbar').classList.remove('on'); $('swapbar').firstElementChild.style.width = '0';
+    if (pending) { const v = pending; pending = null; go(v); settleT = setTimeout(() => go(v), 400); }
+    if (firstLoad) {
+      firstLoad = false;
+      // with no WebGL the model still parses and 'loads': keep the message up rather than a blank stage
+      if (!$('loading').classList.contains('failed')) {
+        $('loading').classList.add('hide');
+        document.body.classList.add('ready');
+        clampCaption(); railEdges();
+        // warm the cache with the cutaway, so the first look inside is quick
+        setTimeout(() => { fetch(SRC.cut, { credentials: 'same-origin' }).catch(() => {}); }, 1500);
+      }
+    }
+    if (doorQueued !== null) { const o = doorQueued; doorQueued = null; seekDoor(o); }
+    setTimeout(occlusion, 600);
+  });
+  mv.addEventListener('progress', (e) => {
+    const p = Math.round(e.detail.totalProgress * 100) + '%';
+    if (firstLoad) $('loadbar').style.width = p; else $('swapbar').firstElementChild.style.width = p;
+  });
+  mv.addEventListener('error', (e) => {
+    // a lost WebGL context (a phone switching apps) is restored by three.js and model-viewer redraws
+    if (e.detail && e.detail.type === 'webglcontextlost') return;
+    if (!firstLoad) {
+      // the other model failed to arrive: go back to the one that is here, and say so
+      $('swapbar').classList.remove('on'); doorQueued = null; pending = null;
+      const back = current === 'cut' ? 'exterior' : 'cutaway';
+      current = null;   // so show() points src back at the model that loaded (from the cache)
+      show(back, 'That view could not be loaded just now. Please try again.');
+      return;
+    }
+    failed('The 3D model could not be loaded here.');
+  });
+  function failed(msg){
+    const l = $('loading'); l.classList.remove('hide'); l.classList.add('failed');
+    $('loadmsg').innerHTML = msg + ' The <a href="#flythrough">flythrough</a> and <a href="#stills">stills</a> show the same model.';
+    l.querySelectorAll('a').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); setTab(a.getAttribute('href').slice(1)); }));
+  }
+  // Opened straight from a folder, the browser will not fetch the model; say so rather than spin.
+  if (location.protocol === 'file:') failed('Opened from a folder, the browser will not load the 3D model; serve the folder over http(s).');
+  else {
+    const c = document.createElement('canvas');
+    if (!(c.getContext('webgl2') || c.getContext('webgl'))) failed('This browser cannot show 3D (WebGL is off).');
+  }
+  // model-viewer is a module: if it never arrives, do not spin for ever
+  setTimeout(() => { if (firstLoad && !$('loading').classList.contains('failed') && !customElements.get('model-viewer')) failed('The 3D viewer did not load.'); }, 15000);
+
+  document.querySelectorAll('#rail [data-v]').forEach((b) => b.addEventListener('click', () => show(b.dataset.v)));
+  // on a phone the caption shows two lines; "More" appears only when there is more to show
+  function clampCaption(){
+    const p = $('cap-p'), more = $('caption').classList.contains('more');
+    $('capmore').hidden = !more && p.scrollHeight <= p.clientHeight + 1;
+    $('capmore').textContent = more ? 'Less' : 'More';
+  }
+  $('capmore').addEventListener('click', () => { $('caption').classList.toggle('more'); clampCaption(); });
+  // the strip of controls along a phone's bottom edge scrolls: fade the edge that has more beyond it
+  function railEdges(){
+    const r = $('rail'), wide = r.scrollWidth > r.clientWidth + 1;
+    r.classList.toggle('more-l', wide && r.scrollLeft > 1);
+    r.classList.toggle('more-r', wide && r.scrollLeft + r.clientWidth < r.scrollWidth - 1);
+  }
+  $('rail').addEventListener('scroll', railEdges, { passive: true });
+  addEventListener('resize', () => { clampCaption(); railEdges(); queueOcclusion(); });
+  // measure again once the house font has arrived, since it sets where the lines break
+  if (document.fonts) document.fonts.ready.then(() => { clampCaption(); railEdges(); });
+
+  /* --------------------------------------------------------- toggles */
+  function pressed(id, on){ $(id).setAttribute('aria-pressed', on ? 'true' : 'false'); }
+  $('b-rot').addEventListener('click', () => { const on = !mv.hasAttribute('auto-rotate'); mv.toggleAttribute('auto-rotate', on); pressed('b-rot', on); });
+  $('b-hs').addEventListener('click', () => { const off = mv.classList.toggle('markers-off'); pressed('b-hs', !off); if (!off) setTimeout(occlusion, 50); });
+
+  // The cabinet's filter door: the glTF animation "open_cabinet" (1.04 s, 0 to 95 degrees) exists in the
+  // cutaway model only. It is driven by seeking, so it opens and closes the same way every time.
+  function seekDoor(open){
+    if (!mv.availableAnimations || !mv.availableAnimations.includes('open_cabinet')) return;
+    mv.animationName = 'open_cabinet'; mv.pause();
+    const from = mv.currentTime || 0, t0 = performance.now(), T = REDUCED ? 1 : 900;
+    cancelAnimationFrame(doorRaf);
+    const step = (now) => {
+      // the clip's length is known once model-viewer has picked it up (a frame later), and the clip
+      // loops, so a seek to its full length would wrap to the first frame: stop a millisecond short
+      const to = open ? (mv.duration || 1) - 0.001 : 0;
+      const k = Math.min(1, (now - t0) / T), e = k < .5 ? 2 * k * k : 1 - 2 * (1 - k) * (1 - k);
+      mv.currentTime = from + (to - from) * e;
+      if (k < 1) doorRaf = requestAnimationFrame(step);
+    };
+    doorRaf = requestAnimationFrame(step);
+    doorOpen = open; pressed('b-door', open);
+  }
+  $('b-door').addEventListener('click', () => {
+    const open = !doorOpen;
+    // the door faces the walkway: from anywhere it cannot be seen, go to the cabinet first
+    if (view !== 'cabinet' && view !== 'inside') show('cabinet');
+    // while the cutaway is on its way, the door opens when it arrives
+    if (swapping()) { doorQueued = open; doorOpen = open; pressed('b-door', open); return; }
+    seekDoor(open);
+  });
+
+  // The airflow arrows (materials air_cold and air_hot, cutaway model only) are exported opaque;
+  // they are hidden by alpha until switched on. The burn's water is exported as near-black glass,
+  // which reads as a black band in the browser, so it is given a river's colour instead.
+  function applyAir(){
+    if (!mv.model) return;
+    for (const m of mv.model.materials) {
+      const pbr = m.pbrMetallicRoughness;
+      if (m.name === 'water') {
+        if (m.transmissionFactor) m.setTransmissionFactor(0);
+        pbr.setBaseColorFactor([0.07, 0.13, 0.17, 1]); pbr.setRoughnessFactor(0.14); pbr.setMetallicFactor(0);
+      }
+      if (m.name !== 'air_cold' && m.name !== 'air_hot') continue;
+      const c = pbr.baseColorFactor;
+      m.setAlphaMode('BLEND');
+      pbr.setBaseColorFactor([c[0], c[1], c[2], airOn ? 0.9 : 0.0]);
+    }
+  }
+  function setAir(on){
+    airOn = on; pressed('b-air', on); $('legend').hidden = !on;
+    applyAir();
+  }
+  $('b-air').addEventListener('click', () => {
+    setAir(!airOn);
+    // the arrows live inside the building: from outside, step in to where they can be seen
+    if (airOn && current !== 'cut') show('inside');
+  });
+
+  /* ------------------------------------------------------- the markers */
+  const moved = () => document.body.classList.add('moved');
+  mv.addEventListener('camera-change', (e) => {
+    if (e.detail && e.detail.source === 'user-interaction') { clearTimeout(settleT); moved(); }
+    queueOcclusion();
+  });
+  // A note opens on whichever side of its marker has room, is kept inside the model's frame and clear of
+  // the rail and the caption, and is drawn above the other markers.
+  const hotspots = [...document.querySelectorAll('.hotspot')];
+  function fitNote(h){
+    const l = h.querySelector('.lbl'), box = mv.getBoundingClientRect(), r0 = h.getBoundingClientRect();
+    l.style.translate = '';
+    h.classList.toggle('left', r0.left + r0.width / 2 > box.left + box.width / 2);
+    const wrap = h.assignedSlot && h.assignedSlot.parentElement;
+    hotspots.forEach((o) => { const w = o.assignedSlot && o.assignedSlot.parentElement; if (w) w.style.zIndex = ''; });
+    if (wrap) wrap.style.zIndex = '1';
+    requestAnimationFrame(() => {
+      const r = l.getBoundingClientRect();
+      if (!r.width) return;
+      let x0 = box.left + 8, x1 = box.right - 8, y0 = box.top + 8, y1 = box.bottom - 8;
+      for (const id of ['rail', 'caption']) {
+        const p = $(id).getBoundingClientRect();
+        if (!p.width || r.bottom < p.top || r.top > p.bottom) continue;
+        if (p.right < box.left + box.width / 2) x0 = Math.max(x0, p.right + 8); else x1 = Math.min(x1, p.left - 8);
+      }
+      const dx = r.width > x1 - x0 ? x0 - r.left : Math.max(x0 - r.left, Math.min(0, x1 - r.right));
+      const dy = Math.max(y0 - r.top, Math.min(0, y1 - r.bottom));
+      if (dx || dy) l.style.translate = dx + 'px ' + dy + 'px';
+    });
+  }
+  function closeNotes(except){
+    hotspots.forEach((o) => { if (o !== except) { o.classList.remove('open'); o.setAttribute('aria-expanded', 'false'); } });
+  }
+  hotspots.forEach((h) => {
+    h.addEventListener('pointerenter', () => fitNote(h));
+    h.addEventListener('focus', () => fitNote(h));
+    // on a touch screen a note opens on a tap and closes on a second tap, or a tap anywhere else
+    h.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeNotes(h);
+      const open = !h.classList.contains('open');
+      h.classList.toggle('open', open); h.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (open) fitNote(h);
+    });
+  });
+  mv.addEventListener('click', () => closeNotes(null));
+
+  // model-viewer dims a marker whose surface faces away, but not one hidden behind something solid
+  // (the inlet chamber seen through the roof). Cast a ray at each marker and dim it when the first
+  // surface the ray meets lies well in front of it. A marker off the edge of the frame leaves the Tab order.
+  let occTimer = 0;
+  function queueOcclusion(){ clearTimeout(occTimer); occTimer = setTimeout(occlusion, 200); }
+  function occlusion(){
+    clearTimeout(occTimer);
+    if (!mv.loaded || mv.classList.contains('markers-off') || $('p-model').hidden) return;
+    const o = mv.getCameraOrbit(), t = mv.getCameraTarget(), box = mv.getBoundingClientRect();
+    const cam = [t.x + o.radius * Math.sin(o.phi) * Math.sin(o.theta), t.y + o.radius * Math.cos(o.phi), t.z + o.radius * Math.sin(o.phi) * Math.cos(o.theta)];
+    const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
+    for (const h of hotspots) {
+      const r = h.getBoundingClientRect();
+      if (!r.width) { h.classList.remove('behind'); continue; }
+      const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      h.tabIndex = (cx < box.left || cx > box.right || cy < box.top || cy > box.bottom) ? -1 : 0;
+      // positionAndNormalFromPoint takes the point in the page's coordinates
+      const hit = mv.positionAndNormalFromPoint(cx, cy);
+      const p = h.dataset.position.split(' ').map(parseFloat);
+      h.classList.toggle('behind', !!hit && dist(cam, [hit.position.x, hit.position.y, hit.position.z]) < dist(cam, p) - 0.35);
+    }
+  }
+  show('exterior');
+
+  /* --------------------------------------------------------- lightbox */
+  const stills = [...document.querySelectorAll('#gallery .still')];
+  let at = 0, opener = null;
+  function openLb(i){
+    at = (i + stills.length) % stills.length;
+    const s = stills[at];
+    $('lb-img').src = s.dataset.full; $('lb-img').alt = s.querySelector('img').alt;
+    $('lb-cap').innerHTML = s.querySelector('span').innerHTML;
+    if ($('lb').hidden) { opener = document.activeElement; $('lb').hidden = false; $('lb-x').focus(); }
+  }
+  function closeLb(){ $('lb').hidden = true; $('lb-img').removeAttribute('src'); if (opener) opener.focus(); }
+  stills.forEach((s, i) => s.addEventListener('click', () => openLb(i)));
+  $('lb-x').addEventListener('click', closeLb);
+  $('lb-pv').addEventListener('click', () => openLb(at - 1));
+  $('lb-nx').addEventListener('click', () => openLb(at + 1));
+  $('lb').addEventListener('click', (e) => { if (e.target === $('lb')) closeLb(); });
+  document.addEventListener('keydown', (e) => {
+    if ($('lb').hidden) return;
+    if (e.key === 'Escape') closeLb();
+    else if (e.key === 'ArrowLeft') openLb(at - 1);
+    else if (e.key === 'ArrowRight') openLb(at + 1);
+    else if (e.key === 'Tab') {   // keep focus inside the dialog
+      const f = [$('lb-x'), $('lb-pv'), $('lb-nx')], i = f.indexOf(document.activeElement);
+      e.preventDefault(); f[(i + (e.shiftKey ? -1 : 1) + f.length) % f.length].focus();
+    }
+  });
+
+  // last, once everything above exists: open on the tab the address asks for
+  setTab((new URLSearchParams(location.search).get('tab')) || location.hash.slice(1));
+})();
+</script>
+</body>
+</html>

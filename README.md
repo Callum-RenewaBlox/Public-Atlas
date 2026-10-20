@@ -425,6 +425,100 @@ folder, where the live sources are called directly):
     python ai/build.py
     python -m http.server 8900 -d ai/site      # then open http://localhost:8900/
 
+## atlas.renewablox.com — client pages
+
+Atlas (the `renewablox-atlas` Netlify project) is deployed by upload from a folder of its own: its
+front page, `/investors/`, `/market/` and `/portal/` are not in this repository. The client pages it
+carries are, in `atlas/`, one folder per client, each named by the client's code and nothing else.
+BLN is the first:
+
+| Address | Page |
+| --- | --- |
+| `/bln/` | BLN Atlas (`atlas/bln/index.html`): the hydro powerhouse on the satellite imagery, with the BLOX badge |
+| `/bln/3d/` | BLN 3D (`atlas/bln/3d/index.html`): the 3D render the badge opens |
+
+**BLN Atlas** is the site-atlas pattern on a static host: a full-window Leaflet map on Esri World
+Imagery under the house brand bar, the powerhouse, its inlet chamber and its grid compound drawn from
+the 3D model's own plan (so the map and the render agree; each opens its note from the keyboard as
+well as the mouse), and a pulsing BLOX badge on the powerhouse with its "Open the 3D render" pill
+standing above it (not along the building, where it would cover the inlet chamber), a matching row in
+the powerhouse's popup and a "3D render" button in the bar, which stays live when the bar fades at
+close zoom. Each opens `3d/` in the same window; the render's "Atlas" pill and the browser's Back come
+back. The labels appear from zoom 18, the inlet's from 19. The powerhouse's place on the imagery is one line, `SITE` (the slab's centre and the compass
+bearing of its long axis, west gable to east gable). It was set from published records, not from the
+imagery, so it carries `confirmed:false` and the build warns until it is checked: open
+`/bln/?place` (the drawing and the badge then let clicks through to the imagery), click the middle
+of the roof, turn the footprint with `[` and `]` (Shift for 10°) until it sits on the building, copy
+the line it prints into `SITE` and rebuild.
+
+**BLN 3D** is the handover's model-viewer page re-made in the house style of the Bryn 3D page: the
+header with the "Atlas" pill, wordmark and tabs (**Model**, **Flythrough**, **Stills**, **Measured &
+assumed**; `#flythrough`, `#stills`, `#facts` or `?tab=` open on one), and on Model the whole window
+for the model, a camera rail (Exterior, Cutaway, Inside, BLOX cabinet, Ventilation, then the Open
+cabinet, Airflow, Markers and Turn slowly switches; a bottom strip on a phone) and a caption that
+follows the view. It keeps the handover's mechanics: two models swapped by `src` with the camera preset
+re-applied on load, `max-field-of-view="70deg"` so the wide presets get through, the cabinet door driven
+by seeking the cutaway's `open_cabinet` clip, and the airflow arrows (materials `air_cold`, `air_hot`)
+shown by alpha. Three things differ from the handover page. The clip loops, so seeking to its full
+length wraps to frame 0 and the door snapped shut on its last frame; the page stops a millisecond
+short. The burn's water is exported as near-black glass (85% transmission) and showed as a black band;
+the page turns the transmission off and gives it a river's colour on load. And a marker behind
+something solid (the inlet chamber seen through the roof, the cabinet from outside) is dimmed by a ray
+cast at it once the camera settles, as model-viewer already dims one facing away; a dimmed marker comes
+up to full strength when pointed at or opened, and one off the edge of the frame leaves the Tab order.
+A marker's note is its button's description, opens on whichever side has room and is kept on screen,
+clear of the rail and the caption. The cutaway model is fetched into the cache shortly after the first
+model is on screen; Open cabinet pressed while it is on its way opens the door when it arrives; if it
+fails to arrive the page goes back to the model it has and says so, and a lost WebGL context (a phone
+switching apps) is left to model-viewer to restore.
+
+**Anonymity.** The handover package named the site in three places that a browser would show: the
+page text, a line of 3D text on the cabinet's nameplate in both GLBs ("BLOX.  <site> 50 kW") and the
+flythrough's opening title card. In `atlas/bln/assets/` the nameplate line has had the name cut out of
+its mesh (it reads "BLOX.  50 kW"; the cut vertices are overwritten, not hidden) and the flythrough's
+first three seconds are rebuilt from its first clean frame under a new card reading "BLN · BLOX data
+centre", fading in and out as the original did; the rest of the film is the original, re-encoded at
+720p (CRF 22). The stills carry no legible name (in two of them the old nameplate line is a smudge
+two pixels tall) and no metadata. The exterior GLB's grid compound parts are named `grid_*`, as the pages
+call it, rather than after the network operator. The regeneration kit (the Blender scene script and
+its job files) and the handover notes name the site, so they stay out of this public repository. A
+re-render from that kit brings the name back: change `rack_brand_text2` to "BLOX.  50 kW" and the title
+card's second line to "BLN · BLOX data centre" in the scene script first.
+
+`atlas/build.py` copies the pages into `atlas/site/` (git-ignored) and fails on anything that would
+undo that: a word that names or places the site, checked in every file, binaries included, as UTF-8
+and UTF-16; a UK postcode, OS grid reference, Scottish company number or Windows home folder in the
+text files; any EXIF, XMP, comment or text chunk in an image; a nameplate line wider than "BLOX.  50 kW"
+(or a GLB without that node); a flythrough other than the reviewed one (`FLYTHROUGH_SHA256`: check a new
+one frame by frame, the title card above all, before changing it); anything loaded from elsewhere but
+the imagery tiles (in any attribute, style or script; a plain link the visitor follows is fine); a file
+referred to but missing; or a page without `noindex`. The words themselves are never written in this
+public repository, not even as hashes, which a gazetteer reverses in seconds: they live in
+`atlas/.names` (git-ignored, one word per line) or in the `ATLAS_NAMES` environment variable
+(comma-separated). Without them the build warns and `--merge` refuses to run, so an upload is never
+prepared unchecked; whoever deploys keeps the file. `atlas/_headers` holds the pages' header
+rules (a Content-Security-Policy that allows the pages' own files and the imagery host, `nosniff`,
+`noindex`).
+
+Deploy: download the Atlas site's current deploy from Netlify (renewablox-atlas → Deploys → the
+published deploy → Download), unzip it, then
+
+    python atlas/build.py --merge path/to/the/unzipped/folder
+
+which puts `bln/` into it and adds the header rules to its `_headers` between marker lines (re-running
+replaces them; it refuses a folder inside this repository), and drag the folder onto the project's Deploys page. If the Atlas site's own `_headers`
+sets a stricter Content-Security-Policy on `/*`, both policies apply and the stricter one wins, so
+check `/bln/` and `/bln/3d/` load their imagery and models after the deploy. The pages link by
+relative address only, so they also work under ai.renewablox.com's `/atlas/` proxy, which sends a
+root-relative `/bln/` back under `/atlas/` like Atlas's other sections. Atlas's front page is where
+BLN is listed; link it as `bln/`, labelled BLN.
+
+Build and look at it locally (the map's imagery needs the internet; the models must be served over
+http, not opened from the folder):
+
+    python atlas/build.py
+    python -m http.server 8901 -d atlas/site     # then open http://localhost:8901/bln/
+
 ## Run locally
 
     pip install -r requirements.txt
