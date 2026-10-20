@@ -285,9 +285,17 @@ for(const k of ['chamber','dno','ph']){
 map.whenReady(()=>{
   for(const k in shapes){
     const el=shapes[k].getElement(); if(!el) continue;
-    el.setAttribute('tabindex','0'); el.setAttribute('role','button'); el.setAttribute('aria-label',PLAN[k].n);
-    el.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); shapes[k].openPopup(); } });
+    el.setAttribute('role','button'); el.setAttribute('aria-label',PLAN[k].n);
+    el.addEventListener('focus',()=>{ if(!map.getBounds().intersects(shapes[k].getBounds())) map.panTo(shapes[k].getCenter(),{animate:false}); });
+    el.addEventListener('keydown',e=>{
+      if(e.key==='Enter'||e.key===' '){ e.preventDefault(); shapes[k].openPopup(); }
+      else if(e.key==='Escape') map.closePopup();
+    });
   }
+  // a feature panned out of view leaves the Tab order, so focus never lands on something unseen
+  const tabs=()=>{ const b=map.getBounds();
+    for(const k in shapes){ const el=shapes[k].getElement(); if(el) el.setAttribute('tabindex',b.intersects(shapes[k].getBounds())?'0':'-1'); } };
+  map.on('moveend',tabs); tabs();
 });
 
 // short labels appear once the site fills the screen; each opens its feature's popup

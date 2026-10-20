@@ -467,9 +467,13 @@ something solid (the inlet chamber seen through the roof, the cabinet from outsi
 cast at it once the camera settles, as model-viewer already dims one facing away; a dimmed marker comes
 up to full strength when pointed at or opened, and one off the edge of the frame leaves the Tab order.
 A marker's note is its button's description, opens on whichever side has room and is kept on screen,
-clear of the rail and the caption. The cutaway model is fetched into the cache shortly after the first
+clear of the rail and the caption; while one is open the other markers fade, since model-viewer
+re-stacks their layers every frame and a later dot would otherwise paint over the note. A camera
+preset turns the model back square and stops Turn slowly, which turns the model rather than the
+camera and would otherwise carry every preset round with it. The cutaway model is fetched into the cache shortly after the first
 model is on screen; Open cabinet pressed while it is on its way opens the door when it arrives; if it
-fails to arrive the page goes back to the model it has and says so, and a lost WebGL context (a phone
+fails to arrive the page goes back to the model it has and says so, and asks again under a new address
+next time (model-viewer remembers a failed load under the old one), and a lost WebGL context (a phone
 switching apps) is left to model-viewer to restore.
 
 **Anonymity.** The handover package named the site in three places that a browser would show: the
@@ -488,14 +492,16 @@ card's second line to "BLN · BLOX data centre" in the scene script first.
 `atlas/build.py` copies the pages into `atlas/site/` (git-ignored) and fails on anything that would
 undo that: a word that names or places the site, checked in every file, binaries included, as UTF-8
 and UTF-16; a UK postcode, OS grid reference, Scottish company number or Windows home folder in the
-text files; any EXIF, XMP, comment or text chunk in an image; a nameplate line wider than "BLOX.  50 kW"
+text files; any EXIF, XMP, comment or text chunk in a JPEG or PNG, read from the bytes whatever the
+file is called and including images packed in a model (any other kind of image is refused); a nameplate
+line wider than "BLOX.  50 kW"
 (or a GLB without that node); a flythrough other than the reviewed one (`FLYTHROUGH_SHA256`: check a new
 one frame by frame, the title card above all, before changing it); anything loaded from elsewhere but
 the imagery tiles (in any attribute, style or script; a plain link the visitor follows is fine); a file
 referred to but missing; or a page without `noindex`. The words themselves are never written in this
 public repository, not even as hashes, which a gazetteer reverses in seconds: they live in
 `atlas/.names` (git-ignored, one word per line) or in the `ATLAS_NAMES` environment variable
-(comma-separated). Without them the build warns and `--merge` refuses to run, so an upload is never
+(comma-separated; a byte-order mark from a Windows editor is allowed for). Without them the build warns and `--merge` refuses to run, so an upload is never
 prepared unchecked; whoever deploys keeps the file. `atlas/_headers` holds the pages' header
 rules (a Content-Security-Policy that allows the pages' own files and the imagery host, `nosniff`,
 `noindex`).

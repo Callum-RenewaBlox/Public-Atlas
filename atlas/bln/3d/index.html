@@ -84,7 +84,7 @@ header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2.5
 @media (max-width:400px){ .ptabs button{padding:6px 7px;font-size:11.5px} #backatlas span{display:none} #backatlas{padding:7px 9px} }
 /* a phone on its side: one header row, so the model keeps the height */
 @media (max-height:500px) and (orientation:landscape){
-  header{flex-wrap:nowrap;padding:6px 12px} .title{display:none} .ptabs{order:0;flex:0 1 auto;margin-left:auto}
+  header{flex-wrap:nowrap;padding:6px 12px} .title,.logo,.divider{display:none} .ptabs{order:0;flex:0 1 auto;margin-left:auto}
 }
 
 /* ================================================================= stage == */
@@ -153,7 +153,7 @@ body.ready .panel,body.ready .hint{opacity:1;transform:none}
 #capmore{display:none}
 
 .hint{position:absolute;z-index:5;left:50%;bottom:14px;translate:-50% 0;font-size:11px;font-weight:600;color:var(--muted);
-  background:rgba(251,253,254,.82);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);padding:5px 12px;border-radius:var(--r-pill);
+  background:rgba(251,253,254,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);padding:5px 12px;border-radius:var(--r-pill);
   box-shadow:0 1px 3px rgba(9,26,35,.1);white-space:nowrap;pointer-events:none}
 body.moved .hint{opacity:0!important}
 .hint .s{display:none}
@@ -161,7 +161,7 @@ body.moved .hint{opacity:0!important}
 /* hotspots: the house pin, a label on hover or tap */
 .hotspot{--d:20px;width:var(--d);height:var(--d);border-radius:50%;border:2.5px solid #fff;background:var(--accent);padding:0;cursor:pointer;
   box-shadow:0 0 0 4px rgba(31,95,127,.22),0 2px 8px rgba(9,26,35,.45);position:relative;transition:opacity .2s,transform .15s}
-.hotspot:hover,.hotspot:focus-visible{transform:scale(1.12)}
+@media (hover:hover){ .hotspot:hover{transform:scale(1.12)} }
 .hotspot.blox{background:var(--teal);box-shadow:0 0 0 4px rgba(15,157,119,.25),0 2px 8px rgba(9,26,35,.45)}
 /* behind something solid: dimmed, as model-viewer dims one facing away, until it is pointed at or opened */
 .hotspot.behind{opacity:.28}
@@ -175,6 +175,10 @@ body.moved .hint{opacity:0!important}
 @media (hover:hover){ .hotspot:hover .lbl{display:block} }
 .hotspot.left .lbl{left:auto;right:calc(100% + 9px)}
 model-viewer.markers-off .hotspot{display:none}
+/* each marker sits in its own layer, which model-viewer re-stacks every frame, so a later marker's dot
+   would paint over an open note: while one is open, the others fade right back */
+model-viewer:has(.hotspot:is(.open,:focus-visible)) .hotspot:not(.open):not(:focus-visible){opacity:.1;pointer-events:none}
+@media (hover:hover){ model-viewer:has(.hotspot:hover) .hotspot:not(:hover):not(.open){opacity:.1} }
 /* a marker only shows on the model it describes */
 model-viewer[data-model="ext"] .hotspot.cut-only,model-viewer[data-model="cut"] .hotspot.ext-only{display:none}
 
@@ -202,6 +206,7 @@ model-viewer[data-model="ext"] .hotspot.cut-only,model-viewer[data-model="cut"] 
 /* ...and on its side, the caption shrinks to its heading in the corner */
 @media (max-height:500px) and (orientation:landscape){
   #caption{width:min(330px,45%);left:auto} #caption p,#capmore,#legend{display:none} .hint{display:none}
+  #caption.note p{display:block}
 }
 
 /* ------------------------------------------------------------ flythrough -- */
@@ -479,8 +484,16 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 210px);aspec
   let doorQueued = null;   // a door opening asked for while the cutaway model is still on its way
   let pending = null;      // the view to apply once the other model has loaded
   let settleT = 0;         // the second application of that view, cancelled by any later choice
+  const retry = { ext: 0, cut: 0 };   // a model that failed to arrive is asked for again under a new address
 
-  function go(v){ mv.cameraOrbit = v.orbit; mv.cameraTarget = v.target; mv.fieldOfView = v.fov; }
+  // A preset is a camera place in the model's own frame, so the model is turned back square first and
+  // "Turn slowly" stops: it turns the model, not the camera, and would carry every preset round with it.
+  function go(v){
+    if (mv.hasAttribute('auto-rotate')) { mv.removeAttribute('auto-rotate'); pressed('b-rot', false); turning(false); }
+    // (model-viewer is a module, so on the opening call it is not yet defined and nothing is turned)
+    if (mv.resetTurntableRotation) mv.resetTurntableRotation(0);
+    mv.cameraOrbit = v.orbit; mv.cameraTarget = v.target; mv.fieldOfView = v.fov;
+  }
   const swapping = () => $('swapbar').classList.contains('on');
   // A new model re-frames the camera when it loads, so a view that needs the other model is applied
   // on its load event (and once more a moment later, after model-viewer's own framing has settled).
@@ -490,7 +503,7 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 210px);aspec
     view = name;
     document.querySelectorAll('#rail [data-v]').forEach((b) => b.setAttribute('aria-current', b.dataset.v === name ? 'true' : 'false'));
     $('cap-k').textContent = 'Camera · ' + v.k; $('cap-h').textContent = v.h; $('cap-p').textContent = note || v.p;
-    $('caption').classList.remove('more');
+    $('caption').classList.remove('more'); $('caption').classList.toggle('note', !!note);
     clampCaption();
     if (v.air && !airOn) setAir(true);
     else if (v.model === 'ext' && airOn) setAir(false);   // the arrows are inside: none to draw from outside
@@ -498,7 +511,8 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 210px);aspec
     pending = v;
     current = v.model;
     mv.dataset.model = v.model;
-    mv.src = SRC[v.model];
+    // model-viewer remembers a failed load under its address, so a retry asks under a new one
+    mv.src = SRC[v.model] + (retry[v.model] ? '?retry=' + retry[v.model] : '');
     $('swapbar').classList.add('on');
   }
   mv.addEventListener('load', () => {
@@ -531,6 +545,7 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 210px);aspec
       // the other model failed to arrive: go back to the one that is here, and say so
       $('swapbar').classList.remove('on'); doorQueued = null; pending = null;
       const back = current === 'cut' ? 'exterior' : 'cutaway';
+      retry[current]++;
       current = null;   // so show() points src back at the model that loaded (from the cache)
       show(back, 'That view could not be loaded just now. Please try again.');
       return;
@@ -572,7 +587,10 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 210px);aspec
 
   /* --------------------------------------------------------- toggles */
   function pressed(id, on){ $(id).setAttribute('aria-pressed', on ? 'true' : 'false'); }
-  $('b-rot').addEventListener('click', () => { const on = !mv.hasAttribute('auto-rotate'); mv.toggleAttribute('auto-rotate', on); pressed('b-rot', on); });
+  $('b-rot').addEventListener('click', () => { const on = !mv.hasAttribute('auto-rotate'); mv.toggleAttribute('auto-rotate', on); pressed('b-rot', on); turning(on); });
+  // turning moves no camera, so no camera-change arrives: re-check the markers once a second meanwhile
+  let turnT = 0;
+  function turning(on){ clearInterval(turnT); turnT = on ? setInterval(occlusion, 1000) : 0; if (!on) queueOcclusion(); }
   $('b-hs').addEventListener('click', () => { const off = mv.classList.toggle('markers-off'); pressed('b-hs', !off); if (!off) setTimeout(occlusion, 50); });
 
   // The cabinet's filter door: the glTF animation "open_cabinet" (1.04 s, 0 to 95 degrees) exists in the
@@ -649,13 +667,18 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 210px);aspec
       const r = l.getBoundingClientRect();
       if (!r.width) return;
       let x0 = box.left + 8, x1 = box.right - 8, y0 = box.top + 8, y1 = box.bottom - 8;
+      const midX = box.left + box.width / 2, midY = box.top + box.height / 2;
       for (const id of ['rail', 'caption']) {
         const p = $(id).getBoundingClientRect();
-        if (!p.width || r.bottom < p.top || r.top > p.bottom) continue;
-        if (p.right < box.left + box.width / 2) x0 = Math.max(x0, p.right + 8); else x1 = Math.min(x1, p.left - 8);
+        if (!p.width) continue;
+        if (p.left < midX && p.right > midX) {          // a full-width bar (a phone): keep above or below it
+          if (p.bottom < midY) y0 = Math.max(y0, p.bottom + 8); else y1 = Math.min(y1, p.top - 8);
+        } else if (r.bottom >= p.top && r.top <= p.bottom) {   // a side panel level with the note: keep beside it
+          if (p.right < midX) x0 = Math.max(x0, p.right + 8); else x1 = Math.min(x1, p.left - 8);
+        }
       }
       const dx = r.width > x1 - x0 ? x0 - r.left : Math.max(x0 - r.left, Math.min(0, x1 - r.right));
-      const dy = Math.max(y0 - r.top, Math.min(0, y1 - r.bottom));
+      const dy = r.height > y1 - y0 ? y0 - r.top : Math.max(y0 - r.top, Math.min(0, y1 - r.bottom));
       if (dx || dy) l.style.translate = dx + 'px ' + dy + 'px';
     });
   }
@@ -685,7 +708,9 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 210px);aspec
     clearTimeout(occTimer);
     if (!mv.loaded || mv.classList.contains('markers-off') || $('p-model').hidden) return;
     const o = mv.getCameraOrbit(), t = mv.getCameraTarget(), box = mv.getBoundingClientRect();
-    const cam = [t.x + o.radius * Math.sin(o.phi) * Math.sin(o.theta), t.y + o.radius * Math.cos(o.phi), t.z + o.radius * Math.sin(o.phi) * Math.cos(o.theta)];
+    // the camera in the model's own frame: its orbit turned back by however far the model has turned
+    const a = -(mv.turntableRotation || 0), sx = o.radius * Math.sin(o.phi) * Math.sin(o.theta), sz = o.radius * Math.sin(o.phi) * Math.cos(o.theta);
+    const cam = [t.x + sx * Math.cos(a) + sz * Math.sin(a), t.y + o.radius * Math.cos(o.phi), t.z - sx * Math.sin(a) + sz * Math.cos(a)];
     const dist = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]);
     for (const h of hotspots) {
       const r = h.getBoundingClientRect();

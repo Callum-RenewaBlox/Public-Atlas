@@ -70,7 +70,9 @@ def load_names():
     """The deny-list, or None when this machine has none (never printed, never echoed)."""
     words = set()
     if NAMES_FILE.is_file():
-        for line in NAMES_FILE.read_text(encoding="utf-8").splitlines():
+        # utf-8-sig: a list saved by a Windows editor starts with a byte-order mark, which would
+        # otherwise stick to the first word (most likely the site's own name) and stop it matching
+        for line in NAMES_FILE.read_text(encoding="utf-8-sig").splitlines():
             line = line.split("#", 1)[0].strip().lower()
             if line:
                 words.add(line)
@@ -92,23 +94,39 @@ def check_names(path, rel, names):
                 fail(f"{rel} carries {m.group(0)!r}, which could place the site")
 
 
-def check_metadata(path, rel):
-    """Images go out as pixels only: no EXIF, XMP, comments or text chunks, which renders and cameras fill in."""
-    b = path.read_bytes()
-    if path.suffix.lower() in (".jpg", ".jpeg"):
+def check_image(b, rel):
+    """Images go out as pixels only: no EXIF, XMP, comments or text chunks, which renders and cameras fill in.
+    The kind is read from the bytes, not the name; JPEG and PNG are walked, and any other image is refused."""
+    if b[:3] == b"\xff\xd8\xff":
         i = 2
         while i + 4 <= len(b) and b[i] == 0xFF and b[i + 1] != 0xDA:
             marker, length = b[i + 1], int.from_bytes(b[i + 2:i + 4], "big")
             if 0xE1 <= marker <= 0xEF or marker == 0xFE:
                 fail(f"{rel} carries metadata (JPEG segment 0x{marker:02X}); strip it")
             i += 2 + length
-    elif path.suffix.lower() == ".png":
+    elif b[:8] == b"\x89PNG\r\n\x1a\n":
         i = 8
         while i + 8 <= len(b):
             length, kind = struct.unpack(">I4s", b[i:i + 8])
             if kind in (b"tEXt", b"zTXt", b"iTXt", b"eXIf"):
                 fail(f"{rel} carries metadata (PNG {kind.decode()} chunk); strip it")
             i += 12 + length
+    elif (b[:4] == b"RIFF" and b[8:12] == b"WEBP") or b[:4] == b"GIF8" or b[4:12] in (b"ftypavif", b"ftypavis"):
+        fail(f"{rel} is a WebP, GIF or AVIF image, whose metadata this build does not read; use a JPEG or PNG")
+
+
+def check_metadata(path, rel):
+    b = path.read_bytes()
+    check_image(b, rel)
+    if b[:4] == b"glTF":   # and the images packed inside a model
+        clen = struct.unpack_from("<I", b, 12)[0]
+        j = json.loads(b[20:20 + clen])
+        binstart = 20 + clen + 8
+        for i, img in enumerate(j.get("images", [])):
+            if "bufferView" in img:
+                bv = j["bufferViews"][img["bufferView"]]
+                start = binstart + bv.get("byteOffset", 0)
+                check_image(b[start:start + bv["byteLength"]], f"{rel} (image {i})")
 
 
 def check_nameplate(path, rel):
@@ -126,18 +144,22 @@ def check_nameplate(path, rel):
 
 
 SCRIPT = re.compile(r"(<script\b[^>]*>)(.*?)(</script>)", re.S | re.I)
-TAG = re.compile(r"<([a-zA-Z][\w-]*)\b([^>]*)>")
+TAG = re.compile(r"""<([a-zA-Z][\w-]*)\b((?:[^>"']|"[^"]*"|'[^']*')*)>""")   # a '>' inside quotes does not end it
 ATTR = re.compile(r"""([\w:-]+)\s*=\s*("[^"]*"|'[^']*'|[^\s"'>]+)""")
 CSS_URL = re.compile(r"""url\(\s*["']?([^"')]+?)["']?\s*\)|@import""", re.I)
-REMOTE = re.compile(r"^\s*(?:https?:)?//([^/\s]+)", re.I)
-SCRIPT_URL = re.compile(r"""["'`(]\s*(?:https?:)?//([^/"'`\s)]+)""")
+REMOTE = re.compile(r"^\s*(?:https?:|wss?:)?//([^/\s]+)", re.I)
+SCRIPT_URL = re.compile(r"""["'`(]\s*(?:https?:|wss?:)?//([^/"'`\s)]+)""", re.I)
 SCRIPT_ASSET = re.compile(r"""["'](\.\./assets/[^"']+|assets/[^"']+)["']""")
 REF_ATTRS = {"src", "href", "data-full", "poster", "srcset"}
 
 
 def check_local(page, rel, root, ref):
+    if not ref:   # a link to this page's own address with only a ?query or #fragment
+        return
     if ref.endswith("/"):
-        if not (page.parent / ref / "index.html").resolve().is_file():
+        folder = (page.parent / ref).resolve()
+        # a folder above the client's own (the Atlas front page) is on the live site, not in this build
+        if (folder == root or root in folder.parents) and not (folder / "index.html").is_file():
             fail(f"{rel} links to {ref}, which has no index.html")
         return
     target = (page.parent / ref).resolve()
