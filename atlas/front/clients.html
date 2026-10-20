@@ -1,0 +1,44 @@
+  <style>
+    /* the client atlas: two cards side by side, stacked on a phone */
+    .cards--clients { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    @media (max-width: 720px) { .cards--clients { grid-template-columns: 1fr; } }
+    .cards--clients .card__img { background: #1b2a33; }
+  </style>
+  <section class="section" id="clients">
+    <div class="wrap">
+      <div class="section__head">
+        <div class="eyebrow">Client Atlas</div>
+        <h2>Our client sites, mapped</h2>
+        <p>Every client site gets an atlas of its own: the site on satellite imagery, and a 3D model with the BLOX data centre in place. Each one is named by its code.</p>
+      </div>
+      <div class="cards cards--clients">
+        <article class="card">
+          <img class="card__img" src="/assets/img/clients/bln-cover.jpg" alt="3D render inside the BLN powerhouse: the twin-jet Turgo turbine and generator, the control panels and the BLOX cabinet beyond" width="1280" height="720" loading="lazy">
+          <div class="card__body">
+            <div class="eyebrow">Run-of-river hydro</div>
+            <h3>BLN</h3>
+            <p>A 300 kW hydro scheme with a 250 kW export limit. A BLOX cabinet in the powerhouse puts the 50 kW surplus to work.</p>
+            <ul>
+              <li>The powerhouse on satellite imagery</li>
+              <li>3D model of the turbine hall and the BLOX cabinet</li>
+              <li>Flythrough, stills, and what is measured and what is assumed</li>
+            </ul>
+            <div class="card__cta">
+              <a class="btn btn--primary" href="/bln/">Open BLN <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
+              <a class="btn btn--ghost" href="/bln/3d/">3D model</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="card card--soon">
+          <div class="card__art"><div class="lockmark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg></div></div>
+          <div class="card__body">
+            <div class="eyebrow">For clients</div>
+            <h3>This could be your site</h3>
+            <p>We map every site we work with in Atlas, from the satellite view to the data centre in 3D. Client sign-in is on its way. If we&rsquo;ve built an atlas for your site, keep using the link we sent you for now.</p>
+            <div class="card__cta"><a class="btn btn--ghost" href="mailto:info@renewablox.com?subject=Atlas%20access">Ask about access</a></div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>

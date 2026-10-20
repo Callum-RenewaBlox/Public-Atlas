@@ -519,8 +519,20 @@ replaces them; it refuses a folder inside this repository), and drag the folder 
 sets a stricter Content-Security-Policy on `/*`, both policies apply and the stricter one wins, so
 check `/bln/` and `/bln/3d/` load their imagery and models after the deploy. The pages link by
 relative address only, so they also work under ai.renewablox.com's `/atlas/` proxy, which sends a
-root-relative `/bln/` back under `/atlas/` like Atlas's other sections. Atlas's front page is where
-BLN is listed; link it as `bln/`, labelled BLN.
+root-relative `/bln/` back under `/atlas/` like Atlas's other sections.
+
+Atlas's front page lists the client pages in its **Client Atlas** section (it replaced "Choose your
+atlas"; the Market and Investor Atlases stay in the page's own navigation and hero). The section is
+`atlas/front/clients.html`: a card per client, named by its code (BLN, with the turbine-hall render as
+its cover, opening `/bln/` and `/bln/3d/`), then "This could be your site" with the access e-mail.
+`--merge` writes it into the front page between the lines
+`<!-- client atlas (Public-Atlas atlas/front/clients.html, placed by atlas/build.py --merge) -->` and
+`<!-- end of client atlas -->` (which the live page now carries, so a fresh download keeps working),
+and copies the other files in `atlas/front/` (the cover images) to `assets/img/clients/`. The build
+checks them as it checks the pages, and also that every root-relative address in the section is a
+cover or a client page. To add a client, add its folder and a card, and put its cover beside
+`clients.html`. If the markers are missing (a front page re-made by hand), `--merge` says so and
+leaves the page alone; put them back around the section first.
 
 Build and look at it locally (the map's imagery needs the internet; the models must be served over
 http, not opened from the folder):

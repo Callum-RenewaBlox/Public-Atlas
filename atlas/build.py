@@ -2,6 +2,8 @@
 
     /bln/       BLN Atlas: the powerhouse on the satellite imagery, with the BLOX badge (bln/index.html)
     /bln/3d/    BLN 3D: the 3D render the badge opens (bln/3d/index.html)
+    /           the Client Atlas section of the Atlas front page (front/clients.html), with its cover
+                images under /assets/img/clients/, put in place by --merge between marker comments
 
 Atlas itself (its front page, /investors/, /market/, /portal/) is the renewablox-atlas Netlify
 project, deployed by upload from its own folder; this repository holds the client pages that go
@@ -57,6 +59,13 @@ FLYTHROUGH_SHA256 = {"bln/assets/bln_flythrough_720p.mp4":
                      "7bc736ad98d6ef337d8f5ab28cbc06aa35620512674ca95e89d74bea51b4db8e"}
 # The nameplate's second line reads "BLOX.  50 kW" (0.110 m); with the site's name it is 0.184 m.
 NAMEPLATE_MAX_WIDTH_M = 0.15
+
+# The front page's Client Atlas section: front/clients.html, and the images beside it, which go to
+# /assets/img/clients/. --merge replaces whatever lies between these two comments on the front page.
+FRONT = HERE / "front"
+FRONT_BEGIN = "<!-- client atlas (Public-Atlas atlas/front/clients.html, placed by atlas/build.py --merge) -->"
+FRONT_END = "<!-- end of client atlas -->"
+FRONT_ASSETS = "assets/img/clients"
 
 HEADERS_BEGIN = "# --- client pages (Public-Atlas atlas/build.py) ---"
 HEADERS_END = "# --- end of client pages ---"
@@ -252,6 +261,7 @@ def build(names):
             if page.parent == src and not site_confirmed(text):
                 warnings.append(f"{client}/index.html: the powerhouse's place on the imagery is not confirmed yet "
                                 f"(open /{client}/?place, set it, and paste the line into SITE)")
+    check_front(names)
     headers = (HERE / "_headers").read_text(encoding="utf-8")
     (OUT / "_headers").write_text(headers, encoding="utf-8")
     total = 0
@@ -263,6 +273,48 @@ def build(names):
     for w in warnings:
         print("WARNING: " + w)
     return headers
+
+
+def check_front(names):
+    """The front page's section: no names, no metadata, nothing from elsewhere, and every address it uses
+    is either a client page built here or an image beside it."""
+    for path in sorted(FRONT.iterdir()):
+        check_names(path, f"front/{path.name}", names)
+        check_metadata(path, f"front/{path.name}")
+    text = (FRONT / "clients.html").read_text(encoding="utf-8")
+    for tag in TAG.finditer(text):
+        for a in ATTR.finditer(tag.group(2)):
+            value = a.group(2).strip("\"'")
+            r = REMOTE.match(value)
+            if r and r.group(1) not in NAMESPACE_HOSTS:
+                fail(f"front/clients.html loads something from elsewhere: {value[:80]!r}")
+            if a.group(1).lower() in REF_ATTRS and value.startswith("/"):
+                path = value.split("#")[0].split("?")[0].lstrip("/")
+                if path.startswith(FRONT_ASSETS + "/"):
+                    ok = (FRONT / path[len(FRONT_ASSETS) + 1:]).is_file()
+                else:
+                    ok = (OUT / path / "index.html").is_file() if path.endswith("/") else (OUT / path).is_file()
+                if not ok:
+                    fail(f"front/clients.html refers to {value}, which neither the build nor front/ provides")
+
+
+def merge_front(dest):
+    """Put the Client Atlas section on the front page, between its markers, and its images beside it."""
+    page = dest / "index.html"
+    text = page.read_text(encoding="utf-8")
+    if text.count(FRONT_BEGIN) != 1 or text.count(FRONT_END) != 1 or text.index(FRONT_END) < text.index(FRONT_BEGIN):
+        print("WARNING: the front page has no client atlas markers, so its Client Atlas section was left as it is; "
+              "put the two marker comments (FRONT_BEGIN, FRONT_END) where the section belongs and merge again")
+        return
+    section = (FRONT / "clients.html").read_text(encoding="utf-8").rstrip("\n")
+    a = text.index(FRONT_BEGIN) + len(FRONT_BEGIN)
+    b = text.index(FRONT_END)
+    page.write_text(text[:a] + "\n" + section + "\n  " + text[b:], encoding="utf-8")
+    images = dest / FRONT_ASSETS
+    images.mkdir(parents=True, exist_ok=True)
+    for path in sorted(FRONT.iterdir()):
+        if path.suffix != ".html":
+            shutil.copy2(path, images / path.name)
 
 
 def merge(dest, headers):
@@ -284,7 +336,8 @@ def merge(dest, headers):
     if HEADERS_BEGIN in old:
         old = re.sub(re.escape(HEADERS_BEGIN) + r".*?" + re.escape(HEADERS_END) + r"\n?", "", old, flags=re.S)
     hp.write_text(old.rstrip("\n") + ("\n\n" if old.strip() else "") + block, encoding="utf-8")
-    print(f"merged {', '.join(CLIENTS)} and the header rules into {dest}")
+    merge_front(dest)
+    print(f"merged {', '.join(CLIENTS)}, the header rules and the front page's Client Atlas section into {dest}")
 
 
 def main():
