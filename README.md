@@ -444,13 +444,15 @@ well as the mouse), and a pulsing BLOX badge on the powerhouse with its "Open th
 standing above it (not along the building, where it would cover the inlet chamber), a matching row in
 the powerhouse's popup and a "3D render" button in the bar, which stays live when the bar fades at
 close zoom. Each opens `3d/` in the same window; the render's "Atlas" pill and the browser's Back come
-back. The labels appear from zoom 18, the inlet's from 19. The powerhouse's place on the imagery is one line, `SITE` (the slab's centre and the compass
-bearing of its long axis, west gable to east gable). It is an estimate from published records (the
-burn's east bank about 105 m upstream of the listed road bridge, which suits the powerhouse's floor
-level), not from the imagery, so it carries `confirmed:false` and the build warns until it is checked: open
-`/bln/?place` (the drawing and the badge then let clicks through to the imagery), click the middle
-of the roof, turn the footprint with `[` and `]` (Shift for 10°) until it sits on the building, copy
-the line it prints into `SITE` and rebuild.
+back. The labels appear from zoom 18, the inlet's from 19. The powerhouse's place on the imagery is one line, `SITE`
+(the slab's centre and the compass bearing of its long axis, west gable to east gable). It was set on
+Esri's imagery (WorldView-2, 13 May 2025): the building at the end of its own track loop beside the burn,
+where the glen floor reaches the powerhouse's +184 m, its roof about 10 × 6 m with the fenced grid
+compound off one gable and the inlet chamber off the other, which puts the model's axis at about 43°
+(south-west to north-east) rather than the east–west the model assumes. To move it, open `/bln/?place`
+(the drawing and the badge then let clicks through to the imagery), click the middle of the roof, turn
+the footprint with `[` and `]` (Shift for 10°), copy the line it prints into `SITE` and rebuild. Esri
+has imagery here to zoom 19, which the map's tiles stop at (`maxNativeZoom`); beyond that it enlarges.
 
 **BLN 3D** is the handover's model-viewer page re-made in the house style of the Bryn 3D page: the
 header with the "Atlas" pill, wordmark and tabs (**Model**, **Flythrough**, **Stills**, **Measured &
