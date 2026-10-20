@@ -279,10 +279,16 @@ for(const k of ['chamber','dno','ph']){
   const col=C[k];
   shapes[k]=L.polygon(rect(k),{color:col,weight:2,fillColor:col,fillOpacity:k==='ph'?.22:.28,dashArray:k==='ph'?'6,4':null})
     .bindPopup(NOTES[k]+(k==='ph'?ctaRow():''),k==='ph'?Object.assign({offset:[0,-20]},POP):POP).addTo(map);
-  const el=shapes[k].getElement();
-  el.setAttribute('tabindex','0'); el.setAttribute('role','button'); el.setAttribute('aria-label',PLAN[k].n);
-  el.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); shapes[k].openPopup(); } });
 }
+// each drawn feature opens its note from the keyboard as well as the mouse (its path exists once the
+// map has its first view, so this waits for it)
+map.whenReady(()=>{
+  for(const k in shapes){
+    const el=shapes[k].getElement(); if(!el) continue;
+    el.setAttribute('tabindex','0'); el.setAttribute('role','button'); el.setAttribute('aria-label',PLAN[k].n);
+    el.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); shapes[k].openPopup(); } });
+  }
+});
 
 // short labels appear once the site fills the screen; each opens its feature's popup
 let lblOn=-1;
