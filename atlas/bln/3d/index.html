@@ -913,7 +913,10 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 210px);aspec
       for (const id of ['rail', 'caption', 'dispatch']) {
         const p = $(id).getBoundingClientRect();
         if (!p.width) continue;
-        if (p.left < midX && p.right > midX) {          // a full-width bar (a phone): keep above or below it
+        // a full-width bar (a phone): keep above or below it. The dispatch panel docked at the side is a side panel,
+        // even where it reaches past the middle (a phone on its side)
+        const bar = id === 'dispatch' ? !SIDE.matches : p.left < midX && p.right > midX;
+        if (bar) {
           if (p.bottom < midY) y0 = Math.max(y0, p.bottom + 8); else y1 = Math.min(y1, p.top - 8);
         } else if (r.bottom >= p.top && r.top <= p.bottom) {   // a side panel level with the note: keep beside it
           if (p.right < midX) x0 = Math.max(x0, p.right + 8); else x1 = Math.min(x1, p.left - 8);
