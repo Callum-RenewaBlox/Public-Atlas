@@ -159,6 +159,7 @@ CSS_URL = re.compile(r"""url\(\s*["']?([^"')]+?)["']?\s*\)|@import""", re.I)
 REMOTE = re.compile(r"^\s*(?:https?:|wss?:)?//([^/\s]+)", re.I)
 SCRIPT_URL = re.compile(r"""["'`(]\s*(?:https?:|wss?:)?//([^/"'`\s)]+)""", re.I)
 SCRIPT_ASSET = re.compile(r"""["'](\.\./assets/[^"']+|assets/[^"']+)["']""")
+SCRIPT_MODULE = re.compile(r"""\bimport\(\s*["'`](\.{1,2}/[^"'`?#]+)""")   # a module the page fetches on use
 REF_ATTRS = {"src", "href", "data-full", "poster", "srcset"}
 
 
@@ -217,7 +218,7 @@ def check_page(page, rel, root):
     for host in SCRIPT_URL.findall(scripts):
         if host not in ALLOWED_HOSTS | NAMESPACE_HOSTS:
             fail(f"{rel} reaches {host}, which is not an allowed host")
-    for ref in SCRIPT_ASSET.findall(scripts):
+    for ref in SCRIPT_ASSET.findall(scripts) + SCRIPT_MODULE.findall(scripts):
         check_local(page, rel, root, ref)
     return text
 
@@ -248,6 +249,12 @@ def build(names):
                 check_nameplate(path, rel)
             if path.suffix == ".css":
                 check_css(path.read_text(encoding="utf-8"), rel, None, None)
+            # a page's own script module (bln/3d/dispatch.js) is held to its page's rule; the vendored libraries
+            # in assets/ carry their authors' URLs, which the pages' security policy keeps from loading
+            if path.suffix == ".js" and "assets" not in path.relative_to(HERE).parts:
+                for host in SCRIPT_URL.findall(path.read_text(encoding="utf-8")):
+                    if host not in ALLOWED_HOSTS | NAMESPACE_HOSTS:
+                        fail(f"{rel} reaches {host}, which is not an allowed host")
             if rel in FLYTHROUGH_SHA256:
                 digest = hashlib.sha256(path.read_bytes()).hexdigest()
                 if digest != FLYTHROUGH_SHA256[rel]:
