@@ -32,6 +32,8 @@ const PACK_HEADERS = {
 
 export default async (request, context) => {
   const url = new URL(request.url);
+  const clean = canonical(url.pathname);
+  if (clean !== url.pathname) return redirect(clean + url.search, [], 301);
   const code = String((globalThis.Netlify && Netlify.env.get('PORTAL_PASSCODE')) || '').trim();
   if (!code) {
     console.error('The investor portal is locked until PORTAL_PASSCODE is set.');
@@ -81,7 +83,23 @@ export default async (request, context) => {
   return out;
 };
 
-export const config = { path: ['/investors/portal', '/investors/portal/*'] };
+// Netlify picks the edge functions by the address as it was sent, but serves a file after folding a run of slashes,
+// so a route of /investors/portal/* alone would let //investors/portal/… reach the pack without its key. The pattern
+// takes in every spelling (any run of slashes, any case, an encoded slash), and the function sends each to its one
+// spelling (canonical) first.
+export const config = {
+  pattern: '^/+[iI][nN][vV][eE][sS][tT][oO][rR][sS](?:/+|%2[fF])[pP][oO][rR][tT][aA][lL](?:[/%].*)?$'
+};
+
+// An address's one spelling: no run of slashes, %2F as the slash it stands for, /investors/portal in lower case, and
+// the pack's own address with its slash (the cookie's path, so a return to /investors/portal finds the cookie).
+export function canonical(path) {
+  const parts = path.replace(/%2f/gi, '/').replace(/\/{2,}/g, '/').split('/');
+  parts[1] = (parts[1] || '').toLowerCase();
+  parts[2] = (parts[2] || '').toLowerCase();
+  const p = parts.join('/');
+  return p === PORTAL.slice(0, -1) ? PORTAL : p;
+}
 
 // Every address in the pack's markup that stays inside the portal (absolute under /investors/portal/, or a relative
 // model.html / index.html) gets ?k= added; anything else is left as it is.
@@ -146,10 +164,10 @@ function isPageRequest(request) {
   const dest = request.headers.get('sec-fetch-dest');
   return request.method === 'GET' && (dest === 'document' || dest === 'iframe' || (request.headers.get('accept') || '').includes('text/html'));
 }
-function redirect(location, cookies = []) {
+function redirect(location, cookies = [], status = 303) {
   const headers = new Headers({ location, 'cache-control': 'no-store' });
   for (const c of cookies) headers.append('set-cookie', c);
-  return new Response(null, { status: 303, headers });
+  return new Response(null, { status, headers });
 }
 function esc(s) {
   return String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));

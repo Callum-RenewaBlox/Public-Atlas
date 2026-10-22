@@ -598,6 +598,15 @@ And in Supabase (renewablox-crm → Authentication → URL Configuration → Red
 URLs): `https://atlas.renewablox.com/access/callback`, without which Supabase
 sends the browser to the CRM and the sign-in can't finish.
 
+After the first deploy with the gates, check that no other spelling of a gated
+address reaches a page. Netlify picks edge functions by the address as sent but
+serves a file after folding a run of slashes, which is why the gates route by
+pattern (`config` in each gate) and send every spelling to its one form. Each of
+these should answer 301, never 200:
+
+    for p in //clients/srv/ //team/outreach/ //investors/portal/ /investors/portal; do
+      curl -s --path-as-is -o /dev/null -w "%{http_code} $p\n" "https://atlas.renewablox.com$p"; done
+
 The Wix investor portal's buttons: run `python portal_key.py <PORTAL_PASSCODE>`
 and point them at `https://atlas.renewablox.com/investors/portal/?k=<key>` (the
 pack) and `https://atlas.renewablox.com/investors/portal/atlas/?k=<key>` (the

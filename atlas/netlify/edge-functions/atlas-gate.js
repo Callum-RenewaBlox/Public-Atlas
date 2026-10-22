@@ -34,6 +34,7 @@ const STALE_SECONDS = 24 * 3600;          // if Supabase can't be reached, how o
 const FILE_SECONDS = 6 * 3600;            // a page's files (models, images) are served on an answer up to this old; only
                                           // pages ask again, so a removed client loses the files too once it runs out
 const STATE_SECONDS = 10 * 60;
+const SUPABASE_TIMEOUT_MS = 8000;
 
 const GATED_HEADERS = {
   'x-robots-tag': 'noindex, nofollow',
@@ -56,6 +57,8 @@ const PAGE_HEADERS = {
 
 export default async (request, context) => {
   const url = new URL(request.url);
+  const clean = canonical(url.pathname);
+  if (clean !== url.pathname) return redirect(clean + url.search, [], 301);
   const cfg = settings();
   if (!cfg) {
     return page(503, 'The sign-in isn&rsquo;t set up yet',
@@ -123,7 +126,26 @@ export default async (request, context) => {
   return out;
 };
 
-export const config = { path: ['/clients', '/clients/*', '/team', '/team/*', '/access', '/access/*'] };
+// Netlify picks the edge functions by the address as it was sent, but serves a file after folding a run of slashes,
+// so a route of /clients/* alone would let //clients/… reach the files without passing through here. These patterns
+// take in every spelling of the three folders (any run of slashes, any case, an encoded slash), and the function sends
+// each to its one spelling (canonical) before anything else, where the checks below apply.
+export const config = {
+  pattern: [
+    '^/+[cC][lL][iI][eE][nN][tT][sS](?:[/%].*)?$',
+    '^/+[tT][eE][aA][mM](?:[/%].*)?$',
+    '^/+[aA][cC][cC][eE][sS][sS](?:[/%].*)?$'
+  ]
+};
+
+// An address's one spelling: no run of slashes, %2F as the slash it stands for, and the folder (and a client's code)
+// in lower case, as the site's files are.
+export function canonical(path) {
+  const parts = path.replace(/%2f/gi, '/').replace(/\/{2,}/g, '/').split('/');
+  parts[1] = (parts[1] || '').toLowerCase();
+  if (parts[1] === 'clients' && parts.length > 2) parts[2] = parts[2].toLowerCase();
+  return parts.join('/');
+}
 
 /* ---- the sign-in round trip ---- */
 
@@ -192,7 +214,7 @@ async function callback(request, url, cfg) {
   // a page, not a redirect, so the #fragment kept at the sign-in page can be put back on the address
   return page(200, 'Signed in', 'Opening the page&hellip;', { href: st.r, label: 'Open it' },
     `<script>var h='';try{h=sessionStorage.getItem('rbx.atlas.hash')||'';sessionStorage.removeItem('rbx.atlas.hash')}catch(e){}` +
-    `location.replace(${JSON.stringify(st.r)}+(/^#[\\w\\-.~%=&,;:+]*$/.test(h)?h:''))</script>`, null,
+    `location.replace(${JSON.stringify(st.r)}+(/^#[\\w\\-.~%=&,;:+\\/?!]*$/.test(h)?h:''))</script>`, null,
     [clearState, cookie(SESSION_COOKIE, await seal(session, cfg), '/', SESSION_SECONDS)]);
 }
 
@@ -225,7 +247,10 @@ async function supabase(cfg, endpoint, body, refusals = false, bearer = '') {
   try {
     const headers = { 'content-type': 'application/json', apikey: cfg.supabaseKey };
     if (bearer) headers.authorization = `Bearer ${bearer}`;
-    const res = await fetch(cfg.supabaseUrl + endpoint, { method: 'POST', headers, body: JSON.stringify(body) });
+    // a Supabase that doesn't answer counts as unreachable, so a signed-in visitor is served on a recent answer (STALE_SECONDS)
+    // rather than kept waiting until Netlify gives up on the page
+    const res = await fetch(cfg.supabaseUrl + endpoint, { method: 'POST', headers, body: JSON.stringify(body),
+      signal: AbortSignal.timeout(SUPABASE_TIMEOUT_MS) });
     if (!res.ok) {
       console.error(`Atlas sign-in: Supabase ${endpoint.split('?')[0]} answered ${res.status}`);
       return refusals && [400, 401, 403].includes(res.status) ? 'refused' : null;

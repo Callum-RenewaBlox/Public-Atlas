@@ -374,9 +374,12 @@ def investor_pages():
         for key, view in pack["views"].items():
             out[f"{pack_key}/{view['slug']}/index.html"] = frame_page(pack_key, pack, key)
             out[f"{pack_key}/{view['slug']}/model.html"] = model(pack, key)
+    # on links of their own the models are the top window, which a phone would pan sideways where the model's panels
+    # are wider than the screen; the packs' frame (and Streamlit's before it) clips them at the screen's edge
     peaker = source("peaker_plant_3d.html")
-    out["models/peaker-plant/index.html"] = once(peaker, "</head>", packs.PEAKER_PLANT_HEAD + "</head>", "peaker_plant_3d.html")
-    demo = once(peaker, "</head>", packs.PEAKER_DEMO_HEAD + "</head>", "peaker_plant_3d.html")
+    clip = "<style>html{overflow:hidden}</style>"
+    out["models/peaker-plant/index.html"] = once(peaker, "</head>", packs.PEAKER_PLANT_HEAD + clip + "</head>", "peaker_plant_3d.html")
+    demo = once(peaker, "</head>", packs.PEAKER_DEMO_HEAD + clip + "</head>", "peaker_plant_3d.html")
     out["models/peaker-demo/index.html"] = once(demo, "<title>RenewaBlox — Peaker Plant 3D</title>",
                                                 "<title>RenewaBlox — Peaker Demo</title>", "peaker_plant_3d.html")
     return out

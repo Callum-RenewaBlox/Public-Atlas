@@ -29,6 +29,7 @@ const ENV = { SUPABASE_URL: 'https://enghoowpiwopsfabfurx.supabase.co', SUPABASE
 env = { ...ENV };
 const sb = { calls: [], token: null, rpc: null, refresh: null };
 globalThis.fetch = async (url, init) => {
+  assert.ok(init.signal instanceof AbortSignal, 'every Supabase call has a time limit');
   const body = JSON.parse(init.body || '{}'); sb.calls.push({ url: String(url), body, headers: init.headers });
   const json = (status, obj) => new Response(JSON.stringify(obj), { status, headers: { 'content-type': 'application/json' } });
   if (String(url).includes('grant_type=pkce')) return sb.token(body);
@@ -49,7 +50,20 @@ const user = (email, verified = true, provider = 'google') => ({ email, identiti
 
 // settings
 env = {}; let r = await gate(req('/clients/srv/'), ctx); assert.equal(r.status, 503); env = { ...ENV }; ok('locked without settings');
-assert.deepEqual(config.path, ['/clients', '/clients/*', '/team', '/team/*', '/access', '/access/*']); ok('routes');
+{
+  const routes = [].concat(config.pattern).map(p => new RegExp(p));
+  const routed = p => routes.some(re => re.test(p));
+  for (const p of ['/clients', '/clients/', '/clients/srv/3d.html', '//clients/srv/', '///team/keith-huntly/', '/CLIENTS/srv/', '/Team/',
+    '/clients%2Fsrv/', '/access', '/access/callback', '//access/start']) assert.ok(routed(p), p);
+  for (const p of ['/', '/market/', '/clientsx/', '/teamwork/', '/accessible/', '/assets/clients/x.png', '/investors/portal/']) assert.ok(!routed(p), p);
+}
+ok('routes: every spelling of /clients, /team and /access, and nothing else');
+for (const [from, to] of [['//clients/srv/', '/clients/srv/'], ['///clients//srv///3d.html', '/clients/srv/3d.html'],
+  ['/CLIENTS/SRV/?view=3d', '/clients/srv/?view=3d'], ['/clients%2Fsrv%2F', '/clients/srv/'], ['//team/keith-huntly/', '/team/keith-huntly/'],
+  ['//access/start?r=%2Fclients%2F', '/access/start?r=%2Fclients%2F']]) {
+  r = await gate(req(from), ctx); assert.equal(r.status, 301, from); assert.equal(r.headers.get('location'), to, from);
+}
+ok('any other spelling -> 301 to the one spelling, before anything else');
 
 // signed out
 r = await gate(req('/clients/srv/?view=3d'), ctx); assert.equal(r.status, 303); assert.equal(r.headers.get('location'), '/access/?r=' + encodeURIComponent('/clients/srv/?view=3d')); ok('signed-out page -> sign-in, keeping ?view');
@@ -80,6 +94,15 @@ sb.token = async body => {
 sb.rpc = async bearer => { assert.equal(bearer, 'Bearer AT1'); return json(200, ['srv']); };
 r = await gate(req('/access/callback?code=abc', { cookie: 'rbx_atlas_signin=' + state }), ctx); assert.equal(r.status, 200);
 let session = cookieVal(r, 'rbx_atlas'); assert.ok(session); html = await r.text(); assert.match(html, /location\.replace\("\/clients\/srv\/\?view=3d"/);
+{
+  // the page's script puts the #fragment kept at the sign-in page back on the address (the outreach page's #/plan among them)
+  const script = html.match(/<script>(var h=[\s\S]*?)<\/script>/)[1];
+  const run = hash => { let went = null; const store = { 'rbx.atlas.hash': hash };
+    new Function('sessionStorage', 'location', script)({ getItem: k => store[k] ?? null, removeItem: k => delete store[k] }, { replace: u => { went = u; } });
+    return went; };
+  assert.equal(run('#/plan'), '/clients/srv/?view=3d#/plan'); assert.equal(run('#v=hydro&z=5'), '/clients/srv/?view=3d#v=hydro&z=5');
+  assert.equal(run('#x"<b>'), '/clients/srv/?view=3d'); assert.equal(run(''), '/clients/srv/?view=3d');
+}
 assert.ok(!session.includes('RT1') && !Buffer.from(session.split('.')[1], 'base64url').toString().includes('RT1'), 'refresh token encrypted'); ok('callback -> session (encrypted), back to the page');
 sb.token = async () => json(200, { access_token: 'AT1', refresh_token: 'RT1', user: user('client@example.com', false) });
 r = await gate(req('/access/callback?code=abc', { cookie: 'rbx_atlas_signin=' + state }), ctx); assert.equal(r.status, 403); assert.equal(cookieVal(r, 'rbx_atlas'), null); ok('unverified Google address refused');
@@ -159,7 +182,19 @@ let ctxBody = LANDING;
 const req = (path, { cookie = '', dest = 'document', method = 'GET', body } = {}) => new Request(O + path, { method, body, headers: { cookie, 'sec-fetch-dest': dest, accept: dest === 'image' ? 'image/*' : 'text/html' } });
 
 env = {}; let r = await gate(req('/investors/portal/'), ctx); assert.equal(r.status, 503); env = { PORTAL_PASSCODE: 'test-code-123' }; ok('locked without PORTAL_PASSCODE');
-assert.deepEqual(config.path, ['/investors/portal', '/investors/portal/*']); ok('routes');
+{
+  const route = new RegExp(config.pattern);
+  for (const p of ['/investors/portal', '/investors/portal/', '/investors/portal/hydro/model.html', '//investors/portal/', '/investors//portal/',
+    '/Investors/Portal/', '/investors%2Fportal/', '///investors/portal/atlas/']) assert.ok(route.test(p), p);
+  for (const p of ['/', '/investors/', '/investors/demo/', '/investors/portalx/', '/models/peaker-plant/']) assert.ok(!route.test(p), p);
+}
+ok('routes: every spelling of /investors/portal, and nothing else');
+for (const [from, to] of [['//investors/portal/?k=' + KEY, '/investors/portal/?k=' + KEY], ['/investors//portal/hydro/', '/investors/portal/hydro/'],
+  ['/Investors/Portal/', '/investors/portal/'], ['/investors%2Fportal%2Fhydro/', '/investors/portal/hydro/'],
+  ['/investors/portal', '/investors/portal/'], ['/investors/portal?k=' + KEY + '&view=hydro', '/investors/portal/?k=' + KEY + '&view=hydro']]) {
+  r = await gate(req(from), ctx); assert.equal(r.status, 301, from); assert.equal(r.headers.get('location'), to, from);
+}
+ok('any other spelling -> 301 to the one spelling, the bare /investors/portal included (the cookie\'s path has the slash)');
 r = await gate(req('/investors/portal/'), ctx); assert.equal(r.status, 401); let html = await r.text(); assert.match(html, /name="code"/); assert.match(r.headers.get('content-security-policy'), /frame-ancestors 'self' https:\/\/www\.renewablox\.com/); ok('no key -> code prompt, frameable by Wix');
 r = await gate(req('/investors/portal/model.glb', { dest: 'image' }), ctx); assert.equal(r.status, 401); ok('no key, a file -> 401');
 r = await gate(req('/investors/portal/?k=' + KEY), ctx); assert.equal(r.status, 303); assert.equal(r.headers.get('location'), '/investors/portal/');
