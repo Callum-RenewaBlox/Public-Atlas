@@ -134,10 +134,18 @@ STREAMLIT = re.compile(r"streamlit\.app|share\.streamlit\.io", re.I)
 # policies here; the build writes GATED_PAGES, EDGE_CSP and EDGE_REDIRECTS to netlify/edge-lib/pages.js for them.
 GATED_PREFIXES = ("/clients/", "/team/", "/investors/portal/")
 EDGE_LIB = HERE / "netlify" / "edge-lib" / "pages.js"
+# Team pages written by hand for the site (team/<page>/), copied as they are to /team/<page>/.
+TEAM = HERE / "team"
 # path -> {client: code or '*' (team only), title, list: shown on /clients/, views: {view: file in the folder}}
-GATED_PAGES = {}
+GATED_PAGES = {
+    "/team/outreach/": {"client": "*", "title": "Outreach strategy (RenewaBlox × tem)", "list": True},
+}
 # folder -> Content-Security-Policy for every file in it (the longest folder holding a path wins)
-EDGE_CSP = {}
+EDGE_CSP = {
+    # one self-contained page: inline script and styles, Inter and IBM Plex Mono from Google Fonts
+    "/team/outreach/": ("default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; "
+                        "font-src https://fonts.gstatic.com; img-src data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"),
+}
 # old address -> new one, answered by the sign-in once the visitor is in
 EDGE_REDIRECTS = {}
 
@@ -343,6 +351,7 @@ def build(names):
     merge_front(OUT)
     warnings += put_fonts()
     put_market()
+    put_team()
     check_front(names)   # once every page is in place, so the section may link to any of them
     headers = site_headers()
     (OUT / "_headers").write_text(headers, encoding="utf-8")
@@ -416,6 +425,15 @@ def put_root(names):
             fail(f"root/{rel} would replace {rel}, which the build has already put in place")
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(path, target)
+
+
+def put_team():
+    """The team pages written for the site (team/), at /team/ as they are; the sign-in lets only the team in."""
+    for path in sorted(TEAM.rglob("*")):
+        if path.is_file():
+            target = OUT / "team" / path.relative_to(TEAM)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(path, target)
 
 
 def put_fonts():
