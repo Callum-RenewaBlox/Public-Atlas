@@ -455,9 +455,8 @@ the footprint with `[` and `]` (Shift for 10°), copy the line it prints into `S
 has imagery here to zoom 19, which the map's tiles stop at (`maxNativeZoom`); beyond that it enlarges.
 
 **BLN 3D** is the handover's model-viewer page re-made in the house style of the Bryn 3D page: the
-header with the "Atlas" pill, wordmark and tabs (**Model**, **Flythrough & stills** and **Economic
-dispatch**, which is still to be built; `#media`, `#economic` or `?tab=` open on one, and the old
-`#flythrough` and `#stills` still lead to the second), an **Assumptions** button in the bottom corner
+header with the "Atlas" pill, wordmark and tabs (**Model** and **Flythrough & stills**; `#media` or
+`?tab=` opens the second, and the old `#flythrough` and `#stills` still lead to it), an **Assumptions** button in the bottom corner
 that opens what is measured and what is assumed as a sheet over any tab (`#assumptions`, or the old
 `#facts`), and on Model the whole window
 for the model, a camera rail (Exterior, Cutaway, Inside, BLOX cabinet, Ventilation, then the Open
@@ -555,6 +554,13 @@ sets a stricter Content-Security-Policy on `/*`, both policies apply and the str
 check `/bln/` and `/bln/3d/` load their imagery and models after the deploy. The pages link by
 relative address only, so they also work under ai.renewablox.com's `/atlas/` proxy, which sends a
 root-relative `/bln/` back under `/atlas/` like Atlas's other sections.
+
+The map's title reads "BLN Atlas · 300 kW Run-of-River Hydro" over a second line that, in this
+repository and on a public upload, describes the page without placing it. The site's postal address
+names the site, so it never enters the repository: it lives in `atlas/.address` (git-ignored, one
+line), and `python atlas/build.py --merge DIR --with-address` writes it into that second line (the
+element marked `data-private="address"`) in the upload folder only. Use it only for an upload whose
+`/bln/` is behind the access gate; without the flag the public line stays.
 
 Atlas's front page lists the client pages in its **Client Atlas** section (it replaced "Choose your
 atlas"; the Market and Investor Atlases stay in the page's own navigation and hero). The section is

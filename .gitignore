@@ -10,3 +10,4 @@ ai/site/
 .netlify/
 atlas/site/
 atlas/.names
+atlas/.address

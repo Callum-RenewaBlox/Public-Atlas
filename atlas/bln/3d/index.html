@@ -321,7 +321,6 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
   <nav class="ptabs" id="ptabs" role="tablist" aria-label="What the page shows">
     <button type="button" role="tab" id="t-model" data-tab="model" aria-selected="true" aria-controls="p-model"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.8l5.6 3.1v6.2L8 14.2l-5.6-3.1V4.9z"/><path d="M2.4 4.9L8 8l5.6-3.1M8 8v6.2"/></svg>Model</button>
     <button type="button" role="tab" id="t-media" data-tab="media" aria-selected="false" aria-controls="p-media" tabindex="-1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.8" y="3.2" width="12.4" height="9.6" rx="1.6"/><path d="M6.6 6v4l3.6-2z"/></svg>Flythrough &amp; stills</button>
-    <button type="button" role="tab" id="t-economic" data-tab="economic" aria-selected="false" aria-controls="p-economic" tabindex="-1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.8 13.8h12.4"/><path d="M3.6 13.8V9.6M7 13.8V6.8M10.4 13.8V8.4M13.6 13.8V4.4"/></svg>Economic dispatch</button>
   </nav>
   <div class="chips" aria-label="The scheme in three figures">
     <span class="chip" title="Generation">300 kW</span><span class="chip" title="Export limit">250 kW export</span><span class="chip blox" title="The surplus the BLOX cabinet takes">50 kW to BLOX</span>
@@ -429,13 +428,6 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
     </div>
   </section>
 
-  <!-- ================================================= economic dispatch -->
-  <section class="view page" id="p-economic" role="tabpanel" aria-labelledby="t-economic" tabindex="0" hidden>
-    <div class="wrap">
-      <h2>Economic dispatch</h2>
-      <p class="sub">In preparation. Technical dispatch, a switch on the Model tab, shows the miners following the export by the agreed rule; this tab will build on it.</p>
-    </div>
-  </section>
 </main>
 
 <!-- the assumptions: a sheet over whichever tab is open, from the button in the bottom corner -->
@@ -505,7 +497,7 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
   const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   /* ------------------------------------------------------------ the tabs */
-  const TABS = ['model', 'media', 'economic'];
+  const TABS = ['model', 'media'];
   // the addresses of the tabs the page used to have still lead where those went
   const ALIAS = { flythrough: 'media', stills: 'media' };
   const tabBtns = [...document.querySelectorAll('#ptabs [role=tab]')];

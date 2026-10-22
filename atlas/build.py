@@ -22,9 +22,14 @@ Run:  python atlas/build.py                      (writes atlas/site/, git-ignore
       python -m http.server 8901 -d atlas/site   (then open http://localhost:8901/bln/)
       python atlas/build.py --merge DIR          (also puts bln/ and its header rules into DIR, a copy
                                                   of the Atlas site's own folder, ready to upload)
+      python atlas/build.py --merge DIR --with-address
+                                                 (and writes the site's address, from atlas/.address,
+                                                  into the BLN map's title: only for an upload whose
+                                                  /bln/ is behind the access gate)
 Standard library only.
 """
 import hashlib
+import html
 import json
 import os
 import re
@@ -324,7 +329,28 @@ def merge_front(dest):
             shutil.copy2(path, images / path.name)
 
 
-def merge(dest, headers):
+# The site's postal address names the site, so it is never in this repository. It lives in atlas/.address
+# (git-ignored, one line) and --merge --with-address writes it into the BLN map's second title line, the
+# element marked data-private="address", in the upload folder only.
+ADDRESS_FILE = HERE / ".address"
+ADDRESS_SLOT = re.compile(r'(<div class="ttl" data-private="address">)(.*?)(</div>)', re.S)
+
+
+def merge_address(dest):
+    if not ADDRESS_FILE.is_file():
+        fail("--with-address needs the site's address in atlas/.address (git-ignored, one line)")
+    address = ADDRESS_FILE.read_text(encoding="utf-8-sig").strip()
+    if not address or "\n" in address:
+        fail("atlas/.address should hold the address on one line")
+    page = dest / "bln" / "index.html"
+    text = page.read_text(encoding="utf-8")
+    if len(ADDRESS_SLOT.findall(text)) != 1:
+        fail("bln/index.html has no single data-private=\"address\" title line to write the address into")
+    page.write_text(ADDRESS_SLOT.sub(lambda m: m.group(1) + html.escape(address) + m.group(3), text), encoding="utf-8")
+    print(f"WARNING: {page} now shows the site's address. Upload it only while /bln/ is behind the access gate.")
+
+
+def merge(dest, headers, with_address=False):
     """Put the client pages and their header rules into a copy of the Atlas site's own folder."""
     dest = Path(dest).resolve()
     repo = HERE.parent
@@ -344,20 +370,22 @@ def merge(dest, headers):
         old = re.sub(re.escape(HEADERS_BEGIN) + r".*?" + re.escape(HEADERS_END) + r"\n?", "", old, flags=re.S)
     hp.write_text(old.rstrip("\n") + ("\n\n" if old.strip() else "") + block, encoding="utf-8")
     merge_front(dest)
+    if with_address:
+        merge_address(dest)
     print(f"merged {', '.join(CLIENTS)}, the header rules and the front page's Client Atlas section into {dest}")
 
 
 def main():
     args = sys.argv[1:]
-    if args[:1] == ["--merge"] and len(args) != 2:
-        fail("usage: python atlas/build.py --merge DIR")
+    if args[:1] == ["--merge"] and not (len(args) == 2 or (len(args) == 3 and args[2] == "--with-address")):
+        fail("usage: python atlas/build.py --merge DIR [--with-address]")
     names = load_names()
     if args[:1] == ["--merge"] and names is None:
         fail("refusing to prepare an upload without the list of names: put the words that would name or place "
              "the site in atlas/.names (git-ignored, one per line) or in ATLAS_NAMES")
     headers = build(names)
     if args[:1] == ["--merge"]:
-        merge(args[1], headers)
+        merge(args[1], headers, with_address=args[2:] == ["--with-address"])
 
 
 if __name__ == "__main__":
