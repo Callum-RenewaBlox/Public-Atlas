@@ -127,6 +127,20 @@ FONTS = {
 
 STREAMLIT = re.compile(r"streamlit\.app|share\.streamlit\.io", re.I)
 
+# Pages behind a gate. Everything under these folders passes through an edge function (netlify/edge-functions/):
+# /clients/ and /team/ through the sign-in (atlas-gate.js: Google through Supabase, access per client in
+# public.atlas_access, '*' for the team), /investors/portal/ through the investor portal's key (portal-gate.js).
+# Netlify's _headers rules don't reach those responses, so the gates set each page's headers themselves, from the
+# policies here; the build writes GATED_PAGES, EDGE_CSP and EDGE_REDIRECTS to netlify/edge-lib/pages.js for them.
+GATED_PREFIXES = ("/clients/", "/team/", "/investors/portal/")
+EDGE_LIB = HERE / "netlify" / "edge-lib" / "pages.js"
+# path -> {client: code or '*' (team only), title, list: shown on /clients/, views: {view: file in the folder}}
+GATED_PAGES = {}
+# folder -> Content-Security-Policy for every file in it (the longest folder holding a path wins)
+EDGE_CSP = {}
+# old address -> new one, answered by the sign-in once the visitor is in
+EDGE_REDIRECTS = {}
+
 
 def fail(msg):
     raise SystemExit("atlas/build.py: " + msg)
@@ -332,6 +346,7 @@ def build(names):
     check_front(names)   # once every page is in place, so the section may link to any of them
     headers = site_headers()
     (OUT / "_headers").write_text(headers, encoding="utf-8")
+    write_edge_lib()
     check_site(headers)
     total = 0
     for p in sorted(OUT.rglob("*")):
@@ -503,6 +518,16 @@ def check_site(headers):
         paths = ["/" + rel]
         if rel.endswith("index.html"):   # a page is served at its folder's address and at its own
             paths.append("/" + rel[:-len("index.html")])
+        if paths[0].startswith(GATED_PREFIXES):
+            # served through a gate, which sets the headers: the policy must be in EDGE_CSP, and no _headers rule
+            # may pretend to set one
+            if not edge_policy(paths[0]):
+                fail(f"{paths[0]} is behind a gate but has no Content-Security-Policy in EDGE_CSP")
+            for path in paths:
+                stray = [p for p, h in rules if "content-security-policy" in h and rule_matches(p, path)]
+                if stray:
+                    fail(f"{path} is behind a gate, where _headers rules don't apply, but {', '.join(stray)} sets its policy")
+            continue
         for path in paths:
             for name in ("content-security-policy", "x-frame-options"):
                 setters = [p for p, h in rules if name in h and rule_matches(p, path)]
@@ -518,11 +543,42 @@ def check_site(headers):
     if missing:
         fail(f"the market map's Content-Security-Policy (root/_headers) does not allow {', '.join(missing)}")
     # every file the site serves or is configured by (a redirect or proxy to Streamlit would count too)
-    for f in sorted(OUT.rglob("*")) + [HERE / "netlify.toml"]:
+    for f in sorted(OUT.rglob("*")) + [HERE / "netlify.toml"] + sorted((HERE / "netlify").rglob("*")):
         if f.is_file():
             m = STREAMLIT.search(f.read_bytes().decode("latin-1"))
             if m:
                 fail(f"{f.relative_to(HERE).as_posix()} points at Streamlit ({m.group(0)}); the Atlas is hosted here")
+
+
+def edge_policy(path):
+    """The gated path's policy: the longest EDGE_CSP folder that holds it, as the gates choose it."""
+    best = max((p for p in EDGE_CSP if path.startswith(p)), key=len, default=None)
+    return EDGE_CSP[best] if best else None
+
+
+def write_edge_lib():
+    """The gated pages, their policies and moved addresses, as a module for the edge functions (git-ignored, written
+    by every build so the gates always match the site they guard)."""
+    for path, pg in GATED_PAGES.items():
+        if not path.startswith(GATED_PREFIXES) or not path.endswith("/"):
+            fail(f"GATED_PAGES: {path} must be a folder under {', '.join(GATED_PREFIXES)}")
+        if not (OUT / path.lstrip("/") / "index.html").is_file():
+            fail(f"GATED_PAGES: {path} has no index.html in the build")
+        for view, file in (pg.get("views") or {}).items():
+            if not re.fullmatch(r"[a-z0-9-]{1,32}", view) or not (OUT / path.lstrip("/") / file).is_file():
+                fail(f"GATED_PAGES: {path}?view={view} -> {file}, which is not in the build")
+        if path.startswith(("/clients/", "/team/")):
+            want = "*" if path.startswith("/team/") else path.split("/")[2]
+            if pg.get("client") != want:
+                fail(f"GATED_PAGES: {path} must be for client {want!r}, as the sign-in reads it from the address")
+    for old, new in EDGE_REDIRECTS.items():
+        if not old.startswith(("/clients/", "/team/")) or not new.startswith(("/clients/", "/team/")):
+            fail(f"EDGE_REDIRECTS: {old} -> {new} must stay under /clients/ or /team/")
+    js = lambda v: json.dumps(v, indent=1, sort_keys=True, ensure_ascii=True)
+    EDGE_LIB.parent.mkdir(parents=True, exist_ok=True)
+    EDGE_LIB.write_text("// Written by atlas/build.py: the gated pages, their policies and moved addresses. Do not edit.\n"
+                        f"export const PAGES = {js(GATED_PAGES)};\nexport const CSP = {js(EDGE_CSP)};\n"
+                        f"export const REDIRECTS = {js(EDGE_REDIRECTS)};\n", encoding="utf-8")
 
 
 def sync_market():

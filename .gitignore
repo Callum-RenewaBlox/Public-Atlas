@@ -10,3 +10,4 @@ atlas/site/
 atlas/.names
 ai/site/
 .netlify/
+atlas/netlify/edge-lib/pages.js
