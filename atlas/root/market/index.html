@@ -33,9 +33,14 @@
     // The map opens where a shared link points (/market/?view=hydro&site=…&theme=night, or a #… view), so its
     // address is set here, once, rather than in the frame's markup.
     var map = '/market/map/' + location.search + location.hash;
-    var atlas = document.getElementById('atlas');
+    var atlas = document.getElementById('atlas'), full = document.getElementById('full');
     atlas.src = map;
-    document.getElementById('full').href = map;
+    full.href = map;
+    // "Open full screen" opens the view on screen: the map keeps it in its own address (#v=…), read as the link is used.
+    var current = function () {
+      try { var l = atlas.contentWindow.location; if (l.pathname === '/market/map/') full.href = l.pathname + l.search + l.hash; } catch (e) {}
+    };
+    ['mousedown', 'focus', 'click'].forEach(function (t) { full.addEventListener(t, current); });
     var done = function () { document.getElementById('loading').classList.add('is-done'); };
     atlas.addEventListener('load', function () { setTimeout(done, 300); });
     setTimeout(done, 8000);

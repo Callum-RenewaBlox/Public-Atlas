@@ -59,8 +59,8 @@ ON_NETLIFY = os.environ.get("NETLIFY") == "true"
 # The words that would name or place a client's site (the site, the places around it, the firms on
 # its drawings) are never written in this public repository, not even as hashes, which a gazetteer
 # reverses in seconds. They live in atlas/.names (git-ignored, one word per line, # for comments) or
-# in the ATLAS_NAMES environment variable (comma-separated). A build without them warns; --merge,
-# which prepares an upload, refuses to run.
+# in the ATLAS_NAMES environment variable (comma-separated). A build without them warns here, and on
+# Netlify, where the site it builds is published, refuses to run.
 NAMES_FILE = HERE / ".names"
 # Generic shapes, checked case-sensitively in the text files: UK postcodes, OS grid references,
 # Scottish company numbers, and the home folders of a Windows machine.
@@ -80,7 +80,8 @@ FLYTHROUGH_SHA256 = {"bln/assets/bln_flythrough_720p.mp4":
 NAMEPLATE_MAX_WIDTH_M = 0.15
 
 # The front page's Client Atlas section: front/clients.html, and the images beside it, which go to
-# /assets/img/clients/. --merge replaces whatever lies between these two comments on the front page.
+# /assets/img/clients/. The build replaces whatever lies between these two comments on the front page (the
+# first still names --merge, the step that used to do it, as the live page carries it).
 FRONT = HERE / "front"
 FRONT_BEGIN = "<!-- client atlas (Public-Atlas atlas/front/clients.html, placed by atlas/build.py --merge) -->"
 FRONT_END = "<!-- end of client atlas -->"
@@ -92,15 +93,23 @@ HEADERS_END = "# --- end of client pages ---"
 # The Market Atlas map. MARKET is a copy of Eunice-Platform's client_atlas_v2.html (built there by
 # atlas/build.py --only client); --sync-market refreshes it from MARKET_SOURCE. The page leaves a placeholder
 # for its host to fill with window.__ATLAS_INIT__: on Streamlit, app_client_atlas_v2.py filled it from the
-# query string after checking each value; here the page does the same with the same patterns. Its "Copy link"
-# button builds on the config's publicUrl, which the build points at MARKET_URL.
+# query string after checking each value; here the page does the same with the same patterns, then takes those
+# three parameters out of its address, so the view the page writes to its #hash is what a reload, a bookmark or
+# a copied address opens (?present=1, which the page reads itself, stays). Its "Copy link" button builds on the
+# config's publicUrl, which the build points at MARKET_URL.
 MARKET = HERE / "market" / "client_atlas_v2.html"
 MARKET_SOURCE = "https://raw.githubusercontent.com/Callum-RenewaBlox/Eunice-Platform/main/client_atlas_v2.html"
 MARKET_URL = "https://atlas.renewablox.com/market/"
 MARKET_PLACEHOLDER = "/*__ATLAS_INIT__*/"
 MARKET_INIT = ("(function(){var A={view:/^(sam|tam|hydro|ppa)$/,site:/^[A-Za-z0-9-]{1,48}$/,theme:/^(paper|night)$/},"
-               "q=new URLSearchParams(location.search),o={};for(var k in A){var v=q.get(k);"
-               "if(v!==null&&A[k].test(v))o[k]=v;}window.__ATLAS_INIT__=o;})();")
+               "q=new URLSearchParams(location.search),o={},n=0,k,v;for(k in A){v=q.get(k);"
+               "if(v!==null&&A[k].test(v))o[k]=v;if(q.has(k)){q.delete(k);n++;}}window.__ATLAS_INIT__=o;"
+               "if(n){v=q.toString();try{history.replaceState(null,'',location.pathname+(v?'?'+v:'')+location.hash);}"
+               "catch(e){}}})();")
+# A link out of the map must open a new tab: followed inside the market page's frame, it would be refused
+# (frame-src 'self') and leave an error page where the map was. The build adds target="_blank" to any that lacks it.
+MAP_LINK = re.compile(r"""<a href=(\\?["'])(https?://[^"'\\]+)\1>""")
+MAP_LINK_ANY = re.compile(r"""<a\s[^>]*?href=\\?["']https?://[^>]*>""")
 # Where the map loads from: MapLibre and its stylesheet, Open Sans, the base map, the terrain and postcodes.
 # Its other addresses are links in the map's credits, and the SVG namespace.
 MARKET_HOSTS = {"cdn.jsdelivr.net", "fonts.googleapis.com", "fonts.gstatic.com", "tiles.openfreemap.org",
@@ -316,11 +325,11 @@ def build(names):
             if page.parent == src and not site_confirmed(text):
                 warnings.append(f"{client}/index.html: the powerhouse's place on the imagery is not confirmed yet "
                                 f"(open /{client}/?place, set it, and paste the line into SITE)")
-    check_front(names)
     put_root(names)
     merge_front(OUT)
     warnings += put_fonts()
     put_market()
+    check_front(names)   # once every page is in place, so the section may link to any of them
     headers = site_headers()
     (OUT / "_headers").write_text(headers, encoding="utf-8")
     check_site(headers)
@@ -352,8 +361,10 @@ def check_front(names):
                 path = value.split("#")[0].split("?")[0].lstrip("/")
                 if path.startswith(FRONT_ASSETS + "/"):
                     ok = (FRONT / path[len(FRONT_ASSETS) + 1:]).is_file()
+                elif path == "" or path.endswith("/"):
+                    ok = (OUT / path / "index.html").is_file()
                 else:
-                    ok = (OUT / path / "index.html").is_file() if path.endswith("/") else (OUT / path).is_file()
+                    ok = (OUT / path).is_file()
                 if not ok:
                     fail(f"front/clients.html refers to {value}, which neither the build nor front/ provides")
 
@@ -440,6 +451,11 @@ def put_market():
     page, n = re.subn(r'"publicUrl":"[^"]*"', '"publicUrl":"' + MARKET_URL + '"', page)
     if n != 1:
         fail(f"market/{MARKET.name} should set publicUrl once in its config, but sets it {n} times")
+    page = MAP_LINK.sub(lambda m: f'<a href={m.group(1)}{m.group(2)}{m.group(1)} target={m.group(1)}_blank{m.group(1)} '
+                                  f'rel={m.group(1)}noopener{m.group(1)}>', page)
+    stay = [m.group(0) for m in MAP_LINK_ANY.finditer(page) if "target=" not in m.group(0)]
+    if stay:
+        fail(f"the market map links out without opening a new tab, which its frame would refuse: {stay[0][:100]}")
     extra = market_hosts(page) - MARKET_HOSTS
     if extra:
         fail(f"the market map loads from {', '.join(sorted(extra))}, which MARKET_HOSTS and the map's "
@@ -473,7 +489,9 @@ def header_rules(text):
 
 
 def rule_matches(pattern, path):
-    return re.fullmatch(re.escape(pattern).replace(r"\*", ".*"), path) is not None
+    """As Netlify matches a header rule: * is anything, and a trailing slash is optional. A rule for a folder
+    ("/market/") does not cover the address of its index ("/market/index.html"), which is served too."""
+    return re.fullmatch(re.escape(pattern.rstrip("/")).replace(r"\*", ".*") + "/?", path) is not None
 
 
 def check_site(headers):
@@ -482,25 +500,29 @@ def check_site(headers):
     rules = header_rules(headers)
     for page in sorted(OUT.rglob("*.html")):
         rel = page.relative_to(OUT).as_posix()
-        path = "/" + (rel[:-len("index.html")] if rel.endswith("index.html") else rel)
-        for name in ("content-security-policy", "x-frame-options"):
-            setters = [p for p, h in rules if name in h and rule_matches(p, path)]
-            if len(setters) > 1:
-                fail(f"{path} takes {name} from {len(setters)} rules ({', '.join(setters)}), which Netlify would join "
-                     "into one broken value")
-        if rel.endswith("index.html") and not any("content-security-policy" in h and rule_matches(p, path)
-                                                  for p, h in rules):
-            fail(f"{path} has no Content-Security-Policy: give it a rule in root/_headers")
+        paths = ["/" + rel]
+        if rel.endswith("index.html"):   # a page is served at its folder's address and at its own
+            paths.append("/" + rel[:-len("index.html")])
+        for path in paths:
+            for name in ("content-security-policy", "x-frame-options"):
+                setters = [p for p, h in rules if name in h and rule_matches(p, path)]
+                if len(setters) > 1:
+                    fail(f"{path} takes {name} from {len(setters)} rules ({', '.join(setters)}), which Netlify would "
+                         "join into one broken value")
+            if rel.endswith("index.html") and not any("content-security-policy" in h and rule_matches(p, path)
+                                                      for p, h in rules):
+                fail(f"{path} has no Content-Security-Policy: give it a rule in root/_headers")
     csp = " ".join(h.get("content-security-policy", "") for p, h in rules if rule_matches(p, "/market/map/"))
     allowed = {token.rstrip(";") for token in csp.split()}
     missing = sorted(host for host in MARKET_HOSTS if "https://" + host not in allowed)
     if missing:
         fail(f"the market map's Content-Security-Policy (root/_headers) does not allow {', '.join(missing)}")
-    for f in sorted(OUT.rglob("*")):
-        if f.is_file() and (f.suffix in TEXT_SUFFIXES or f.name == "_headers"):
-            m = STREAMLIT.search(f.read_text(encoding="utf-8", errors="replace"))
+    # every file the site serves or is configured by (a redirect or proxy to Streamlit would count too)
+    for f in sorted(OUT.rglob("*")) + [HERE / "netlify.toml"]:
+        if f.is_file():
+            m = STREAMLIT.search(f.read_bytes().decode("latin-1"))
             if m:
-                fail(f"{f.relative_to(OUT).as_posix()} points at Streamlit ({m.group(0)}); the Atlas is hosted here")
+                fail(f"{f.relative_to(HERE).as_posix()} points at Streamlit ({m.group(0)}); the Atlas is hosted here")
 
 
 def sync_market():
