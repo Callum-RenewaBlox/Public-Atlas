@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Market Atlas · RenewaBlox Atlas</title>
+<meta name="description" content="The RenewaBlox Market Atlas: 129 anaerobic digestion sites, 1,309 fuelled renewable generators and 57 hydro sites, with Balancing Mechanism tiers and a PPA benchmark.">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/atlas.css?v=6a0e7230">
+</head>
+<body>
+<div class="app">
+  <header class="appbar">
+    <a class="brand" href="/" aria-label="RenewaBlox Atlas home"><img src="/assets/logos/renewablox-wordmark-light.png" alt="RenewaBlox" width="146" height="17"><span class="brand__app">Market Atlas</span></a>
+    <nav class="appbar__links" aria-label="Atlas">
+      <a href="/">Atlas home</a>
+      <a class="hide-sm" href="/investors/">Investor Atlas</a>
+      <a class="hide-sm" href="https://renewablox-client-atlas-v3.streamlit.app/" target="_blank" rel="noopener">Open full screen <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h4v4M13 3 7.5 8.5M12 9.5V13H3V4h3.5"/></svg></a>
+    </nav>
+  </header>
+  <div class="frame">
+    <div class="loading" id="loading" role="status">
+      <div><div class="spinner"></div><strong>Loading the Market Atlas</strong>The first load can take up to half a minute.</div>
+    </div>
+    <iframe id="atlas" title="RenewaBlox Market Atlas" src="https://renewablox-client-atlas-v3.streamlit.app/?embed=true" allow="fullscreen; clipboard-write" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+  </div>
+</div>
+<script>
+  (function () {
+    var done = function () { document.getElementById('loading').classList.add('is-done'); };
+    document.getElementById('atlas').addEventListener('load', function () { setTimeout(done, 2500); });
+    setTimeout(done, 20000);
+  })();
+</script>
+</body>
+</html>

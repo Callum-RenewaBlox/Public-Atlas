@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>BLN Atlas · RenewaBlox</title>
+<meta name="description" content="BLN Atlas: the hydro powerhouse on the imagery, with the BLOX data-centre cabinet inside. The BLOX badge opens the 3D render."/>
+<meta name="robots" content="noindex, nofollow"/>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%2312475e'/%3E%3Cpath%20d='M16%205.6c4.5%205.5%206.8%209.1%206.8%2012A6.8%206.8%200%200%201%2016%2024.4a6.8%206.8%200%200%201-6.8-6.8C9.2%2014.7%2011.5%2011.1%2016%205.6z'%20fill='%23fff'/%3E%3C/svg%3E"/>
+<script>
+// The page's files sit beside it (assets/, 3d/), so it must be read as a folder: /bln/, not /bln.
+if (!/\/$/.test(location.pathname) && !/\.html?$/.test(location.pathname)) location.replace(location.pathname + '/' + location.search + location.hash);
+</script>
+<link rel="stylesheet" href="assets/leaflet.css"/>
+<style>
+/* ===================================================================
+   RenewaBlox design system — BLN Atlas
+   Same tokens as the SRV, KLD and Bryn atlases: petrol brand, Inter,
+   glass surfaces, branded map furniture. One deliberate light look.
+   =================================================================== */
+@font-face{font-family:"Inter";font-style:normal;font-display:swap;font-weight:100 900;src:url(assets/inter.woff2) format("woff2")}
+:root{
+  --brand:#12475e; --accent:#1f5f7f; --accent-d:#16485f; --accent-l:#3a89ae;
+  --ink:#0d1b23; --ink-2:#33454f; --muted:#5a6a73; --muted-2:#93a2aa;
+  --surface:#ffffff; --tint:#f4f8fa; --tint-2:#eaf1f5; --line:#dfe8ed; --line-2:#edf3f6;
+  --glass:rgba(255,255,255,.94);
+  --site:#2e9e4f; --hydro:#1f62e7;
+  --sh-1:0 1px 2px rgba(9,26,35,.10), 0 4px 14px rgba(9,26,35,.14);
+  --sh-2:0 2px 6px rgba(9,26,35,.12), 0 14px 44px rgba(9,26,35,.24);
+  --font:"Inter","Inter var",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --r-s:8px; --r-m:12px; --r-l:16px; --r-pill:999px;
+}
+html,body{margin:0;height:100%;font-family:var(--font);color:var(--ink-2);background:#0d1b23;overflow:hidden;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
+#map{position:absolute;inset:0;background:#0d1b23}
+/* keep Leaflet's top controls clear of the overlaying brand bar */
+.leaflet-top{top:56px}
+*:focus{outline:none}
+*:focus-visible{outline:2px solid var(--accent-l);outline-offset:2px;border-radius:4px}
+::selection{background:rgba(31,95,127,.22)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* ---------------------------------------------------------- brand bar -- */
+#brand{
+  position:absolute;top:0;left:0;right:0;height:56px;z-index:1200;box-sizing:border-box;
+  display:flex;align-items:center;gap:14px;padding:0 16px;
+  background:var(--glass);-webkit-backdrop-filter:blur(14px) saturate(1.7);
+  backdrop-filter:blur(14px) saturate(1.7);
+  border-bottom:1px solid var(--line);box-shadow:0 1px 6px rgba(9,26,35,.14);
+  transition:opacity .35s ease;
+}
+/* zoomed in, the bar recedes so it never covers site detail; hover restores it */
+#brand.dim{opacity:.22;pointer-events:none}
+#brand.dim .go{pointer-events:auto}
+#brand.dim:hover,#brand.dim:focus-within{opacity:1}
+#brand::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;
+  background:linear-gradient(90deg,var(--brand),var(--accent-l) 55%,var(--site))}
+#brand .logo{height:22px;width:auto;max-width:none;display:block;flex:0 0 auto}
+#brand .div{width:1px;height:26px;background:var(--line);flex:0 0 auto}
+#brand .txt{min-width:0;flex:1 1 auto}
+#brand .kick{font-weight:700;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#brand .ttl{font-weight:700;font-size:14px;color:var(--brand);line-height:1.2;letter-spacing:-.005em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* the same door as the badge, for anyone who would rather not hunt for it on the imagery */
+#brand .go{flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;text-decoration:none;color:#fff;
+  background:linear-gradient(135deg,var(--brand),var(--accent) 85%);font:700 12px/1 var(--font);letter-spacing:.015em;
+  padding:9px 16px 9px 13px;border-radius:var(--r-pill);box-shadow:0 2px 10px rgba(9,26,35,.28);transition:filter .15s}
+#brand .go:hover{filter:brightness(1.15)}
+#brand .go i{font-style:normal;font-size:10px}
+@media (max-width:620px){
+  #brand{gap:10px;padding:0 12px}
+  #brand .logo{height:17px}
+  #brand .kick{font-size:8.6px;letter-spacing:.14em}
+  #brand .ttl{font-size:12px}
+  #brand .lg{display:none}
+  #brand .go{display:none}
+}
+
+/* ------------------------------------------------------ map furniture -- */
+.leaflet-container{font-family:var(--font);background:#0d1b23}
+/* the opening view sits at a half zoom, where scaled tiles can show hairline seams:
+   let each tile overlap its neighbour by a fraction of a pixel instead */
+.leaflet-container img.leaflet-tile{mix-blend-mode:normal;width:256.6px!important;height:256.6px!important}
+.leaflet-touch .leaflet-bar,.leaflet-bar{border:0!important;box-shadow:var(--sh-1)!important;
+  border-radius:10px;overflow:hidden}
+.leaflet-bar a,.leaflet-bar a:hover{width:30px;height:30px;line-height:30px;
+  background:var(--glass);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  color:var(--brand);border-bottom:1px solid var(--line);font-size:17px;font-weight:600;
+  transition:background .14s,color .14s}
+.leaflet-bar a:last-child{border-bottom:0}
+.leaflet-bar a:hover{background:#fff;color:var(--accent-l)}
+.leaflet-bar a.leaflet-disabled{color:var(--muted-2);background:rgba(255,255,255,.7)}
+.leaflet-control-attribution{background:rgba(255,255,255,.86)!important;
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  border-radius:8px 0 0 0;padding:3px 8px!important;font-size:9.5px!important;color:var(--muted)!important}
+.leaflet-control-attribution a{color:var(--accent)!important;text-decoration:none}
+/* an outline does not draw on an SVG path, so a focused feature shows a white edge instead */
+path.leaflet-interactive:focus-visible{outline:none;stroke:#fff;stroke-width:4;stroke-dasharray:none}
+.leaflet-control-scale-line{border:1.5px solid rgba(13,27,35,.75);border-top:none;border-radius:0 0 4px 4px;
+  background:rgba(255,255,255,.85);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  color:var(--ink);font:700 9.5px/13px var(--font);letter-spacing:.03em;padding:1px 6px 2px}
+
+/* ----------------------------------------------------------- popups ---- */
+.leaflet-popup-content-wrapper{border-radius:var(--r-l);box-shadow:var(--sh-2);padding:0;
+  background:#fff;overflow:hidden}
+.leaflet-popup-content-wrapper::before{content:"";display:block;height:3px;
+  background:linear-gradient(90deg,var(--brand),var(--accent-l) 55%,var(--site))}
+.leaflet-popup-content{margin:0!important;padding:13px 16px 15px;box-sizing:border-box;
+  font-size:11.9px;line-height:1.55;color:var(--ink-2)}
+.leaflet-popup-content b{color:var(--ink);font-weight:650}
+/* the close button floats over the top-right corner, so the title reserves room for it */
+.leaflet-popup-content>b:first-child{
+  display:block;margin:0 26px 5px 0;
+  color:var(--brand);font-size:12.6px;font-weight:750;line-height:1.35;letter-spacing:-.005em}
+.leaflet-popup-content>b:first-child+br{display:none}
+.leaflet-popup-tip{box-shadow:none;background:#fff}
+.leaflet-container a.leaflet-popup-close-button{top:10px;right:9px;width:24px;height:24px;padding:0;
+  display:grid;place-items:center;border-radius:7px;color:var(--muted);font:400 18px/1 var(--font);
+  background:var(--tint);transition:background .14s,color .14s}
+.leaflet-container a.leaflet-popup-close-button:hover{background:var(--accent);color:#fff}
+
+/* ---------------------------------------------------------- tooltips --- */
+.leaflet-tooltip{font-family:var(--font);
+  background:var(--glass);-webkit-backdrop-filter:blur(8px) saturate(1.5);backdrop-filter:blur(8px) saturate(1.5);
+  border:0;border-radius:var(--r-s);
+  box-shadow:0 1px 2px rgba(9,26,35,.2),0 3px 12px rgba(9,26,35,.28);
+  color:var(--ink-2);font-size:10.6px;font-weight:650;line-height:1.35;
+  padding:4px 9px;max-width:240px;white-space:normal}
+.leaflet-tooltip:before{display:none}
+.leaflet-tooltip.alab{white-space:nowrap;background:linear-gradient(135deg,var(--brand),var(--accent));color:#fff;
+  border:0;border-radius:var(--r-pill);font-weight:700;font-size:10px;letter-spacing:.03em;
+  padding:2.5px 9px;box-shadow:0 2px 10px rgba(9,26,35,.35);opacity:1}
+.leaflet-tooltip.alab:before{display:none}
+.leaflet-tooltip.alab.leaflet-interactive{cursor:pointer}
+
+/* --- standing caveat, bottom left above the scale bar --- */
+#caveat{position:absolute;left:12px;bottom:40px;z-index:1000;max-width:min(320px,calc(100% - 24px));box-sizing:border-box;
+  background:var(--glass);-webkit-backdrop-filter:blur(10px) saturate(1.6);
+  backdrop-filter:blur(10px) saturate(1.6);border-radius:var(--r-m);
+  box-shadow:var(--sh-1);padding:8px 11px;color:var(--muted);
+  font-size:10.4px;line-height:1.45}
+#caveat b{color:var(--ink-2);font-weight:650}
+@media (max-width:620px){
+  #caveat{font-size:9.8px;padding:7px 10px}
+}
+
+/* ---- the BLOX badge on the powerhouse: the door to the 3D render ---- */
+.b3d-badge{pointer-events:auto;cursor:pointer}
+.b3d-badge .ring{pointer-events:none;position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;
+  border-radius:50%;background:rgba(31,95,127,.32);animation:b3dpulse 2.1s cubic-bezier(.2,.6,.35,1) infinite}
+.b3d-badge .ring2{animation-delay:1.05s}
+.b3d-badge .chip{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:44px;height:44px;max-width:none;border-radius:50%;border:2.5px solid #fff;background:#fff;
+  box-shadow:0 2px 12px rgba(9,26,35,.5);transition:transform .18s cubic-bezier(.2,.8,.3,1)}
+.b3d-badge:hover .chip{transform:translate(-50%,-50%) scale(1.12)}
+.b3d-badge .cta{
+  /* above the chip (about 49px across, centred in the 46px badge), not along the building: the
+     powerhouse runs east-west under the chip and its inlet chamber lies just west of it */
+  position:absolute;left:50%;bottom:52px;transform:translateX(-50%);
+  display:flex;align-items:center;gap:7px;white-space:nowrap;
+  background:linear-gradient(135deg,var(--brand),var(--accent) 85%);
+  color:#fff;font:700 12px/1 var(--font);letter-spacing:.015em;
+  padding:9px 20px 9px 14px;border-radius:999px;
+  box-shadow:0 3px 16px rgba(9,26,35,.45);
+  overflow:hidden;transition:transform .18s cubic-bezier(.2,.8,.3,1),box-shadow .18s;
+}
+.b3d-badge:hover .cta{transform:translateX(-50%) translateY(-2px);box-shadow:0 5px 22px rgba(9,26,35,.55)}
+.b3d-badge .cta::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.28) 48%,transparent 62%);
+  transform:translateX(-110%);animation:b3dsheen 4.6s ease-in-out infinite}
+.b3d-badge .cta i{font-style:normal;font-size:10px;transition:transform .18s}
+.b3d-badge:hover .cta i{transform:translateX(3px)}
+.b3d-badge .cta .s{display:none}
+.b3d-badge:focus-visible .chip{outline:3px solid #fff;outline-offset:2px}
+@keyframes b3dpulse{0%{transform:scale(.4);opacity:.95}72%{transform:scale(1.7);opacity:0}100%{opacity:0}}
+@keyframes b3dsheen{0%,55%{transform:translateX(-110%)}72%,100%{transform:translateX(115%)}}
+@keyframes b3dnudge{0%,100%{transform:translateX(-50%)}30%{transform:translateX(-50%) translateY(-7px)}55%{transform:translateX(-50%)}}
+.b3d-badge.nudge .cta{animation:b3dnudge 1s cubic-bezier(.3,.7,.3,1) .9s 2}
+@media (max-width:620px){
+  .b3d-badge .cta .f{display:none}
+  .b3d-badge .cta .s{display:inline}
+  .b3d-badge .cta{padding:6px 16px 6px 12px}
+  .b3d-badge.nudge .cta{animation:none}
+}
+
+/* ---- CTA row inside the powerhouse popup ---- */
+.b3d-poprow{
+  display:flex;align-items:center;gap:9px;margin-top:10px;padding:8px 10px;
+  background:linear-gradient(135deg,var(--brand),var(--accent) 90%);
+  border-radius:9px;cursor:pointer;transition:filter .15s;text-decoration:none;
+}
+.b3d-poprow:hover{filter:brightness(1.15)}
+.b3d-poprow img{width:26px;height:26px;max-width:none;border-radius:50%;border:1.5px solid #fff;flex:0 0 auto;background:#fff}
+.b3d-poprow b{color:#fff!important;font:700 11.5px/1.3 var(--font);letter-spacing:.01em;display:block}
+.b3d-poprow span{color:rgba(255,255,255,.72);font:500 10px/1.3 var(--font);display:block;margin-top:1px}
+
+/* ---- ?place: set the powerhouse on the imagery (for the team, never linked) ---- */
+#place{position:absolute;right:12px;bottom:40px;z-index:1000;width:min(330px,calc(100% - 24px));box-sizing:border-box;
+  background:var(--glass);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border-radius:var(--r-m);
+  box-shadow:var(--sh-2);padding:11px 13px;font-size:11px;line-height:1.5;color:var(--ink-2)}
+#place b{color:var(--brand)}
+#place code{display:block;margin:7px 0;padding:7px 9px;background:var(--tint);border:1px solid var(--line);border-radius:8px;
+  font:600 11px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--ink);word-break:break-all}
+#place button{font:700 11px var(--font);color:#fff;background:var(--accent);border:0;border-radius:var(--r-pill);padding:6px 12px;cursor:pointer}
+#place kbd{font:600 10px ui-monospace,Menlo,Consolas,monospace;background:#fff;border:1px solid var(--line);border-radius:4px;padding:0 4px}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+  .b3d-badge .ring{opacity:.5;transform:scale(1.15)}
+  .b3d-badge .ring2{display:none}
+}
+</style>
+</head>
+<body>
+<div id="brand">
+<img class="logo" src="assets/renewablox-wordmark.png" alt="RenewaBlox"/>
+<div class="div"></div>
+<div class="txt"><div class="kick">BLN Atlas<span class="lg"> · BLOX data-centre cabinet</span></div>
+<div class="ttl">300 kW <span class="lg">run-of-river </span>hydro powerhouse</div></div>
+<a class="go" href="3d/">3D render <i>▶</i></a>
+</div>
+<div id="map" role="region" aria-label="Satellite map of the BLN powerhouse"></div>
+<div id="caveat"><b>Indicative.</b> The powerhouse and its grid compound are drawn from the 2016 substructure drawing on aerial imagery. This is not a measured survey and not a construction drawing.</div>
+<noscript><div id="caveat" style="bottom:auto;top:70px"><b>The map needs JavaScript.</b> <a href="3d/">Open the 3D render</a> instead.</div></noscript>
+
+<script src="assets/leaflet.js"></script>
+<script>
+// BLN Atlas — the client's satellite view. Hand-authored; the 3D render it opens is 3d/.
+
+// The powerhouse on the imagery: the centre of its slab, and the compass bearing of its long axis
+// (west gable to east gable). The footprints below are the 3D model's own plan, in metres, so the map
+// and the render agree; moving the powerhouse is this one line (open the page with ?place to set it).
+// Set on the imagery (WorldView-2, 13 May 2025): the building at the end of its own track loop
+// beside the burn, about 800 m up the glen from the farm, where the glen floor reaches the powerhouse's
+// +184 m. Its roof is about 10 x 6 m, the fenced grid compound stands off its north-east gable and the
+// inlet chamber off its south-west one, so the model's west-to-east axis runs south-west to north-east.
+const SITE={lat:56.552656,lon:-3.680382,bearing:43,confirmed:true};
+
+// Plan in the model's metres: x along the axis from grid 1 (east when the bearing is 90), z across it
+// (south positive), the same axes as the glTF. Centre of the slab: x 4.689, z 0.
+const PLAN={
+  ph:{n:'Powerhouse',x:[-0.236,9.614],z:[-3.05,3.05]},
+  chamber:{n:'Inlet chamber',x:[-5.831,-0.236],z:[-1.425,1.425]},
+  dno:{n:'Grid compound',x:[10.65,15.65],z:[-0.1,4.6]},
+};
+const C={ph:'#2e9e4f',chamber:'#1f62e7',dno:'#126181'};
+const POP={maxWidth:300,autoPanPaddingBottomRight:[40,120],autoPanPaddingTopLeft:[10,62]};
+const OPEN_3D='3d/';
+
+function toLatLng(x,z,site){
+  const s=site||SITE, b=s.bearing*Math.PI/180, dx=x-4.689;
+  // +x runs along the bearing; +z is a quarter turn clockwise of it (south when the axis runs east)
+  const e=dx*Math.sin(b)+z*Math.cos(b), n=dx*Math.cos(b)-z*Math.sin(b);
+  // metres to degrees at the site's latitude (WGS84, good to millimetres over a few hundred metres)
+  const p=s.lat*Math.PI/180;
+  const mLat=111132.954-559.822*Math.cos(2*p)+1.175*Math.cos(4*p), mLon=111412.84*Math.cos(p)-93.5*Math.cos(3*p);
+  return [s.lat+n/mLat, s.lon+e/mLon];
+}
+function rect(k){ const p=PLAN[k]; return [[p.x[0],p.z[0]],[p.x[1],p.z[0]],[p.x[1],p.z[1]],[p.x[0],p.z[1]]].map(q=>toLatLng(q[0],q[1])); }
+function centre(k){ const p=PLAN[k]; return toLatLng((p.x[0]+p.x[1])/2,(p.z[0]+p.z[1])/2); }
+
+const map=L.map('map',{zoomSnap:.5});
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+ {maxZoom:21,maxNativeZoom:19,attribution:'Imagery © Esri, Maxar, Earthstar Geographics'}).addTo(map);
+L.control.scale({imperial:false,position:'bottomleft'}).addTo(map);
+
+/* ------------------------------------------------- the powerhouse and its compound */
+const ROUNDEL='assets/blox-roundel.png';
+function ctaRow(){
+  return '<a class="b3d-poprow" href="'+OPEN_3D+'"><img src="'+ROUNDEL+'" alt="">'+
+    '<div><b>See it in the 3D render</b><span>Inside the powerhouse: the cabinet, its 20 miners, the fans and a simulated day of technical dispatch</span></div></a>';
+}
+const NOTES={
+  ph:'<b>Powerhouse · 300 kW run-of-river hydro</b><br>A Gilkes twin-jet Turgo set with a 250 kW export limit. '+
+     'The BLOX cabinet stands inside, in line with the control panels by the east gable, and takes the 50 kW surplus.',
+  chamber:'<b>Inlet chamber</b><br>Concrete chamber, 5.6 × 2.85 m, on the west gable. The penstock enters the powerhouse on its axis.',
+  dno:'<b>Grid compound</b><br>The connection compound east of the powerhouse, 5.0 × 4.7 m.',
+};
+const SHORT={ph:'POWERHOUSE',chamber:'INLET',dno:'GRID COMPOUND'};
+const shapes={};
+for(const k of ['chamber','dno','ph']){
+  const col=C[k];
+  shapes[k]=L.polygon(rect(k),{color:col,weight:2,fillColor:col,fillOpacity:k==='ph'?.22:.28,dashArray:k==='ph'?'6,4':null})
+    .bindPopup(NOTES[k]+(k==='ph'?ctaRow():''),k==='ph'?Object.assign({offset:[0,-20]},POP):POP).addTo(map);
+}
+// each drawn feature opens its note from the keyboard as well as the mouse (its path exists once the
+// map has its first view, so this waits for it)
+map.whenReady(()=>{
+  for(const k in shapes){
+    const el=shapes[k].getElement(); if(!el) continue;
+    el.setAttribute('role','button'); el.setAttribute('aria-label',PLAN[k].n);
+    el.addEventListener('focus',()=>{ if(!map.getBounds().intersects(shapes[k].getBounds())) map.panTo(shapes[k].getCenter(),{animate:false}); });
+    el.addEventListener('keydown',e=>{
+      if(e.key==='Enter'||e.key===' '){ e.preventDefault(); shapes[k].openPopup(); }
+      else if(e.key==='Escape') map.closePopup();
+    });
+  }
+  // a feature panned out of view leaves the Tab order, so focus never lands on something unseen
+  const tabs=()=>{ const b=map.getBounds();
+    for(const k in shapes){ const el=shapes[k].getElement(); if(el) el.setAttribute('tabindex',b.intersects(shapes[k].getBounds())?'0':'-1'); } };
+  map.on('moveend',tabs); tabs();
+});
+
+// short labels appear once the site fills the screen; each opens its feature's popup
+let lblOn=-1;
+function refreshLabels(force){
+  const z=map.getZoom(), want=z>=19?2:z>=18?1:0;
+  if(want===lblOn && !force) return; lblOn=want;
+  const narrow=map.getSize().x<620;
+  for(const k in shapes){
+    const g=shapes[k]; g.unbindTooltip();
+    if(!want || (k==='chamber' && want<2)) continue;
+    // the powerhouse label sits under the BLOX badge
+    const dir=k==='ph'?'bottom':(k==='dno'?'right':'left');
+    const off=k==='ph'?[0,narrow?34:30]:(k==='dno'?[14,0]:[-14,0]);
+    g.bindTooltip(SHORT[k],{permanent:true,interactive:true,direction:dir,className:'alab',offset:off}).openTooltip(centre(k));
+  }
+}
+map.on('zoomend',()=>refreshLabels());
+
+/* -------------------------------------------------------- the BLOX badge */
+// Straight to the 3D render, in the same window: the render gets the whole browser, and both the
+// browser's Back and the render's own "Atlas" pill come back here.
+function open3d(){ window.location.href=OPEN_3D; }
+const badge=L.marker(centre('ph'),{
+  zIndexOffset:4000,keyboard:true,title:'Open the 3D render',alt:'Open the 3D render',
+  icon:L.divIcon({className:'b3d-badge',iconSize:[46,46],iconAnchor:[23,23],
+    html:'<div class="ring"></div><div class="ring ring2"></div>'+
+         '<img class="chip" src="'+ROUNDEL+'" alt="BLOX">'+
+         '<div class="cta"><span class="f">Open the 3D render</span><span class="s">3D render</span><i>▶</i></div>'})
+}).addTo(map);
+badge.on('click',open3d);
+badge.on('keypress',e=>{ const k=e.originalEvent&&e.originalEvent.key; if(k==='Enter'||k===' ') open3d(); });
+// one gentle nudge shortly after load so the pill catches the eye once
+setTimeout(()=>{ const el=badge.getElement&&badge.getElement();
+  if(el){ el.classList.add('nudge'); setTimeout(()=>el.classList.remove('nudge'),4200); } },900);
+
+/* ------------------------------------------------------------- framing */
+// the powerhouse with its compound and the ground around it; a wide screen settles at the atlases' usual 18.5
+function focus(){
+  const narrow=map.getSize().x<620, w=narrow?34:60, h=narrow?60:34;
+  return L.latLngBounds([toLatLng(4.689-w,-h),toLatLng(4.689+w,h),toLatLng(4.689-w,h),toLatLng(4.689+w,-h)]);
+}
+function frame(){
+  const narrow=map.getSize().x<620;
+  map.fitBounds(focus(),{paddingTopLeft:narrow?[10,64]:[24,70],paddingBottomRight:narrow?[10,80]:[24,60],maxZoom:18.5,animate:false});
+}
+frame();
+refreshLabels();
+// the page can be laid out before it has its real size (an embedding frame, a phone's toolbar),
+// so settle the framing once it has — unless the visitor has already moved.
+(function(){
+  let moved=false; map.on('dragstart',()=>{ moved=true; });
+  // Leaflet's own zoom events carry no sign of who asked, and its zoom buttons stop mousedown and
+  // touchstart, so listen for the visitor's input itself, before Leaflet sees it
+  ['pointerdown','keydown','touchstart','wheel'].forEach(t=>map.getContainer().addEventListener(t,()=>{ moved=true; },{capture:true,passive:true}));
+  const settle=()=>{ if(moved) return; map.invalidateSize(false); frame(); refreshLabels(true); };
+  requestAnimationFrame(()=>requestAnimationFrame(settle)); setTimeout(settle,400); setTimeout(settle,1200);
+  window.addEventListener('resize',()=>{ map.invalidateSize(false); });
+})();
+
+/* the brand bar recedes once the visitor is zoomed into site detail */
+(function(){
+  const bar=document.getElementById('brand');
+  const sync=()=>bar.classList.toggle('dim',map.getZoom()>=19.5);
+  map.on('zoomend',sync); sync();
+})();
+
+/* ------------------------------------------------------------- ?place */
+// For the team: open the page with ?place, click the powerhouse's roof on the imagery, turn the
+// footprint with [ and ] (Shift for 10°) until it sits on the building, then copy the line into SITE above.
+if(new URLSearchParams(location.search).has('place')){
+  const box=document.createElement('div'); box.id='place';
+  document.body.appendChild(box);
+  const show=()=>{
+    const line='const SITE={lat:'+SITE.lat.toFixed(6)+',lon:'+SITE.lon.toFixed(6)+',bearing:'+SITE.bearing+',confirmed:true};';
+    box.innerHTML='<b>Place the powerhouse</b><br>Click the middle of its roof. <kbd>[</kbd> <kbd>]</kbd> turn it 1°, with Shift 10°.'+
+      '<code>'+line+'</code><button type="button">Copy the line</button>';
+    box.querySelector('button').onclick=()=>{ navigator.clipboard&&navigator.clipboard.writeText(line); };
+  };
+  const redraw=()=>{
+    for(const k in shapes) shapes[k].setLatLngs(rect(k));
+    badge.setLatLng(centre('ph')); refreshLabels(true); show();
+  };
+  map.on('click',e=>{ SITE.lat=e.latlng.lat; SITE.lon=e.latlng.lng; redraw(); });
+  document.addEventListener('keydown',e=>{
+    if(e.key!=='['&&e.key!==']'&&e.key!=='{'&&e.key!=='}') return;
+    const step=e.shiftKey?10:1; SITE.bearing=((SITE.bearing+((e.key===']'||e.key==='}')?step:-step))%360+360)%360; redraw();
+  });
+  // a popup or the badge would catch the click before the map sees it: let clicks through to the imagery
+  for(const k in shapes) shapes[k].unbindPopup();
+  badge.off('click'); const bi=badge.getElement(); bi.style.pointerEvents='none'; bi.style.opacity='.35';
+  show();
+}
+</script>
+</body>
+</html>

@@ -6,3 +6,6 @@ __pycache__/
 .DS_Store
 Thumbs.db
 energy_site/
+atlas/site/
+atlas/.names
+.netlify/
