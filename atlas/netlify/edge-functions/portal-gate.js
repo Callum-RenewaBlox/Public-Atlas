@@ -2,11 +2,11 @@
 
    The Investor Portal pack (and the Investor Atlas inside it) is reached from the members-only area of the Wix investor
    portal, whose button carries the key: ?k=<key>, where the key is the keyed hash of the access code that
-   portal_key.py prints. It is the gate app_investor_portal.py kept on Streamlit, so the links investors already have
-   keep working once the button points here. Three ways in:
+   portal_key.py prints. It is the gate the Investor Portal kept when it was a Streamlit app, with the same key, so the
+   links investors already have keep working once the button points here. Three ways in:
      * the key on the address. Opened as a page of its own, the key is taken off the address and a cookie remembers
        it; opened inside the Wix portal's frame, where a browser may refuse the cookie, the key stays on the address
-       and every link and frame of the pack carries it on (as the Streamlit app did);
+       and every link and frame of the pack carries it on;
      * the cookie, on a later visit;
      * the code itself, typed into a prompt, for anyone sent the code by other means.
    Without PORTAL_PASSCODE set (Netlify > Project configuration > Environment variables, scope including Functions)
@@ -65,7 +65,10 @@ export default async (request, context) => {
 
   const res = await context.next();
   let out = new Response(res.body, res);
-  if (byKey && (res.headers.get('content-type') || '').includes('text/html')) {
+  // only the pack's own pages carry links; the models (model.html, megabytes each) and the Investor Atlas have none
+  // to rewrite, and scanning them would spend the edge function's CPU budget for nothing
+  if (byKey && (res.headers.get('content-type') || '').includes('text/html') && !/\/model\.html$/.test(url.pathname) &&
+      !url.pathname.startsWith('/investors/portal/atlas/')) {
     // inside the portal's frame the cookie may be refused, so the pack's own links and frames carry the key on
     const html = await res.text();
     out = new Response(carryKey(html, token), res);

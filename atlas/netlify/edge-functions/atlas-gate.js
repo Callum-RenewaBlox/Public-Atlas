@@ -38,7 +38,7 @@ const STATE_SECONDS = 10 * 60;
 const GATED_HEADERS = {
   'x-robots-tag': 'noindex, nofollow',
   'x-content-type-options': 'nosniff',
-  'referrer-policy': 'same-origin',
+  'referrer-policy': 'strict-origin-when-cross-origin',
   'permissions-policy': 'camera=(), microphone=(), geolocation=()',
   'x-frame-options': 'SAMEORIGIN',
   'cache-control': 'private, no-cache'
@@ -92,8 +92,12 @@ export default async (request, context) => {
   }
   const moved = REDIRECTS[path];
   if (moved) return redirect(moved, cookies, 301);
-  // a page's address without its slash (Netlify would add it, but this function answers first)
+  // a page's address without its slash (Netlify would add it, but this function answers first), or by its index.html:
+  // the folder's address is the page's, where ?view= routing applies
   if (!path.endsWith('/') && PAGES[path + '/']) return redirect(path + '/' + url.search, cookies, 301);
+  if (path.endsWith('/index.html') && PAGES[path.slice(0, -'index.html'.length)]) {
+    return redirect(path.slice(0, -'index.html'.length) + url.search, cookies, 301);
+  }
   const need = path.startsWith('/team/') ? '*' : (path.match(/^\/clients\/([a-z0-9][a-z0-9-]*)\//) || [])[1];
   if (!need || !(session.a.includes('*') || session.a.includes(need))) {
     if (!isPageRequest(request)) return withCookies(text(403, 'This account can’t open this page.'), cookies);

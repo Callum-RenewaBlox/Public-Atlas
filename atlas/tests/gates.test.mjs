@@ -96,7 +96,7 @@ r = await gate(req('/access/callback?code=abc', { cookie: 'rbx_atlas_signin=' + 
 const c = 'rbx_atlas=' + session;
 r = await gate(req('/clients/srv/', { cookie: c }), ctx); assert.equal(r.status, 200); assert.equal(await r.text(), 'STATIC');
 assert.equal(r.headers.get('content-security-policy'), "default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com");
-assert.equal(r.headers.get('x-robots-tag'), 'noindex, nofollow'); assert.equal(r.headers.get('cache-control'), 'private, no-cache'); ok('client opens own page with its policy');
+assert.equal(r.headers.get('x-robots-tag'), 'noindex, nofollow'); assert.equal(r.headers.get('cache-control'), 'private, no-cache'); assert.equal(r.headers.get('referrer-policy'), 'strict-origin-when-cross-origin'); ok('client opens own page with its policy');
 r = await gate(req('/clients/srv/aerial.jpg', { cookie: c, page: false }), ctx); assert.equal(r.status, 200); ok('and its files');
 r = await gate(req('/clients/srv/?view=3d', { cookie: c }), ctx); assert.ok(r instanceof URL); assert.equal(r.pathname, '/clients/srv/3d.html'); ok('?view routes to the view file');
 r = await gate(req('/clients/srv/?view=nope', { cookie: c }), ctx); assert.equal(await r.text(), 'STATIC'); ok('unknown view -> the page');
@@ -106,6 +106,7 @@ r = await gate(req('/clients/bryn/', { cookie: c }), ctx); assert.equal(r.status
 r = await gate(req('/clients/bryn/model.glb', { cookie: c, page: false }), ctx); assert.equal(r.status, 403); ok('and its files');
 r = await gate(req('/team/keith-huntly/', { cookie: c }), ctx); assert.equal(r.status, 403); ok('team page refused to a client');
 r = await gate(req('/clients/srv', { cookie: c }), ctx); assert.equal(r.status, 301); assert.equal(r.headers.get('location'), '/clients/srv/'); ok('slash added');
+r = await gate(req('/clients/srv/index.html?view=3d', { cookie: c }), ctx); assert.equal(r.status, 301); assert.equal(r.headers.get('location'), '/clients/srv/?view=3d'); ok('index.html address goes to the folder, keeping ?view');
 r = await gate(req('/clients/srv/3d-sim/', { cookie: c }), ctx); assert.equal(r.status, 301); assert.equal(r.headers.get('location'), '/clients/srv/?view=3d'); ok('moved page');
 r = await gate(req('/clients/', { cookie: c }), ctx); html = await r.text(); assert.match(html, /SRV Atlas/); assert.match(html, /SRV Contractor/); assert.ok(!/Bryn|Keith/.test(html)); ok('list shows only what is shared');
 r = await gate(req('/clients/srv/', { cookie: 'rbx_atlas=' + session.slice(0, -2) + 'AA' }), ctx); assert.equal(r.status, 303); ok('tampered cookie = signed out');
@@ -174,7 +175,9 @@ assert.ok(html.includes('href="/investors/portal/peaker-plant/?k=' + KEY + '"'))
 assert.ok(html.includes('href="/investors/demo/"') && html.includes('href="https://www.renewablox.com/"')); assert.equal(r.headers.get('content-length'), null);
 assert.match(r.headers.get('set-cookie'), /SameSite=None; Partitioned/); ok('inside the Wix frame: key kept, pack links carry it, others untouched, partitioned cookie');
 ctxBody = FRAME; r = await gate(req('/investors/portal/peaker-plant/?k=' + KEY, { dest: 'iframe' }), ctx); html = await r.text(); assert.ok(html.includes('src="model.html?k=' + KEY + '"')); ok('the model frame carries it too');
-r = await gate(req('/investors/portal/peaker-plant/model.html?k=' + KEY, { dest: 'iframe' }), ctx); assert.equal(r.status, 200); ok('and the model opens with it');
+ctxBody = '<a href="/investors/portal/hydro/">x</a>'; r = await gate(req('/investors/portal/peaker-plant/model.html?k=' + KEY, { dest: 'iframe' }), ctx); assert.equal(r.status, 200);
+assert.equal(await r.text(), ctxBody); ok('and the model opens with it, not scanned for links');
+r = await gate(req('/investors/portal/atlas/?k=' + KEY, { dest: 'iframe' }), ctx); assert.equal(await r.text(), ctxBody); ok('nor is the Investor Atlas');
 r = await gate(req('/investors/portal/', { method: 'POST', body: new URLSearchParams({ code: 'test-code-123', r: '/investors/portal/hydro/' }) }), ctx); assert.equal(r.status, 303); assert.equal(r.headers.get('location'), '/investors/portal/hydro/?k=' + KEY); ok('right code typed -> back with the key');
 r = await gate(req('/investors/portal/', { method: 'POST', body: new URLSearchParams({ code: 'nope', r: '/investors/portal/' }) }), ctx); assert.equal(r.status, 401); ok('wrong code typed -> prompt again');
 for (const bad of ['https://evil.com', '//evil.com', '/investors/portal/../../x', '/elsewhere']) {

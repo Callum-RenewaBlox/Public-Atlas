@@ -4,10 +4,16 @@
                   put in place between marker comments and the section's cover images under /assets/img/clients/
     /investors/   the Investor Atlas preview (root/investors/index.html)
     /market/      the Market Atlas page (root/market/index.html), which frames the map below
-    /market/map/  the Market Atlas map: Eunice-Platform's client_atlas_v2.html (a copy in market/), with the
-                  deep links its Streamlit wrapper used to read now read by the page itself (MARKET_INIT)
+    /market/map/  the Market Atlas map: Eunice-Platform's client_atlas_v2.html (a copy in vendor/), with the
+                  deep links its Streamlit wrapper used to read now read by the page itself (MAPS)
     /bln/         BLN Atlas: the powerhouse on the satellite imagery, with the BLOX badge (bln/index.html)
     /bln/3d/      BLN 3D: the 3D render the badge opens (bln/3d/index.html)
+    /clients/, /team/   the client atlases and the team's pages, behind the sign-in (pages.py, team/)
+    /investors/demo/, /investors/australia/, /investors/portal/, /models/   the investor packs and the
+                  standalone peakers (pages.py); the portal behind its key, with the Investor Atlas at
+                  /investors/portal/atlas/ (Eunice-Platform's investor_atlas_v3.html, a copy in vendor/)
+
+Every page here was once a Streamlit app; pages.py says how each is put in place without one.
 
 The renewablox-atlas Netlify project builds the site from this folder on every push (netlify.toml);
 nothing of it is hosted anywhere else. root/ holds the Atlas site's own files, served at the root of the
@@ -15,9 +21,10 @@ domain as they are, with root/_headers for their header rules. The build puts ev
 checks what would otherwise go wrong quietly:
 
   * nothing on the site points at Streamlit (a streamlit.app or share.streamlit.io address anywhere fails it);
-  * the market map loads only from MARKET_HOSTS, every one of which its Content-Security-Policy allows, and
+  * each map (MAPS) loads only from its hosts, every one of which its Content-Security-Policy allows, and
     each page takes its Content-Security-Policy from exactly one header rule (Netlify joins a header set by
-    two matching rules into one value, which would turn two policies into one broken one);
+    two matching rules into one value, which would turn two policies into one broken one), or from its gate;
+  * no investor portal key is written into any page (the gate adds it to links, inside the Wix frame only);
   * the two brand fonts (FONTS) are fetched from renewablox.com's own font files and must match their
     hashes: they are licensed for the website, so they are not kept in this public repository.
 
@@ -34,8 +41,8 @@ The client pages are checked further:
 
 Run:  python atlas/build.py                      (writes atlas/site/, git-ignored)
       python -m http.server 8901 -d atlas/site   (then open http://localhost:8901/)
-      python atlas/build.py --sync-market        (copies the latest client_atlas_v2.html from Eunice-Platform's
-                                                  main branch into market/, to be committed like any change)
+      python atlas/build.py --sync               (copies the latest of each page vendor/ holds from its own
+                                                  repository's main branch, to be committed like any change)
 On Netlify (NETLIFY=true) the build refuses to run without the list of names, as the site it builds is
 published; the netlify.toml beside this file says where that list is kept there.
 Standard library only.
@@ -49,6 +56,8 @@ import struct
 import sys
 import urllib.request
 from pathlib import Path
+
+import pages  # the pages that came off Streamlit (beside this file)
 
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "site"
@@ -90,30 +99,59 @@ FRONT_ASSETS = "assets/img/clients"
 HEADERS_BEGIN = "# --- client pages (Public-Atlas atlas/build.py) ---"
 HEADERS_END = "# --- end of client pages ---"
 
-# The Market Atlas map. MARKET is a copy of Eunice-Platform's client_atlas_v2.html (built there by
-# atlas/build.py --only client); --sync-market refreshes it from MARKET_SOURCE. The page leaves a placeholder
-# for its host to fill with window.__ATLAS_INIT__: on Streamlit, app_client_atlas_v2.py filled it from the
-# query string after checking each value; here the page does the same with the same patterns, then takes those
-# three parameters out of its address, so the view the page writes to its #hash is what a reload, a bookmark or
-# a copied address opens (?present=1, which the page reads itself, stays). Its "Copy link" button builds on the
-# config's publicUrl, which the build points at MARKET_URL.
-MARKET = HERE / "market" / "client_atlas_v2.html"
-MARKET_SOURCE = "https://raw.githubusercontent.com/Callum-RenewaBlox/Eunice-Platform/main/client_atlas_v2.html"
-MARKET_URL = "https://atlas.renewablox.com/market/"
-MARKET_PLACEHOLDER = "/*__ATLAS_INIT__*/"
-MARKET_INIT = ("(function(){var A={view:/^(sam|tam|hydro|ppa)$/,site:/^[A-Za-z0-9-]{1,48}$/,theme:/^(paper|night)$/},"
-               "q=new URLSearchParams(location.search),o={},n=0,k,v;for(k in A){v=q.get(k);"
-               "if(v!==null&&A[k].test(v))o[k]=v;if(q.has(k)){q.delete(k);n++;}}window.__ATLAS_INIT__=o;"
-               "if(n){v=q.toString();try{history.replaceState(null,'',location.pathname+(v?'?'+v:'')+location.hash);}"
-               "catch(e){}}})();")
-# A link out of the map must open a new tab: followed inside the market page's frame, it would be refused
-# (frame-src 'self') and leave an error page where the map was. The build adds target="_blank" to any that lacks it.
+# The two atlas maps built in Eunice-Platform (its atlas/build.py) and copied into vendor/: the Market Atlas at
+# /market/map/, framed by the market page, and the Investor Atlas at /investors/portal/atlas/, behind the portal's key
+# (it carries site-level commercial detail: contract values, BTC, operators). Each page leaves a placeholder for its
+# host to fill with window.__ATLAS_INIT__: on Streamlit its wrapper filled it from the query string after checking
+# each value; here the page does the same with the same patterns, then takes those parameters out of its address, so
+# the view it writes to its #hash is what a reload, a bookmark or a copied address opens (the market's ?present=1,
+# which that page reads itself, stays). "Copy link" builds on the config's publicUrl, pointed here at the page's own
+# address, so a copied link never carries the portal's key.
+SITE_HOST = "atlas.renewablox.com"
+MAP_PLACEHOLDER = "/*__ATLAS_INIT__*/"
+
+
+def map_init(allowed):
+    return ("(function(){var A={" + ",".join(f"{k}:{rx}" for k, rx in allowed.items()) + "},"
+            "q=new URLSearchParams(location.search),o={},n=0,k,v;for(k in A){v=q.get(k);"
+            "if(v!==null&&A[k].test(v))o[k]=v;if(q.has(k)){q.delete(k);n++;}}window.__ATLAS_INIT__=o;"
+            "if(n){v=q.toString();try{history.replaceState(null,'',location.pathname+(v?'?'+v:'')+location.hash);}"
+            "catch(e){}}})();")
+
+
+_VIEW_SITE_THEME = {"view": "/^(sam|tam|hydro|ppa)$/", "site": "/^[A-Za-z0-9-]{1,48}$/", "theme": "/^(paper|night)$/"}
+MAPS = {
+    "market": {
+        "file": "client_atlas_v2.html", "target": "market/map/index.html", "url": f"https://{SITE_HOST}/market/",
+        "init": map_init(_VIEW_SITE_THEME),
+        # MapLibre and its stylesheet, Open Sans, the base map, the terrain and postcodes (its near-me search)
+        "hosts": {"cdn.jsdelivr.net", "fonts.googleapis.com", "fonts.gstatic.com", "tiles.openfreemap.org",
+                  "s3.amazonaws.com", "api.postcodes.io"},
+    },
+    "investor": {
+        "file": "investor_atlas_v3.html", "target": "investors/portal/atlas/index.html",
+        "url": f"https://{SITE_HOST}/investors/portal/atlas/",
+        # app_investor_atlas_v3.py also passed ?present=1 on, which this page does not read itself
+        "init": map_init({**_VIEW_SITE_THEME, "present": "/^1$/"}),
+        # the market's hosts but postcodes.io, which this map only credits
+        "hosts": {"cdn.jsdelivr.net", "fonts.googleapis.com", "fonts.gstatic.com", "tiles.openfreemap.org",
+                  "s3.amazonaws.com"},
+    },
+}
+# The pages vendor/ holds, copied from their own repositories (--sync refreshes them).
+VENDOR = HERE / "vendor"
+_RAW = "https://raw.githubusercontent.com/Callum-RenewaBlox"
+VENDORED = {
+    "client_atlas_v2.html": f"{_RAW}/Eunice-Platform/main/client_atlas_v2.html",
+    "investor_atlas_v3.html": f"{_RAW}/Eunice-Platform/main/investor_atlas_v3.html",
+    "wn_infrastructure_map.html": f"{_RAW}/Reabold-Atlas/main/wn_infrastructure_map.html",
+    "reservoir_map.html": f"{_RAW}/Reabold-Atlas/main/reservoir_map.html",
+    "citygate_electricity.html": f"{_RAW}/Electricity-Analysis/main/citygate_electricity.html",
+}
+# A link out of a map must open a new tab: followed inside the market page's frame, it would be refused
+# (frame-src 'self') and leave an error page where the map was; the Investor Atlas may sit in the Wix portal's frame. The build adds target="_blank" to any that lacks it.
 MAP_LINK = re.compile(r"""<a href=(\\?["'])(https?://[^"'\\]+)\1>""")
 MAP_LINK_ANY = re.compile(r"""<a\s[^>]*?href=\\?["']https?://[^>]*>""")
-# Where the map loads from: MapLibre and its stylesheet, Open Sans, the base map, the terrain and postcodes.
-# Its other addresses are links in the map's credits, and the SVG namespace.
-MARKET_HOSTS = {"cdn.jsdelivr.net", "fonts.googleapis.com", "fonts.gstatic.com", "tiles.openfreemap.org",
-                "s3.amazonaws.com", "api.postcodes.io"}
 
 # The brand fonts, as renewablox.com serves them (the Wix site's uploaded fonts), fetched at build time.
 FONTS = {
@@ -148,6 +186,20 @@ EDGE_CSP = {
 }
 # old address -> new one, answered by the sign-in once the visitor is in
 EDGE_REDIRECTS = {}
+# the pages that came off Streamlit (pages.py), and the Investor Atlas's policy: MapLibre from jsDelivr, Open Sans,
+# OpenFreeMap and the AWS terrain, workers from blob: URLs; the portal's gate adds the frame-ancestors (Wix)
+GATED_PAGES.update(pages.CLIENT_PAGES)
+EDGE_CSP.update(pages.CLIENT_CSP)
+EDGE_CSP["/investors/portal/"] = pages.MODEL_CSP
+EDGE_CSP["/investors/portal/atlas/"] = (
+    "default-src 'none'; script-src 'unsafe-inline' https://cdn.jsdelivr.net; "
+    "style-src 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src data: https://fonts.gstatic.com; "
+    "img-src data: blob: https://tiles.openfreemap.org https://s3.amazonaws.com; "
+    "connect-src https://tiles.openfreemap.org https://s3.amazonaws.com; worker-src blob:; child-src blob:; "
+    "base-uri 'none'; form-action 'none'")
+EDGE_REDIRECTS.update(pages.CLIENT_REDIRECTS)
+# A portal key (what portal_key.py prints) never belongs in a page: the gate adds it to links, inside a frame only.
+PORTAL_KEY = re.compile(r"[?&]k=[0-9a-f]{64}")
 
 
 def fail(msg):
@@ -350,8 +402,10 @@ def build(names):
     put_root(names)
     merge_front(OUT)
     warnings += put_fonts()
-    put_market()
+    put_map("market")
+    put_map("investor")
     put_team()
+    put_pages()
     check_front(names)   # once every page is in place, so the section may link to any of them
     headers = site_headers()
     (OUT / "_headers").write_text(headers, encoding="utf-8")
@@ -462,42 +516,57 @@ A_HREF = re.compile(r"""<a\s[^>]*href=\\?["']$""")   # an <a href> in the markup
 
 
 def market_hosts(page):
-    """Every host the map page names, except in a link (<a href>), as the SVG namespace or as the Atlas itself
+    """Every host a map page names, except in a link (<a href>), as the SVG namespace or as the Atlas itself
     (its "Copy link" base): what it loads from."""
     hosts = set()
     for m in URL_HOST.finditer(page):
         host = m.group(1).lower()
-        if (host in NAMESPACE_HOSTS or MARKET_URL.startswith(f"https://{host}/")
+        if (host in NAMESPACE_HOSTS or host == SITE_HOST
                 or A_HREF.search(page[page.rfind("<", 0, m.start()):m.start()])):
             continue
         hosts.add(host)
     return hosts
 
 
-def put_market():
-    """The Market Atlas map at /market/map/: the copy from Eunice-Platform with its deep links read by the
-    page itself and its "Copy link" base pointed at the market page."""
-    page = MARKET.read_text(encoding="utf-8")
-    if page.count(MARKET_PLACEHOLDER) != 1:
-        fail(f"market/{MARKET.name} should hold {MARKET_PLACEHOLDER} once, for the page's deep links")
-    page = page.replace(MARKET_PLACEHOLDER, MARKET_INIT, 1)
-    page, n = re.subn(r'"publicUrl":"[^"]*"', '"publicUrl":"' + MARKET_URL + '"', page)
+def put_map(name):
+    """An atlas map (MAPS) in place: the copy from Eunice-Platform with its deep links read by the page itself, its
+    "Copy link" base pointed at its own address, and its links out opened in a new tab."""
+    m = MAPS[name]
+    page = (VENDOR / m["file"]).read_text(encoding="utf-8")
+    if page.count(MAP_PLACEHOLDER) != 1:
+        fail(f"vendor/{m['file']} should hold {MAP_PLACEHOLDER} once, for the page's deep links")
+    page = page.replace(MAP_PLACEHOLDER, m["init"], 1)
+    page, n = re.subn(r'"publicUrl":"[^"]*"', '"publicUrl":"' + m["url"] + '"', page)
     if n != 1:
-        fail(f"market/{MARKET.name} should set publicUrl once in its config, but sets it {n} times")
-    page = MAP_LINK.sub(lambda m: f'<a href={m.group(1)}{m.group(2)}{m.group(1)} target={m.group(1)}_blank{m.group(1)} '
-                                  f'rel={m.group(1)}noopener{m.group(1)}>', page)
-    stay = [m.group(0) for m in MAP_LINK_ANY.finditer(page) if "target=" not in m.group(0)]
+        fail(f"vendor/{m['file']} should set publicUrl once in its config, but sets it {n} times")
+    page = MAP_LINK.sub(lambda g: f'<a href={g.group(1)}{g.group(2)}{g.group(1)} target={g.group(1)}_blank{g.group(1)} '
+                                  f'rel={g.group(1)}noopener{g.group(1)}>', page)
+    stay = [g.group(0) for g in MAP_LINK_ANY.finditer(page) if "target=" not in g.group(0)]
     if stay:
-        fail(f"the market map links out without opening a new tab, which its frame would refuse: {stay[0][:100]}")
-    extra = market_hosts(page) - MARKET_HOSTS
+        fail(f"vendor/{m['file']} links out without opening a new tab, which its frame would refuse: {stay[0][:100]}")
+    extra = market_hosts(page) - m["hosts"]
     if extra:
-        fail(f"the market map loads from {', '.join(sorted(extra))}, which MARKET_HOSTS and the map's "
-             "Content-Security-Policy (root/_headers) do not allow")
-    target = OUT / "market" / "map" / "index.html"
+        fail(f"vendor/{m['file']} loads from {', '.join(sorted(extra))}, which MAPS[{name!r}] and the page's "
+             "Content-Security-Policy do not allow")
+    target = OUT / m["target"]
     if target.exists():
-        fail("market/map/index.html is built from market/, so root/ must not hold one")
+        fail(f"{m['target']} is built from vendor/{m['file']}, so nothing else may put one there")
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(page, encoding="utf-8")
+
+
+def put_pages():
+    """The client atlases, the team's pages, the investor packs and the standalone models (pages.py)."""
+    try:
+        built = {**pages.client_pages(), **pages.investor_pages()}
+    except pages.PageError as e:
+        fail(str(e))
+    for rel, text in built.items():
+        target = OUT / rel
+        if target.exists():
+            fail(f"{rel} would replace a file the build has already put in place")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(text, encoding="utf-8")
 
 
 def site_headers():
@@ -555,17 +624,25 @@ def check_site(headers):
             if rel.endswith("index.html") and not any("content-security-policy" in h and rule_matches(p, path)
                                                       for p, h in rules):
                 fail(f"{path} has no Content-Security-Policy: give it a rule in root/_headers")
-    csp = " ".join(h.get("content-security-policy", "") for p, h in rules if rule_matches(p, "/market/map/"))
-    allowed = {token.rstrip(";") for token in csp.split()}
-    missing = sorted(host for host in MARKET_HOSTS if "https://" + host not in allowed)
-    if missing:
-        fail(f"the market map's Content-Security-Policy (root/_headers) does not allow {', '.join(missing)}")
+    for name, m in MAPS.items():
+        path = "/" + m["target"][:-len("index.html")]
+        if path.startswith(GATED_PREFIXES):
+            csp = edge_policy(path) or ""
+        else:
+            csp = " ".join(h.get("content-security-policy", "") for p, h in rules if rule_matches(p, path))
+        allowed = {token.rstrip(";") for token in csp.split()}
+        missing = sorted(host for host in m["hosts"] if "https://" + host not in allowed)
+        if missing:
+            fail(f"the policy for {path} does not allow {', '.join(missing)}, which MAPS[{name!r}] loads from")
     # every file the site serves or is configured by (a redirect or proxy to Streamlit would count too)
     for f in sorted(OUT.rglob("*")) + [HERE / "netlify.toml"] + sorted((HERE / "netlify").rglob("*")):
         if f.is_file():
-            m = STREAMLIT.search(f.read_bytes().decode("latin-1"))
+            text = f.read_bytes().decode("latin-1")
+            m = STREAMLIT.search(text)
             if m:
                 fail(f"{f.relative_to(HERE).as_posix()} points at Streamlit ({m.group(0)}); the Atlas is hosted here")
+            if PORTAL_KEY.search(text):
+                fail(f"{f.relative_to(HERE).as_posix()} carries an investor portal key; only the gate may add one")
 
 
 def edge_policy(path):
@@ -599,26 +676,29 @@ def write_edge_lib():
                         f"export const REDIRECTS = {js(EDGE_REDIRECTS)};\n", encoding="utf-8")
 
 
-def sync_market():
-    """Copy the latest Market Atlas from Eunice-Platform's main branch into market/."""
-    data = urllib.request.urlopen(MARKET_SOURCE, timeout=60).read()
-    page = data.decode("utf-8")
-    if page.count(MARKET_PLACEHOLDER) != 1 or len(re.findall(r'"publicUrl":"[^"]*"', page)) != 1:
-        fail(f"{MARKET_SOURCE} no longer has the placeholder and the publicUrl this build fills in; "
-             "see what changed there before copying it")
-    old = MARKET.read_bytes() if MARKET.is_file() else b""
-    MARKET.write_bytes(data)
-    print(f"market/{MARKET.name}: {'unchanged' if old == data else 'updated'} "
-          f"(sha256 {hashlib.sha256(data).hexdigest()[:12]}); build, look at the map, and commit it")
+def sync():
+    """Copy the latest of each page vendor/ holds from its own repository's main branch."""
+    for name, url in VENDORED.items():
+        data = urllib.request.urlopen(url, timeout=60).read()
+        maps = [m for m in MAPS.values() if m["file"] == name]
+        if maps:
+            page = data.decode("utf-8")
+            if page.count(MAP_PLACEHOLDER) != 1 or len(re.findall(r'"publicUrl":"[^"]*"', page)) != 1:
+                fail(f"{url} no longer has the placeholder and the publicUrl this build fills in; see what changed there")
+        path = VENDOR / name
+        old = path.read_bytes() if path.is_file() else b""
+        path.write_bytes(data)
+        print(f"vendor/{name}: {'unchanged' if old == data else 'updated'} (sha256 {hashlib.sha256(data).hexdigest()[:12]})")
+    print("build, look at what changed, and commit it")
 
 
 def main():
     args = sys.argv[1:]
-    if args == ["--sync-market"]:
-        sync_market()
+    if args == ["--sync"]:
+        sync()
         return
     if args:
-        fail("usage: python atlas/build.py [--sync-market]")
+        fail("usage: python atlas/build.py [--sync]")
     names = load_names()
     if names is None and ON_NETLIFY:
         fail("refusing to build the site on Netlify without the list of names: set ATLAS_NAMES (the words that "
