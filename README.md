@@ -455,11 +455,16 @@ the footprint with `[` and `]` (Shift for 10°), copy the line it prints into `S
 has imagery here to zoom 19, which the map's tiles stop at (`maxNativeZoom`); beyond that it enlarges.
 
 **BLN 3D** is the handover's model-viewer page re-made in the house style of the Bryn 3D page: the
-header with the "Atlas" pill, wordmark and tabs (**Model**, **Flythrough**, **Stills**, **Measured &
-assumed**; `#flythrough`, `#stills`, `#facts` or `?tab=` open on one), and on Model the whole window
+header with the "Atlas" pill, wordmark and tabs (**Model**, **Flythrough & stills** and **Economic
+dispatch**, which is still to be built; `#media`, `#economic` or `?tab=` open on one, and the old
+`#flythrough` and `#stills` still lead to the second), an **Assumptions** button in the bottom corner
+that opens what is measured and what is assumed as a sheet over any tab (`#assumptions`, or the old
+`#facts`), and on Model the whole window
 for the model, a camera rail (Exterior, Cutaway, Inside, BLOX cabinet, Ventilation, then the Open
 cabinet, See-through cabinet, Walls and roof, Heat enclosure, Airflow, Markers and Turn slowly
-switches, and Dispatch; a bottom strip on a phone) and a caption that follows the view. It keeps the handover's mechanics: two models swapped by `src` with the camera preset
+switches, and Technical dispatch; a bottom strip on a phone) and a caption that follows the view. Turn
+slowly sets the model turning on model-viewer's turntable at once, a full turn in 36 seconds; any
+camera preset stops it. It keeps the handover's mechanics: two models swapped by `src` with the camera preset
 re-applied on load, `max-field-of-view="70deg"` so the wide presets get through, the cabinet door driven
 by seeking the cutaway's `open_cabinet` clip, and the airflow arrows (materials `air_cold`, `air_hot`)
 shown by alpha. Three things differ from the handover page. The clip loops, so seeking to its full
@@ -490,13 +495,13 @@ leaves no room for a fan over it). The client's back-up option, an 18 mm OSB box
 rear panel to the gable round both fans, is in both models and hidden until Heat enclosure is on.
 Model-viewer reaches materials and animations but not single parts, so the page reaches into its
 three.js scene (behind the `scene` symbol) for the rest: Walls and roof hides the cladding, roof,
-gutters, door, louvres, battens and the fans' outside cowls (the steel frame stays, so there is
-something to turn round); See-through cabinet gives the cabinet's sides, top and back (and the
+gutters, door, louvres, battens, the fans' outside cowls, the fittings on the walls and the whole
+steel frame, all but the yellow crane beam with its stops and hoist; See-through cabinet gives the cabinet's sides, top and back (and the
 enclosure, when shown) a faint copy of their own material that the marker rays pass through; each
 miner's status light can go dark on its own; and each fan's hub and blades hang from an empty,
 `fan1_rotor` and `fan2_rotor`, which the page turns while the airflow is drawn or the simulation
 runs the fan. A hidden part is hidden mesh by mesh, since model-viewer's ray cast skips only a
-mesh that is itself hidden. Dispatch opens a panel (at the right on a wide screen or a phone on its
+mesh that is itself hidden. Technical dispatch opens a panel (at the right on a wide screen or a phone on its
 side, along the bottom otherwise) and moves the camera to the open cabinet: `3d/dispatch.js`, fetched on first use, simulates a day minute by minute (the
 river's power is invented; the rule is the client's: start a miner while export sits at the 250 kW
 limit, another each minute it stays there, stop one each minute it is at or under 245 kW; 3.4 kW a
@@ -504,7 +509,7 @@ miner, so 15 run at the full surplus; an illustrative thermostat brings the lead
 keeps it running while any miner does, and the second in at 32 °C and out at 21 °C, each with a
 minimum run time) and charts it,
 and its state lights the miners and turns the fans. The
-flythrough was left as it was, so it shows the first layout; its tab says so.
+flythrough was left as it was, so it shows the first layout; its page says so.
 
 **Anonymity.** The handover package named the site in three places that a browser would show: the
 page text, a line of 3D text on the cabinet's nameplate in both GLBs ("BLOX.  <site> 50 kW") and the

@@ -446,7 +446,7 @@ export function mountDispatch(el, opts = {}){
   root.innerHTML = `
 <div class="dsp-head">
   <div class="dsp-title">
-    <div class="dsp-k" id="${uid}-k">Dispatch · simulated day</div>
+    <div class="dsp-k" id="${uid}-k">Technical dispatch · simulated day</div>
     <p class="dsp-rule">${both('A miner starts each minute export is at 250 kW, and one stops at or under 245 kW.', 'Export at 250 kW starts a miner; 245 or under stops one.')}</p>
   </div>
   <div class="dsp-seg" role="group" aria-label="River">${SCENARIOS.map((s) =>

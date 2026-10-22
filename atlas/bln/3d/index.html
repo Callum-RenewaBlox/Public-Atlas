@@ -92,9 +92,9 @@ header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2.5
 .view{position:absolute;inset:0}
 .page{overflow:auto;background:var(--tint);-webkit-overflow-scrolling:touch}
 .wrap{max-width:1180px;margin:0 auto;padding:26px 24px 48px}
-.page h2{margin:0;font-size:20px;letter-spacing:-.01em;color:var(--ink)}
-.page .sub{margin:6px 0 18px;color:var(--muted);font-size:13.5px;line-height:1.55;max-width:760px}
-@media (max-width:620px){ .wrap{padding:18px 14px 40px} .page h2{font-size:18px} }
+.page h2,#as-sheet h2{margin:0;font-size:20px;letter-spacing:-.01em;color:var(--ink)}
+.page .sub,#as-sheet .sub{margin:6px 0 18px;color:var(--muted);font-size:13.5px;line-height:1.55;max-width:760px}
+@media (max-width:620px){ .wrap{padding:18px 14px 40px} .page h2,#as-sheet h2{font-size:18px} }
 
 /* ------------------------------------------------------------------ model -- */
 model-viewer{position:absolute;inset:0;width:100%;height:100%;display:block;
@@ -194,7 +194,7 @@ body.dsp-on model-viewer{height:auto;bottom:var(--dsp-h,0px)}
 body.dsp-on .hint,body.dsp-on #caption{display:none}
 /* on a wide screen it stands at the right instead, over the model, and the camera frames the cabinet in the clear part */
 @media (min-width:980px){
-  #dispatch{left:auto;top:16px;bottom:auto;width:min(560px,44vw)}
+  #dispatch{left:auto;top:16px;bottom:auto;width:min(560px,44vw);max-height:calc(100% - 78px)}
 }
 
 @media (max-width:860px){
@@ -209,7 +209,8 @@ body.dsp-on .hint,body.dsp-on #caption{display:none}
   #caption p{font-size:11.5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   #caption.more p{-webkit-line-clamp:unset;display:block}
   #capmore{display:inline;border:0;background:none;padding:0;margin-top:4px;font:700 11px var(--font);color:var(--accent);cursor:pointer}
-  .hint{bottom:70px;font-size:10.5px}
+  /* the hint keeps to the left of the row it shares with the Assumptions button */
+  .hint{bottom:66px;left:10px;translate:none;max-width:calc(100% - 152px);white-space:normal;font-size:10.5px;line-height:1.35}
   .hint .f{display:none} .hint .s{display:inline}
   /* the strip scrolls sideways: fade whichever edge has more beyond it */
   #rail.more-r{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent)}
@@ -222,6 +223,8 @@ body.dsp-on .hint,body.dsp-on #caption{display:none}
 }
 /* ...and on its side, the caption shrinks to its heading in the corner */
 @media (max-height:500px) and (orientation:landscape){
+  /* the film keeps its height, with a gutter at the right for the Assumptions button */
+  .vidcard{max-width:calc(100% - 150px)} .vidcard video{max-height:calc(100dvh - 120px)}
   #caption{width:min(330px,45%);left:auto} #caption p,#capmore,#legend{display:none} .hint{display:none}
   #caption.note p{display:block}
   /* the dispatch panel down the right, above the strip of controls, the model keeping the left */
@@ -230,7 +233,7 @@ body.dsp-on .hint,body.dsp-on #caption{display:none}
 
 /* ------------------------------------------------------------ flythrough -- */
 .vidcard{background:#0d1b23;border-radius:var(--r-l);overflow:hidden;box-shadow:var(--sh-2)}
-video{display:block;width:100%;height:auto;max-height:calc(100dvh - 210px);aspect-ratio:16/9;background:#0d1b23}
+video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspect-ratio:16/9;background:#0d1b23}
 .vidmeta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
 
 /* ---------------------------------------------------------------- stills -- */
@@ -270,6 +273,33 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 210px);aspec
 .kpi .v{font-size:24px;font-weight:750;color:var(--brand);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
 .kpi .k{font-size:12px;color:var(--muted);margin-top:2px}
 .foot{margin-top:22px;font-size:11.5px;color:var(--muted);line-height:1.6}
+.page h2.sec{margin-top:38px}
+/* a page scrolls clear of the Assumptions button in the corner */
+.page .wrap{padding-bottom:84px}
+
+/* ----------------------------------------------------------- assumptions -- */
+/* the button in the bottom corner, clear of the control strip on a phone and of a dispatch panel along the bottom */
+#as-open{position:fixed;z-index:10;right:16px;bottom:16px;display:inline-flex;align-items:center;gap:7px;
+  border:1px solid var(--line);background:var(--glass);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:var(--brand);
+  font:650 12px var(--font);padding:7px 13px 7px 11px;border-radius:var(--r-pill);box-shadow:var(--sh-1);cursor:pointer;
+  transition:background .15s,color .15s,border-color .15s}
+#as-open:hover{background:var(--brand);border-color:var(--brand);color:#fff}
+#as-open svg{width:14px;height:14px;display:block;flex:0 0 auto}
+.tab-model #as-open{bottom:max(16px,var(--dsp-h,0px))}
+@media (max-width:860px){ .tab-model #as-open{right:10px;bottom:max(66px,var(--dsp-h,0px))} }
+/* a phone on its side: the dispatch panel takes that corner, so the button crosses to the other one */
+@media (max-height:500px) and (orientation:landscape) and (max-width:860px){ body.dsp-on.tab-model #as-open{right:auto;left:10px} }
+/* the sheet, over a dimmed page; it scrolls on its own */
+#as-sheet{position:fixed;inset:0;z-index:40;background:rgba(9,20,26,.5);display:flex;align-items:flex-start;justify-content:center;
+  padding:24px 16px;overflow:auto;overscroll-behavior:contain}
+#as-sheet .sheet{position:relative;width:100%;max-width:1180px;margin:auto 0;background:var(--tint);border-radius:var(--r-l);box-shadow:var(--sh-2)}
+/* Close stays in view as the sheet scrolls (a touch screen has no Escape) */
+#as-x{position:sticky;top:12px;float:right;margin:14px 14px 0 0;z-index:2;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);cursor:pointer;
+  font:650 12px var(--font);padding:7px 12px;border-radius:var(--r-pill);transition:background .15s,color .15s}
+#as-x:hover{background:var(--brand);color:#fff}
+#as-sheet .wrap{padding-top:22px}
+#as-sheet h2{padding-right:96px}
+@media (max-width:620px){ #as-sheet{padding:10px} #as-sheet h2{padding-right:84px} }
 
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
@@ -290,9 +320,8 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 210px);aspec
   </div>
   <nav class="ptabs" id="ptabs" role="tablist" aria-label="What the page shows">
     <button type="button" role="tab" id="t-model" data-tab="model" aria-selected="true" aria-controls="p-model"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.8l5.6 3.1v6.2L8 14.2l-5.6-3.1V4.9z"/><path d="M2.4 4.9L8 8l5.6-3.1M8 8v6.2"/></svg>Model</button>
-    <button type="button" role="tab" id="t-flythrough" data-tab="flythrough" aria-selected="false" aria-controls="p-flythrough" tabindex="-1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.8" y="3.2" width="12.4" height="9.6" rx="1.6"/><path d="M6.6 6v4l3.6-2z"/></svg>Flythrough</button>
-    <button type="button" role="tab" id="t-stills" data-tab="stills" aria-selected="false" aria-controls="p-stills" tabindex="-1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.8" y="2.8" width="12.4" height="10.4" rx="1.6"/><circle cx="5.6" cy="6.4" r="1.2"/><path d="M2.4 12l3.6-3.4 2.6 2.4 2.2-2 3 2.8"/></svg>Stills</button>
-    <button type="button" role="tab" id="t-facts" data-tab="facts" aria-selected="false" aria-controls="p-facts" tabindex="-1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2.4h7.2L13 5.2v8.4H3z"/><path d="M5.4 8.2l1.6 1.6 3-3.2"/></svg>Measured &amp; assumed</button>
+    <button type="button" role="tab" id="t-media" data-tab="media" aria-selected="false" aria-controls="p-media" tabindex="-1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.8" y="3.2" width="12.4" height="9.6" rx="1.6"/><path d="M6.6 6v4l3.6-2z"/></svg>Flythrough &amp; stills</button>
+    <button type="button" role="tab" id="t-economic" data-tab="economic" aria-selected="false" aria-controls="p-economic" tabindex="-1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.8 13.8h12.4"/><path d="M3.6 13.8V9.6M7 13.8V6.8M10.4 13.8V8.4M13.6 13.8V4.4"/></svg>Economic dispatch</button>
   </nav>
   <div class="chips" aria-label="The scheme in three figures">
     <span class="chip" title="Generation">300 kW</span><span class="chip" title="Export limit">250 kW export</span><span class="chip blox" title="The surplus the BLOX cabinet takes">50 kW to BLOX</span>
@@ -313,20 +342,21 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 210px);aspec
       <div class="rail-h">Show</div>
       <button type="button" class="tg" id="b-door" aria-pressed="false" title="Swing the cabinet's filter door open to see the miners"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 14.2V1.8h6.4v12.4"/><path d="M9.8 1.8l3 1.4v12.2l-3-1.2"/></svg><span>Open cabinet</span></button>
       <button type="button" class="tg" id="b-see" aria-pressed="false" title="Make the cabinet's sides, top and back see-through, to see the miners from any side"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.4" y="1.8" width="9.2" height="12.4" rx="1.2" stroke-dasharray="2.1 1.7"/><path d="M5.8 5.4h4.4M5.8 8h4.4M5.8 10.6h4.4"/></svg><span>See-through cabinet</span></button>
-      <button type="button" class="tg" id="b-shell" aria-pressed="true" title="Take the building's walls and roof away, to turn round the cabinet inside"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.8 6.8L8 2.4l6.2 4.4"/><path d="M3.2 5.8v7.8h9.6V5.8" stroke-dasharray="2.2 1.6"/></svg><span>Walls and roof</span></button>
+      <button type="button" class="tg" id="b-shell" aria-pressed="true" title="Take the building's walls, roof and steel frame away (the crane beam stays), to turn round the cabinet inside"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.8 6.8L8 2.4l6.2 4.4"/><path d="M3.2 5.8v7.8h9.6V5.8" stroke-dasharray="2.2 1.6"/></svg><span>Walls and roof</span></button>
       <button type="button" class="tg" id="b-enc" aria-pressed="false" title="The back-up option: an OSB box from the back of the cabinet to the wall, round both fans"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.2" y="4.6" width="6" height="9.6" rx=".8"/><path d="M8.2 2.6h5.6v11.6H8.2"/><circle cx="11" cy="6.2" r="1.4"/><circle cx="11" cy="10.6" r="1.4"/></svg><span>Heat enclosure</span></button>
       <button type="button" class="tg" id="b-air" aria-pressed="false" title="Draw the cold-in, hot-out airflow"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.8 5.6h8.4a2 2 0 1 0-2-2M1.8 10.4h10.4a2 2 0 1 1-2 2M1.8 8h6"/></svg><span>Airflow</span></button>
       <button type="button" class="tg" id="b-hs" aria-pressed="true" title="Show or hide the markers"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 14.4s4.6-4.2 4.6-7.6A4.6 4.6 0 0 0 3.4 6.8c0 3.4 4.6 7.6 4.6 7.6z"/><circle cx="8" cy="6.8" r="1.6"/></svg><span>Markers</span></button>
-      <button type="button" class="tg" id="b-rot" aria-pressed="false" title="Turn the model slowly"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13.4 8A5.4 5.4 0 1 1 11.8 4.2"/><path d="M13.6 2.2v3h-3"/></svg><span>Turn slowly</span></button>
+      <button type="button" class="tg" id="b-rot" aria-pressed="false" title="Turn the model slowly on the spot, to see it from every side; any camera button stops it"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13.4 8A5.4 5.4 0 1 1 11.8 4.2"/><path d="M13.6 2.2v3h-3"/></svg><span>Turn slowly</span></button>
       <div class="sep"></div>
       <div class="rail-h">Simulate</div>
-      <button type="button" class="tg" id="b-dsp" aria-pressed="false" aria-controls="dispatch" title="A simulated day: the export, and the miners starting and stopping with it"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.8 13.8h12.4"/><path d="M2.4 10.6l3-3.4 2.6 2.2 3.2-4.8 2.6 2.4"/></svg><span>Dispatch</span></button>
+      <button type="button" class="tg" id="b-dsp" aria-pressed="false" aria-controls="dispatch" title="A simulated day: the export, and the miners starting and stopping with it"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.8 13.8h12.4"/><path d="M2.4 10.6l3-3.4 2.6 2.2 3.2-4.8 2.6 2.4"/></svg><span>Technical dispatch</span></button>
     </nav>
     <model-viewer id="mv" data-model="ext"
       src="../assets/bln_powerhouse.glb"
       alt="3D model of the BLN hydro powerhouse with the BLOX data-centre cabinet"
       camera-controls touch-action="none" interaction-prompt="none"
       camera-orbit="135deg 66deg 30m" camera-target="4.3m 1.4m 0m" field-of-view="30deg" max-field-of-view="70deg"
+      auto-rotate-delay="0" rotation-per-second="10deg"
       min-camera-orbit="auto 10deg 1.5m" max-camera-orbit="auto 89deg 80m"
       environment-image="neutral" exposure="0.95" shadow-intensity="0.7" shadow-softness="0.8"
       tone-mapping="neutral" loading="eager" reveal="auto">
@@ -365,15 +395,15 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 210px);aspec
       <div id="legend" hidden><span><i style="background:var(--cold)"></i>Cold air in through the filter door</span><span><i style="background:var(--hot)"></i>Hot exhaust out through the wall fans</span></div>
       <button type="button" id="capmore">More</button>
     </div>
-    <section class="panel" id="dispatch" aria-label="Dispatch: a simulated day" hidden>
-      <button type="button" id="dsp-x" aria-label="Close the dispatch simulation" title="Close"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg></button>
+    <section class="panel" id="dispatch" aria-label="Technical dispatch: a simulated day" hidden>
+      <button type="button" id="dsp-x" aria-label="Close the technical dispatch" title="Close"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M2.5 2.5l7 7M9.5 2.5l-7 7"/></svg></button>
       <div id="dsp-mount"></div>
     </section>
     <div class="hint"><span class="f">Drag to turn · scroll or pinch to zoom · right-drag or two fingers to pan · the markers explain each part</span><span class="s">Drag to turn · pinch to zoom · tap a marker</span></div>
   </section>
 
-  <!-- ======================================================= flythrough -->
-  <section class="view page" id="p-flythrough" role="tabpanel" aria-labelledby="t-flythrough" hidden>
+  <!-- ============================================== flythrough & stills -->
+  <section class="view page" id="p-media" role="tabpanel" aria-labelledby="t-media" tabindex="0" hidden>
     <div class="wrap">
       <h2>Flythrough</h2>
       <p class="sub">54 seconds: up the track to the powerhouse, round the building, in through the door and across the turbine hall to the BLOX cabinet, which opens on its miners. It was made before the changes of 21 October, so it shows the first layout: 15 miners and one 630 mm fan. The model and the stills show the current one.</p>
@@ -384,13 +414,8 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 210px);aspec
         </video>
       </div>
       <div class="vidmeta"><span class="chip">54 s</span><span class="chip">720p · H.264</span><span class="chip">Terrain indicative</span></div>
-    </div>
-  </section>
 
-  <!-- =========================================================== stills -->
-  <section class="view page" id="p-stills" role="tabpanel" aria-labelledby="t-stills" hidden>
-    <div class="wrap">
-      <h2>Stills</h2>
+      <h2 id="stills" class="sec">Stills</h2>
       <p class="sub">Rendered views of the model. Click one to see it full size; the arrow keys step through them.</p>
       <div class="grid" id="gallery">
         <button type="button" class="still" data-full="../assets/approach.jpg"><img src="../assets/approach_thumb.jpg" alt="The powerhouse from the north-east" loading="lazy"/><span><b>Approach</b>The north-east corner, the door and the north louvre, and the two fans' cowls on the east gable</span></button>
@@ -404,10 +429,22 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 210px);aspec
     </div>
   </section>
 
-  <!-- ============================================================ facts -->
-  <section class="view page" id="p-facts" role="tabpanel" aria-labelledby="t-facts" hidden>
+  <!-- ================================================= economic dispatch -->
+  <section class="view page" id="p-economic" role="tabpanel" aria-labelledby="t-economic" tabindex="0" hidden>
     <div class="wrap">
-      <h2>What is measured, and what is assumed</h2>
+      <h2>Economic dispatch</h2>
+      <p class="sub">In preparation. Technical dispatch, a switch on the Model tab, shows the miners following the export by the agreed rule; this tab will build on it.</p>
+    </div>
+  </section>
+</main>
+
+<!-- the assumptions: a sheet over whichever tab is open, from the button in the bottom corner -->
+<button type="button" id="as-open" aria-haspopup="dialog" aria-controls="as-sheet"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2.4h7.2L13 5.2v8.4H3z"/><path d="M5.4 8.2l1.6 1.6 3-3.2"/></svg>Assumptions</button>
+<div id="as-sheet" role="dialog" aria-modal="true" aria-labelledby="as-h" hidden>
+  <div class="sheet">
+    <button type="button" id="as-x" aria-label="Close the assumptions">Close ✕</button>
+    <div class="wrap">
+      <h2 id="as-h">What is measured, and what is assumed</h2>
       <p class="sub">So the engineering review knows what to trust. The building and machine come from the drawing and the site photographs; where neither says, the model says so here.</p>
       <div class="cols">
         <div class="card">
@@ -422,7 +459,7 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 210px);aspec
             <li><b>Inside</b>: white liner, monorail crane, louvres and trenches; the Gilkes panels 950 mm off the east gable with a clear walkway from the turbine casing; the BLOX cabinet in line with them in the gap beside the HMI panel, with 0.75 m of hot-air space behind it</li>
             <li><b>BLOX cabinet</b>: 800 × 1000 × 2200 mm, holding 20 miners, three to a shelf and two on the top shelf, with the network switch and edge controller on edge beside the shelves (photograph of 21 October)</li>
             <li><b>Ventilation</b>: two 450 mm extraction fans in the gable behind the cabinet, one above the timber batten and one below; a thermostat runs one, then both as the space warms</li>
-            <li><b>Dispatch rule</b>: the miners follow the export. One starts while export sits at the 250 kW limit, another each time it stays there; at or under 245 kW they stop one at a time</li>
+            <li><b>Technical dispatch rule</b>: the miners follow the export. One starts while export sits at the 250 kW limit, another each time it stays there; at or under 245 kW they stop one at a time</li>
           </ul>
         </div>
         <div class="card est">
@@ -436,7 +473,7 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 210px);aspec
             <li><b>Terrain, burn, track, fence and pole line</b>: procedural and indicative, not surveyed</li>
             <li><b>Fan heights</b>: 2.55 m and 1.50 m to the fans' centres, read from the sketch, both on the cabinet's centre line; about 4,900 m³/h each is a typical figure for a 450 mm wall fan, not a chosen model</li>
             <li><b>Heat enclosure (option)</b>: 18 mm OSB, as wide as the cabinet, from its rear panel to the gable and up to 2.86 m, just under the gable rail</li>
-            <li><b>Dispatch simulation</b>: the river's power through the day is invented to show the rule at work; each miner draws 3.4 kW at the wall, so 15 run at the full surplus; the thermostat is illustrative: the lead fan comes on at 24 °C as the first miners warm the space and runs while any miner does, and the second comes in at 32 °C and goes off at 21 °C, each with a minimum run time so they do not chatter</li>
+            <li><b>Technical dispatch simulation</b>: the river's power through the day is invented to show the rule at work; each miner draws 3.4 kW at the wall, so 15 run at the full surplus; the thermostat is illustrative: the lead fan comes on at 24 °C as the first miners warm the space and runs while any miner does, and the second comes in at 32 °C and goes off at 21 °C, each with a minimum run time so they do not chatter</li>
             <li><b>Orientation</b>: the model is drawn with its axis east–west and the door to the north, lit from the south-east. The aerial imagery (May 2025) shows the building's axis running south-west to north-east, about 43°, with the grid compound off the north-east gable</li>
           </ul>
         </div>
@@ -449,8 +486,8 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 210px);aspec
       </div>
       <p class="foot">RenewaBlox · BLN concept visualisation, October 2026. A procedural model built in Blender; the building's dimensions come from the substructure drawing, the terrain is indicative. In the browser the procedural finishes (cladding ribs, concrete) show as flat colours. Not for construction.</p>
     </div>
-  </section>
-</main>
+  </div>
+</div>
 
 <div id="lb" role="dialog" aria-modal="true" aria-label="Still" hidden>
   <button type="button" class="x" id="lb-x">Close ✕</button>
@@ -468,10 +505,15 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 210px);aspec
   const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   /* ------------------------------------------------------------ the tabs */
-  const TABS = ['model', 'flythrough', 'stills', 'facts'];
+  const TABS = ['model', 'media', 'economic'];
+  // the addresses of the tabs the page used to have still lead where those went
+  const ALIAS = { flythrough: 'media', stills: 'media' };
   const tabBtns = [...document.querySelectorAll('#ptabs [role=tab]')];
+  let tab = 'model';
   function setTab(t, focus){
+    t = ALIAS[t] || t;
     if (!TABS.includes(t)) t = 'model';
+    tab = t;
     tabBtns.forEach((b) => {
       const on = b.dataset.tab === t;
       b.setAttribute('aria-selected', on ? 'true' : 'false');
@@ -480,7 +522,7 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 210px);aspec
     });
     TABS.forEach((k) => { $('p-' + k).hidden = k !== t; });
     document.body.className = document.body.className.replace(/\btab-\w+/, '') + ' tab-' + t;
-    if (t !== 'flythrough') $('fly').pause();
+    if (t !== 'media') $('fly').pause();
     if (t !== 'model' && dsp) dsp.pause();
     // the model's panels were measured while hidden: measure them again now they show
     if (t === 'model') { clampCaption(); railEdges(); requestAnimationFrame(occlusion); spin(); }
@@ -521,7 +563,7 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 210px);aspec
     // not on the rail: where the dispatch simulation looks from, over the turbine casing at the open cabinet, every
     // shelf in view as in the photograph, the lead fan showing above the cabinet
     dispatch: { model: 'cut', orbit: '-90deg 70deg 2.9m', target: '8.0m 1.45m 0.27m', fov: '60deg', door: true, frame: true,
-      k: 'Dispatch', h: 'The miners follow the export',
+      k: 'Technical dispatch', h: 'The miners follow the export',
       p: 'A simulated day, the cabinet open: a stopped miner goes dark and a running one lights. The lead fan turns above the cabinet; the second, behind it, shows in the Ventilation view.' },
   };
   let view = 'exterior', current = 'ext', airOn = false, doorOpen = false, doorRaf = 0, firstLoad = true;
@@ -619,7 +661,7 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 210px);aspec
   });
   function failed(msg){
     const l = $('loading'); l.classList.remove('hide'); l.classList.add('failed');
-    $('loadmsg').innerHTML = msg + ' The <a href="#flythrough">flythrough</a> and <a href="#stills">stills</a> show the same model.';
+    $('loadmsg').innerHTML = msg + ' The <a href="#media">flythrough and stills</a> show the same model.';
     l.querySelectorAll('a').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); setTab(a.getAttribute('href').slice(1)); }));
   }
   // Opened straight from a folder, the browser will not fetch the model; say so rather than spin.
@@ -718,6 +760,9 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 210px);aspec
   // scene (kept behind a symbol) to take the building's shell away, make the cabinet's walls see-through, show the
   // OSB enclosure, light each miner and turn the fans. Each load brings a new scene: the parts are found again then.
   const SHELL = /^(wall_[ACWE]$|roof_[NS]$|ridge_cap|barge_|gutter_|downpipe|skirt_|door_|door2_|louvre_|fan\d_cowl|batten_|tray_|dist_box|backboard|socket_|switch_\d|extinguisher_sign|led_(body|diff)_)/;
+  // ...and with them the steel frame: columns, rafters, purlins, rails, posts and bracing. The yellow crane beam stays
+  // (with its end stops and hoist), so there is still a line to read the room by
+  const STEEL = /^(col_|base_\d|rafter_|haunch_|apex_plate_|eaves_beam_|rail_[NS]_|purlin_|gpost_|grail_|brace_|rbrace_|crane_hanger)/;
   const CAB_WALLS = /^(rack_side_[NS]|rack_top|rack_back|rack_rear_panel)$/;
   // the dispatch's miner numbers (1-20) fill the cabinet from the bottom shelf up, left to right from the walkway;
   // the top shelf's spare slot is on the right. Rows count up from the bottom, columns from the south side.
@@ -734,7 +779,7 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 210px);aspec
     const p = { shell: [], cab: [], enc: [], airIn: [], air1: [], air2: [], leds: {}, miners: {}, rotors: {}, glass: new Map(), dim: new Map(), dark: null };
     s.traverse((o) => {
       const n = o.name || '';
-      if (SHELL.test(n)) p.shell.push(o);
+      if (SHELL.test(n) || STEEL.test(n)) p.shell.push(o);
       else if (CAB_WALLS.test(n)) p.cab.push(o);
       else if (n === 'rack_side_text') p.word = o;
       else if (/^osb_/.test(n)) p.enc.push(o);
@@ -1001,8 +1046,39 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 210px);aspec
     }
   });
 
-  // last, once everything above exists: open on the tab the address asks for
-  setTab((new URLSearchParams(location.search).get('tab')) || location.hash.slice(1));
+  /* ------------------------------------------------------ assumptions */
+  // What is measured and what is assumed, as a sheet over whichever tab is open, from the button in the bottom
+  // corner. The close button, Escape or a click outside the sheet closes it, and focus goes back where it was.
+  let asFrom = null;
+  function openAs(){
+    if (!$('as-sheet').hidden) return;
+    asFrom = document.activeElement;
+    $('as-sheet').hidden = false; $('as-open').setAttribute('aria-expanded', 'true');
+    $('as-sheet').scrollTop = 0;
+    $('as-x').focus();
+    const u = new URL(location.href); u.searchParams.delete('tab'); u.hash = 'assumptions'; history.replaceState(null, '', u);
+  }
+  function closeAs(){
+    $('as-sheet').hidden = true; $('as-open').setAttribute('aria-expanded', 'false');
+    const u = new URL(location.href); u.hash = tab === 'model' ? '' : tab; history.replaceState(null, '', u);
+    if (asFrom && asFrom.focus) asFrom.focus();
+  }
+  $('as-open').setAttribute('aria-expanded', 'false');
+  $('as-open').addEventListener('click', openAs);
+  $('as-x').addEventListener('click', closeAs);
+  $('as-sheet').addEventListener('click', (e) => { if (e.target === $('as-sheet')) closeAs(); });
+  document.addEventListener('keydown', (e) => {
+    if ($('as-sheet').hidden) return;
+    if (e.key === 'Escape') { e.preventDefault(); closeAs(); }
+    else if (e.key === 'Tab') { e.preventDefault(); $('as-x').focus(); }   // the close button is the sheet's one control
+  });
+
+  // last, once everything above exists: open on the tab the address asks for (the old Measured & assumed tab's
+  // address opens the sheet; the old Stills tab's opens its new page at the stills)
+  const want = (new URLSearchParams(location.search).get('tab')) || location.hash.slice(1);
+  setTab(want);
+  if (want === 'facts' || want === 'assumptions') openAs();
+  else if (want === 'stills') $('stills').scrollIntoView();
 })();
 </script>
 </body>
