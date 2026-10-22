@@ -1,13 +1,27 @@
-"""Build the client pages for atlas.renewablox.com into atlas/site/.
+"""Build atlas.renewablox.com, the RenewaBlox Atlas, into atlas/site/.
 
-    /bln/       BLN Atlas: the powerhouse on the satellite imagery, with the BLOX badge (bln/index.html)
-    /bln/3d/    BLN 3D: the 3D render the badge opens (bln/3d/index.html)
-    /           the Client Atlas section of the Atlas front page (front/clients.html), with its cover
-                images under /assets/img/clients/, put in place by --merge between marker comments
+    /             the Atlas front page (root/index.html), with its Client Atlas section (front/clients.html)
+                  put in place between marker comments and the section's cover images under /assets/img/clients/
+    /investors/   the Investor Atlas preview (root/investors/index.html)
+    /market/      the Market Atlas page (root/market/index.html), which frames the map below
+    /market/map/  the Market Atlas map: Eunice-Platform's client_atlas_v2.html (a copy in market/), with the
+                  deep links its Streamlit wrapper used to read now read by the page itself (MARKET_INIT)
+    /bln/         BLN Atlas: the powerhouse on the satellite imagery, with the BLOX badge (bln/index.html)
+    /bln/3d/      BLN 3D: the 3D render the badge opens (bln/3d/index.html)
 
-Atlas itself (its front page, /investors/, /market/, /portal/) is the renewablox-atlas Netlify
-project, deployed by upload from its own folder; this repository holds the client pages that go
-into it. The build copies them into place and checks what would otherwise go wrong quietly:
+The renewablox-atlas Netlify project builds the site from this folder on every push (netlify.toml);
+nothing of it is hosted anywhere else. root/ holds the Atlas site's own files, served at the root of the
+domain as they are, with root/_headers for their header rules. The build puts every page in place and
+checks what would otherwise go wrong quietly:
+
+  * nothing on the site points at Streamlit (a streamlit.app or share.streamlit.io address anywhere fails it);
+  * the market map loads only from MARKET_HOSTS, every one of which its Content-Security-Policy allows, and
+    each page takes its Content-Security-Policy from exactly one header rule (Netlify joins a header set by
+    two matching rules into one value, which would turn two policies into one broken one);
+  * the two brand fonts (FONTS) are fetched from renewablox.com's own font files and must match their
+    hashes: they are licensed for the website, so they are not kept in this public repository.
+
+The client pages are checked further:
 
   * anonymity: a client page is named by its code (BLN) only. No page or asset may carry a word that
     names or places the site (the list is kept out of this public repository, in atlas/.names), nor a
@@ -19,9 +33,11 @@ into it. The build copies them into place and checks what would otherwise go wro
   * the powerhouse's position on the imagery has been confirmed (a warning until it is).
 
 Run:  python atlas/build.py                      (writes atlas/site/, git-ignored)
-      python -m http.server 8901 -d atlas/site   (then open http://localhost:8901/bln/)
-      python atlas/build.py --merge DIR          (also puts bln/ and its header rules into DIR, a copy
-                                                  of the Atlas site's own folder, ready to upload)
+      python -m http.server 8901 -d atlas/site   (then open http://localhost:8901/)
+      python atlas/build.py --sync-market        (copies the latest client_atlas_v2.html from Eunice-Platform's
+                                                  main branch into market/, to be committed like any change)
+On Netlify (NETLIFY=true) the build refuses to run without the list of names, as the site it builds is
+published; the netlify.toml beside this file says where that list is kept there.
 Standard library only.
 """
 import hashlib
@@ -31,11 +47,14 @@ import re
 import shutil
 import struct
 import sys
+import urllib.request
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "site"
+ROOT = HERE / "root"
 CLIENTS = ["bln"]
+ON_NETLIFY = os.environ.get("NETLIFY") == "true"
 
 # The words that would name or place a client's site (the site, the places around it, the firms on
 # its drawings) are never written in this public repository, not even as hashes, which a gazetteer
@@ -69,6 +88,35 @@ FRONT_ASSETS = "assets/img/clients"
 
 HEADERS_BEGIN = "# --- client pages (Public-Atlas atlas/build.py) ---"
 HEADERS_END = "# --- end of client pages ---"
+
+# The Market Atlas map. MARKET is a copy of Eunice-Platform's client_atlas_v2.html (built there by
+# atlas/build.py --only client); --sync-market refreshes it from MARKET_SOURCE. The page leaves a placeholder
+# for its host to fill with window.__ATLAS_INIT__: on Streamlit, app_client_atlas_v2.py filled it from the
+# query string after checking each value; here the page does the same with the same patterns. Its "Copy link"
+# button builds on the config's publicUrl, which the build points at MARKET_URL.
+MARKET = HERE / "market" / "client_atlas_v2.html"
+MARKET_SOURCE = "https://raw.githubusercontent.com/Callum-RenewaBlox/Eunice-Platform/main/client_atlas_v2.html"
+MARKET_URL = "https://atlas.renewablox.com/market/"
+MARKET_PLACEHOLDER = "/*__ATLAS_INIT__*/"
+MARKET_INIT = ("(function(){var A={view:/^(sam|tam|hydro|ppa)$/,site:/^[A-Za-z0-9-]{1,48}$/,theme:/^(paper|night)$/},"
+               "q=new URLSearchParams(location.search),o={};for(var k in A){var v=q.get(k);"
+               "if(v!==null&&A[k].test(v))o[k]=v;}window.__ATLAS_INIT__=o;})();")
+# Where the map loads from: MapLibre and its stylesheet, Open Sans, the base map, the terrain and postcodes.
+# Its other addresses are links in the map's credits, and the SVG namespace.
+MARKET_HOSTS = {"cdn.jsdelivr.net", "fonts.googleapis.com", "fonts.gstatic.com", "tiles.openfreemap.org",
+                "s3.amazonaws.com", "api.postcodes.io"}
+
+# The brand fonts, as renewablox.com serves them (the Wix site's uploaded fonts), fetched at build time.
+FONTS = {
+    "assets/fonts/telegraf-regular.woff2": (
+        "https://static.wixstatic.com/ufonts/cf5726_79e38b37da5449e5b14f405020faa098/woff2/file.woff2",
+        "feca33b49819dbb4943b83db8d68e1f8840c92032b90f3a355902017e56d28bd"),
+    "assets/fonts/garet-book.woff2": (
+        "https://static.wixstatic.com/ufonts/e0c63f_dd8ef7e318764b8aa50aae38de0fb7c0/woff2/file.woff2",
+        "30329680a639d076033f725b84ef0cab77df14b1797f2b487bd24f30e6496608"),
+}
+
+STREAMLIT = re.compile(r"streamlit\.app|share\.streamlit\.io", re.I)
 
 
 def fail(msg):
@@ -236,7 +284,7 @@ def build(names):
     warnings = []
     if names is None:
         warnings.append("no list of names (atlas/.names or ATLAS_NAMES), so the pages were not checked for the "
-                        "site's name; --merge will refuse to run until there is one")
+                        "site's name; a build on Netlify refuses to run until there is one")
     for client in CLIENTS:
         src = HERE / client
         for path in sorted(src.rglob("*")):
@@ -269,8 +317,13 @@ def build(names):
                 warnings.append(f"{client}/index.html: the powerhouse's place on the imagery is not confirmed yet "
                                 f"(open /{client}/?place, set it, and paste the line into SITE)")
     check_front(names)
-    headers = (HERE / "_headers").read_text(encoding="utf-8")
+    put_root(names)
+    merge_front(OUT)
+    warnings += put_fonts()
+    put_market()
+    headers = site_headers()
     (OUT / "_headers").write_text(headers, encoding="utf-8")
+    check_site(headers)
     total = 0
     for p in sorted(OUT.rglob("*")):
         if p.is_file():
@@ -311,7 +364,7 @@ def merge_front(dest):
     text = page.read_text(encoding="utf-8")
     if text.count(FRONT_BEGIN) != 1 or text.count(FRONT_END) != 1 or text.index(FRONT_END) < text.index(FRONT_BEGIN):
         print("WARNING: the front page has no client atlas markers, so its Client Atlas section was left as it is; "
-              "put the two marker comments (FRONT_BEGIN, FRONT_END) where the section belongs and merge again")
+              "put the two marker comments (FRONT_BEGIN, FRONT_END) where the section belongs and build again")
         return
     section = (FRONT / "clients.html").read_text(encoding="utf-8").rstrip("\n")
     a = text.index(FRONT_BEGIN) + len(FRONT_BEGIN)
@@ -324,40 +377,158 @@ def merge_front(dest):
             shutil.copy2(path, images / path.name)
 
 
-def merge(dest, headers):
-    """Put the client pages and their header rules into a copy of the Atlas site's own folder."""
-    dest = Path(dest).resolve()
-    repo = HERE.parent
-    if dest == repo or repo in dest.parents or dest in repo.parents:
-        fail(f"{dest} is part of this repository; give the folder the Atlas site is uploaded from")
-    if not (dest / "index.html").is_file():
-        fail(f"{dest} has no index.html: give the folder the Atlas site is uploaded from")
-    for client in CLIENTS:
-        target = dest / client
+def put_root(names):
+    """The Atlas site's own files, at the root of the site as they are (their header rules go into _headers)."""
+    for path in sorted(ROOT.rglob("*")):
+        if not path.is_file() or path.relative_to(ROOT).as_posix() == "_headers":
+            continue
+        rel = path.relative_to(ROOT).as_posix()
+        if path.suffix in TEXT_SUFFIXES:   # the front page carries the client section, so it is held to its rule
+            check_names(path, f"root/{rel}", names)
+        target = OUT / rel
         if target.exists():
-            shutil.rmtree(target)
-        shutil.copytree(OUT / client, target)
-    hp = dest / "_headers"
-    old = hp.read_text(encoding="utf-8") if hp.exists() else ""
-    block = HEADERS_BEGIN + "\n" + headers.strip() + "\n" + HEADERS_END + "\n"
-    if HEADERS_BEGIN in old:
-        old = re.sub(re.escape(HEADERS_BEGIN) + r".*?" + re.escape(HEADERS_END) + r"\n?", "", old, flags=re.S)
-    hp.write_text(old.rstrip("\n") + ("\n\n" if old.strip() else "") + block, encoding="utf-8")
-    merge_front(dest)
-    print(f"merged {', '.join(CLIENTS)}, the header rules and the front page's Client Atlas section into {dest}")
+            fail(f"root/{rel} would replace {rel}, which the build has already put in place")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(path, target)
+
+
+def put_fonts():
+    """The brand fonts, fetched from renewablox.com's own files and checked against their hashes. A build here
+    without them (offline) warns, and the pages fall back to the system font; on Netlify it fails instead."""
+    warnings = []
+    for rel, (url, digest) in FONTS.items():
+        try:
+            data = urllib.request.urlopen(url, timeout=60).read()
+        except OSError as e:
+            if ON_NETLIFY:
+                fail(f"could not fetch {rel} from {url}: {e}")
+            warnings.append(f"could not fetch {rel} ({e}), so the pages will fall back to the system font")
+            continue
+        got = hashlib.sha256(data).hexdigest()
+        if got != digest:
+            fail(f"{url} is not the font {rel} was built with (sha256 {got}); check the new file and update FONTS")
+        target = OUT / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(data)
+    return warnings
+
+
+URL_HOST = re.compile(r"(?:https?:)?//([a-z0-9.-]+\.[a-z]{2,})", re.I)
+A_HREF = re.compile(r"""<a\s[^>]*href=\\?["']$""")   # an <a href> in the markup, or in a string of the page's script
+
+
+def market_hosts(page):
+    """Every host the map page names, except in a link (<a href>), as the SVG namespace or as the Atlas itself
+    (its "Copy link" base): what it loads from."""
+    hosts = set()
+    for m in URL_HOST.finditer(page):
+        host = m.group(1).lower()
+        if (host in NAMESPACE_HOSTS or MARKET_URL.startswith(f"https://{host}/")
+                or A_HREF.search(page[page.rfind("<", 0, m.start()):m.start()])):
+            continue
+        hosts.add(host)
+    return hosts
+
+
+def put_market():
+    """The Market Atlas map at /market/map/: the copy from Eunice-Platform with its deep links read by the
+    page itself and its "Copy link" base pointed at the market page."""
+    page = MARKET.read_text(encoding="utf-8")
+    if page.count(MARKET_PLACEHOLDER) != 1:
+        fail(f"market/{MARKET.name} should hold {MARKET_PLACEHOLDER} once, for the page's deep links")
+    page = page.replace(MARKET_PLACEHOLDER, MARKET_INIT, 1)
+    page, n = re.subn(r'"publicUrl":"[^"]*"', '"publicUrl":"' + MARKET_URL + '"', page)
+    if n != 1:
+        fail(f"market/{MARKET.name} should set publicUrl once in its config, but sets it {n} times")
+    extra = market_hosts(page) - MARKET_HOSTS
+    if extra:
+        fail(f"the market map loads from {', '.join(sorted(extra))}, which MARKET_HOSTS and the map's "
+             "Content-Security-Policy (root/_headers) do not allow")
+    target = OUT / "market" / "map" / "index.html"
+    if target.exists():
+        fail("market/map/index.html is built from market/, so root/ must not hold one")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(page, encoding="utf-8")
+
+
+def site_headers():
+    """The site's _headers: the Atlas site's own rules, then the client pages' between their marker lines."""
+    own = (ROOT / "_headers").read_text(encoding="utf-8").rstrip("\n")
+    clients = (HERE / "_headers").read_text(encoding="utf-8").strip("\n")
+    return own + "\n\n" + HEADERS_BEGIN + "\n" + clients + "\n" + HEADERS_END + "\n"
+
+
+def header_rules(text):
+    """[(path pattern, {header name: value})] for each rule of a _headers file."""
+    rules = []
+    for line in text.splitlines():
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
+        if not line[0].isspace():
+            rules.append((line.strip(), {}))
+        elif rules:
+            name, _, value = line.strip().partition(":")
+            rules[-1][1][name.strip().lower()] = value.strip()
+    return rules
+
+
+def rule_matches(pattern, path):
+    return re.fullmatch(re.escape(pattern).replace(r"\*", ".*"), path) is not None
+
+
+def check_site(headers):
+    """Each page's security policy comes from one rule, the market map's allows what the map loads, and
+    nothing on the site points at Streamlit."""
+    rules = header_rules(headers)
+    for page in sorted(OUT.rglob("*.html")):
+        rel = page.relative_to(OUT).as_posix()
+        path = "/" + (rel[:-len("index.html")] if rel.endswith("index.html") else rel)
+        for name in ("content-security-policy", "x-frame-options"):
+            setters = [p for p, h in rules if name in h and rule_matches(p, path)]
+            if len(setters) > 1:
+                fail(f"{path} takes {name} from {len(setters)} rules ({', '.join(setters)}), which Netlify would join "
+                     "into one broken value")
+        if rel.endswith("index.html") and not any("content-security-policy" in h and rule_matches(p, path)
+                                                  for p, h in rules):
+            fail(f"{path} has no Content-Security-Policy: give it a rule in root/_headers")
+    csp = " ".join(h.get("content-security-policy", "") for p, h in rules if rule_matches(p, "/market/map/"))
+    allowed = {token.rstrip(";") for token in csp.split()}
+    missing = sorted(host for host in MARKET_HOSTS if "https://" + host not in allowed)
+    if missing:
+        fail(f"the market map's Content-Security-Policy (root/_headers) does not allow {', '.join(missing)}")
+    for f in sorted(OUT.rglob("*")):
+        if f.is_file() and (f.suffix in TEXT_SUFFIXES or f.name == "_headers"):
+            m = STREAMLIT.search(f.read_text(encoding="utf-8", errors="replace"))
+            if m:
+                fail(f"{f.relative_to(OUT).as_posix()} points at Streamlit ({m.group(0)}); the Atlas is hosted here")
+
+
+def sync_market():
+    """Copy the latest Market Atlas from Eunice-Platform's main branch into market/."""
+    data = urllib.request.urlopen(MARKET_SOURCE, timeout=60).read()
+    page = data.decode("utf-8")
+    if page.count(MARKET_PLACEHOLDER) != 1 or len(re.findall(r'"publicUrl":"[^"]*"', page)) != 1:
+        fail(f"{MARKET_SOURCE} no longer has the placeholder and the publicUrl this build fills in; "
+             "see what changed there before copying it")
+    old = MARKET.read_bytes() if MARKET.is_file() else b""
+    MARKET.write_bytes(data)
+    print(f"market/{MARKET.name}: {'unchanged' if old == data else 'updated'} "
+          f"(sha256 {hashlib.sha256(data).hexdigest()[:12]}); build, look at the map, and commit it")
 
 
 def main():
     args = sys.argv[1:]
-    if args[:1] == ["--merge"] and len(args) != 2:
-        fail("usage: python atlas/build.py --merge DIR")
+    if args == ["--sync-market"]:
+        sync_market()
+        return
+    if args:
+        fail("usage: python atlas/build.py [--sync-market]")
     names = load_names()
-    if args[:1] == ["--merge"] and names is None:
-        fail("refusing to prepare an upload without the list of names: put the words that would name or place "
-             "the site in atlas/.names (git-ignored, one per line) or in ATLAS_NAMES")
-    headers = build(names)
-    if args[:1] == ["--merge"]:
-        merge(args[1], headers)
+    if names is None and ON_NETLIFY:
+        fail("refusing to build the site on Netlify without the list of names: set ATLAS_NAMES (the words that "
+             "would name or place a client's site, comma-separated) in the renewablox-atlas project's environment "
+             "variables, as a secret")
+    build(names)
 
 
 if __name__ == "__main__":

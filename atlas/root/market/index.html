@@ -18,21 +18,27 @@
     <nav class="appbar__links" aria-label="Atlas">
       <a href="/">Atlas home</a>
       <a class="hide-sm" href="/investors/">Investor Atlas</a>
-      <a class="hide-sm" href="https://renewablox-client-atlas-v3.streamlit.app/" target="_blank" rel="noopener">Open full screen <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h4v4M13 3 7.5 8.5M12 9.5V13H3V4h3.5"/></svg></a>
+      <a class="hide-sm" id="full" href="/market/map/" target="_blank" rel="noopener">Open full screen <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h4v4M13 3 7.5 8.5M12 9.5V13H3V4h3.5"/></svg></a>
     </nav>
   </header>
   <div class="frame">
     <div class="loading" id="loading" role="status">
-      <div><div class="spinner"></div><strong>Loading the Market Atlas</strong>The first load can take up to half a minute.</div>
+      <div><div class="spinner"></div><strong>Loading the Market Atlas</strong><noscript>The map needs JavaScript.</noscript></div>
     </div>
-    <iframe id="atlas" title="RenewaBlox Market Atlas" src="https://renewablox-client-atlas-v3.streamlit.app/?embed=true" allow="fullscreen; clipboard-write" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    <iframe id="atlas" title="RenewaBlox Market Atlas" allow="fullscreen; clipboard-write"></iframe>
   </div>
 </div>
 <script>
   (function () {
+    // The map opens where a shared link points (/market/?view=hydro&site=…&theme=night, or a #… view), so its
+    // address is set here, once, rather than in the frame's markup.
+    var map = '/market/map/' + location.search + location.hash;
+    var atlas = document.getElementById('atlas');
+    atlas.src = map;
+    document.getElementById('full').href = map;
     var done = function () { document.getElementById('loading').classList.add('is-done'); };
-    document.getElementById('atlas').addEventListener('load', function () { setTimeout(done, 2500); });
-    setTimeout(done, 20000);
+    atlas.addEventListener('load', function () { setTimeout(done, 300); });
+    setTimeout(done, 8000);
   })();
 </script>
 </body>

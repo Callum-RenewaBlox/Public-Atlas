@@ -1,0 +1,14 @@
+# atlas.renewablox.com — the RenewaBlox Atlas (build.py beside this file).
+# The renewablox-atlas Netlify project, with atlas/ as its base directory, so this file, not the energy site's
+# netlify.toml at the root of the repository, configures it. Netlify builds the site on every push to the
+# project's production branch; the header rules are in root/_headers and atlas/_headers (build.py joins them).
+#
+# The build refuses to run here without the list of names a client page must never carry: set ATLAS_NAMES
+# (comma-separated) in the project's environment variables, marked secret, never in this file.
+
+[build]
+  command = "python3 build.py"
+  publish = "site"
+
+[build.environment]
+  PYTHON_VERSION = "3.12"

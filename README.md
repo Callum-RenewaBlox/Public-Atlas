@@ -340,6 +340,57 @@ Build and look at it locally:
     python build_energy_site.py
     python -m http.server 8800 -d energy_site     # then open http://localhost:8800/
 
+## atlas.renewablox.com — the RenewaBlox Atlas
+
+The Atlas is built from `atlas/` by **`atlas/build.py`** into `atlas/site/`
+(git-ignored), and the `renewablox-atlas` Netlify project builds it from there
+(`atlas/netlify.toml`, base directory `atlas/`). Nothing of it is hosted on
+Streamlit, and the build fails if any page points at a `streamlit.app` address.
+
+| Address | Page | Source |
+| --- | --- | --- |
+| `/` | the Atlas front page, with its Client Atlas section | `atlas/root/index.html`; the section is `atlas/front/clients.html`, put between its marker comments by the build |
+| `/investors/` | the Investor Atlas preview | `atlas/root/investors/index.html` |
+| `/market/` | the Market Atlas page, framing the map | `atlas/root/market/index.html` |
+| `/market/map/` | the Market Atlas map | `atlas/market/client_atlas_v2.html`, a copy of Eunice-Platform's `client_atlas_v2.html` |
+| `/bln/`, `/bln/3d/` | BLN Atlas and BLN 3D | `atlas/bln/` |
+
+`atlas/root/` holds the Atlas site's own files, served at the root as they are,
+with their header rules in `atlas/root/_headers`; the client pages' rules are in
+`atlas/_headers`, and the build joins the two into the site's `_headers`. Netlify
+applies every rule that matches a path and joins a header two rules set, so each
+page takes its Content-Security-Policy from one rule only, and the build checks
+that it does. The two brand fonts, Telegraf and Garet, are licensed for the
+website, so they are not in this public repository: the build fetches them
+from renewablox.com's own font files and checks their hashes (`FONTS`).
+
+**The Market Atlas** is Eunice-Platform's Client Atlas v2, built there by
+`atlas/build.py --only client`. It used to be framed from
+`renewablox-client-atlas-v3.streamlit.app`, whose wrapper did two things: it read
+`?view=`, `?site=` and `?theme=` from the address (checking each against a
+pattern) and handed them to the page as `window.__ATLAS_INIT__`. Here the page
+does that itself (`MARKET_INIT` in the build, with the same patterns), and the
+market page passes its own address on to the map, so a shared link such as
+`/market/?view=hydro&theme=night` opens there. The build also points the map's
+"Copy link" at `https://atlas.renewablox.com/market/` (it pointed at a Streamlit
+app behind a login). To take a newer build of the map:
+
+    python atlas/build.py --sync-market    # copies Eunice-Platform main's client_atlas_v2.html into atlas/market/
+    python atlas/build.py                  # then look at /market/ and commit the copy
+
+**The client pages** keep the checks they were built with (see the docstring of
+`atlas/build.py`): no word that names or places a client's site, no image
+metadata, nothing loaded from elsewhere but the satellite imagery. The words
+live outside this public repository, in `atlas/.names` (git-ignored) or the
+`ATLAS_NAMES` environment variable; a build on Netlify refuses to run without
+them, so set `ATLAS_NAMES` (comma-separated, marked secret) in the project's
+environment variables.
+
+Build and look at it locally:
+
+    python atlas/build.py
+    python -m http.server 8901 -d atlas/site      # then open http://localhost:8901/
+
 ## Run locally
 
     pip install -r requirements.txt
