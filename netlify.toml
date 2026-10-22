@@ -1,5 +1,5 @@
 # energy.renewablox.co.uk — the client packs as a static site (build_energy_site.py).
-# Netlify builds on every push to main; the Streamlit apps are untouched by it.
+# Netlify (the renewablox-energy project) builds it on every push to live.
 
 [build]
   command = "python3 build_energy_site.py"

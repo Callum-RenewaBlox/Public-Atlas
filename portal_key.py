@@ -2,12 +2,14 @@
 
 Usage::
 
-    python portal_key.py <the PORTAL_PASSCODE you set in Streamlit secrets>
+    python portal_key.py <the PORTAL_PASSCODE set on the renewablox-atlas Netlify project>
 
-Prints the keyed hash the app accepts as ``?k=<key>`` on its URL. Put that
-link behind the portal's button (the portal is logged-in, so the link stays
-with the people who should have it); investors clicking it never see a code
-prompt. Change the code in the secrets and every old link and cookie expires.
+Prints the keyed hash the portal's gate (atlas/netlify/edge-functions/portal-gate.js)
+accepts as ``?k=<key>`` on its address. Put that link behind the Wix portal's
+button, https://atlas.renewablox.com/investors/portal/?k=<key> (the portal is
+logged-in, so the link stays with the people who should have it); investors
+clicking it never see a code prompt. Change PORTAL_PASSCODE and every old link
+and cookie expires.
 """
 import hashlib
 import hmac

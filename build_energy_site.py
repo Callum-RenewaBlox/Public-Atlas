@@ -1,8 +1,7 @@
 """Build energy.renewablox.co.uk — the client packs as a static site.
 
 The Generator Demo and Business Electricity packs are plain pages: no server
-logic, no secrets. On Streamlit they are routes of one app (``?view=<key>``);
-here each is a real address on RenewaBlox's own domain:
+logic, no secrets. Each is a real address on RenewaBlox's own domain:
 
     /                                   welcome page (energy_welcome.html)
     /business/                          Business Electricity landing
@@ -16,20 +15,19 @@ here each is a real address on RenewaBlox's own domain:
     /generators/thanks/                 after the PPA check, if it was sent without its script
     /privacy/                           the privacy notice (energy_privacy.html)
 
-Everything is read from the same files the Streamlit apps serve, through
-packs.py, so both surfaces always show the same pages: the landing fragments
-are wrapped in a document of their own, and each model page sits under the
-same slim navigation bar the apps draw, in an iframe of the model with its
-serve-time patches applied (``<slug>/model.html``) — exactly how Streamlit
-frames it, so every model lays out as it does there.
+Everything is read through packs.py, the definitions the Atlas's investor
+packs share: the landing fragments are wrapped in a document of their own,
+and each model page sits under a slim navigation bar, in an iframe of the
+model with its patches applied (``<slug>/model.html``), so every model lays
+out as it does full-window.
 
-One thing the Streamlit surface can't have is a working form, so each landing's
-check (the savings check on Business, the PPA check on Generators) is a link
-there; here the build puts the real form (energy_save_form.html, in that pack's
-wording from FORMS, received by Netlify Forms) in its marked place.
+Each landing's check (the savings check on Business, the PPA check on
+Generators) is a link in the fragment; the build puts the real form
+(energy_save_form.html, in that pack's wording from FORMS, received by Netlify
+Forms) in its marked place.
 
 Run:  python build_energy_site.py        (writes energy_site/, git-ignored)
-Netlify runs it on every push to main (netlify.toml).
+Netlify runs it on every push to live (netlify.toml).
 Standard library only.
 """
 import html
@@ -178,7 +176,7 @@ def landing(pack_key, pack):
     frag = frag.replace('href="?view=home"', f'href="/{pack_key}/"')
     if "?view=" in frag:
         raise SystemExit(f"{pack['home']}: a ?view= link the build does not understand")
-    # the fragments paint Streamlit's own .stApp; here that is the page wrapper
+    # the fragments paint .stApp, the page they were first written for; here that is the page wrapper
     base = ("<style>html{scroll-behavior:smooth} html,body{margin:0} body{background:#f4f8fa}"
             ".stApp{min-height:100vh}</style>")
     return (head(pack["title"], pack["description"], f"/{pack_key}/", pack["og"], base)
@@ -213,7 +211,7 @@ def frame_page(pack_key, pack, key):
 
 
 def welcome():
-    """The welcome page, forwarding old Streamlit-style links (…/?view=<key>) to their pages.
+    """The welcome page, forwarding old-style links (…/?view=<key>) to their pages.
 
     The two packs' view keys never collide, so a link that only had its domain
     swapped for this one still lands on the right model.
