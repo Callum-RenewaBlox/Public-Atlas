@@ -12,7 +12,7 @@ public, the apps deploy as **public apps** on Streamlit Community Cloud
 | --- | --- | --- |
 | `app_srv_atlas.py` | `srv_atlas.html` + `srv_atlas_3d_badge.html` + `srv_3d_sim.html` + `srv_siting_3d.html` | SRV Atlas — the client view of the Scrivelsby (Home Farm AD) scheme: where the compute load bank sits, how it connects, and the site around it, kept deliberately minimal (LN9 6JB). Two pulsing BLOX badges on the yard open the 3D Dispatch Sim (`?view=3d`) and the 3D Compute Kiosk (`?view=siting`, two siting schemes on one page: option A, one 4 m kiosk for the LV board, three DCX hydro racks and their cooling loop with the dry cooler on the roof; option B, the existing kiosk extended for the board and the Winchain 10 ft hydro cooling container behind it with the dry cooler on the container roof) full-screen — the same app serving each route, so the map page carries none of the models' weight |
 | `app_srv_contractor.py` | `srv_contractor.html` | SRV Contractor Atlas — the same site surveyed for the LV connection RFQ: switchgear detail, the full 12-photo survey including switchroom interiors, the feeder route with its tie-in and containment notes, and OSM/DNO context |
-| `app_bryn_atlas.py` | `bryn_atlas.html` + `bryn_atlas_3d_badge.html` + `bryn_3d_sim.html` | Bryn Atlas — the client view of the Bryn Power AD plant scheme (Gelliargwellt Farm, Gelligaer CF82 8FY): where a BLOX data centre would stand, on the yard a few metres from the LV room at the CHP engines, to take about 200 kW of the site's surplus power by a short connection with no cable route across the site, kept deliberately minimal. A pulsing BLOX badge on the proposed plot opens the 3D Site Model full-screen (`?view=3d`): a three.js model of the plant, built in Blender from aerial imagery, with the data centre in place, and the three ways of funding it (RBX CapEx, 50/50, Bryn CapEx) drawn from the revenue-share model. The funding panel opens docked — a short card listing the three options with one figure each, so the model has the stage — and widens to most of the stage on "Compare" (or on any option) for the discussion: the three options side by side on one scale, how the chosen one works in three plain steps, each side's cash flow year by year from the model's own timeline with the payback marked, and every model figure in a table; "Minimise" docks it again, and `?view=3d&deal=open` starts it open. This site is surplus power to compute, not peaker arbitrage, so the model has no dispatch desk — the same app serving each route, so the map page carries none of the model's weight |
+| `app_bryn_atlas.py` | `bryn_atlas.html` + `bryn_atlas_3d_badge.html` + `bryn_3d_sim.html` + `bryn_compute_3d.html` | Bryn Atlas — the client view of the Bryn Power AD plant scheme (Gelliargwellt Farm, Gelligaer CF82 8FY): where a BLOX data centre would stand, on the yard a few metres from the LV room at the CHP engines, to take about 200 kW of the site's surplus power by a short connection with no cable route across the site, kept deliberately minimal. A pulsing BLOX badge on the proposed plot opens the 3D Site Model full-screen (`?view=3d`): a three.js model of the plant, built in Blender from aerial imagery, with the data centre in place, in four tabs in the header. It opens on **Site**, the model alone. **Dispatch** plays the site's power half hour by half hour on a representative day per season (weekday or weekend, average or sunny; site load 125 kW on weekdays and 25 kW less at weekends and on bank holidays), Today against With BLOX: a live readout, the dispatch desk (two chart lanes: potential generation, and export against the 1.8 MW limit), Bryn's extra export as a single assumption (350,400 kWh a year at 16p/kWh, £56,064 a year, the figure Finance uses), and the seasons side by side in a fold that opens on demand; the data centre is 24 miners, 172.8 kW of compute installed, drawing at most 200 kW overclocked with its pumps, dry cooler and controls (their own load, about 5–8 kW, comes out of the 200 kW); with BLOX load following, export is held at 1,715 kW (85 kW headroom) against 1,675 kW today and the data centre takes the rest up to its 200 kW, and that target and the engines' warm-weather easing are set so a typical year matches the Finance tab (350,400 kWh of extra export, and 1,548,857 kWh into the data centre in a typical year: less 5% for outages, the 84% site capacity factor the revenue-share model uses); the scene follows the clock (the sun, the data centre rising out of its slab, its fans and the solar roofs' glow). **Finance** is the walk-through of the three ways of funding it (RenewaBlox funds it, 50:50 CAPEX share, Bryn funds it), from the revenue-share model for the final deployment (*Bryn Recycling 172.8kW final*, 19 October 2026: 172.8 kW, 24 miners, RenewaBlox's option recovering its CAPEX over 24 months; the options are scaled to the model's site-level outputs, £593,693 over the contract and a 17.6-month project payback) with Bryn's extra export added to Bryn's side: the panel is led by the 50:50 CAPEX share, opening on it in every size and keeping a soft amber mark on it when another option is chosen, and starts as a pill quoting it (Bryn receives £577,166), with the engine strip along the bottom; the strip maximises into a big-figure view led by the installation's 5-year total contract value; the pill opens a card of the three options, the chosen one showing what Bryn receives, its payback and a sparkline (and from then the split callout rides on the unit), and "Cash flow, year by year" widens it for the discussion: the options as chips with each one's outlay, total and payback, the answer in one line ("Bryn receives £755,274 over 5 years · paid back in 14.4 months"), one sentence on how the option works, what Bryn puts in against what it receives as two bars, and each side's cash in hand year by year on one fixed scale, with the installation and every model figure behind one disclosure; the engine strip stays under the wide panel when both fit. **Export only – assumes no Bitcoin** is the hypothetical with no Bitcoin income: Bryn's £280,320 over 5 years from its extra export alone against what it puts in under each option (paid back in 19.6 months on the 50:50 CAPEX share, 39.2 months when it pays it all), anchored on the 50:50 CAPEX share, which the tab opens on and keeps softly marked, with the sum behind it along the bottom and Bryn's £91,684 half paid back in 19.6 months on a 5-year line; the two tabs share the chosen option. Opened as a plain file, `bryn_3d_sim.html?tab=dispatch`, `?tab=finance` or `?tab=export` starts on that tab and `?deal=card`, `?deal=open` and `?engine=max` start Finance at those stages (the Streamlit frame passes no query string through, so the app always opens on Site). A second, teal badge on the compute container's spot by the LV cabinet opens the Compute Render full-screen (`?view=compute`): the yard south of the feed tank rebuilt in metres from imagery and the 13 October 2026 site photos, with the Green Hash 10 ft container in place and the two ways of placing its dry cooler (on the roof, or on the pad beside it), the LV cabinet at the west end of its compound by the Heras line with the transformer a walkway east of it, the cable route into the open trench, and every part carrying its source and what was assumed (click it); the same app serves each route, so the map page carries none of the models' weight |
 | `app_kld_atlas.py` | `kld_atlas.html` + `kld_hydro_chrome.html` + `kld_interactive.html` | KLD Atlas — Kinlochdamph 999 kW run-of-river hydro (Loch Damh, Wester Ross): site assets, the 11/33/132 kV network and the two SSEN connection options. A pulsing BLOX badge on the powerhouse opens the 3D Revenue Sim full-screen — the same app serving `?view=3d`, so the atlas page carries none of the model's weight |
 | `app_ihn_atlas.py` | `ihn_atlas.html` + `ihn_heat_chrome.html` + `heat_network_3d.html` | IHN Atlas — the IHN heat network: a still, daytime three.js satellite atlas of the district with the network main, the existing and proposed connections, the 11 kV route and the HNES blocks drawn on the imagery, and the 76 × 25 m plant room cut away under the block; four camera views (Overview, the Plant room as an amber call to action, EC1, EC2) with a caption that follows the view, a key, layers and a Council site-map overlay. A pulsing BLOX badge over the plant room opens the dispatch model, Heat Network 3D, full-screen — the same app serving `?view=3d` with the same model file the investor pack serves, all data included, so the atlas page carries none of the model's weight |
 | `app_kh_atlas.py` | `kh_atlas.html` | Keith & Huntly Atlas — the decision page for the two Moray primaries SSEN has priced: a three.js satellite scene of each substation with SSEN's proposed works (joints, cable, metered RMU, the 33 kV diversion at Huntly) and Savills' siting options drawn on it, and a nine-step, keyboard-driven telling of the two budget estimates built for presenting to the team. It opens and closes on a **cost ladder** (find out / secure a place / connect / our own works) under a Both £2,170 · Huntly £1,240 · Keith £930 · Neither £0 switch (the minimum SSEN fees for feasibility studies), walks Keith's £150,000 for 1,999 kVA (1,300 kVA applied for) and Huntly's £110,000–£121,000 for 2.78 MVA over the scene with what each figure covers and what Savills inferred is left in the breakers, says plainly that the two figures are **not like for like** (Keith's has SSEN digging; Huntly's leaves the digging, civils, transformer and LV side to RenewaBlox and carries a 150 m diversion), names the gates before anything can be lodged (a landowner's Letter of Authority, and Savills' fees from its October 2025 proposal: £1,200 per DNO pre-application meeting, £7,500 to submit a connection application, land procurement TBC), and ends on three decision lines. Arrow keys step, `1`–`9` jump, `D` opens the site's detail drawer (scope, exclusions, the full capacity chart, the ranked plots, every open question), `S` the sources, `L` the camera and layer popover, `?` the key map; `?beat=n` or `?step=decide` deep-links a step, `?still` skips the flights. Unknowns stay unknown on the page: RenewaBlox's own works are "to be costed", never a number |
@@ -76,7 +76,7 @@ inside one can never drive the app's `?view=` navigation.
 ## Generated files
 
 `kld_atlas.html`, `moray_atlas.html`, `srv_3d_sim.html`, `srv_siting_3d.html`,
-`srv_atlas_3d_badge.html`, `bryn_atlas.html`, `bryn_atlas_3d_badge.html`, `bryn_3d_sim.html`, `heat_network_3d.html`, `demand_for_constraints_3d.html` and `ihn_atlas.html` are built, not hand-edited. Each builder re-skins its
+`srv_atlas_3d_badge.html`, `bryn_atlas.html`, `bryn_atlas_3d_badge.html`, `bryn_3d_sim.html`, `bryn_compute_3d.html`, `heat_network_3d.html`, `demand_for_constraints_3d.html` and `ihn_atlas.html` are built, not hand-edited. Each builder re-skins its
 hand-authored source in the shared RenewaBlox design system (petrol brand
 tokens, Inter, brand bar — and glass panels where the build re-skins the panels) and re-uses the source's data and
 vendored payloads byte-for-byte:
@@ -90,7 +90,8 @@ vendored payloads byte-for-byte:
 | `srv_siting_3d.html` | `Contracts/Scrivelsby Farm Ltd/Atlas/siting/build_siting.py` (three.js viewer bundled with esbuild; the schemes live in `siting/src/scheme.js` (option A) and `siting/src/scheme_b.js` (option B)) |
 | `srv_atlas_3d_badge.html` | `Contracts/Scrivelsby Farm Ltd/Atlas/build_srv_atlas_badge.py` |
 | `bryn_atlas.html` + `bryn_atlas_3d_badge.html` | `Contracts/Bryn/Atlas/atlas/build_bryn_atlas.py` — from the site layout in `bryn_site.py`, the one source the 3D model is also built from, so the plot and the features agree between the map and the model |
-| `bryn_3d_sim.html` | `Contracts/Bryn/Atlas/viewer/build.mjs` (three.js viewer bundled with esbuild; both are loaded from `tools/node_modules`, so the folder can live anywhere). The scene is generated in Blender by `blender/build_scene.py` from `bryn_site.py` and compressed by `tools/optimize_glb.mjs`; the commercial figures live in `viewer/src/data.js`, transcribed from the revenue-share model's three output screens, and `viewer/src/ui.js` lists the few values it derives from them |
+| `bryn_3d_sim.html` | `Contracts/Bryn/Atlas/viewer/build.mjs` (three.js viewer bundled with esbuild; both are loaded from `tools/node_modules`, so the folder can live anywhere). The scene is generated in Blender by `blender/build_scene.py` from `bryn_site.py` and compressed by `tools/optimize_glb.mjs`; the commercial figures live in `viewer/src/data.js`, transcribed from the revenue-share model for the final 172.8 kW deployment (24 miners); `viewer/src/finance.js` adds Bryn's extra export and works out the paybacks with it and the Export only figures, and `viewer/src/ui.js` lists the few values it derives for display; the Dispatch tab's model is `viewer/src/model.js` (from the 14 October 2026 seasons handover, set to match the Finance tab's energy and extra export), its desk chart `viewer/src/chart.js` and its panel `viewer/src/dispatch.js` |
+| `bryn_compute_3d.html` | `Contracts/Bryn/Atlas/atlas/build_bryn_compute.py` — from the compute siting render `blender/bryn_site.html` (a self-contained three.js page generated outside the folder, in Blender via bpy): the builder keeps its scene and bundle, moves the parts the October 2026 layout changed by patching the embedded GLB and metadata (the LV cabinet, the transformer, the trench, the ground cooler), re-skins the page in the design system from `bryn_compute.template.html` and appends its own edition of the render's app code, `bryn_compute_app.js`, which draws the pipes and the cable route from the metadata |
 | `heat_network_3d.html` | `Contracts/<IHN client>/Atlas/build_heat_network_3d.py` — from the client edition of the IHN heat-network model, with the site anonymised to IHN: the brand bar, house type and chips go on, the Google Fonts links come off, and the scene, panels, data and payloads pass through byte-for-byte |
 | `ihn_atlas.html` | `Contracts/<IHN client>/Atlas/build_ihn_atlas.py` — from the in-house IHN Atlas 3D scene (`IHN_Atlas_3D_1.html`): the house bar, light glass panels and white callouts go on, the live-dispatch inset, the dispatch desk, the settlement clock and the sky switcher come off (the dispatch series with them, so the page is lighter than its source), the sky is fixed at day, and the scene, its data, the imagery and the vendored three.js pass through byte-for-byte. The scene script is minified, so every cut is an exact-string splice that must match once or the build fails; the build also fails if the source's link to the investor portal, or its access key, survives |
 | `demand_for_constraints_3d.html` | `Data Room/Inhouse IP/Atlas 3D/DfC/build_dfc_3d.py` — from edition 4 of the in-house DfC model (`make_edition_4.py` derives it from edition 3: Heat Network pacing, a full-year opening run with three highlight days, state-keyed weather, and the wholesale projection's continental coupling with a consistent price stack and RO roll-off, all editable in the assumptions drawer): the brand bar, house type and chips go on, the footer row comes off, the layout is tidied for a laptop screen, and the scene, model, data and payloads pass through byte-for-byte |
@@ -99,8 +100,11 @@ vendored payloads byte-for-byte:
 badge, the popup call-to-action rows and the overlay. `app_srv_atlas.py`
 appends it to `srv_atlas.html` at serve time, so the hand-maintained map file
 stays pristine and the sim loads through `?view=3d` only when opened.
-`bryn_atlas_3d_badge.html` does the same job for `app_bryn_atlas.py`, with one
-badge: the BLOX logo on the proposed plot.
+`bryn_atlas_3d_badge.html` does the same job for `app_bryn_atlas.py`, with two
+badges: the BLOX logo on the proposed plot, which opens the 3D Site Model, and
+a teal fan chip on the compute container's spot by the LV cabinet, 20 m west of
+the plot, which opens the Compute Render (`?view=compute`); the data-centre and CHP
+popups carry a CTA row for each.
 
 The investor demos' model pages are copies of their upstream sources — refresh
 them after an upstream rebuild:
@@ -133,7 +137,8 @@ are deliberately the same shape, so a new site can be stood up by copying any of
 
 * one app, two views — the atlas by default (a Leaflet map for SRV, KLD and Bryn, a
   still three.js satellite scene for IHN), its 3D model at `?view=3d`, both
-  rendered full-bleed through the same Streamlit chrome-stripping CSS;
+  rendered full-bleed through the same Streamlit chrome-stripping CSS (Bryn adds
+  a third route, `?view=compute`, served the same way);
 * the model is a route, never an in-page overlay, so the map page stays small
   (KLD is 0.31 MB) and the model gets the whole window;
 * the same gateway on the map: a pulsing BLOX chip with a gradient
@@ -154,19 +159,24 @@ tracked to the plant room in the 3D scene (and docks above the caveat when the
 camera is down in the plant room), and its header carries the same house bar
 as the Heat Network 3D page it opens, so the two read as one product.
 Bryn's badge sits on the proposed plot itself — the BLOX logo marks where the
-data centre would go — and its model carries the three funding options instead
-of a dispatch desk, because that site is surplus power to compute rather than
-peaker arbitrage; the funding panel opens docked and widens on demand, so the
-first view is the site and the wide view is for the discussion. Opened as a
+data centre would go — and its model is in four tabs: Site (the model alone,
+the first view), Dispatch (the seasons against the export limit, with the
+dispatch desk), Finance (the three funding options, as a pill, then a card
+of the three options, widening on demand) and Export only (the hypothetical
+with no Bitcoin income), so the first view is the site and the wide views are
+for the discussion. Opened as a
 plain file, outside Streamlit, Bryn's model page finds the map page by
 relative link (`bryn_atlas.html`); the map page's route to the model lives in
 the badge layer, which only the app appends at serve time.
 
-One consequence of Streamlit's component sandbox for all four: the gateway and
-the model's "Atlas" pill try to navigate the page they sit in and, when the
-sandbox refuses, open the destination in a new tab instead — so on Streamlit
-Cloud the model opens in a new tab and the Atlas pill opens the atlas in
-another. Served outside Streamlit (a plain static host) they navigate in place.
+One consequence of Streamlit's component sandbox for all four: the frame has no
+allow-top-navigation, so the gateway and the models' "Atlas" pills cannot set
+the parent's location (the browser refuses it silently). Instead they create an
+anchor in the parent document and click it, which the browser attributes to the
+parent and so navigates the page in place; if even that is refused they rewrite
+the parent's history entry and reload it, and as a last resort open the
+destination in a new tab. Served outside Streamlit (a plain static host) they
+navigate in place by ordinary links.
 
 `heat_network_3d.html` is now served by four apps (the investor demo and portal,
 the IHN Atlas and the business pack): **never bake atlas chrome into it** — the IHN "Atlas" pill lives in
@@ -391,6 +401,81 @@ Build and look at it locally:
     python atlas/build.py
     python -m http.server 8901 -d atlas/site      # then open http://localhost:8901/
 
+## ai.renewablox.com — RenewaBlox's AI tools
+
+The in-house tools live on one domain of their own, built from `ai/` by its own Netlify
+project, separate from the energy site:
+
+| Address | Page |
+| --- | --- |
+| `/` | the front door: the tools, two doors (`ai/index.html`) |
+| `/oscar/` | OSCAR, the site model (`ai/oscar.html`) |
+| `/atlas/` | Atlas, served by proxy from its own Netlify project (`renewablox-atlas`, atlas.renewablox.com), which keeps deploying as it does now |
+
+`ai/build.py` copies the pages into `ai/site/` (git-ignored) and checks three things that
+would otherwise break quietly: every input id a saved OSCAR scenario can hold is still on the
+page (`SCENARIO_IDS`, which only ever grows), no page loads anything from elsewhere, and the
+live sources OSCAR calls are the ones `ai/netlify.toml` proxies and allows. `ai/netlify.toml`
+holds the rest: the Atlas proxy (with the root-relative links Atlas's own pages may use,
+`/investors/`, `/market/`, `/portal/`, sent back under `/atlas/`), the live-data rewrites, a
+Content-Security-Policy that allows inline code, data images and, for OSCAR, its three live
+sources, and `noindex` (with a `robots.txt` that disallows everything): these are tools for the
+team and the clients they are sent to, not for search engines.
+
+**OSCAR** (Optimising Site Capacity & ASIC Revenue) is one self-contained page: what a site
+earns when its power goes into Bitcoin mining, energy markets (export, demand turn-up, the
+capacity market) and heat off-take, how the revenue is shared between RenewaBlox and the client,
+and when each side's CAPEX comes back. The inputs sit in a rail on the left, in the order the
+conversation runs (site, mining, energy markets, heat, the deal, then the expert-only hardware,
+market and Phase 2); the results answer on the right and recalculate as anything changes.
+
+* **Two views.** Expert shows every input and every table. Client hides the hardware and market
+  assumptions, prices CAPEX at `CLIENT_CAPEX` (£640,000 per MW of site power plus 5%
+  contingency, miners' VAT included; the note on the page reads from the same constant), opens on
+  a hero of what the site receives against today's power revenue, and sets the recovery period
+  to the month RenewaBlox's share of the CAPEX is paid back, recomputed with every input. The
+  site (its power, uptime, streams, today's revenue, contract length, market inputs) travels
+  between the views; the deal settings are remembered per view.
+* **The model** is `compute(inputs)`, pure and separate from the page, so scenarios and tests run
+  it directly (`window.OSCAR.compute`). A month is 1/12 of a 365-day year throughout; energy
+  follows the whole miners installed; transaction fees are a share of today's block subsidy, held
+  constant in BTC per block so they don't halve with it; the revenue-share totals are what each
+  side is paid, after the cost of power, matching the cash-flow chart.
+* **Live inputs** (the Bitcoin price in GBP, the 30-day network hash rate, the last week's fees)
+  come from CoinGecko, mempool.space and Blockchain.com: each is asked directly first, then
+  through the site's own rewrites under `/oscar/api/`, never through a third-party proxy. The
+  chip in the header says whether the figures in use are live or as entered, and refreshes them.
+  A scenario opened from a link keeps its saved market inputs until the chip is clicked.
+* **Scenarios** are saved in the browser (`oscar.scenarios` in local storage), compared in a
+  table, exported and imported as JSON (the way to move them between browsers, or from the
+  September 2026 file edition, whose scenarios are brought over automatically the first time the
+  new page opens in the same browser), and shared as links that carry the whole scenario in the
+  address's `#s=` fragment, so it never reaches a server. The September edition's
+  `?scenario=` links still open. Its "Phase 2 start (years)" counted the contract year Phase 2
+  starts in (1 = from day one); the field now counts the years before it starts, and older
+  scenarios are converted as they are opened.
+* **Charts** are SVG drawn at the width of their box, in one categorical palette checked for
+  colour-blind separation in both themes (RenewaBlox blue, client magenta, mining orange, export
+  aqua, capacity yellow, turn-up green, heat red, today's revenue grey), one axis each, with a
+  crosshair and tooltip that follow the mouse, a finger or the arrow keys.
+* **PDF.** Printing (or "Save as PDF") gives a report of the current scenario: a header with its
+  name and date, the results, and an assumptions block, with the charts redrawn to the page width.
+* Light and dark follow the system until chosen in the header; the page works from 360 px up.
+
+Deploy: the Netlify project is `renewablox-ai` (renewablox-ai.netlify.app). Link it to this
+repository with production branch `main` and its **base directory set to `ai`** (it then reads
+`ai/netlify.toml`, not the root one), add `ai.renewablox.com` as its domain, and point a CNAME
+record `ai` at `renewablox-ai.netlify.app` at the renewablox.com DNS host, as for `atlas.` and
+`crm.`. The `/atlas/` proxy targets `https://atlas.renewablox.com`, so that domain must resolve.
+Netlify then builds on every push to main. The project was created private (a team login on every
+deploy, production included); the energy and Atlas projects ask for one on previews only.
+
+Build and look at it locally (or open `ai/index.html` and `ai/oscar.html` straight from the
+folder, where the live sources are called directly):
+
+    python ai/build.py
+    python -m http.server 8900 -d ai/site      # then open http://localhost:8900/
+
 ## Run locally
 
     pip install -r requirements.txt
@@ -424,7 +509,7 @@ per entry file, each with its own custom subdomain:
 | `app_peaker_3d.py` | `peakerplant-3d.streamlit.app` |
 | `app_investor_portal.py` | `investor-insight.streamlit.app` — linked from the members-only area of the Wix investor portal |
 | `app_ihn_atlas.py` | `ihn-atlas.streamlit.app` — the client-facing IHN Atlas, with Heat Network 3D at `?view=3d` |
-| `app_bryn_atlas.py` | `bryn-atlas.streamlit.app` — the client-facing Bryn Atlas, with the 3D Site Model at `?view=3d` |
+| `app_bryn_atlas.py` | `bryn-atlas.streamlit.app` — the client-facing Bryn Atlas, with the 3D Site Model at `?view=3d` and the Compute Render at `?view=compute` |
 
 `app_peaker_demo.py` is ready to deploy and has no subdomain yet — add its row
 above once one is claimed. So is `app_generator_demo.py`, the generator pack;
@@ -441,7 +526,7 @@ decision page that draws on a Savills report marked Sensitive, so share its
 link with the team rather than publicly, and add it to the keep-awake list
 only if it is to stay up between meetings.
 The IHN and Bryn atlases serve their models with all of their data at
-`?view=3d`, so their links are for the client, not the public demo's footing.
+`?view=3d` (and Bryn's compute render at `?view=compute`), so their links are for the client, not the public demo's footing.
 All six deployed apps are visited hourly by the keep-awake workflow
 (`.github/workflows/keep-awake.yml`). For the portal app, set
 `PORTAL_PASSCODE` in the app's secrets on Streamlit Cloud to lock it (the code

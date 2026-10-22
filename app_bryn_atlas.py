@@ -6,26 +6,40 @@ would stand: on the yard a few metres from the LV room at the CHP engines,
 where it would take about 200 kW of the site's surplus power by a short
 connection, with no cable route across the site.
 
-One app, two views — the same shape as ``app_srv_atlas.py`` and
+One app, three views — the same shape as ``app_srv_atlas.py`` and
 ``app_kld_atlas.py``, so the site atlases behave identically and a new site is
 a copy of any of them:
 
 * default — the map (``bryn_atlas.html``), carrying a pulsing BLOX badge on the
   proposed plot with a standing call to action.
 * ``?view=3d`` — the 3D Site Model (``bryn_3d_sim.html``): a model of the plant
-  with the data centre in place by the LV room, and the three ways of funding
-  it (RBX CapEx, 50/50, Bryn CapEx) drawn from the revenue-share model. This
-  site is surplus power to compute, not peaker arbitrage, so there is no
-  dispatch desk.
+  with the data centre in place by the LV room, in four tabs. It opens on Site,
+  the model alone. Dispatch plays the site's power half hour by half hour,
+  season by season, against the 1.8 MW export limit: export held at 1,715 kW
+  with the data centre load following (1,675 kW today), set so a typical year
+  matches Finance: 350,400 kWh of extra export at 16p/kWh, and 1,548,857 kWh
+  into the data centre (24 miners, 172.8 kW installed), with site load 25 kW
+  lower at weekends and on bank holidays.
+  Finance carries the three ways of funding it (RenewaBlox funds it, 50:50
+  CAPEX share, Bryn funds it) from the revenue-share model for the final
+  172.8 kW deployment, with Bryn's extra export on its side; Export only
+  (assumes no Bitcoin) shows Bryn's income and paybacks on that export
+  alone, anchored on the 50:50 CAPEX share.
+* ``?view=compute`` — the Compute Render (``bryn_compute_3d.html``): the yard
+  south of the feed tank rebuilt in metres from imagery and the 13 October
+  2026 site photos, with the Green Hash 10 ft compute container in place by
+  the LV cabinet's spare outgoing way and the two ways of placing its dry
+  cooler (on the roof, or on the pad beside it), every part carrying its
+  source and what was assumed.
 
-The badge navigates the whole page to its route rather than opening an
-overlay, so the map page stays light and the model gets the entire browser
-window; the model page carries its own "Atlas" control to come back. The badge
-layer lives in ``bryn_atlas_3d_badge.html`` and is appended at serve time, so
-the generated map file stays pristine.
+The badges navigate the whole page to their route rather than opening an
+overlay, so the map page stays light and each model gets the entire browser
+window; both model pages carry their own "Atlas" control to come back. The
+badge layer lives in ``bryn_atlas_3d_badge.html`` and is appended at serve
+time, so the generated map file stays pristine.
 
-Self-contained: both views read local HTML (Leaflet / three.js, all data
-embedded) and render via ``st.iframe``. No database, no secrets.
+Self-contained: every view reads local HTML (Leaflet / three.js, all data
+embedded) and renders via ``st.iframe``. No database, no secrets.
 
 Public tool. Run locally:  streamlit run app_bryn_atlas.py
 """
@@ -37,6 +51,7 @@ HERE = Path(__file__).resolve().parent
 
 VIEWS = {
     "3d": ("bryn_3d_sim.html", "Bryn Atlas — 3D Site Model"),
+    "compute": ("bryn_compute_3d.html", "Bryn Atlas — Compute Render"),
 }
 # read before set_page_config so the tab title can follow the route
 view = st.query_params.get("view", "")
