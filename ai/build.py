@@ -20,7 +20,8 @@ The build checks the things that would otherwise break quietly:
 
 Run:  python ai/build.py            (writes ai/site/, git-ignored)
       python -m http.server 8900 -d ai/site
-Netlify runs it on every push to the renewablox-ai project's production branch (ai/netlify.toml).
+Netlify runs it on a push to the renewablox-ai project's production branch that changes one of its inputs
+(ai/inputs.txt; the build fails if it reads a file of the repository that list doesn't cover, see site_inputs.py).
 Without the network (here, not on Netlify) the fonts are skipped with a warning and the pages fall back to
 the system font. Standard library only.
 """
@@ -28,11 +29,14 @@ import hashlib
 import os
 import re
 import shutil
+import sys
 import tomllib
 import urllib.request
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE.parent))
+import site_inputs  # noqa: E402  (the list of what the site is built from, checked against what the build reads)
 OUT = HERE / "site"
 ATLAS_ROOT = HERE.parent / "atlas" / "root"
 ON_NETLIFY = os.environ.get("NETLIFY") == "true"
@@ -171,6 +175,7 @@ def put_fonts():
 
 
 def main():
+    site_inputs.watch()
     if OUT.exists():
         shutil.rmtree(OUT)
     for dest, src in PAGES.items():
@@ -192,6 +197,7 @@ def main():
             print(f"  {p.relative_to(OUT)}  {p.stat().st_size / 1024:.0f} kB")
     for w in warnings:
         print("warning: " + w)
+    site_inputs.check("ai/inputs.txt")
 
 
 if __name__ == "__main__":

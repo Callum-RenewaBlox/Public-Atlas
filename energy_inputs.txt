@@ -1,0 +1,19 @@
+# What energy.renewablox.co.uk is built from (build_energy_site.py), as paths from the repository's root.
+# Netlify builds the site only when one of these changes (netlify.toml's ignore, tools/netlify-ignore.sh), and the
+# build fails if it reads a file of this repository that isn't covered here (site_inputs.py).
+netlify.toml
+build_energy_site.py
+packs.py
+site_inputs.py
+energy_welcome.html
+energy_privacy.html
+energy_save_form.html
+energy_site_assets/
+business_demo_home.html
+business_site_analysis.html
+business_haas.html
+generator_demo_home.html
+# model copies shared with the Atlas
+peaker_plant_3d.html
+kld_interactive.html
+heat_network_3d.html

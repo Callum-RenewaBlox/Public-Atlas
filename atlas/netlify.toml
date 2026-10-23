@@ -1,7 +1,8 @@
 # atlas.renewablox.com — the RenewaBlox Atlas (build.py beside this file).
 # The renewablox-atlas Netlify project, with atlas/ as its base directory, so this file, not the energy site's
-# netlify.toml at the root of the repository, configures it. Netlify builds the site on every push to the
-# project's production branch; the header rules are in root/_headers and atlas/_headers (build.py joins them).
+# netlify.toml at the root of the repository, configures it. Netlify builds the site on a push to the project's
+# production branch (live) that changes one of the site's inputs; the header rules are in root/_headers and
+# atlas/_headers (build.py joins them).
 #
 # The build refuses to run here without the list of names a client page must never carry: set ATLAS_NAMES
 # (comma-separated) in the project's environment variables, marked secret, never in this file.
@@ -9,14 +10,15 @@
 # Pages under /clients/, /team/ and /investors/portal/ pass through the edge functions in netlify/edge-functions/
 # (the sign-in and the investor portal's key); their settings are described at the top of each file.
 #
-# The build also reads pages from the root of the repository, so every push builds the site (ignore exits 1),
-# rather than only pushes that change this folder. After the build, the two gates' tests run (tests/gates.test.mjs);
-# a gate that fails them is never deployed.
+# Every build and deploy costs Netlify credits, so the ignore command skips a push that changes none of the site's
+# inputs (inputs.txt: this folder and the pages it reads from the root of the repository; the build fails if it
+# reads a file the list doesn't cover). After the build, the two gates' tests run (tests/gates.test.mjs); a gate
+# that fails them is never deployed.
 
 [build]
   command = "python3 build.py && node tests/gates.test.mjs"
   publish = "site"
-  ignore = "exit 1"
+  ignore = "bash ../tools/netlify-ignore.sh atlas/inputs.txt"
 
 [build.environment]
   PYTHON_VERSION = "3.12"

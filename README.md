@@ -12,7 +12,8 @@ on Netlify, with Supabase for the Atlas's sign-in:
 
 Each page is a self-contained standalone file — a Leaflet map, or a three.js scene —
 with all of its data embedded, built into its site by a standard-library Python
-script that Netlify runs on every push. This repository is public, so the gates
+script that Netlify runs when a push changes that site's files (see "Builds and
+credits" under Deploy). This repository is public, so the gates
 (the sign-in and the investor portal's key) protect the addresses, not the files.
 None of it is hosted on Streamlit any more: every page that was a Streamlit app is
 now an address on one of these sites, and the Atlas's build fails if any page
@@ -292,7 +293,8 @@ spam filters, when its links are on the sending domain.
 | `/privacy/` | the privacy notice (`energy_privacy.html`), linked from the welcome page's footer with the registered company details |
 
 `build_energy_site.py` writes it to `energy_site/` (git-ignored); Netlify runs
-it on every push to live (`netlify.toml`, project `renewablox-energy`). It reads
+it on a push to live that changes one of its inputs (`energy_inputs.txt`;
+`netlify.toml`, project `renewablox-energy`). It reads
 the packs through **`packs.py`**, as the Atlas's investor packs do: each view's
 file, labels and patches (the model renames and the peaker's p/kWh) are defined
 there once, so add or rename a view there. The build wraps each landing fragment
@@ -375,8 +377,9 @@ Build and look at it locally:
 ## atlas.renewablox.com — the RenewaBlox Atlas
 
 The Atlas is built from `atlas/` by **`atlas/build.py`** into `atlas/site/`
-(git-ignored). The `renewablox-atlas` Netlify project runs the build on every
-push to live (`atlas/netlify.toml`, base directory `atlas/`), then the gates'
+(git-ignored). The `renewablox-atlas` Netlify project runs the build on a push
+to live that changes one of its inputs (`atlas/inputs.txt`; `atlas/netlify.toml`,
+base directory `atlas/`), then the gates'
 tests (`atlas/tests/gates.test.mjs`), and deploys only if both pass. Nothing of
 it is hosted anywhere else, and the build fails if any page points at a
 `streamlit.app` address.
@@ -506,8 +509,8 @@ atlas.renewablox.com), with the root-relative links Atlas's pages may use (`/inv
 The home page and the 404 page wear the Atlas's brand from the Atlas's own files: `ai/build.py`
 copies its stylesheet (`atlas.css`), wordmarks and icons from `atlas/root/` and fetches the two
 brand fonts from renewablox.com's own files, against the same hashes as the Atlas's build, so
-the two sites can't drift apart (and every push builds the site, as a change under `atlas/root/`
-can change it). The build writes `ai/site/` (git-ignored) and checks three things that would
+the two sites can't drift apart (so `ai/inputs.txt` lists those files beside `ai/`, and a change
+to them rebuilds the site). The build writes `ai/site/` (git-ignored) and checks three things that would
 otherwise break quietly: every input id a saved OSCAR scenario can hold is still on the page
 (`SCENARIO_IDS`, which only ever grows), the home and 404 pages load nothing from elsewhere,
 and OSCAR's Content-Security-Policy in `ai/netlify.toml` allows every origin the page reaches
@@ -550,7 +553,7 @@ repository with production branch `main` and its **base directory set to `ai`** 
 `ai/netlify.toml`, not the root one), add `ai.renewablox.com` as its domain, and point a CNAME
 record `ai` at `renewablox-ai.netlify.app` at the renewablox.com DNS host, as for `atlas.` and
 `crm.`. The `/atlas/` proxy targets `https://atlas.renewablox.com`, so that domain must resolve.
-Netlify then builds on every push to main. The project was created private (a team login on every
+Netlify then builds on a push to main that changes one of its inputs (`ai/inputs.txt`). The project was created private (a team login on every
 deploy, production included); the energy and Atlas projects ask for one on previews only.
 
 Build and look at it locally (`ai/oscar.html` also works opened straight from the folder; the
@@ -573,8 +576,8 @@ The dev container (`.devcontainer/`) builds the Atlas and serves it on port 8901
 
 ## Deploy
 
-Three Netlify projects build from this repository, each on every push to its
-branch:
+Three Netlify projects build from this repository, each from its own branch and
+only when that site's own files change (see "Builds and credits" below):
 
 | Project | Domain | Base directory | Branch | Configured by |
 | --- | --- | --- | --- | --- |

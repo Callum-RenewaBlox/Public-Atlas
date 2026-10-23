@@ -1,14 +1,15 @@
 # ai.renewablox.com — RenewaBlox's AI tools (build.py beside this file).
 # A Netlify project of its own (renewablox-ai) whose base directory is ai/, so this file, not the
-# energy site's netlify.toml at the root of the repository, configures it. Netlify builds on every
-# push to the project's production branch (the build is a copy, the brand fonts and three checks, so it
-# takes seconds). The build also reads the Atlas's brand files from atlas/root/, so every push builds the
-# site (ignore exits 1), rather than only pushes that change this folder.
+# energy site's netlify.toml at the root of the repository, configures it. Netlify builds on a push
+# to its production branch that changes one of the site's inputs (ai/inputs.txt: this folder and the
+# Atlas brand files the build copies from atlas/root/; the build fails if it reads a file the list
+# doesn't cover). Every build and deploy costs credits, so the ignore command skips the rest
+# (tools/netlify-ignore.sh).
 
 [build]
   command = "python3 build.py"
   publish = "site"
-  ignore = "exit 1"
+  ignore = "bash ../tools/netlify-ignore.sh ai/inputs.txt"
 
 [build.environment]
   PYTHON_VERSION = "3.12"

@@ -27,7 +27,8 @@ Generators) is a link in the fragment; the build puts the real form
 Forms) in its marked place.
 
 Run:  python build_energy_site.py        (writes energy_site/, git-ignored)
-Netlify runs it on every push to live (netlify.toml).
+Netlify runs it on a push to live that changes one of its inputs (energy_inputs.txt; the build fails if it reads a
+file that list doesn't cover, see site_inputs.py).
 Standard library only.
 """
 import html
@@ -36,6 +37,7 @@ import re
 import shutil
 from pathlib import Path
 
+import site_inputs
 from packs import (BUSINESS_HOME, BUSINESS_SUBJECT, BUSINESS_VIEWS, CONTACT,
                    GENERATOR_HOME, GENERATOR_VIEWS, home_fragment, model_page)
 
@@ -252,6 +254,7 @@ def write(path, text):
 
 
 def main():
+    site_inputs.watch()
     if OUT.exists():
         shutil.rmtree(OUT)
     OUT.mkdir()
@@ -272,6 +275,7 @@ def main():
     print(f"energy_site/: {len(pages)} files, {size / 1e6:.1f} MB")
     for p in pages:
         print("  ", p)
+    site_inputs.check("energy_inputs.txt")
 
 
 if __name__ == "__main__":

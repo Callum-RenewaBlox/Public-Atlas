@@ -58,6 +58,7 @@ import urllib.request
 from pathlib import Path
 
 import pages  # the pages that came off Streamlit (beside this file)
+import site_inputs  # the list of what the site is built from (inputs.txt), checked against what the build reads
 
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "site"
@@ -704,7 +705,9 @@ def main():
         fail("refusing to build the site on Netlify without the list of names: set ATLAS_NAMES (the words that "
              "would name or place a client's site, comma-separated) in the renewablox-atlas project's environment "
              "variables, as a secret")
+    site_inputs.watch()
     build(names)
+    site_inputs.check("atlas/inputs.txt")
 
 
 if __name__ == "__main__":

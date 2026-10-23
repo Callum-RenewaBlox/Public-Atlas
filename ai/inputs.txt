@@ -1,0 +1,12 @@
+# What ai.renewablox.com is built from (ai/build.py), as paths from the repository's root.
+# Netlify builds the site only when one of these changes (ai/netlify.toml's ignore, tools/netlify-ignore.sh), and the
+# build fails if it reads a file of this repository that isn't covered here (site_inputs.py).
+ai/
+site_inputs.py
+# the Atlas's brand files the build copies (BRAND in ai/build.py)
+atlas/root/assets/atlas.css
+atlas/root/assets/logos/renewablox-wordmark-dark.png
+atlas/root/assets/logos/renewablox-wordmark-light.png
+atlas/root/assets/favicon-32.png
+atlas/root/assets/apple-touch-icon.png
+atlas/root/favicon.ico
