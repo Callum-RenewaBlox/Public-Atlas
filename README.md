@@ -487,63 +487,57 @@ without a sign-in and their views are files of their own
 ## ai.renewablox.com — RenewaBlox's AI tools
 
 The in-house tools live on one domain of their own, built from `ai/` by its own Netlify
-project, separate from the energy site:
+project, separate from the energy site. For now that is OSCAR; whether Atlas joins it isn't
+decided.
 
 | Address | Page |
 | --- | --- |
-| `/` | the front door: the tools, two doors (`ai/index.html`) |
-| `/oscar/` | OSCAR, the site model (`ai/oscar.html`) |
-| `/atlas/` | Atlas, served by proxy from its own Netlify project (`renewablox-atlas`, atlas.renewablox.com), which keeps deploying as it does now |
+| `/` | the home page: OSCAR, in the Atlas's house style (`ai/index.html`) |
+| `/oscar/` | OSCAR, the site model, served exactly as the team's own file (`ai/oscar.html`) |
 
-`ai/build.py` copies the pages into `ai/site/` (git-ignored) and checks three things that
-would otherwise break quietly: every input id a saved OSCAR scenario can hold is still on the
-page (`SCENARIO_IDS`, which only ever grows), no page loads anything from elsewhere, and the
-live sources OSCAR calls are the ones `ai/netlify.toml` proxies and allows. `ai/netlify.toml`
-holds the rest: the Atlas proxy (with the root-relative links Atlas's own pages may use,
-`/investors/`, `/market/`, `/portal/`, sent back under `/atlas/`), the live-data rewrites, a
-Content-Security-Policy that allows inline code, data images and, for OSCAR, its three live
-sources, and `noindex` (with a `robots.txt` that disallows everything): these are tools for the
-team and the clients they are sent to, not for search engines.
+`/atlas/` still answers by proxy from Atlas's own Netlify project (`renewablox-atlas`,
+atlas.renewablox.com), with the root-relative links Atlas's pages may use (`/investors/`,
+`/market/`, `/portal/`) sent back under `/atlas/`, but nothing on the site links to it.
 
-**OSCAR** (Optimising Site Capacity & ASIC Revenue) is one self-contained page: what a site
-earns when its power goes into Bitcoin mining, energy markets (export, demand turn-up, the
-capacity market) and heat off-take, how the revenue is shared between RenewaBlox and the client,
-and when each side's CAPEX comes back. The inputs sit in a rail on the left, in the order the
-conversation runs (site, mining, energy markets, heat, the deal, then the expert-only hardware,
-market and Phase 2); the results answer on the right and recalculate as anything changes.
+The home page and the 404 page wear the Atlas's brand from the Atlas's own files: `ai/build.py`
+copies its stylesheet (`atlas.css`), wordmarks and icons from `atlas/root/` and fetches the two
+brand fonts from renewablox.com's own files, against the same hashes as the Atlas's build, so
+the two sites can't drift apart (and every push builds the site, as a change under `atlas/root/`
+can change it). The build writes `ai/site/` (git-ignored) and checks three things that would
+otherwise break quietly: every input id a saved OSCAR scenario can hold is still on the page
+(`SCENARIO_IDS`, which only ever grows), the home and 404 pages load nothing from elsewhere,
+and OSCAR's Content-Security-Policy in `ai/netlify.toml` allows every origin the page reaches
+and no other. `ai/netlify.toml` holds the rest: the Atlas proxy, the policies (the home page
+loads only from the site itself) and `noindex` (with a `robots.txt` that disallows everything):
+these are tools for the team and the clients they are sent to, not for search engines.
 
-* **Two views.** Expert shows every input and every table. Client hides the hardware and market
-  assumptions, prices CAPEX at `CLIENT_CAPEX` (£640,000 per MW of site power plus 5%
-  contingency, miners' VAT included; the note on the page reads from the same constant), opens on
-  a hero of what the site receives against today's power revenue, and sets the recovery period
-  to the month RenewaBlox's share of the CAPEX is paid back, recomputed with every input. The
-  site (its power, uptime, streams, today's revenue, contract length, market inputs) travels
-  between the views; the deal settings are remembered per view.
-* **The model** is `compute(inputs)`, pure and separate from the page, so scenarios and tests run
-  it directly (`window.OSCAR.compute`). A month is 1/12 of a 365-day year throughout; energy
-  follows the whole miners installed; transaction fees are a share of today's block subsidy, held
-  constant in BTC per block so they don't halve with it; the revenue-share totals are what each
-  side is paid, after the cost of power, matching the cash-flow chart.
-* **Live inputs** (the Bitcoin price in GBP, the 30-day network hash rate, the last week's fees)
-  come from CoinGecko, mempool.space and Blockchain.com: each is asked directly first, then
-  through the site's own rewrites under `/oscar/api/`, never through a third-party proxy. The
-  chip in the header says whether the figures in use are live or as entered, and refreshes them.
-  A scenario opened from a link keeps its saved market inputs until the chip is clicked.
-* **Scenarios** are saved in the browser (`oscar.scenarios` in local storage), compared in a
-  table, exported and imported as JSON (the way to move them between browsers, or from the
-  September 2026 file edition, whose scenarios are brought over automatically the first time the
-  new page opens in the same browser), and shared as links that carry the whole scenario in the
-  address's `#s=` fragment, so it never reaches a server. The September edition's
-  `?scenario=` links still open. Its "Phase 2 start (years)" counted the contract year Phase 2
-  starts in (1 = from day one); the field now counts the years before it starts, and older
-  scenarios are converted as they are opened.
-* **Charts** are SVG drawn at the width of their box, in one categorical palette checked for
-  colour-blind separation in both themes (RenewaBlox blue, client magenta, mining orange, export
-  aqua, capacity yellow, turn-up green, heat red, today's revenue grey), one axis each, with a
-  crosshair and tooltip that follow the mouse, a finger or the arrow keys.
-* **PDF.** Printing (or "Save as PDF") gives a report of the current scenario: a header with its
-  name and date, the results, and an assumptions block, with the charts redrawn to the page width.
-* Light and dark follow the system until chosen in the header; the page works from 360 px up.
+**OSCAR** (Optimising Site Capacity & ASIC Revenue) is the team's own self-contained page,
+"a simple planning tool for Bitcoin mining site economics (GBP)", served byte for byte as it is
+and keeping its own look: replace `ai/oscar.html` with a newer file to update it, and the build
+says if the newer file reaches a source its policy doesn't allow. What a site earns when its
+power goes into Bitcoin mining, energy markets (export, demand turn-up, the capacity market) and
+heat off-take, what it costs, how the revenue is shared between RenewaBlox and the client, and
+when the CAPEX comes back:
+
+* **Inputs** in three cards (Miner & Market Data, Site Inputs, Modelling assumptions), then the
+  revenue share structure: who funds the CAPEX (RenewaBlox, the client, 50/50 or a custom
+  split) and the revenue mode (a fixed CAPEX recovery period, a share from the start, or an
+  initial and a remainder split), over the contract length. The miner list holds eleven
+  MicroBT and Bitmain models, with overclock profiles for the supported hydro miners; Phase 2
+  adds a second block of power partway through the contract.
+* **Two views**, Expert and Client, and light and dark themes, chosen in the header and
+  remembered in the browser (`uiMode` and `theme` in local storage).
+* **Live inputs**: the Bitcoin price in GBP from CoinGecko and the 30-day average network hash
+  rate from mempool.space (Blockchain.com if that fails), refreshed on opening and by "Refresh
+  live inputs". CoinGecko is called directly; each hash-rate source is called directly first
+  and, if a browser or network refuses that, through three public CORS proxies in turn
+  (allorigins.win, cors.isomorphic-git.org, codetabs.com), which the policy allows for that reason.
+* **Outputs**: headline figures, the cost summary, the revenue share, the annual and p/kWh
+  comparisons against the site's existing power revenue, the cash-flow timeline, the annual
+  revenue breakdown, BTC value against a treasury hold, and BTC rewards, drawn on canvas.
+* **Scenarios** are saved in the browser (`scenarios` in local storage, the last 20), loaded back
+  into the inputs, opened in a new window as a link that carries the whole scenario
+  (`?scenario=`), compared in a table and exported as CSV; "Export PDF (Print)" prints the page.
 
 Deploy: the Netlify project is `renewablox-ai` (renewablox-ai.netlify.app). Link it to this
 repository with production branch `main` and its **base directory set to `ai`** (it then reads
@@ -553,8 +547,8 @@ record `ai` at `renewablox-ai.netlify.app` at the renewablox.com DNS host, as fo
 Netlify then builds on every push to main. The project was created private (a team login on every
 deploy, production included); the energy and Atlas projects ask for one on previews only.
 
-Build and look at it locally (or open `ai/index.html` and `ai/oscar.html` straight from the
-folder, where the live sources are called directly):
+Build and look at it locally (`ai/oscar.html` also works opened straight from the folder; the
+home page needs the build's brand files):
 
     python ai/build.py
     python -m http.server 8900 -d ai/site      # then open http://localhost:8900/
