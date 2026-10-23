@@ -13,8 +13,8 @@ on Netlify, with Supabase for the Atlas's sign-in:
 Each page is a self-contained standalone file — a Leaflet map, or a three.js scene —
 with all of its data embedded, built into its site by a standard-library Python
 script that Netlify runs when a push changes that site's files (see "Builds and
-credits" under Deploy). This repository is public, so the gates
-(the sign-in and the investor portal's key) protect the addresses, not the files.
+credits" under Deploy). This repository is public, so the sign-in
+protects the addresses, not the files.
 None of it is hosted on Streamlit any more: every page that was a Streamlit app is
 now an address on one of these sites, and the Atlas's build fails if any page
 points at a `streamlit.app` address.
@@ -26,8 +26,8 @@ points at a `streamlit.app` address.
 | **atlas.renewablox.com** | | |
 | `/market/` | `atlas/root/market/index.html`, framing `/market/map/`: `atlas/vendor/client_atlas_v2.html`, a copy of Eunice-Platform's | Market Atlas — where RenewaBlox can put flexible and stranded renewable capacity to work across Great Britain: AD peakers, subsidised generators and stranded hydro, with Balancing Mechanism tiers and a PPA benchmark; `?view=`, `?site=` and `?theme=` on the market page's address open the map where a shared link points |
 | `/investors/demo/` | `investor_demo_home.html` + `peaker_plant_3d.html` + `kld_interactive.html` + `heat_network_3d.html` + `demand_for_constraints_3d.html` | Investor Demo — a landing page for prospective investors that packs the interactive 3D models: Peaker Plant 3D (the peaker business model as a living site, `peaker-plant/`), Hydro 3D (the KLD powerhouse and its in-room data centre, `hydro/`), Heat Network 3D (the IHN heat network and the data centre that heats it, a year half-hour by half-hour, `heat-network/`) and Demand for Constraints 3D (the Moray cluster north of the B4 constraint and the two BLOX halls NESO dispatches to absorb curtailed wind, `demand-for-constraints/`). **Investor data is gated:** on Hydro 3D, Heat Network 3D and Demand for Constraints 3D the panels that carry the figures are blurred and inert and a card points to the investor portal (`GATED` in `packs.py`, applied by the build — the model files are untouched, and the portal serves them unblurred) |
-| `/investors/portal/` | `investor_portal_home.html` + the same four model files | Investor Portal — the Investor Demo's pack in full, unblurred, at the address the Wix investor portal links to, with the Investor Atlas inside it at `/investors/portal/atlas/`. Every page of it is behind the portal's key (`atlas/netlify/edge-functions/portal-gate.js`): the portal's button carries the key in its link (`?k=<key>`, printed by `portal_key.py`) so investors clicking through from the logged-in portal never see a prompt, and a code prompt is the fallback for anyone sent the code by other means. Opened as a page of its own, the key comes off the address and a cookie remembers it; inside the Wix portal's frame, where a browser may refuse the cookie, the pack's own links carry the key on, so the model links never re-ask. The files themselves stay public in this repository whatever the gate says |
-| `/investors/portal/atlas/` | `atlas/vendor/investor_atlas_v3.html`, a copy of Eunice-Platform's | Investor Atlas — contract value, pipeline and market context for AD peakers, subsidised generators and stranded hydro across Great Britain (the SAM, TAM, hydro and PPA views, with a Present mode), behind the portal's key; `?view=`, `?site=`, `?theme=` and `?present=1` open it where a shared link points |
+| `/investors/portal/` | `investor_portal_home.html` + the same four model files | Investor Portal — the Investor Demo's pack in full, unblurred, at the address the Wix investor portal's members area links to, with the Investor Atlas inside it at `/investors/portal/atlas/`. It isn't gated on the Atlas: the way in is the Wix portal's registration and investor declaration, and only the address keeps it from the public (its pages ask not to be indexed). The files themselves stay public in this repository |
+| `/investors/portal/atlas/` | `atlas/vendor/investor_atlas_v3.html`, a copy of Eunice-Platform's | Investor Atlas — contract value, pipeline and market context for AD peakers, subsidised generators and stranded hydro across Great Britain (the SAM, TAM, hydro and PPA views, with a Present mode), in the investor portal; `?view=`, `?site=`, `?theme=` and `?present=1` open it where a shared link points |
 | `/investors/australia/` | `investor_demo_aus_home.html` + `peaker_plant_3d.html` + `kld_interactive.html` + `nem_negative_price_atlas.html` | Investor Demo (Australia) — Peaker Plant 3D and Hydro 3D plus NEM 3D (mining economics across the Australian NEM, `nem/`), on its own address for the investor group that model was built for |
 | `/models/peaker-plant/` | `peaker_plant_3d.html` | Peaker Plant 3D standalone — the same peaker model on its own link, for client brochures (AD operators): no landing page, no pack navigation, straight into the model, prices in **p/kWh** |
 | `/models/peaker-demo/` | `peaker_plant_3d.html` | Peaker Demo — the pack's Peaker Plant 3D on a link of its own, for sending the peaker without the rest of the pack: no landing page, no pack navigation, prices in **£/MWh**, and tailored for an energy-literate audience (strike opens at £80 on a £50–£100 range; the export price is named **DA + gDUoS**) |
@@ -40,6 +40,7 @@ points at a `streamlit.app` address.
 | `/clients/ihn/` | `ihn_atlas.html` + `ihn_heat_chrome.html` + `heat_network_3d.html` | IHN Atlas — the IHN heat network: a still, daytime three.js satellite atlas of the district with the network main, the existing and proposed connections, the 11 kV route and the HNES blocks drawn on the imagery, and the 76 × 25 m plant room cut away under the block; four camera views (Overview, the Plant room as an amber call to action, EC1, EC2) with a caption that follows the view, a key, layers and a Council site-map overlay. A pulsing BLOX badge over the plant room opens the dispatch model, Heat Network 3D, full-screen — a view of the same address, `?view=3d`, with the same model file the investor pack serves, all data included, so the atlas page carries none of the model's weight |
 | `/clients/reabold/west-newton/`, `/clients/reabold/reservoirs/` | `atlas/vendor/wn_infrastructure_map.html`, `atlas/vendor/reservoir_map.html`, copies of Reabold-Atlas's | Reabold's two maps: the West Newton infrastructure map and the UKCS reservoir atlas (a prototype; its gas flows show the bundled snapshot, as data.nationalgas.com's live feed can't be read from another site) |
 | `/clients/citygate/` | `atlas/vendor/citygate_electricity.html`, a copy of Electricity-Analysis's | Citygate Church · Electricity Portrait |
+| `/clients/bln/`, `/clients/bln/3d/` | `atlas/bln/` | BLN Atlas — the BLN powerhouse on the satellite imagery with the BLOX badge, and BLN 3D, the 3D render it opens (the model, a cutaway and the flythrough). Its public cover on the Atlas front page names it by its code only; behind the sign-in the pages may carry the site's details in full |
 | `/team/keith-huntly/` | `kh_atlas.html` | Keith & Huntly Atlas — the decision page for the two Moray primaries SSEN has priced: a three.js satellite scene of each substation with SSEN's proposed works (joints, cable, metered RMU, the 33 kV diversion at Huntly) and Savills' siting options drawn on it, and a nine-step, keyboard-driven telling of the two budget estimates built for presenting to the team. It opens and closes on a **cost ladder** (find out / secure a place / connect / our own works) under a Both £2,170 · Huntly £1,240 · Keith £930 · Neither £0 switch (the minimum SSEN fees for feasibility studies), walks Keith's £150,000 for 1,999 kVA (1,300 kVA applied for) and Huntly's £110,000–£121,000 for 2.78 MVA over the scene with what each figure covers and what Savills inferred is left in the breakers, says plainly that the two figures are **not like for like** (Keith's has SSEN digging; Huntly's leaves the digging, civils, transformer and LV side to RenewaBlox and carries a 150 m diversion), names the gates before anything can be lodged (a landowner's Letter of Authority, and Savills' fees from its October 2025 proposal: £1,200 per DNO pre-application meeting, £7,500 to submit a connection application, land procurement TBC), and ends on three decision lines. Arrow keys step, `1`–`9` jump, `D` opens the site's detail drawer (scope, exclusions, the full capacity chart, the ranked plots, every open question), `S` the sources, `L` the camera and layer popover, `?` the key map; `?beat=n` or `?step=decide` deep-links a step, `?still` skips the flights. Unknowns stay unknown on the page: RenewaBlox's own works are "to be costed", never a number |
 | `/team/moray/` | `moray_atlas.html` | Moray Cluster Atlas — the Keith & Huntly primaries (the only two green-headroom primaries in the Savills Moray screen): candidate plots, ownership areas, GSP saturation, the 33/132/275/400 kV network and the offshore wind landing on it |
 | `/team/outreach/` | `atlas/team/outreach/index.html` | Outreach Strategy — RenewaBlox × tem's business outreach strategy (working draft of 2 October 2026) as one self-contained page: seven pages under a sticky tab rail, each on its own address (`#/`, `#/offer`, `#/linkedin`, `#/strategies`, `#/plan`, `#/compliance`, `#/toolkit`). Overview (the Bill X-ray hook, the five-channel map, the four plays, the first week's moves); Offer & targets (the edge, the claims and whose they are, the three limits, the segments and a **segment playbook** that gathers each segment's buyer, hook, LinkedIn angle, Demand Atlas source and opener on one card); LinkedIn (foundations to paid, with the funnel as a **live model**: its planning rates are sliders, and the paid stop rule follows them); Three strategies (Demand Atlas, Local Power with a generator **sizing calculator**, Borrowed trust); The plan (the 14 weeks on a chart with a **today line and live status** from the viewer's date, `?date=YYYY-MM-DD` to preview another day, and the tasks **filtered by owner**); Compliance (the two decisions, the checklist, the sources and how each was checked); Toolkit (every template and crew prompt, with the common fields **filled once** for all of them, length checks against the strategy's limits, search and a copy button on each) |
@@ -53,8 +54,8 @@ The Australia pack carries Peaker, Hydro and NEM 3D; Heat Network 3D and
 Demand for Constraints 3D joined the main pack first and are not in the Australia
 pack yet. They share the model copies and the landing-page design; each has its
 own address and its own landing fragment. Old links in the form `?view=<key>`
-still work: each pack's landing page forwards them to the model's own address
-(carrying the portal's `?k=` on), and a key the pack doesn't have, such as
+still work: each pack's landing page forwards them to the model's own address,
+and a key the pack doesn't have, such as
 `?view=nem` against the main pack, stays on the landing page.
 
 Five surfaces serve the same `peaker_plant_3d.html`, and they differ only in
@@ -389,9 +390,9 @@ it is hosted anywhere else, and the build fails if any page points at a
 | `/` | the Atlas front page, with its Client Atlas section | `atlas/root/index.html`; the section is `atlas/front/clients.html`, put between its marker comments by the build | anyone |
 | `/investors/` | the Investor Atlas preview, pointing to the Wix investor portal | `atlas/root/investors/index.html` | anyone |
 | `/market/`, `/market/map/` | the Market Atlas page, and the map it frames | `atlas/root/market/index.html`, `atlas/vendor/client_atlas_v2.html` | anyone |
-| `/bln/`, `/bln/3d/` | BLN Atlas and BLN 3D | `atlas/bln/` | anyone with the link |
+| `/clients/bln/`, `/clients/bln/3d/` | BLN Atlas and BLN 3D | `atlas/bln/` | the sign-in: the team, and the addresses listed for `bln` |
 | `/investors/demo/`, `/investors/australia/`, `/models/` | the public investor packs and the standalone peakers | `atlas/pages.py`, from the files at the root of this repository | anyone with the link |
-| `/investors/portal/`, `/investors/portal/atlas/` | the Investor Portal pack and the Investor Atlas | `atlas/pages.py`, `atlas/vendor/investor_atlas_v3.html` | the portal's key |
+| `/investors/portal/`, `/investors/portal/atlas/` | the Investor Portal pack and the Investor Atlas | `atlas/pages.py`, `atlas/vendor/investor_atlas_v3.html` | anyone with the address: the Wix investor portal's members area links to it |
 | `/clients/<code>/…` | the client atlases | `atlas/pages.py` | the sign-in: the team, and the addresses listed for `<code>` |
 | `/team/…` | the team's pages | `atlas/pages.py`, `atlas/team/` | the sign-in: the team only |
 
@@ -457,31 +458,32 @@ the only sign-in the Supabase project offers, so a client needs a Google
 account for the address listed (a Google Workspace address, or a Gmail one);
 anyone else's sign-in reaches a page saying nothing is shared with them.
 
-**The investor portal's key** (`atlas/netlify/edge-functions/portal-gate.js`).
-Every request under `/investors/portal/` passes through it. The Wix investor
-portal's buttons carry the key on their links (`?k=<key>`, the hex HMAC that
-`python portal_key.py <code>` prints), so investors clicking through from the
-logged-in portal never see a prompt; a code prompt is the fallback for anyone
-sent the code by other means. Opened as a page of its own, the key comes off
-the address and a cookie remembers it; inside the Wix portal's frame, where a
-browser may refuse the cookie, the pack's own links carry the key on. The code
-is `PORTAL_PASSCODE` on the Netlify project, never in this repository; the
-portal stays locked until it is set, and changing it expires every key and
-cookie.
+**The investor portal** (`/investors/portal/`) isn't gated on the Atlas. The way
+in is the Wix investor portal at renewablox.com/invest (registration and the
+investor declaration), whose members-area buttons link to
+`https://atlas.renewablox.com/investors/portal/` and
+`https://atlas.renewablox.com/investors/portal/atlas/`. Its pages ask not to be
+indexed, and their header rules (`site_headers` in `atlas/build.py`) let the Wix
+site frame them. Anyone given the address can open them, and the files are
+public in this repository.
 
-**The anonymous client pages** (BLN) keep the checks they were built with (see
-the docstring of `atlas/build.py`): no word that names or places a client's
-site, no image metadata, nothing loaded from elsewhere but the satellite
-imagery. The words live outside this public repository, in `atlas/.names`
-(git-ignored) or the `ATLAS_NAMES` environment variable; a build on Netlify
-refuses to run without them. The signed-in client pages name their sites, so
-they are not held to those checks, and live only behind the sign-in.
+**BLN** (`/clients/bln/`, client code `bln`) is behind the sign-in, so its pages
+may carry the site's details in full; old `/bln/` links redirect there
+(`_redirects`, written by the build). What stays public is its card on the
+front page (`atlas/front/`), which keeps the anonymity checks it was built with
+(see the docstring of `atlas/build.py`): no word that names or places the site,
+no postcode or grid reference, no image metadata. The words live outside this
+public repository, in `atlas/.names` (git-ignored) or the `ATLAS_NAMES`
+environment variable; a build on Netlify refuses to run without them. They are
+names that rightly appear elsewhere on the site, so Netlify's own scan for
+secret values leaves `ATLAS_NAMES` out (`SECRETS_SCAN_OMIT_KEYS` in
+`atlas/netlify.toml`), or it would fail every build.
 
 Build and look at it locally:
 
     python atlas/build.py
     python -m http.server 8901 -d atlas/site      # then open http://localhost:8901/
-    node atlas/tests/gates.test.mjs               # the sign-in and the portal's key, against a stand-in Supabase
+    node atlas/tests/gates.test.mjs               # the sign-in, against a stand-in Supabase
 
 A plain server doesn't run the edge functions, so locally the gated pages open
 without a sign-in and their views are files of their own
@@ -569,7 +571,7 @@ tests need Node 22:
 
     python build_energy_site.py && python -m http.server 8800 -d energy_site   # energy.renewablox.co.uk
     python atlas/build.py && python -m http.server 8901 -d atlas/site           # atlas.renewablox.com
-    node atlas/tests/gates.test.mjs                                             # the Atlas's two gates
+    node atlas/tests/gates.test.mjs                                             # the Atlas's sign-in
     python ai/build.py && python -m http.server 8900 -d ai/site                 # ai.renewablox.com
 
 The dev container (`.devcontainer/`) builds the Atlas and serves it on port 8901.
@@ -595,27 +597,25 @@ functions, so their scope must include Functions; a change needs a redeploy):
 | `SUPABASE_URL` | `https://enghoowpiwopsfabfurx.supabase.co` (renewablox-crm) |
 | `SUPABASE_PUBLISHABLE_KEY` | renewablox-crm's publishable key (Supabase → Project settings → API keys) |
 | `ATLAS_SESSION_SECRET` | 32 or more random characters, marked secret; changing it signs everyone out |
-| `PORTAL_PASSCODE` | the investor portal's code, marked secret; changing it expires every key |
 
 And in Supabase (renewablox-crm → Authentication → URL Configuration → Redirect
 URLs): `https://atlas.renewablox.com/access/callback`, without which Supabase
 sends the browser to the CRM and the sign-in can't finish.
 
-After the first deploy with the gates, check that no other spelling of a gated
+After the first deploy with the sign-in, check that no other spelling of a gated
 address reaches a page. Netlify picks edge functions by the address as sent but
-serves a file after folding a run of slashes, which is why the gates route by
-pattern (`config` in each gate) and send every spelling to its one form. Each of
-these should answer 301, never 200:
+serves a file after folding a run of slashes, which is why the sign-in routes by
+pattern (`config` in `atlas-gate.js`) and sends every spelling to its one form.
+Each of these should answer 301, never 200:
 
-    for p in //clients/srv/ //team/outreach/ //investors/portal/ /investors/portal; do
+    for p in //clients/srv/ //team/outreach/ //clients/bln/; do
       curl -s --path-as-is -o /dev/null -w "%{http_code} $p\n" "https://atlas.renewablox.com$p"; done
 
-The Wix investor portal's buttons: run `python portal_key.py <PORTAL_PASSCODE>`
-and point them at `https://atlas.renewablox.com/investors/portal/?k=<key>` (the
-pack) and `https://atlas.renewablox.com/investors/portal/atlas/?k=<key>` (the
-Investor Atlas). A button that opens a new tab is the best home for a
-full-screen 3D scene; the pack also works inside a Wix "Embed a site" element.
-With the same code the Streamlit app had, the key is unchanged.
+The Wix investor portal's members-area buttons point at
+`https://atlas.renewablox.com/investors/portal/` (the pack) and
+`https://atlas.renewablox.com/investors/portal/atlas/` (the Investor Atlas). A
+button that opens a new tab is the best home for a full-screen 3D scene; the
+pack also works inside a Wix "Embed a site" element.
 
 The pages' old Streamlit addresses, and where each now is (the query carries
 over as it is):
@@ -623,10 +623,10 @@ over as it is):
 | Was | Now |
 | --- | --- |
 | `renewablox-client-atlas-v3.streamlit.app` | `atlas.renewablox.com/market/` |
-| `renewablox-investor-atlas-v3.streamlit.app` | `atlas.renewablox.com/investors/portal/atlas/` (with the key) |
+| `renewablox-investor-atlas-v3.streamlit.app` | `atlas.renewablox.com/investors/portal/atlas/` |
 | `investor-demo.streamlit.app/?view=<key>` | `atlas.renewablox.com/investors/demo/?view=<key>`, forwarded to the model's page |
 | `investor-demo-aus.streamlit.app` | `atlas.renewablox.com/investors/australia/` |
-| `investor-insight.streamlit.app/?k=<key>&view=<view>` | `atlas.renewablox.com/investors/portal/?view=<view>&k=<key>` |
+| `investor-insight.streamlit.app/?view=<view>` | `atlas.renewablox.com/investors/portal/?view=<view>`, forwarded to the model's page |
 | `peakerplant-3d.streamlit.app` | `atlas.renewablox.com/models/peaker-plant/` |
 | `ihn-atlas.streamlit.app/?view=3d` | `atlas.renewablox.com/clients/ihn/?view=3d` |
 | `bryn-atlas.streamlit.app/?view=<view>` | `atlas.renewablox.com/clients/bryn/?view=<view>` |

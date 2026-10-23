@@ -22,7 +22,8 @@ a regenerated source that loses it fails the build instead of shipping a page th
 /clients/<code>/ to the addresses listed for <code> in Supabase's public.atlas_access and to the
 team, /team/ to the team only, and routes ?view=. The client pages name their sites: they are not
 held to the anonymity checks of the anonymous client pages (BLN), and live only behind the sign-in.
-/investors/portal/ is behind the portal's key (netlify/edge-functions/portal-gate.js).
+/investors/portal/ is not gated: the Wix investor portal's members area links to it, and only its address keeps it
+from the public.
 """
 import html
 import json
@@ -257,7 +258,8 @@ CLIENT_CSP = {
 # ---- the investor packs and the standalone models ----
 
 # The models are self-contained three.js pages, each framed by its pack page: the mesh decoder compiles WebAssembly,
-# and GLTF textures are blob: URLs, fetched or drawn. Public packs take it from root/_headers; the portal from its gate.
+# and GLTF textures are blob: URLs, fetched or drawn. The public packs take it from root/_headers; the portal from the
+# rules build.py writes for it (site_headers), which let the Wix site frame it.
 MODEL_CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; "
              "img-src 'self' data: blob:; font-src 'self'; connect-src 'self' blob:; frame-src 'self'; object-src 'none'; "
              "base-uri 'self'; form-action 'self'; frame-ancestors 'self'")
@@ -301,17 +303,15 @@ def head(title, description, extra=""):
 
 
 def forward_script(pack_key, views):
-    """An old ?view=<key> link (the Streamlit app's address, its domain swapped) opens the model's page, carrying the
-    portal's ?k= on when there is one (inside the Wix portal's frame, where the cookie may be refused)."""
+    """An old ?view=<key> link (the Streamlit app's address, its domain swapped) opens the model's page."""
     routes = {k: f"/{pack_key}/{v['slug']}/" for k, v in views.items()}
     return ("<script>(function(){var r=" + json.dumps(routes, separators=(",", ":"))
-            + ',q=new URLSearchParams(location.search),v=q.get("view"),k=q.get("k");'
-            + 'if(v&&Object.prototype.hasOwnProperty.call(r,v))location.replace(r[v]+(k?"?k="+encodeURIComponent(k):"")+location.hash);})();</script>')
+            + ',v=new URLSearchParams(location.search).get("view");'
+            + 'if(v&&Object.prototype.hasOwnProperty.call(r,v))location.replace(r[v]+location.hash);})();</script>')
 
 
 def landing(pack_key, pack):
-    """The pack's landing fragment in a document of its own, its ?view= links made real addresses (absolute, so the
-    portal's gate can carry its key on them inside a frame)."""
+    """The pack's landing fragment in a document of its own, its ?view= links made real addresses."""
     frag = source(pack["home"])
     slugs = {k: v["slug"] for k, v in pack["views"].items()}
 

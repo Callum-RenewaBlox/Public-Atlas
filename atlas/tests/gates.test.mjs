@@ -1,6 +1,6 @@
-// Tests for the two edge functions (netlify/edge-functions/atlas-gate.js and portal-gate.js), against a stand-in
+// Tests for the sign-in's edge function (netlify/edge-functions/atlas-gate.js), against a stand-in
 // Supabase and a test list of pages. Run:  node atlas/tests/gates.test.mjs   (Node 22 or later; no packages)
-// Each gate is copied into a temporary folder beside a test edge-lib/pages.js, so the real (built) one isn't needed.
+// The gate is copied into a temporary folder beside a test edge-lib/pages.js, so the real (built) one isn't needed.
 import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, copyFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -10,14 +10,14 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const TMP = mkdtempSync(join(tmpdir(), 'atlas-gates-'));
 mkdirSync(join(TMP, 'edge-functions')); mkdirSync(join(TMP, 'edge-lib'));
-for (const f of ['atlas-gate.js', 'portal-gate.js']) copyFileSync(join(HERE, '..', 'netlify', 'edge-functions', f), join(TMP, 'edge-functions', f));
+for (const f of ['atlas-gate.js']) copyFileSync(join(HERE, '..', 'netlify', 'edge-functions', f), join(TMP, 'edge-functions', f));
 writeFileSync(join(TMP, 'edge-lib', 'pages.js'), `export const PAGES = {
   '/clients/srv/': { client: 'srv', title: 'SRV Atlas', views: { '3d': '3d.html', siting: 'siting.html' }, list: true },
   '/clients/srv/contractor/': { client: 'srv', title: 'SRV Contractor Atlas', list: true },
   '/clients/bryn/': { client: 'bryn', title: 'Bryn Atlas', views: { '3d': '3d.html' }, list: true },
   '/team/keith-huntly/': { client: '*', title: 'Keith & Huntly', list: true },
 };
-export const CSP = { '/clients/srv/': "default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com", '/team/': "default-src 'self'", '/investors/portal/': "default-src 'self'; script-src 'self' 'unsafe-inline'; frame-src 'self'; frame-ancestors 'self'" };
+export const CSP = { '/clients/srv/': "default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com", '/team/': "default-src 'self'" };
 export const REDIRECTS = { '/clients/srv/3d-sim/': '/clients/srv/?view=3d' };
 `);
 let env = {};
@@ -168,58 +168,4 @@ r = await gate(req('/access/sign-out'), ctx); assert.equal(cookieVal(r, 'rbx_atl
 
 }
 
-// ---- the investor portal's key (portal-gate.js); KEY is what `python portal_key.py test-code-123` prints ----
-env = { PORTAL_PASSCODE: 'test-code-123' };
-{
-const { default: gate, config } = await import(pathToFileURL(join(TMP, 'edge-functions', 'portal-gate.js')).href);
-
-const KEY = '66d90f43de9bc65bb7c6e35047089052f477011050d1b96b6bc70f8c2c5e750b';
-const O = 'https://atlas.renewablox.com';
-const LANDING = '<a href="/investors/portal/peaker-plant/">Peaker</a><a href="/investors/portal/hydro/?x=1#top">Hydro</a><a href="/investors/demo/">demo</a><a href="https://www.renewablox.com/">site</a>';
-const FRAME = '<iframe src="model.html" title="m"></iframe>';
-const ctx = { next: async () => new Response(ctxBody, { status: 200, headers: { 'content-type': 'text/html; charset=utf-8', 'content-length': String(ctxBody.length) } }) };
-let ctxBody = LANDING;
-const req = (path, { cookie = '', dest = 'document', method = 'GET', body } = {}) => new Request(O + path, { method, body, headers: { cookie, 'sec-fetch-dest': dest, accept: dest === 'image' ? 'image/*' : 'text/html' } });
-
-env = {}; let r = await gate(req('/investors/portal/'), ctx); assert.equal(r.status, 503); env = { PORTAL_PASSCODE: 'test-code-123' }; ok('locked without PORTAL_PASSCODE');
-{
-  const route = new RegExp(config.pattern);
-  for (const p of ['/investors/portal', '/investors/portal/', '/investors/portal/hydro/model.html', '//investors/portal/', '/investors//portal/',
-    '/Investors/Portal/', '/investors%2Fportal/', '///investors/portal/atlas/']) assert.ok(route.test(p), p);
-  for (const p of ['/', '/investors/', '/investors/demo/', '/investors/portalx/', '/models/peaker-plant/']) assert.ok(!route.test(p), p);
-}
-ok('routes: every spelling of /investors/portal, and nothing else');
-for (const [from, to] of [['//investors/portal/?k=' + KEY, '/investors/portal/?k=' + KEY], ['/investors//portal/hydro/', '/investors/portal/hydro/'],
-  ['/Investors/Portal/', '/investors/portal/'], ['/investors%2Fportal%2Fhydro/', '/investors/portal/hydro/'],
-  ['/investors/portal', '/investors/portal/'], ['/investors/portal?k=' + KEY + '&view=hydro', '/investors/portal/?k=' + KEY + '&view=hydro']]) {
-  r = await gate(req(from), ctx); assert.equal(r.status, 301, from); assert.equal(r.headers.get('location'), to, from);
-}
-ok('any other spelling -> 301 to the one spelling, the bare /investors/portal included (the cookie\'s path has the slash)');
-r = await gate(req('/investors/portal/'), ctx); assert.equal(r.status, 401); let html = await r.text(); assert.match(html, /name="code"/); assert.match(r.headers.get('content-security-policy'), /frame-ancestors 'self' https:\/\/www\.renewablox\.com/); ok('no key -> code prompt, frameable by Wix');
-r = await gate(req('/investors/portal/model.glb', { dest: 'image' }), ctx); assert.equal(r.status, 401); ok('no key, a file -> 401');
-r = await gate(req('/investors/portal/?k=' + KEY), ctx); assert.equal(r.status, 303); assert.equal(r.headers.get('location'), '/investors/portal/');
-let sc = r.headers.get('set-cookie'); assert.match(sc, new RegExp('rbx_portal=' + KEY)); assert.match(sc, /SameSite=Lax/); assert.match(sc, /HttpOnly/); ok('the key python prints opens it: cookie set, key off the address');
-r = await gate(req('/investors/portal/hydro/?view=x&k=' + KEY), ctx); assert.equal(r.headers.get('location'), '/investors/portal/hydro/?view=x'); ok('other query kept when the key is taken off');
-r = await gate(req('/investors/portal/?k=test-code-123'), ctx); assert.equal(r.status, 303); ok('the code itself works as a key');
-r = await gate(req('/investors/portal/?k=' + KEY.slice(0, -1) + '0'), ctx); assert.equal(r.status, 401); ok('a wrong key is refused');
-r = await gate(req('/investors/portal/', { cookie: 'rbx_portal=' + KEY }), ctx); assert.equal(r.status, 200); html = await r.text(); assert.equal(html, LANDING);
-assert.equal(r.headers.get('x-robots-tag'), 'noindex, nofollow'); assert.match(r.headers.get('content-security-policy'), /frame-src 'self'; frame-ancestors 'self' https:\/\/www\.renewablox\.com/); ok('cookie opens it, links untouched, policy from the build with Wix as framer');
-r = await gate(req('/investors/portal/', { cookie: 'rbx_portal=deadbeef' }), ctx); assert.equal(r.status, 401); ok('a wrong cookie is refused');
-r = await gate(req('/investors/portal/?k=' + KEY, { dest: 'iframe' }), ctx); assert.equal(r.status, 200); html = await r.text();
-assert.ok(html.includes('href="/investors/portal/peaker-plant/?k=' + KEY + '"')); assert.ok(html.includes('href="/investors/portal/hydro/?x=1&k=' + KEY + '#top"'));
-assert.ok(html.includes('href="/investors/demo/"') && html.includes('href="https://www.renewablox.com/"')); assert.equal(r.headers.get('content-length'), null);
-assert.match(r.headers.get('set-cookie'), /SameSite=None; Partitioned/); ok('inside the Wix frame: key kept, pack links carry it, others untouched, partitioned cookie');
-ctxBody = FRAME; r = await gate(req('/investors/portal/peaker-plant/?k=' + KEY, { dest: 'iframe' }), ctx); html = await r.text(); assert.ok(html.includes('src="model.html?k=' + KEY + '"')); ok('the model frame carries it too');
-ctxBody = '<a href="/investors/portal/hydro/">x</a>'; r = await gate(req('/investors/portal/peaker-plant/model.html?k=' + KEY, { dest: 'iframe' }), ctx); assert.equal(r.status, 200);
-assert.equal(await r.text(), ctxBody); ok('and the model opens with it, not scanned for links');
-r = await gate(req('/investors/portal/atlas/?k=' + KEY, { dest: 'iframe' }), ctx); assert.equal(await r.text(), ctxBody); ok('nor is the Investor Atlas');
-r = await gate(req('/investors/portal/', { method: 'POST', body: new URLSearchParams({ code: 'test-code-123', r: '/investors/portal/hydro/' }) }), ctx); assert.equal(r.status, 303); assert.equal(r.headers.get('location'), '/investors/portal/hydro/?k=' + KEY); ok('right code typed -> back with the key');
-r = await gate(req('/investors/portal/', { method: 'POST', body: new URLSearchParams({ code: 'nope', r: '/investors/portal/' }) }), ctx); assert.equal(r.status, 401); ok('wrong code typed -> prompt again');
-for (const bad of ['https://evil.com', '//evil.com', '/investors/portal/../../x', '/elsewhere']) {
-  r = await gate(req('/investors/portal/', { method: 'POST', body: new URLSearchParams({ code: 'test-code-123', r: bad }) }), ctx);
-  assert.equal(r.headers.get('location'), '/investors/portal/?k=' + KEY, bad);
-}
-ok('the prompt only returns into the portal');
-
-}
 console.log(`all ${n} passed`);

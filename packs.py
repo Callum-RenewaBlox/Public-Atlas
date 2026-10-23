@@ -59,7 +59,7 @@ BUSINESS_VIEWS = {
 
 # The investor packs, built by atlas/build.py for atlas.renewablox.com: the public Investor Demo
 # (/investors/demo/), the Australia pack (/investors/australia/) and the Investor Portal
-# (/investors/portal/, behind the portal's key), each a landing page and its models behind the
+# (/investors/portal/, linked from the Wix investor portal's members area), each a landing page and its models behind the
 # pack bar. The guided-tour view strip is dropped from the peaker for investors: the overview
 # scene is the demo.
 PEAKER_HEAD = "<style>#viewstrip{display:none !important;}</style>"
@@ -82,8 +82,7 @@ AUS_VIEWS = {
 # Views whose figures are for investors. In the public demo the panels that carry them are
 # blurred and inert (a visitor sees that the data is there) and a card points to the investor
 # portal. Cosmetic by design: the numbers are still in the page the browser receives, and the
-# model files are public in this repository; the portal serves the same files unblurred behind
-# its key. ``blur`` lists the panels that carry figures, ``hide`` the controls that only make
+# model files are public in this repository; the portal serves the same files unblurred. ``blur`` lists the panels that carry figures, ``hide`` the controls that only make
 # sense with them (the DfC assumptions drawer is the whole commercial model), ``top`` puts the
 # card over the blurred column.
 PORTAL_URL = "https://www.renewablox.com/invest"

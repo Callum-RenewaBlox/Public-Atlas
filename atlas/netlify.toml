@@ -7,12 +7,12 @@
 # The build refuses to run here without the list of names a client page must never carry: set ATLAS_NAMES
 # (comma-separated) in the project's environment variables, marked secret, never in this file.
 
-# Pages under /clients/, /team/ and /investors/portal/ pass through the edge functions in netlify/edge-functions/
-# (the sign-in and the investor portal's key); their settings are described at the top of each file.
+# Pages under /clients/ and /team/ pass through the sign-in, the edge function in netlify/edge-functions/; its settings
+# are described at the top of the file.
 #
 # Every build and deploy costs Netlify credits, so the ignore command skips a push that changes none of the site's
 # inputs (inputs.txt: this folder and the pages it reads from the root of the repository; the build fails if it
-# reads a file the list doesn't cover). After the build, the two gates' tests run (tests/gates.test.mjs); a gate
+# reads a file the list doesn't cover). After the build, the sign-in's tests run (tests/gates.test.mjs); a gate
 # that fails them is never deployed.
 
 [build]
@@ -23,3 +23,7 @@
 [build.environment]
   PYTHON_VERSION = "3.12"
   NODE_VERSION = "22"
+  # ATLAS_NAMES is marked secret, and Netlify fails any build in which a secret's value appears. Its words are site and
+  # place names that rightly appear elsewhere on the site (the public datasets, the signed-in client pages); the
+  # build's own check keeps them off the public cover, so Netlify's scan leaves that one variable out.
+  SECRETS_SCAN_OMIT_KEYS = "ATLAS_NAMES"

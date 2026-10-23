@@ -6,12 +6,14 @@
     /market/      the Market Atlas page (root/market/index.html), which frames the map below
     /market/map/  the Market Atlas map: Eunice-Platform's client_atlas_v2.html (a copy in vendor/), with the
                   deep links its Streamlit wrapper used to read now read by the page itself (MAPS)
-    /bln/         BLN Atlas: the powerhouse on the satellite imagery, with the BLOX badge (bln/index.html)
-    /bln/3d/      BLN 3D: the 3D render the badge opens (bln/3d/index.html)
-    /clients/, /team/   the client atlases and the team's pages, behind the sign-in (pages.py, team/)
+    /clients/, /team/   the client atlases and the team's pages, behind the sign-in (pages.py, team/), BLN's
+                  among them: /clients/bln/, the powerhouse on the satellite imagery with the BLOX badge
+                  (bln/index.html), and /clients/bln/3d/, the 3D render the badge opens (bln/3d/index.html);
+                  its old public address, /bln/, now redirects there (_redirects)
     /investors/demo/, /investors/australia/, /investors/portal/, /models/   the investor packs and the
-                  standalone peakers (pages.py); the portal behind its key, with the Investor Atlas at
-                  /investors/portal/atlas/ (Eunice-Platform's investor_atlas_v3.html, a copy in vendor/)
+                  standalone peakers (pages.py), with the Investor Atlas at /investors/portal/atlas/
+                  (Eunice-Platform's investor_atlas_v3.html, a copy in vendor/). The portal is not gated here:
+                  the Wix investor portal's members area links to it, and the Wix site may frame it
 
 Every page here was once a Streamlit app; pages.py says how each is put in place without one.
 
@@ -24,20 +26,19 @@ checks what would otherwise go wrong quietly:
   * each map (MAPS) loads only from its hosts, every one of which its Content-Security-Policy allows, and
     each page takes its Content-Security-Policy from exactly one header rule (Netlify joins a header set by
     two matching rules into one value, which would turn two policies into one broken one), or from its gate;
-  * no investor portal key is written into any page (the gate adds it to links, inside the Wix frame only);
   * the two brand fonts (FONTS) are fetched from renewablox.com's own font files and must match their
     hashes: they are licensed for the website, so they are not kept in this public repository.
 
-The client pages are checked further:
+The client pages built here (CLIENTS) are behind the sign-in, so they may name their site in full; what stays
+public is their cover on the front page (front/), which is checked further:
 
-  * anonymity: a client page is named by its code (BLN) only. No page or asset may carry a word that
-    names or places the site (the list is kept out of this public repository, in atlas/.names), nor a
-    postcode, grid reference, company number or Windows path (TEXT_PATTERNS), nor image metadata; the
-    cabinet's nameplate in each GLB must be the short "BLOX.  50 kW" line, and the flythrough must be
-    the reviewed file (FLYTHROUGH_SHA256);
-  * nothing loads from elsewhere except the satellite imagery (ALLOWED_HOSTS);
-  * every file a page refers to is there, and every page asks not to be indexed;
-  * the powerhouse's position on the imagery has been confirmed (a warning until it is).
+  * anonymity: the cover names the client by its code (BLN) only. No file in front/ may carry a word that names
+    or places the site (the list is kept out of this public repository, in atlas/.names or ATLAS_NAMES), nor a
+    postcode, grid reference, company number or Windows path (TEXT_PATTERNS), nor image metadata.
+
+And the client pages themselves: nothing loads from elsewhere except the satellite imagery (ALLOWED_HOSTS),
+every file a page refers to is there, every page asks not to be indexed, and the powerhouse's position on the
+imagery has been confirmed (a warning until it is).
 
 Run:  python atlas/build.py                      (writes atlas/site/, git-ignored)
       python -m http.server 8901 -d atlas/site   (then open http://localhost:8901/)
@@ -67,8 +68,8 @@ CLIENTS = ["bln"]
 ON_NETLIFY = os.environ.get("NETLIFY") == "true"
 
 # The words that would name or place a client's site (the site, the places around it, the firms on
-# its drawings) are never written in this public repository, not even as hashes, which a gazetteer
-# reverses in seconds. They live in atlas/.names (git-ignored, one word per line, # for comments) or
+# its drawings), which its public cover on the front page must never carry, are never written in this
+# public repository, not even as hashes, which a gazetteer reverses in seconds. They live in atlas/.names (git-ignored, one word per line, # for comments) or
 # in the ATLAS_NAMES environment variable (comma-separated). A build without them warns here, and on
 # Netlify, where the site it builds is published, refuses to run.
 NAMES_FILE = HERE / ".names"
@@ -82,12 +83,6 @@ TEXT_SUFFIXES = {".html", ".css", ".js", ".json", ".txt", ".md", ".svg"}
 # the SVG namespace in data images and is never fetched.
 ALLOWED_HOSTS = {"server.arcgisonline.com"}
 NAMESPACE_HOSTS = {"www.w3.org"}
-# The flythrough as reviewed (title card reads "BLN", nothing else names the site). A new render
-# must be checked frame by frame for the site's name before its hash goes here.
-FLYTHROUGH_SHA256 = {"bln/assets/bln_flythrough_720p.mp4":
-                     "7bc736ad98d6ef337d8f5ab28cbc06aa35620512674ca95e89d74bea51b4db8e"}
-# The nameplate's second line reads "BLOX.  50 kW" (0.110 m); with the site's name it is 0.184 m.
-NAMEPLATE_MAX_WIDTH_M = 0.15
 
 # The front page's Client Atlas section: front/clients.html, and the images beside it, which go to
 # /assets/img/clients/. The build replaces whatever lies between these two comments on the front page (the
@@ -97,17 +92,20 @@ FRONT_BEGIN = "<!-- client atlas (Public-Atlas atlas/front/clients.html, placed 
 FRONT_END = "<!-- end of client atlas -->"
 FRONT_ASSETS = "assets/img/clients"
 
-HEADERS_BEGIN = "# --- client pages (Public-Atlas atlas/build.py) ---"
-HEADERS_END = "# --- end of client pages ---"
+HEADERS_BEGIN = "# --- the investor portal (written by atlas/build.py from its pack) ---"
+HEADERS_END = "# --- end of the investor portal ---"
+# The Wix site that links to the investor portal and may frame it: its pages, its editor and its embed host.
+PORTAL_FRAMERS = ("'self' https://www.renewablox.com https://renewablox.com https://*.wixsite.com https://*.wix.com "
+                  "https://*.filesusr.com")
 
 # The two atlas maps built in Eunice-Platform (its atlas/build.py) and copied into vendor/: the Market Atlas at
-# /market/map/, framed by the market page, and the Investor Atlas at /investors/portal/atlas/, behind the portal's key
+# /market/map/, framed by the market page, and the Investor Atlas at /investors/portal/atlas/, in the investor portal
 # (it carries site-level commercial detail: contract values, BTC, operators). Each page leaves a placeholder for its
 # host to fill with window.__ATLAS_INIT__: on Streamlit its wrapper filled it from the query string after checking
 # each value; here the page does the same with the same patterns, then takes those parameters out of its address, so
 # the view it writes to its #hash is what a reload, a bookmark or a copied address opens (the market's ?present=1,
 # which that page reads itself, stays). "Copy link" builds on the config's publicUrl, pointed here at the page's own
-# address, so a copied link never carries the portal's key.
+# address.
 SITE_HOST = "atlas.renewablox.com"
 MAP_PLACEHOLDER = "/*__ATLAS_INIT__*/"
 
@@ -168,39 +166,47 @@ STREAMLIT = re.compile(r"streamlit\.app|share\.streamlit\.io", re.I)
 
 # Pages behind a gate. Everything under these folders passes through an edge function (netlify/edge-functions/):
 # /clients/ and /team/ through the sign-in (atlas-gate.js: Google through Supabase, access per client in
-# public.atlas_access, '*' for the team), /investors/portal/ through the investor portal's key (portal-gate.js).
+# public.atlas_access, '*' for the team).
 # Netlify's _headers rules don't reach those responses, so the gates set each page's headers themselves, from the
 # policies here; the build writes GATED_PAGES, EDGE_CSP and EDGE_REDIRECTS to netlify/edge-lib/pages.js for them.
-GATED_PREFIXES = ("/clients/", "/team/", "/investors/portal/")
+GATED_PREFIXES = ("/clients/", "/team/")
 EDGE_LIB = HERE / "netlify" / "edge-lib" / "pages.js"
 # Team pages written by hand for the site (team/<page>/), copied as they are to /team/<page>/.
 TEAM = HERE / "team"
 # path -> {client: code or '*' (team only), title, list: shown on /clients/, views: {view: file in the folder}}
 GATED_PAGES = {
     "/team/outreach/": {"client": "*", "title": "Outreach strategy (RenewaBlox × tem)", "list": True},
+    "/clients/bln/": {"client": "bln", "title": "BLN Atlas", "list": True},
+    "/clients/bln/3d/": {"client": "bln", "title": "BLN 3D model", "list": True},
 }
 # folder -> Content-Security-Policy for every file in it (the longest folder holding a path wins)
 EDGE_CSP = {
     # one self-contained page: inline script and styles, Inter and IBM Plex Mono from Google Fonts
     "/team/outreach/": ("default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; "
                         "font-src https://fonts.gstatic.com; img-src data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"),
+    # BLN: the pages load their own files and, for the map, the satellite imagery; the 3D viewer fetches its models
+    # from the same folder (and compiles its mesh decoder, so WebAssembly is allowed, not eval)
+    "/clients/bln/": ("default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; "
+                      "img-src 'self' data: blob: https://server.arcgisonline.com; font-src 'self'; connect-src 'self' blob: data:; "
+                      "media-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'none'; "
+                      "frame-ancestors 'self'"),
 }
 # old address -> new one, answered by the sign-in once the visitor is in
 EDGE_REDIRECTS = {}
-# the pages that came off Streamlit (pages.py), and the Investor Atlas's policy: MapLibre from jsDelivr, Open Sans,
-# OpenFreeMap and the AWS terrain, workers from blob: URLs; the portal's gate adds the frame-ancestors (Wix)
+# the pages that came off Streamlit (pages.py)
 GATED_PAGES.update(pages.CLIENT_PAGES)
 EDGE_CSP.update(pages.CLIENT_CSP)
-EDGE_CSP["/investors/portal/"] = pages.MODEL_CSP
-EDGE_CSP["/investors/portal/atlas/"] = (
+EDGE_REDIRECTS.update(pages.CLIENT_REDIRECTS)
+# The Investor Atlas's policy: MapLibre from jsDelivr, Open Sans, OpenFreeMap and the AWS terrain, workers from blob:
+# URLs (site_headers adds the frame-ancestors: the Wix portal may frame it)
+INVESTOR_ATLAS_CSP = (
     "default-src 'none'; script-src 'unsafe-inline' https://cdn.jsdelivr.net; "
     "style-src 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; font-src data: https://fonts.gstatic.com; "
     "img-src data: blob: https://tiles.openfreemap.org https://s3.amazonaws.com; "
     "connect-src https://tiles.openfreemap.org https://s3.amazonaws.com; worker-src blob:; child-src blob:; "
-    "base-uri 'none'; form-action 'none'")
-EDGE_REDIRECTS.update(pages.CLIENT_REDIRECTS)
-# A portal key (what portal_key.py prints) never belongs in a page: the gate adds it to links, inside a frame only.
-PORTAL_KEY = re.compile(r"[?&]k=[0-9a-f]{64}")
+    "object-src 'none'; base-uri 'none'; form-action 'none'")
+# BLN's old public address, now behind the sign-in: Netlify answers these before the site's files (_redirects)
+SITE_REDIRECTS = [("/bln", "/clients/bln/"), ("/bln/*", "/clients/bln/:splat")]
 
 
 def fail(msg):
@@ -268,20 +274,6 @@ def check_metadata(path, rel):
                 bv = j["bufferViews"][img["bufferView"]]
                 start = binstart + bv.get("byteOffset", 0)
                 check_image(b[start:start + bv["byteLength"]], f"{rel} (image {i})")
-
-
-def check_nameplate(path, rel):
-    b = path.read_bytes()
-    clen = struct.unpack_from("<I", b, 12)[0]
-    j = json.loads(b[20:20 + clen])
-    node = next((n for n in j["nodes"] if n.get("name") == "rack_brand_text2"), None)
-    if node is None:
-        fail(f"{rel}: no rack_brand_text2 node, so the cabinet's nameplate cannot be checked")
-    acc = j["accessors"][j["meshes"][node["mesh"]]["primitives"][0]["attributes"]["POSITION"]]
-    width = acc["max"][0] - acc["min"][0]
-    if width > NAMEPLATE_MAX_WIDTH_M:
-        fail(f"{rel}: the cabinet's nameplate line is {width:.3f} m wide, so it still carries the site's name; "
-             "cut it as the README describes")
 
 
 SCRIPT = re.compile(r"(<script\b[^>]*>)(.*?)(</script>)", re.S | re.I)
@@ -369,16 +361,14 @@ def build(names):
     if names is None:
         warnings.append("no list of names (atlas/.names or ATLAS_NAMES), so the pages were not checked for the "
                         "site's name; a build on Netlify refuses to run until there is one")
+    # the client pages built here, behind the sign-in at /clients/<code>/: they may name their site, so only their
+    # public cover (front/) is held to the names (check_front)
     for client in CLIENTS:
         src = HERE / client
         for path in sorted(src.rglob("*")):
             if not path.is_file():
                 continue
             rel = path.relative_to(HERE).as_posix()
-            check_names(path, rel, names)
-            check_metadata(path, rel)
-            if path.suffix == ".glb":
-                check_nameplate(path, rel)
             if path.suffix == ".css":
                 check_css(path.read_text(encoding="utf-8"), rel, None, None)
             # a page's own script module (bln/3d/dispatch.js) is held to its page's rule; the vendored libraries
@@ -387,19 +377,14 @@ def build(names):
                 for host in SCRIPT_URL.findall(path.read_text(encoding="utf-8")):
                     if host not in ALLOWED_HOSTS | NAMESPACE_HOSTS:
                         fail(f"{rel} reaches {host}, which is not an allowed host")
-            if rel in FLYTHROUGH_SHA256:
-                digest = hashlib.sha256(path.read_bytes()).hexdigest()
-                if digest != FLYTHROUGH_SHA256[rel]:
-                    fail(f"{rel} is not the reviewed flythrough (sha256 {digest}). Check every frame, the title "
-                         "card above all, for the site's name, then put the new hash in FLYTHROUGH_SHA256")
-            dest = OUT / rel
+            dest = OUT / "clients" / rel
             dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(path, dest)
         for page in sorted(src.rglob("index.html")):
             text = check_page(page, page.relative_to(HERE).as_posix(), src.resolve())
             if page.parent == src and not site_confirmed(text):
                 warnings.append(f"{client}/index.html: the powerhouse's place on the imagery is not confirmed yet "
-                                f"(open /{client}/?place, set it, and paste the line into SITE)")
+                                f"(open /clients/{client}/?place, set it, and paste the line into SITE)")
     put_root(names)
     merge_front(OUT)
     warnings += put_fonts()
@@ -410,6 +395,7 @@ def build(names):
     check_front(names)   # once every page is in place, so the section may link to any of them
     headers = site_headers()
     (OUT / "_headers").write_text(headers, encoding="utf-8")
+    (OUT / "_redirects").write_text("".join(f"{old}  {new}  301\n" for old, new in SITE_REDIRECTS), encoding="utf-8")
     write_edge_lib()
     check_site(headers)
     total = 0
@@ -571,10 +557,19 @@ def put_pages():
 
 
 def site_headers():
-    """The site's _headers: the Atlas site's own rules, then the client pages' between their marker lines."""
+    """The site's _headers: the Atlas site's own rules (root/_headers), then the investor portal's between marker
+    lines, one rule per part of the pack so that no address takes two policies: the landing page and each model
+    with the models' policy, the Investor Atlas with its own; the Wix site may frame any of them."""
     own = (ROOT / "_headers").read_text(encoding="utf-8").rstrip("\n")
-    clients = (HERE / "_headers").read_text(encoding="utf-8").strip("\n")
-    return own + "\n\n" + HEADERS_BEGIN + "\n" + clients + "\n" + HEADERS_END + "\n"
+    base = "/investors/portal/"
+    model = pages.MODEL_CSP.replace("frame-ancestors 'self'", f"frame-ancestors {PORTAL_FRAMERS}")
+    if model == pages.MODEL_CSP:
+        fail("pages.MODEL_CSP no longer ends in frame-ancestors 'self'; update site_headers")
+    rules = [(base, model), (base + "index.html", model)]
+    rules += [(f"{base}{v['slug']}/*", model) for v in pages.PACKS["investors/portal"]["views"].values()]
+    rules += [(base + "atlas/*", f"{INVESTOR_ATLAS_CSP}; frame-ancestors {PORTAL_FRAMERS}")]
+    portal = "\n\n".join(f"{path}\n  Content-Security-Policy: {csp}\n  X-Robots-Tag: noindex, nofollow" for path, csp in rules)
+    return own + "\n\n" + HEADERS_BEGIN + "\n" + portal + "\n" + HEADERS_END + "\n"
 
 
 def header_rules(text):
@@ -642,8 +637,6 @@ def check_site(headers):
             m = STREAMLIT.search(text)
             if m:
                 fail(f"{f.relative_to(HERE).as_posix()} points at Streamlit ({m.group(0)}); the Atlas is hosted here")
-            if PORTAL_KEY.search(text):
-                fail(f"{f.relative_to(HERE).as_posix()} carries an investor portal key; only the gate may add one")
 
 
 def edge_policy(path):
