@@ -400,9 +400,9 @@ Pages "anyone with the link" can open ask not to be indexed; every page behind
 a gate is served with `noindex` too.
 
 `atlas/root/` holds the Atlas site's own files, served at the root as they are,
-with their header rules in `atlas/root/_headers`; the anonymous client pages'
-rules are in `atlas/_headers`, and the build joins the two into the site's
-`_headers`. Netlify applies every rule that matches a path and joins a header
+with their header rules in `atlas/root/_headers`; the build adds the investor
+portal's rules after them (`site_headers` in `atlas/build.py`) in the site's
+`_headers`, and the pages behind the sign-in take theirs from `EDGE_CSP`. Netlify applies every rule that matches a path and joins a header
 two rules set, so each page takes its Content-Security-Policy from one rule
 only, and the build checks that it does. Netlify's header rules don't reach a
 response that passes through an edge function, so the gated pages' headers are
@@ -593,7 +593,7 @@ functions, so their scope must include Functions; a change needs a redeploy):
 
 | Variable | Value |
 | --- | --- |
-| `ATLAS_NAMES` | the list of names a client page must never carry, comma-separated; marked secret |
+| `ATLAS_NAMES` | the names the clients' public covers on the front page must never carry, comma-separated; marked secret |
 | `SUPABASE_URL` | `https://enghoowpiwopsfabfurx.supabase.co` (renewablox-crm) |
 | `SUPABASE_PUBLISHABLE_KEY` | renewablox-crm's publishable key (Supabase → Project settings → API keys) |
 | `ATLAS_SESSION_SECRET` | 32 or more random characters, marked secret; changing it signs everyone out |

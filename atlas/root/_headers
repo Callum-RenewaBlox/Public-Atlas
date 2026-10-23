@@ -1,5 +1,5 @@
-# Header rules for the Atlas site's own pages. atlas/build.py writes them to the site's _headers with the client
-# pages' rules (atlas/_headers) after them. Netlify applies every rule that matches a path and joins the values of
+# Header rules for the Atlas site's own pages. atlas/build.py writes them to the site's _headers with the investor
+# portal's rules (site_headers) after them. Netlify applies every rule that matches a path and joins the values of
 # a header set twice, so each path takes its Content-Security-Policy and X-Frame-Options from one rule only:
 # /market/ is the market page alone, and the map it frames, /market/map/, has a rule of its own. A rule for a
 # folder does not cover its index.html, which Netlify serves too, so the two front-door pages have a rule for each.

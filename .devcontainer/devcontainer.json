@@ -19,8 +19,8 @@
       ]
     }
   },
-  // The Atlas served as plain files: the sign-in and the portal's key are Netlify edge functions, which a plain
-  // server doesn't run, so every page opens without them here (see "Run locally" in the README).
+  // The Atlas served as plain files: the sign-in is a Netlify edge function, which a plain
+  // server doesn't run, so every page opens without it here (see "Run locally" in the README).
   "postAttachCommand": {
     "atlas": "python3 atlas/build.py && python3 -m http.server 8901 -d atlas/site"
   },

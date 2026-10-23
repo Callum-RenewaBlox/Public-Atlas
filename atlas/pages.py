@@ -20,8 +20,8 @@ a regenerated source that loses it fails the build instead of shipping a page th
 
 /clients/ and /team/ are behind the sign-in (netlify/edge-functions/atlas-gate.js), which opens
 /clients/<code>/ to the addresses listed for <code> in Supabase's public.atlas_access and to the
-team, /team/ to the team only, and routes ?view=. The client pages name their sites: they are not
-held to the anonymity checks of the anonymous client pages (BLN), and live only behind the sign-in.
+team, /team/ to the team only, and routes ?view=. The client pages name their sites, so they live only
+behind the sign-in; only a client's public cover on the front page is held to the anonymity checks (build.py).
 /investors/portal/ is not gated: the Wix investor portal's members area links to it, and only its address keeps it
 from the public.
 """
