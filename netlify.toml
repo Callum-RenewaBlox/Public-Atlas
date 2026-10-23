@@ -5,7 +5,7 @@
 [build]
   command = "python3 build_energy_site.py"
   publish = "energy_site"
-  ignore = "bash tools/netlify-ignore.sh energy_inputs.txt"
+  ignore = "bash ./tools/netlify-ignore.sh energy_inputs.txt"
 
 [build.environment]
   PYTHON_VERSION = "3.12"

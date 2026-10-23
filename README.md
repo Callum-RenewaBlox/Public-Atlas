@@ -633,3 +633,30 @@ over as it is):
 
 The rest were never given a public address of their own; the Pages table above
 lists where each now lives.
+
+### Builds and credits
+
+Netlify charges 15 credits for each successful production deploy. Deploy
+previews, branch deploys, failed builds and skipped builds cost nothing, Netlify
+Forms are free, and the gates' edge functions are billed as ordinary web requests
+(2 credits per 10,000). So what costs is a build of a production branch, and
+each project builds only when its own files change:
+
+* **Work on `main`, publish from `live`.** The Atlas and the energy site never
+  build from `main`; merge into `live` when a change should go out, and a push of
+  several commits builds once.
+* **On `live`, a push that changes nothing a site is built from skips that
+  site.** Each project's ignore command (`tools/netlify-ignore.sh`) compares the
+  push with the project's last build over the site's list (`energy_inputs.txt`,
+  `atlas/inputs.txt`, `ai/inputs.txt`) and cancels the build if nothing on it
+  changed, so a README, tools or workflow change builds nothing, and a change
+  to one site doesn't rebuild the others. A build fails if it reads a file of
+  the repository its list doesn't cover (`site_inputs.py`), so a list can't fall
+  behind: add the file to the list the error names.
+* **It builds whenever it can't tell**: a project's first build, "Clear cache and
+  deploy", or "Trigger deploy" of a commit already built. A build hook always
+  builds.
+* `[skip netlify]` in the last commit's message skips a push that does change a
+  site, for publishing it with a later push instead.
+* Set a project's environment variables before its first build: changing them
+  takes a redeploy, which is another production deploy.
