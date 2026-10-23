@@ -13,8 +13,10 @@ The build checks the things that would otherwise break quietly:
   * OSCAR stores saved scenarios by input id, so every id a saved scenario can hold must still be on the
     page (SCENARIO_IDS);
   * the home page and the 404 page load nothing from elsewhere;
-  * every origin OSCAR reaches (its Google font, its live sources and the proxies it falls back on) is
-    allowed by its Content-Security-Policy in netlify.toml, and the policy allows no other.
+  * every origin OSCAR names (its Google font, its live sources and the proxies it falls back on) is
+    allowed by its Content-Security-Policy in netlify.toml, in the directive that governs it, and the
+    policy allows no other (no wildcards, no origin the page doesn't name, no directive set twice);
+  * every file atlas.css refers to is one the build puts in place.
 
 Run:  python ai/build.py            (writes ai/site/, git-ignored)
       python -m http.server 8900 -d ai/site
@@ -26,6 +28,7 @@ import hashlib
 import os
 import re
 import shutil
+import tomllib
 import urllib.request
 from pathlib import Path
 
@@ -83,6 +86,9 @@ EXTERNAL_LOAD = re.compile(
 # Links a reader follows, which no policy governs; every other address in OSCAR is one it loads or calls.
 ANCHOR = re.compile(r"<a\b[^>]*>", re.I)
 ORIGIN = re.compile(r"https://[a-z0-9.-]+\.[a-z]{2,}", re.I)
+# The directive each of OSCAR's origins must be allowed in: Google's stylesheet and font files, and the rest fetched.
+DIRECTIVE = {"https://fonts.googleapis.com": "style-src", "https://fonts.gstatic.com": "font-src"}
+KEYWORD = re.compile(r"'[a-z-]+'|data:")
 
 
 def check_self_contained(name, page):
@@ -92,11 +98,19 @@ def check_self_contained(name, page):
 
 
 def oscar_policy():
-    toml = (HERE / "netlify.toml").read_text(encoding="utf-8")
-    m = re.search(r'for = "/oscar/\*"\s*\[headers\.values\]\s*Content-Security-Policy = "([^"]+)"', toml)
-    if not m:
-        raise SystemExit("netlify.toml: no Content-Security-Policy for /oscar/*")
-    return m.group(1)
+    """OSCAR's Content-Security-Policy from netlify.toml, as {directive: [sources]}."""
+    with open(HERE / "netlify.toml", "rb") as f:
+        rules = [h for h in tomllib.load(f).get("headers", []) if h.get("for") == "/oscar/*"]
+    if len(rules) != 1 or "Content-Security-Policy" not in rules[0].get("values", {}):
+        raise SystemExit("netlify.toml: needs exactly one /oscar/* rule, with a Content-Security-Policy")
+    policy = {}
+    for part in rules[0]["values"]["Content-Security-Policy"].split(";"):
+        if part.strip():
+            name, *sources = part.split()
+            if name in policy:
+                raise SystemExit(f"netlify.toml: OSCAR's policy sets {name} twice (a browser ignores the second)")
+            policy[name] = sources
+    return policy
 
 
 def check_oscar(page):
@@ -104,10 +118,19 @@ def check_oscar(page):
     missing = [i for i in SCENARIO_IDS if i not in ids]
     if missing:
         raise SystemExit("oscar.html: saved scenarios need these inputs, now missing: " + ", ".join(missing))
+    policy = oscar_policy()
+    allowed = set()
+    for name, sources in policy.items():
+        for src in sources:
+            if not (KEYWORD.fullmatch(src) or ORIGIN.fullmatch(src)):
+                raise SystemExit(f"netlify.toml: OSCAR's policy allows {src} in {name}; name each origin exactly")
+            if ORIGIN.fullmatch(src):
+                allowed.add(src)
     used = set(ORIGIN.findall(ANCHOR.sub("", page)))
-    allowed = set(ORIGIN.findall(oscar_policy()))
-    if used - allowed:
-        raise SystemExit("netlify.toml: OSCAR's Content-Security-Policy doesn't allow " + ", ".join(sorted(used - allowed)))
+    for origin in sorted(used):
+        where = DIRECTIVE.get(origin, "connect-src")
+        if origin not in policy.get(where, []):
+            raise SystemExit(f"netlify.toml: OSCAR's Content-Security-Policy doesn't allow {origin} in {where}")
     if allowed - used:
         raise SystemExit("netlify.toml: OSCAR's Content-Security-Policy allows what the page never uses: "
                          + ", ".join(sorted(allowed - used)))
@@ -115,9 +138,15 @@ def check_oscar(page):
 
 def put_brand():
     for rel in BRAND:
+        if not (ATLAS_ROOT / rel).is_file():
+            raise SystemExit(f"atlas/root/{rel} is gone: update BRAND to the Atlas's brand files")
         target = OUT / rel
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(ATLAS_ROOT / rel, target)
+    css = (ATLAS_ROOT / "assets/atlas.css").read_text(encoding="utf-8")
+    for ref in re.findall(r"url\(\s*['\"]?([^'\")]+)", css):
+        if not ref.startswith("data:") and "assets/" + ref not in BRAND + list(FONTS):
+            raise SystemExit(f"atlas.css refers to {ref}, which the build doesn't put in place: add it to BRAND or FONTS")
 
 
 def put_fonts():

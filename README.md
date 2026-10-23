@@ -492,8 +492,12 @@ decided.
 
 | Address | Page |
 | --- | --- |
-| `/` | the home page: OSCAR, in the Atlas's house style (`ai/index.html`) |
+| `/` | the home page: OSCAR, in the Atlas's house style (`ai/index.html`): the Atlas's topbar, navy hero and footer, with OSCAR's miner catalogue charted where the Atlas has its map, OSCAR's card (its halving schedule as the art) beside a card that leaves room for more tools, and its three cards of inputs |
 | `/oscar/` | OSCAR, the site model, served exactly as the team's own file (`ai/oscar.html`) |
+
+The home page's figures are OSCAR's own (the eleven miners, the market models, the halving
+schedule), written into the page: when a newer `ai/oscar.html` changes them, change the home page
+with it.
 
 `/atlas/` still answers by proxy from Atlas's own Netlify project (`renewablox-atlas`,
 atlas.renewablox.com), with the root-relative links Atlas's pages may use (`/investors/`,
@@ -523,8 +527,8 @@ when the CAPEX comes back:
   revenue share structure: who funds the CAPEX (RenewaBlox, the client, 50/50 or a custom
   split) and the revenue mode (a fixed CAPEX recovery period, a share from the start, or an
   initial and a remainder split), over the contract length. The miner list holds eleven
-  MicroBT and Bitmain models, with overclock profiles for the supported hydro miners; Phase 2
-  adds a second block of power partway through the contract.
+  MicroBT and Bitmain models, with overclock profiles for the Whatsminers and the Antminer S21 XP
+  Hydro; Phase 2 adds a second block of power partway through the contract.
 * **Two views**, Expert and Client, and light and dark themes, chosen in the header and
   remembered in the browser (`uiMode` and `theme` in local storage).
 * **Live inputs**: the Bitcoin price in GBP from CoinGecko and the 30-day average network hash
@@ -535,9 +539,11 @@ when the CAPEX comes back:
 * **Outputs**: headline figures, the cost summary, the revenue share, the annual and p/kWh
   comparisons against the site's existing power revenue, the cash-flow timeline, the annual
   revenue breakdown, BTC value against a treasury hold, and BTC rewards, drawn on canvas.
-* **Scenarios** are saved in the browser (`scenarios` in local storage, the last 20), loaded back
-  into the inputs, opened in a new window as a link that carries the whole scenario
-  (`?scenario=`), compared in a table and exported as CSV; "Export PDF (Print)" prints the page.
+* **Scenarios** are saved in the browser (`scenarios` in local storage), loaded back into the
+  inputs, opened in a new window as a link that carries the whole scenario (`?scenario=`),
+  compared in a table and exported as CSV; "Export PDF (Print)" prints the page. As the file
+  stands, saving with no scenario chosen in the list replaces the first one saved (the list's
+  empty choice reads as 0), so the list holds one scenario at a time.
 
 Deploy: the Netlify project is `renewablox-ai` (renewablox-ai.netlify.app). Link it to this
 repository with production branch `main` and its **base directory set to `ai`** (it then reads
