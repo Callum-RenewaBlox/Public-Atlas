@@ -549,11 +549,11 @@ when the CAPEX comes back:
   empty choice reads as 0), so the list holds one scenario at a time.
 
 Deploy: the Netlify project is `renewablox-ai` (renewablox-ai.netlify.app). Link it to this
-repository with production branch `main` and its **base directory set to `ai`** (it then reads
+repository with production branch `live` and its **base directory set to `ai`** (it then reads
 `ai/netlify.toml`, not the root one), add `ai.renewablox.com` as its domain, and point a CNAME
 record `ai` at `renewablox-ai.netlify.app` at the renewablox.com DNS host, as for `atlas.` and
 `crm.`. The `/atlas/` proxy targets `https://atlas.renewablox.com`, so that domain must resolve.
-Netlify then builds on a push to main that changes one of its inputs (`ai/inputs.txt`). The project was created private (a team login on every
+Netlify then builds on a push to live that changes one of its inputs (`ai/inputs.txt`). The project was created private (a team login on every
 deploy, production included); the energy and Atlas projects ask for one on previews only.
 
 Build and look at it locally (`ai/oscar.html` also works opened straight from the folder; the
@@ -576,14 +576,14 @@ The dev container (`.devcontainer/`) builds the Atlas and serves it on port 8901
 
 ## Deploy
 
-Three Netlify projects build from this repository, each from its own branch and
-only when that site's own files change (see "Builds and credits" below):
+Three Netlify projects build from this repository, all from `live` (`main` publishes
+nothing), each only when that site's own files change (see "Builds and credits" below):
 
 | Project | Domain | Base directory | Branch | Configured by |
 | --- | --- | --- | --- | --- |
 | `renewablox-atlas` | atlas.renewablox.com | `atlas` | live | `atlas/netlify.toml` |
 | `renewablox-energy` | energy.renewablox.co.uk | the root | live | `netlify.toml` |
-| `renewablox-ai` | ai.renewablox.com | `ai` | main | `ai/netlify.toml` |
+| `renewablox-ai` | ai.renewablox.com | `ai` | live | `ai/netlify.toml` |
 
 `renewablox-atlas` needs these environment variables (Project configuration →
 Environment variables; `ATLAS_NAMES` is read by the build, the rest by the edge
@@ -642,9 +642,9 @@ Forms are free, and the gates' edge functions are billed as ordinary web request
 (2 credits per 10,000). So what costs is a build of a production branch, and
 each project builds only when its own files change:
 
-* **Work on `main`, publish from `live`.** The Atlas and the energy site never
-  build from `main`; merge into `live` when a change should go out, and a push of
-  several commits builds once.
+* **Work on `main`, publish from `live`.** No project builds from `main`; merge
+  into `live` when a change should go out, and a push of several commits builds
+  once.
 * **On `live`, a push that changes nothing a site is built from skips that
   site.** Each project's ignore command (`tools/netlify-ignore.sh`) compares the
   push with the project's last build over the site's list (`energy_inputs.txt`,
