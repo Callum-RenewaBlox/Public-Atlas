@@ -497,7 +497,11 @@ public in this repository.
 
 **BLN** (`/clients/bln/`, client code `bln`) is behind the sign-in, so its pages
 may carry the site's details in full; old `/bln/` links redirect there
-(`_redirects`, written by the build). What stays public is its card on the
+(`_redirects`, written by the build). Its map's title reads "BLN Atlas · 300 kW
+Run-of-River Hydro" over the site's postal address, which still never enters
+this public repository: the build writes it in from the `ATLAS_BLN_ADDRESS`
+environment variable on Netlify (or `atlas/.address`, git-ignored, locally),
+and without it the line describes the page instead. What stays public is its card on the
 front page (`atlas/front/`), which keeps the anonymity checks it was built with
 (see the docstring of `atlas/build.py`): no word that names or places the site,
 no postcode or grid reference, no image metadata. The words live outside this

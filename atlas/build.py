@@ -38,7 +38,9 @@ public is their cover on the front page (front/), which is checked further:
 
 And the client pages themselves: nothing loads from elsewhere except the satellite imagery (ALLOWED_HOSTS),
 every file a page refers to is there, every page asks not to be indexed, and the powerhouse's position on the
-imagery has been confirmed (a warning until it is).
+imagery has been confirmed (a warning until it is). A site's postal address is never in this public repository:
+the build writes BLN's into its map's title from the ATLAS_BLN_ADDRESS environment variable or atlas/.address
+(ADDRESS_ENV, ADDRESS_FILE), and only into a page behind the sign-in.
 
 Run:  python atlas/build.py                      (writes atlas/site/, git-ignored)
       python -m http.server 8901 -d atlas/site   (then open http://localhost:8901/)
@@ -49,6 +51,7 @@ published; the netlify.toml beside this file says where that list is kept there.
 Standard library only.
 """
 import hashlib
+import html
 import json
 import os
 import re
@@ -347,6 +350,34 @@ def check_page(page, rel, root):
     return text
 
 
+# The site's postal address names it, so it never enters this repository, not even behind the sign-in. It comes
+# from ATLAS_BLN_ADDRESS (the Netlify project's environment variables) or atlas/.address (git-ignored, one line),
+# and goes into the BLN map's second title line, the element marked data-private="address", in the build only.
+# Without it that line keeps its description of the page.
+ADDRESS_ENV = "ATLAS_BLN_ADDRESS"
+ADDRESS_FILE = HERE / ".address"
+ADDRESS_SLOT = re.compile(r'(<div class="ttl" data-private="address">)(.*?)(</div>)', re.S)
+
+
+def put_address(warnings):
+    address = os.environ.get(ADDRESS_ENV, "").strip()
+    if not address and ADDRESS_FILE.is_file():
+        address = ADDRESS_FILE.read_text(encoding="utf-8-sig").strip()
+    if not address:
+        warnings.append(f"no address for BLN ({ADDRESS_ENV} or atlas/.address), so its map's second title line "
+                        "describes the page instead")
+        return
+    if "\n" in address:
+        fail(f"the BLN address ({ADDRESS_ENV} or atlas/.address) should be one line")
+    if not any("/clients/bln/".startswith(p) for p in GATED_PREFIXES):
+        fail("/clients/bln/ is not behind the sign-in (GATED_PREFIXES), so its address stays out")
+    page = OUT / "clients" / "bln" / "index.html"
+    text = page.read_text(encoding="utf-8")
+    if len(ADDRESS_SLOT.findall(text)) != 1:
+        fail('bln/index.html has no single data-private="address" title line to write the address into')
+    page.write_text(ADDRESS_SLOT.sub(lambda m: m.group(1) + html.escape(address) + m.group(3), text), encoding="utf-8")
+
+
 def site_confirmed(text):
     m = re.search(r"const SITE=\{[^}]*confirmed:(true|false)", text)
     if not m:
@@ -385,6 +416,7 @@ def build(names):
             if page.parent == src and not site_confirmed(text):
                 warnings.append(f"{client}/index.html: the powerhouse's place on the imagery is not confirmed yet "
                                 f"(open /clients/{client}/?place, set it, and paste the line into SITE)")
+    put_address(warnings)
     put_root(names)
     merge_front(OUT)
     warnings += put_fonts()

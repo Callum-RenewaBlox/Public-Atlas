@@ -7,6 +7,7 @@ Thumbs.db
 energy_site/
 atlas/site/
 atlas/.names
+atlas/.address
 ai/site/
 .netlify/
 atlas/netlify/edge-lib/pages.js
