@@ -92,7 +92,8 @@ the client atlas markers. It comes after the existing site cards and before the 
    build*, not since the previous push. So:
    - push work in progress with `[skip netlify]` on every commit, README and `.claude/` ones included: once one of
      them has touched an Atlas input, any later push without it builds and deploys everything since the last build;
-   - make the one push without it when the work is reviewed and ready to go live;
+   - make the one push without it when the work is reviewed and ready to go live. Netlify finds the tag anywhere in
+     the head commit's message, so that commit must not quote it, even to explain it (say "the skip tag");
    - confirm on the live site (`curl` the front page for the cover) and in Netlify that only the Atlas built.
 7. Tell the owner, short and in this order:
    - that it's live, with the link;

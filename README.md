@@ -720,6 +720,8 @@ each project builds only when its own files change:
   site, for publishing it with a later push instead. The later push needn't
   touch the site itself: its build compares with the last build, not the last
   push, so after a skipped change any push without the tag builds, a README
-  one included. Keep the tag on every push until the one meant to go live.
+  one included. Keep the tag on every push until the one meant to go live,
+  and keep it out of that one's message altogether: Netlify finds it anywhere
+  in the message, even quoted in an explanation, and skips the push.
 * Set a project's environment variables before its first build: changing them
   takes a redeploy, which is another production deploy.
