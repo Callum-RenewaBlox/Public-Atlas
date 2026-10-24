@@ -60,6 +60,7 @@ html,body{margin:0;height:100%;font-family:var(--font);color:var(--ink-2);backgr
 #brand .txt{min-width:0;flex:1 1 auto}
 #brand .kick{font-weight:700;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#brand .kick .u{text-transform:none}   /* a unit keeps its case in the capitals */
 #brand .ttl{font-weight:700;font-size:14px;color:var(--brand);line-height:1.2;letter-spacing:-.005em;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* the same door as the badge, for anyone who would rather not hunt for it on the imagery */
@@ -72,7 +73,7 @@ html,body{margin:0;height:100%;font-family:var(--font);color:var(--ink-2);backgr
   #brand{gap:10px;padding:0 12px}
   #brand .logo{height:17px}
   #brand .kick{font-size:8.6px;letter-spacing:.14em}
-  #brand .ttl{font-size:12px}
+  #brand .ttl{font-size:11.5px;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
   #brand .lg{display:none}
   #brand .go{display:none}
 }
@@ -216,8 +217,8 @@ path.leaflet-interactive:focus-visible{outline:none;stroke:#fff;stroke-width:4;s
 <div id="brand">
 <img class="logo" src="assets/renewablox-wordmark.png" alt="RenewaBlox"/>
 <div class="div"></div>
-<div class="txt"><div class="kick">BLN Atlas<span class="lg"> · BLOX data-centre cabinet</span></div>
-<div class="ttl">300 kW <span class="lg">run-of-river </span>hydro powerhouse</div></div>
+<div class="txt"><div class="kick">BLN Atlas<span class="lg"> · 300 <span class="u">kW</span> Run-of-River Hydro</span></div>
+<div class="ttl" data-private="address">Hydro powerhouse and BLOX data-centre cabinet</div></div>
 <a class="go" href="3d/">3D render <i>▶</i></a>
 </div>
 <div id="map" role="region" aria-label="Satellite map of the BLN powerhouse"></div>
