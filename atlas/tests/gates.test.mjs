@@ -69,10 +69,11 @@ ok('any other spelling -> 301 to the one spelling, before anything else');
 r = await gate(req('/clients/srv/?view=3d'), ctx); assert.equal(r.status, 303); assert.equal(r.headers.get('location'), '/access/?r=' + encodeURIComponent('/clients/srv/?view=3d')); ok('signed-out page -> sign-in, keeping ?view');
 r = await gate(req('/clients/srv/aerial.jpg', { page: false }), ctx); assert.equal(r.status, 401); ok('signed-out asset -> 401');
 r = await gate(req('/access/?r=' + encodeURIComponent('/clients/srv/')), ctx); assert.equal(r.status, 401); let html = await r.text();
-assert.match(html, /href="\/access\/start\?r=%2Fclients%2Fsrv%2F"/); assert.match(r.headers.get('content-security-policy'), /frame-ancestors 'none'/); ok('sign-in page');
+assert.match(html, /href="\/access\/start\?p=google&amp;r=%2Fclients%2Fsrv%2F"/); assert.match(html, /href="\/access\/start\?p=microsoft&amp;r=%2Fclients%2Fsrv%2F"/);
+assert.match(r.headers.get('content-security-policy'), /frame-ancestors 'none'/); ok('sign-in page offers Google and Microsoft');
 for (const bad of ['//evil.com/x', 'https://evil.com', '/clients/../oscar', '/clients/%2e%2e/x', '/elsewhere/', '/clients/srv/?x=<b>', '/clients//srv/', '/clients/srv/?a=1?b=2']) {
   r = await gate(req('/access/?r=' + encodeURIComponent(bad)), ctx); html = await r.text();
-  assert.match(html, /href="\/access\/start\?r=%2Fclients%2F"/, bad);
+  assert.match(html, /href="\/access\/start\?p=google&amp;r=%2Fclients%2F"/, bad);
 }
 ok('return address confined to /clients and /team');
 
@@ -82,6 +83,10 @@ const auth = new URL(r.headers.get('location')); assert.equal(auth.origin + auth
 assert.equal(auth.searchParams.get('provider'), 'google'); assert.equal(auth.searchParams.get('redirect_to'), O + '/access/callback');
 assert.equal(auth.searchParams.get('code_challenge_method'), 's256');
 const state = cookieVal(r, 'rbx_atlas_signin'); assert.ok(state); assert.match(setCookies(r)[0], /Path=\/access;.*HttpOnly/); ok('start -> Supabase authorize with PKCE');
+r = await gate(req('/access/start?p=microsoft&r=' + encodeURIComponent('/clients/srv/')), ctx); assert.equal(r.status, 303);
+const authMs = new URL(r.headers.get('location')); assert.equal(authMs.searchParams.get('provider'), 'azure'); assert.equal(authMs.searchParams.get('scopes'), 'email');
+const stateMs = cookieVal(r, 'rbx_atlas_signin'); ok('start ?p=microsoft -> Supabase azure provider');
+r = await gate(req('/access/start?p=evil&r=%2Fclients%2F'), ctx); assert.equal(new URL(r.headers.get('location')).searchParams.get('provider'), 'google'); ok('unknown provider -> Google');
 
 // callback
 r = await gate(req('/access/callback?code=abc'), ctx); assert.equal(r.status, 400); ok('callback without state -> expired');
@@ -107,7 +112,17 @@ assert.ok(!session.includes('RT1') && !Buffer.from(session.split('.')[1], 'base6
 sb.token = async () => json(200, { access_token: 'AT1', refresh_token: 'RT1', user: user('client@example.com', false) });
 r = await gate(req('/access/callback?code=abc', { cookie: 'rbx_atlas_signin=' + state }), ctx); assert.equal(r.status, 403); assert.equal(cookieVal(r, 'rbx_atlas'), null); ok('unverified Google address refused');
 sb.token = async () => json(200, { access_token: 'AT1', refresh_token: 'RT1', user: user('client@example.com', true, 'email') });
-r = await gate(req('/access/callback?code=abc', { cookie: 'rbx_atlas_signin=' + state }), ctx); assert.equal(r.status, 403); ok('non-Google identity refused');
+r = await gate(req('/access/callback?code=abc', { cookie: 'rbx_atlas_signin=' + state }), ctx); assert.equal(r.status, 403); ok('identity other than the one signed in with refused');
+{
+  const saved = sb.token, savedRpc = sb.rpc;
+  sb.token = async () => json(200, { access_token: 'AT1', refresh_token: 'RT1', user: user('Client@Hotmail.co.uk', true, 'azure') }); sb.rpc = async () => json(200, ['srv']);
+  r = await gate(req('/access/callback?code=abc', { cookie: 'rbx_atlas_signin=' + stateMs }), ctx); assert.equal(r.status, 200); assert.ok(cookieVal(r, 'rbx_atlas')); ok('verified Microsoft address -> session');
+  sb.token = async () => json(200, { access_token: 'AT1', refresh_token: 'RT1', user: user('client@contoso.com', false, 'azure') });
+  r = await gate(req('/access/callback?code=abc', { cookie: 'rbx_atlas_signin=' + stateMs }), ctx); assert.equal(r.status, 403); assert.equal(cookieVal(r, 'rbx_atlas'), null); ok('unverified Microsoft address refused');
+  sb.token = async () => json(200, { access_token: 'AT1', refresh_token: 'RT1', user: user('client@example.com', true, 'google') });
+  r = await gate(req('/access/callback?code=abc', { cookie: 'rbx_atlas_signin=' + stateMs }), ctx); assert.equal(r.status, 403); ok('Microsoft sign-in answered by another identity refused');
+  sb.token = saved; sb.rpc = savedRpc;
+}
 sb.token = async () => json(200, { access_token: 'AT2', refresh_token: 'RT2', user: user('stranger@example.com') }); sb.rpc = async () => json(200, []);
 r = await gate(req('/access/callback?code=abc', { cookie: 'rbx_atlas_signin=' + state }), ctx); assert.equal(r.status, 403); assert.equal(cookieVal(r, 'rbx_atlas'), null); ok('nothing shared -> 403, no session');
 sb.token = async () => json(400, { error: 'invalid_grant' });

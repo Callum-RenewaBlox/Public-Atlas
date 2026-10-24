@@ -1,8 +1,8 @@
 /* The Atlas sign-in: every request under /clients/ and /team/ passes through here first, and the sign-in round trip
    runs under /access/.
 
-   A visitor without a session is asked to sign in with Google, through RenewaBlox's Supabase project (renewablox-crm),
-   the same Google sign-in the CRM uses. Supabase sends the browser back to /access/callback with a one-time code that
+   A visitor without a session is asked to sign in with Google or Microsoft (a personal Outlook/Hotmail/Live account or a
+   work Microsoft 365 one), through RenewaBlox's Supabase project (renewablox-crm), whose Google sign-in the CRM also uses. Supabase sends the browser back to /access/callback with a one-time code that
    only this browser can redeem (PKCE: the verifier sits in a sealed cookie here), and this function redeems it, so no
    Supabase token ever reaches the page. Who may open what is Supabase's to say: public.atlas_my_access(), asked with the
    visitor's own token, answers '*' for an active CRM team member and otherwise the client codes listed for the address
@@ -19,6 +19,10 @@
                                everyone out
    And in Supabase (Authentication > URL Configuration > Redirect URLs): https://atlas.renewablox.com/access/callback.
    Without it Supabase sends the browser to the CRM instead and the sign-in can't finish.
+   Microsoft is Supabase's Azure provider (Authentication > Sign In / Providers > Azure): the Entra app registration
+   "RenewaBlox Atlas" (any Entra tenant + personal Microsoft accounts, the email and xms_edov optional claims), its client
+   ID and secret value, and the tenant URL left blank. The secret expires; when it does, Microsoft sign-in fails until a
+   new one is pasted in. Either way in, access is the verified address checked against public.atlas_access.
 
    The pages, their ?view= routes and their security policies come from the build (atlas/build.py writes
    ../edge-lib/pages.js). Netlify's _headers rules don't reach responses that pass through an edge function, so every
@@ -35,6 +39,12 @@ const FILE_SECONDS = 6 * 3600;            // a page's files (models, images) are
                                           // pages ask again, so a removed client loses the files too once it runs out
 const STATE_SECONDS = 10 * 60;
 const SUPABASE_TIMEOUT_MS = 8000;
+
+// The sign-ins offered, by the name the address carries (/access/start?p=…), with Supabase's name for each.
+const PROVIDERS = {
+  google: { supabase: 'google', label: 'Sign in with Google', params: { prompt: 'select_account' } },
+  microsoft: { supabase: 'azure', label: 'Sign in with Microsoft', params: { scopes: 'email', prompt: 'select_account' } }
+};
 
 const GATED_HEADERS = {
   'x-robots-tag': 'noindex, nofollow',
@@ -161,23 +171,23 @@ function signedOut(request, url, cookies = []) {
 // The sign-in page. A #fragment on the page that sent the visitor here (a view, a camera) survives the redirect, so it
 // is kept in sessionStorage and put back once they are in.
 function signInPage(url) {
-  const r = safeReturn(url.searchParams.get('r'));
-  const go = `/access/start?r=${encodeURIComponent(r)}`;
+  const r = encodeURIComponent(safeReturn(url.searchParams.get('r')));
   return page(401, 'Sign in to open this page',
-    'This page is shared privately. Sign in with the Google account for the address it was shared with.',
-    { href: go, label: 'Sign in with Google' },
-    `<script>try{sessionStorage.setItem('rbx.atlas.hash',location.hash||'')}catch(e){}</script>`,
-    { href: 'https://accounts.google.com/signup', label: 'No Google account for your work address? Create one with it' });
+    'This page is shared privately. Sign in with the account for the address it was shared with: Google for Gmail or ' +
+    'Google Workspace, Microsoft for Outlook, Hotmail, Live or Microsoft&nbsp;365.',
+    Object.entries(PROVIDERS).map(([p, v]) => ({ href: `/access/start?p=${p}&r=${r}`, label: v.label })),
+    `<script>try{sessionStorage.setItem('rbx.atlas.hash',location.hash||'')}catch(e){}</script>`);
 }
 
 async function start(url, cfg) {
+  const p = Object.prototype.hasOwnProperty.call(PROVIDERS, url.searchParams.get('p')) ? url.searchParams.get('p') : 'google';
   const verifier = randomToken(48);
   const challenge = b64url(await crypto.subtle.digest('SHA-256', encoder.encode(verifier)));
-  const sealed = await seal({ t: 'state', v: verifier, r: safeReturn(url.searchParams.get('r')), x: now() + STATE_SECONDS }, cfg);
+  const sealed = await seal({ t: 'state', v: verifier, p, r: safeReturn(url.searchParams.get('r')), x: now() + STATE_SECONDS }, cfg);
   const auth = new URL(`${cfg.supabaseUrl}/auth/v1/authorize`);
   auth.search = new URLSearchParams({
-    provider: 'google', redirect_to: `${url.origin}/access/callback`,
-    code_challenge: challenge, code_challenge_method: 's256', prompt: 'select_account'
+    provider: PROVIDERS[p].supabase, redirect_to: `${url.origin}/access/callback`,
+    code_challenge: challenge, code_challenge_method: 's256', ...PROVIDERS[p].params
   }).toString();
   return redirect(auth.toString(), [cookie(STATE_COOKIE, sealed, '/access', STATE_SECONDS)]);
 }
@@ -197,9 +207,10 @@ async function callback(request, url, cfg) {
   if (!tokens || !tokens.access_token || !tokens.refresh_token) {
     return page(400, 'That sign-in couldn&rsquo;t be completed', 'It may have expired or been used already. Try again.', retry, '', null, [clearState]);
   }
-  const email = verifiedGoogleEmail(tokens.user);
+  const email = verifiedEmail(tokens.user, PROVIDERS[st.p] ? PROVIDERS[st.p].supabase : 'google');
   if (!email) {
-    return page(403, 'That account can&rsquo;t be used here', 'Sign in with a Google account whose address Google has verified.', retry, '', null, [clearState]);
+    return page(403, 'That account can&rsquo;t be used here',
+      'Sign in with a Google or Microsoft account whose address the provider has verified.', retry, '', null, [clearState]);
   }
   const access = await myAccess(tokens.access_token, cfg);
   if (!access) {
@@ -208,7 +219,7 @@ async function callback(request, url, cfg) {
   if (!access.length) {
     return page(403, 'Nothing is shared with this account',
       `No page on Atlas is shared with ${esc(email)}. Sign in with the address RenewaBlox shared the page with, or ask for this one to be added.`,
-      { href: '/access/start?r=' + encodeURIComponent(st.r), label: 'Use a different account' }, '', null, [clearState]);
+      { href: '/access/?r=' + encodeURIComponent(st.r), label: 'Use a different account' }, '', null, [clearState]);
   }
   const session = { t: 'session', e: email, a: access, r: tokens.refresh_token, c: now(), x: now() + SESSION_SECONDS };
   // a page, not a redirect, so the #fragment kept at the sign-in page can be put back on the address
@@ -262,13 +273,16 @@ async function supabase(cfg, endpoint, body, refusals = false, bearer = '') {
   }
 }
 
-// The Google identity's address, if Google verified it and it is the user's own; else ''.
-function verifiedGoogleEmail(user) {
-  const google = user && (user.identities || []).find(i => i && i.provider === 'google');
-  const claims = (google && google.identity_data) || {};
+// The address of the identity just signed in with ('google' or 'azure'), if that provider verified it and it is the
+// user's own; else ''. For Microsoft, Supabase marks the address verified for a personal account, and for a work
+// account only when Microsoft says the address's domain is verified (the xms_edov claim), so an unverified Microsoft
+// 365 address can't stand in for a client's.
+function verifiedEmail(user, provider) {
+  const id = user && (user.identities || []).find(i => i && i.provider === provider);
+  const claims = (id && id.identity_data) || {};
   const email = String(claims.email || '').toLowerCase();
   const verified = claims.email_verified === true || claims.email_verified === 'true';
-  return google && email && verified && email === String(user.email || '').toLowerCase() ? email : '';
+  return id && email && verified && email === String(user.email || '').toLowerCase() ? email : '';
 }
 
 /* ---- what the visitor can open ---- */
@@ -397,10 +411,10 @@ function page(status, title, textHtml, action, extra = '', secondary = null, coo
 <link rel="stylesheet" href="/assets/atlas.css?v=6a0e7230">
 <style>.guard .list{list-style:none;margin:18px 0 0;padding:0;text-align:left}.guard .list li{margin:0 0 8px}
 .guard .list a{display:block;padding:12px 16px;border:1px solid rgba(18,71,94,.18);border-radius:12px;text-decoration:none;font-weight:600}
-.guard .sub{display:block;margin-top:14px;font-size:14px}</style></head>
+.guard .sub{display:block;margin-top:14px;font-size:14px}.guard .btn+br+.btn{margin-top:10px}</style></head>
 <body><div class="guard"><div><img src="/assets/logos/renewablox-wordmark-dark.png" alt="RenewaBlox" width="175" height="20" style="margin:0 auto">
 <h1>${title}</h1><p>${textHtml}</p>${extra.startsWith('<script') ? '' : extra}
-${action ? `<a class="btn btn--primary" href="${esc(action.href)}">${action.label}</a>` : ''}
+${[].concat(action || []).map(a => `<a class="btn btn--primary" href="${esc(a.href)}">${a.label}</a>`).join('<br>')}
 ${secondary ? `<a class="sub" href="${esc(secondary.href)}">${secondary.label}</a>` : ''}</div></div>
 ${extra.startsWith('<script') ? extra : ''}</body></html>`, { status, headers });
 }

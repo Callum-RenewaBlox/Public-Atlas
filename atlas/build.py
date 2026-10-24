@@ -165,7 +165,7 @@ FONTS = {
 STREAMLIT = re.compile(r"streamlit\.app|share\.streamlit\.io", re.I)
 
 # Pages behind a gate. Everything under these folders passes through an edge function (netlify/edge-functions/):
-# /clients/ and /team/ through the sign-in (atlas-gate.js: Google through Supabase, access per client in
+# /clients/ and /team/ through the sign-in (atlas-gate.js: Google or Microsoft through Supabase, access per client in
 # public.atlas_access, '*' for the team).
 # Netlify's _headers rules don't reach those responses, so the gates set each page's headers themselves, from the
 # policies here; the build writes GATED_PAGES, EDGE_CSP and EDGE_REDIRECTS to netlify/edge-lib/pages.js for them.

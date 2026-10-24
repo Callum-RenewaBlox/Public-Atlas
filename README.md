@@ -4,7 +4,7 @@ The source of RenewaBlox's public-facing sites, every one of them static and hos
 on Netlify, with Supabase for the Atlas's sign-in:
 
 * **atlas.renewablox.com**, the RenewaBlox Atlas (`atlas/`): the Market Atlas, the
-  investor packs and their standalone models, and, behind a Google sign-in, the
+  investor packs and their standalone models, and, behind a Google or Microsoft sign-in, the
   client atlases and the team's pages;
 * **energy.renewablox.co.uk**, the client packs for generators and businesses
   (`build_energy_site.py`);
@@ -435,8 +435,8 @@ frame would be refused.
 
 **The sign-in** (`atlas/netlify/edge-functions/atlas-gate.js`). Every request
 under `/clients/` and `/team/` passes through it. A visitor without a session
-is sent to `/access/`, signs in with Google through RenewaBlox's Supabase
-project (`renewablox-crm`, the same sign-in the CRM uses) and comes back to the
+is sent to `/access/`, signs in with Google or Microsoft through RenewaBlox's
+Supabase project (`renewablox-crm`, whose Google sign-in the CRM also uses) and comes back to the
 page they asked for. What they may open is Supabase's to say:
 `public.atlas_my_access()`, asked with the visitor's own token, answers `*` for
 an active CRM team member (`team_members`) and otherwise the client codes listed
@@ -447,16 +447,25 @@ minutes, so a row removed in Supabase shuts a client out within minutes, with
 no redeploy. A page's views are routed here too: `/clients/srv/?view=3d` serves
 the view's file at the page's own address. Anything missing or wrong fails
 closed. To share a page with a client (an admin's job, by the table's row
-security), add a row for their Google address in Supabase's SQL editor:
+security), add a row for the address they sign in with in Supabase's SQL editor:
 
     insert into public.atlas_access (email, client, note)
     values ('name@example.com', 'srv', 'SRV Atlas for the farm manager');
 
 The codes are `srv`, `srv-contractor`, `bryn`, `kld`, `ihn`, `reabold` (both
-Reabold maps) and `citygate`; the address is stored in lower case. Google is
-the only sign-in the Supabase project offers, so a client needs a Google
-account for the address listed (a Google Workspace address, or a Gmail one);
-anyone else's sign-in reaches a page saying nothing is shared with them.
+Reabold maps) and `citygate`; the address is stored in lower case. A client
+signs in with Google (a Gmail or Google Workspace address) or Microsoft (a
+personal Outlook, Hotmail or Live address, or a Microsoft 365 work one); either
+way the address must be one the provider has verified, and it is the address
+that is checked, not the provider. Microsoft is Supabase's Azure provider, set
+up from the Entra app registration "RenewaBlox Atlas" (any Entra tenant plus
+personal Microsoft accounts; the `email` and `xms_edov` optional claims). Its
+client secret expires: renew it in Entra and paste the new value into Supabase
+before it does, or Microsoft sign-in stops. Until the app has a verified
+publisher, a Microsoft 365 organisation that doesn't let its staff consent to
+outside apps shows an "approval required" screen; its IT admin can grant
+consent once for the whole organisation. Anyone else's sign-in reaches a page
+saying nothing is shared with them.
 
 **The investor portal** (`/investors/portal/`) isn't gated on the Atlas. The way
 in is the Wix investor portal at renewablox.com/invest (registration and the
