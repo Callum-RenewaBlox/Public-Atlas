@@ -58,6 +58,14 @@ def once(text, old, new, what):
     return text.replace(old, new, 1)
 
 
+def cut(text, start, end, what):
+    """Take out everything from start up to (not including) end, each found once and in that order."""
+    a, b = text.find(start), text.find(end)
+    if text.count(start) != 1 or text.count(end) != 1 or b < a:
+        raise PageError(f"{what}: expected {start[:50]!r} once, then {end[:50]!r} once")
+    return text[:a] + text[b:]
+
+
 def splice(page, insert, what):
     """The Streamlit apps' splice: a chrome or badge file put in just before the page's </body>."""
     return once(page, "</body>", insert + "\n</body>", what)
@@ -90,6 +98,28 @@ def noindex(text, what):
     return text
 
 
+# What a map page may still draw once srv_bare_map has cut it: the badges, added after, are markers of their own.
+DRAWS = re.compile(r"L\.(?:marker|polygon|polyline|rectangle|circle|circleMarker|geoJSON|imageOverlay)\(|"
+                   r"L\.control\.layers\(|\.bind(?:Tooltip|Popup)\(")
+
+
+def srv_bare_map(page):
+    """SRV's map opens on the yard with nothing drawn but the two BLOX badges (the 3D Dispatch Sim, the 3D Compute
+    Kiosk). srv_atlas.html, generated upstream, also draws the four numbered assets with their labels and photo
+    popups, the proposed cable route with its three labels, a layer switch for them and a caveat about the drawn
+    siting; the build takes them out, so a regenerated file is cut the same way or fails the build."""
+    what = "srv_atlas.html"
+    page = cut(page, "const C={", "const map=L.map(", what)  # the assets, and the photographs only their popups showed
+    page = cut(page, "function popup(a){", "map.setView(", what)  # the assets, labels, cable route and layer switch
+    page = once(page, "refreshLabels();\n", "", what)
+    page = once(page, '<div id="caveat"><b>Indicative.</b> Indicative siting and connection, drawn from aerial imagery '
+                      'and site photographs — not a measured survey and not a construction drawing.</div>\n', "", what)
+    left = sorted(set(DRAWS.findall(page)))
+    if left:
+        raise PageError(f"{what}: still draws something besides the badges ({', '.join(left)}); cut it in srv_bare_map")
+    return page
+
+
 def client_pages():
     """{site path: text} for the client atlases and the team pages."""
     out = {}
@@ -97,7 +127,7 @@ def client_pages():
     # SRV: Scrivelsby (Home Farm AD). The badge on the map opens the two 3D views; the contractor survey has a grant of
     # its own (client 'srv-contractor'), so a contractor never sees the client's views.
     badge = top_level_nav(source("srv_atlas_3d_badge.html"), "srv_atlas_3d_badge.html")
-    page = splice(source("srv_atlas.html"), badge, "srv_atlas.html")
+    page = splice(srv_bare_map(source("srv_atlas.html")), badge, "srv_atlas.html")
     page = once(page, "<title>RenewaBlox — SRV Atlas · Home Farm, Scrivelsby (LN9 6JB) · Proposed compute load bank</title>",
                 "<title>SRV Atlas — Scrivelsby</title>", "srv_atlas.html")
     out["clients/srv/index.html"] = noindex(page, "srv_atlas.html")
