@@ -98,25 +98,30 @@ def noindex(text, what):
     return text
 
 
-# What a map page may still draw once srv_bare_map has cut it: the badges, added after, are markers of their own.
-DRAWS = re.compile(r"L\.(?:marker|polygon|polyline|rectangle|circle|circleMarker|geoJSON|imageOverlay)\(|"
-                   r"L\.control\.layers\(|\.bind(?:Tooltip|Popup)\(")
+# All of Leaflet the bare SRV map uses: the map, its imagery and its scale bar (the badges, added after, are markers
+# of their own). Anything more, a tooltip or popup bound to something, or one of the three gone fails the build.
+BARE_MAP_LEAFLET = {"L.map", "L.tileLayer", "L.control.scale"}
+LEAFLET_USE = re.compile(r"\bL\.[A-Za-z_][\w.]*|\.(?:bind|open)(?:Tooltip|Popup)\b")
 
 
 def srv_bare_map(page):
     """SRV's map opens on the yard with nothing drawn but the two BLOX badges (the 3D Dispatch Sim, the 3D Compute
     Kiosk). srv_atlas.html, generated upstream, also draws the four numbered assets with their labels and photo
     popups, the proposed cable route with its three labels, a layer switch for them and a caveat about the drawn
-    siting; the build takes them out, so a regenerated file is cut the same way or fails the build."""
+    siting; the build takes them out, and fails if a regenerated file can't be cut the same way or uses any more of
+    Leaflet than the bare map needs."""
     what = "srv_atlas.html"
     page = cut(page, "const C={", "const map=L.map(", what)  # the assets, and the photographs only their popups showed
     page = cut(page, "function popup(a){", "map.setView(", what)  # the assets, labels, cable route and layer switch
     page = once(page, "refreshLabels();\n", "", what)
     page = once(page, '<div id="caveat"><b>Indicative.</b> Indicative siting and connection, drawn from aerial imagery '
                       'and site photographs — not a measured survey and not a construction drawing.</div>\n', "", what)
-    left = sorted(set(DRAWS.findall(page)))
-    if left:
-        raise PageError(f"{what}: still draws something besides the badges ({', '.join(left)}); cut it in srv_bare_map")
+    used = set(LEAFLET_USE.findall(page))
+    if used - BARE_MAP_LEAFLET:
+        raise PageError(f"{what}: still draws something besides the badges ({', '.join(sorted(used - BARE_MAP_LEAFLET))}); "
+                        "cut it in srv_bare_map")
+    if BARE_MAP_LEAFLET - used:
+        raise PageError(f"{what}: the cut took the map's own {', '.join(sorted(BARE_MAP_LEAFLET - used))} with it")
     return page
 
 
