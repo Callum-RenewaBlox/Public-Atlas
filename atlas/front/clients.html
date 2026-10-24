@@ -1,6 +1,5 @@
   <style>
-    /* the client atlas: two cards side by side, stacked on a phone */
-    .cards--clients { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    /* the client atlas: the sites' cards and the invitation, three across (two on a tablet), stacked on a phone */
     @media (max-width: 720px) { .cards--clients { grid-template-columns: 1fr; } }
     .cards--clients .card__img { background: #1b2a33; }
   </style>
@@ -31,13 +30,35 @@
           </div>
         </article>
 
+        <article class="card">
+          <img class="card__img" src="/assets/img/clients/bry-cover.jpg" alt="3D render of the BRY site: the BLOX data centre on the yard beside the biogas engines, with the digesters beyond" width="1280" height="720" loading="lazy">
+          <div class="card__body">
+            <div class="eyebrow">Anaerobic digestion</div>
+            <h3>BRY</h3>
+            <p>An AD plant with 2 MW of biogas engines and a 1.8 MW export limit. A BLOX data centre on the yard, beside the engines, puts up to 200 kW of surplus power to work.</p>
+            <ul>
+              <li>The plant on satellite imagery, the data centre on its plot</li>
+              <li>3D model of the site with the BLOX data centre in place</li>
+              <li>The site's power season by season, today and with BLOX</li>
+              <li>Three ways to fund it, and the compute container rendered in place</li>
+            </ul>
+            <div class="card__cta">
+              <a class="btn btn--primary" href="/clients/bry/">Open BRY <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
+              <a class="btn btn--ghost" href="/clients/bry/?view=3d">3D model</a>
+            </div>
+          </div>
+        </article>
+
         <article class="card card--soon">
           <div class="card__art"><div class="lockmark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg></div></div>
           <div class="card__body">
             <div class="eyebrow">For clients</div>
             <h3>This could be your site</h3>
-            <p>We map every site we work with in Atlas, from the satellite view to the data centre in 3D. Client sign-in is on its way. If we&rsquo;ve built an atlas for your site, keep using the link we sent you for now.</p>
-            <div class="card__cta"><a class="btn btn--ghost" href="mailto:info@renewablox.com?subject=Atlas%20access">Ask about access</a></div>
+            <p>Have a site you&rsquo;d like us to assess and build a digital twin of? Come and speak to us. If we&rsquo;ve built an atlas for your site, sign in with the address we shared it with.</p>
+            <div class="card__cta">
+              <a class="btn btn--primary" href="mailto:info@renewablox.com?subject=Atlas">Speak to us</a>
+              <a class="btn btn--ghost" href="/clients/">Client sign-in</a>
+            </div>
           </div>
         </article>
       </div>

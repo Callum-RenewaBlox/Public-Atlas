@@ -173,6 +173,8 @@ STREAMLIT = re.compile(r"streamlit\.app|share\.streamlit\.io", re.I)
 # Netlify's _headers rules don't reach those responses, so the gates set each page's headers themselves, from the
 # policies here; the build writes GATED_PAGES, EDGE_CSP and EDGE_REDIRECTS to netlify/edge-lib/pages.js for them.
 GATED_PREFIXES = ("/clients/", "/team/")
+# addresses the sign-in answers itself, with no file behind them: the lists of pages shared with the visitor
+GATE_PAGES = ("/clients/", "/team/")
 EDGE_LIB = HERE / "netlify" / "edge-lib" / "pages.js"
 # Team pages written by hand for the site (team/<page>/), copied as they are to /team/<page>/.
 TEAM = HERE / "team"
@@ -459,7 +461,7 @@ def check_front(names):
                 if path.startswith(FRONT_ASSETS + "/"):
                     ok = (FRONT / path[len(FRONT_ASSETS) + 1:]).is_file()
                 elif path == "" or path.endswith("/"):
-                    ok = (OUT / path / "index.html").is_file()
+                    ok = (OUT / path / "index.html").is_file() or "/" + path in GATE_PAGES
                 else:
                     ok = (OUT / path).is_file()
                 if not ok:

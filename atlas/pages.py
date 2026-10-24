@@ -9,7 +9,7 @@ a regenerated source that loses it fails the build instead of shipping a page th
 
     /clients/srv/             SRV Atlas (?view=3d the 3D Dispatch Sim, ?view=siting the 3D Compute Kiosk)
     /clients/srv-contractor/  SRV Contractor Atlas, the electrical survey for the LV connection RFQ
-    /clients/bryn/            Bryn Atlas (?view=3d the 3D Site Model, ?view=compute the Compute Render)
+    /clients/bry/             Bryn Atlas, code BRY (?view=3d the 3D Site Model, ?view=compute the Compute Render)
     /clients/kld/             KLD Atlas (?view=3d the 3D Revenue Sim)
     /clients/ihn/             IHN Atlas (?view=3d Heat Network 3D)
     /clients/reabold/west-newton/, /clients/reabold/reservoirs/   Reabold's two maps
@@ -122,10 +122,10 @@ def client_pages():
     page = splice(source("bryn_atlas.html"), badge, "bryn_atlas.html")
     page = once(page, "<title>RenewaBlox — Bryn Atlas · Bryn Power AD plant, Gelligaer (CF82 8FY) · Proposed data centre</title>",
                 "<title>Bryn Atlas — Bryn Power AD plant</title>", "bryn_atlas.html")
-    out["clients/bryn/index.html"] = noindex(page, "bryn_atlas.html")
+    out["clients/bry/index.html"] = noindex(page, "bryn_atlas.html")
     page = once(source("bryn_3d_sim.html"), "<title>Bryn 3D - surplus power to compute</title>",
                 "<title>Bryn Atlas — 3D Site Model</title>", "bryn_3d_sim.html")
-    page = once(page, 'window.__ATLAS_PAGE = "bryn_atlas.html";', 'window.__ATLAS_PAGE = "/clients/bryn/";', "bryn_3d_sim.html")
+    page = once(page, 'window.__ATLAS_PAGE = "bryn_atlas.html";', 'window.__ATLAS_PAGE = "/clients/bry/";', "bryn_3d_sim.html")
     page = once(page, 'Oi.get("view")||"overview"',
                 '(/^(top|overview|blox|chp|tanks|solar|plant)$/.test(Oi.get("view"))?Oi.get("view"):"overview")', "bryn_3d_sim.html")
     # "Atlas" goes back in history only when the visitor came from the Bryn map itself
@@ -134,16 +134,16 @@ def client_pages():
                 'if(document.referrer&&(r=>r.origin===window.location.origin&&r.pathname===window.location.pathname&&'
                 '!r.searchParams.has("view"))(new URL(document.referrer))&&window.history.length>1){window.history.back();return}',
                 "bryn_3d_sim.html")
-    out["clients/bryn/bryn_3d_sim.html"] = page
+    out["clients/bry/bryn_3d_sim.html"] = page
     page = once(source("bryn_compute_3d.html"), "<title>Bryn Compute Render</title>",
                 "<title>Bryn Atlas — Compute Render</title>", "bryn_compute_3d.html")
-    page = once(page, 'window.__ATLAS_PAGE = "bryn_atlas.html";', 'window.__ATLAS_PAGE = "/clients/bryn/";', "bryn_compute_3d.html")
+    page = once(page, 'window.__ATLAS_PAGE = "bryn_atlas.html";', 'window.__ATLAS_PAGE = "/clients/bry/";', "bryn_compute_3d.html")
     page = once(page, "if (document.referrer && new URL(document.referrer).origin === window.location.origin && "
                       "window.history.length > 1) { window.history.back(); return; }",
                 "if (document.referrer && (function(r){ return r.origin === window.location.origin && r.pathname === "
                 "window.location.pathname && !r.searchParams.has(\"view\"); })(new URL(document.referrer)) && "
                 "window.history.length > 1) { window.history.back(); return; }", "bryn_compute_3d.html")
-    out["clients/bryn/bryn_compute_3d.html"] = page
+    out["clients/bry/bryn_compute_3d.html"] = page
 
     # KLD: Kinlochdamph. The 3D view is the shared model with the KLD chrome (its "Atlas" control) spliced in, and
     # the root clip Streamlit's frame gave it, without which a phone pans sideways.
@@ -199,8 +199,8 @@ CLIENT_PAGES = {
     "/clients/srv/": {"client": "srv", "title": "SRV Atlas — Scrivelsby", "list": True,
                       "views": {"3d": "3d.html", "siting": "siting.html"}},
     "/clients/srv-contractor/": {"client": "srv-contractor", "title": "SRV Contractor Atlas — electrical site survey", "list": True},
-    "/clients/bryn/": {"client": "bryn", "title": "Bryn Atlas — Bryn Power AD plant", "list": True,
-                       "views": {"3d": "bryn_3d_sim.html", "compute": "bryn_compute_3d.html"}},
+    "/clients/bry/": {"client": "bry", "title": "Bryn Atlas — Bryn Power AD plant", "list": True,
+                      "views": {"3d": "bryn_3d_sim.html", "compute": "bryn_compute_3d.html"}},
     "/clients/kld/": {"client": "kld", "title": "KLD Atlas — Kinlochdamph", "list": True, "views": {"3d": "3d.html"}},
     "/clients/ihn/": {"client": "ihn", "title": "IHN Atlas", "list": True, "views": {"3d": "3d.html"}},
     "/clients/reabold/west-newton/": {"client": "reabold", "title": "West Newton infrastructure map", "list": True},
@@ -209,7 +209,8 @@ CLIENT_PAGES = {
     "/team/keith-huntly/": {"client": "*", "title": "Keith & Huntly Atlas", "list": True},
     "/team/moray/": {"client": "*", "title": "Moray Cluster Atlas — Keith & Huntly", "list": True},
 }
-CLIENT_REDIRECTS = {"/clients/reabold/": "/clients/"}
+# /clients/bryn/ was Bryn's address for a day: the public front page names a client by its code only (BRY)
+CLIENT_REDIRECTS = {"/clients/reabold/": "/clients/", "/clients/bryn/": "/clients/bry/"}
 
 # Each page's security policy, as measured page by page: what it loads (Leaflet from cdnjs, imagery from Esri,
 # OpenStreetMap or CARTO tiles, Google Fonts), whether its mesh decoder compiles WebAssembly ('wasm-unsafe-eval'),
@@ -232,7 +233,7 @@ CLIENT_CSP = {
                                  f"img-src 'self' data: https://server.arcgisonline.com {_OSM} https://cdnjs.cloudflare.com; "
                                  "font-src 'self' https://fonts.gstatic.com; connect-src 'self'; media-src 'none'; worker-src 'none'; "
                                  "frame-src 'self'; " + _END),
-    "/clients/bryn/": ("default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdnjs.cloudflare.com; "
+    "/clients/bry/": ("default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdnjs.cloudflare.com; "
                        "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; "
                        "img-src 'self' data: blob: https://server.arcgisonline.com; font-src 'self' data:; connect-src 'self' blob:; "
                        "media-src 'none'; worker-src 'none'; frame-src 'none'; " + _END),
