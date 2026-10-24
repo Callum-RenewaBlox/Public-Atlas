@@ -251,7 +251,8 @@ async function finish(tokens, email, r, cfg, clearState) {
 
 /* ---- the fallback: a one-time code by email ---- */
 
-const EMAIL_RE = /^[^\s@<>"']{1,64}@[A-Za-z0-9.-]{1,190}\.[A-Za-z]{2,}$/;
+// an apostrophe is allowed (o'brien@…; every page escapes the address it shows), and so is an IDN top-level domain (xn--…)
+const EMAIL_RE = /^[^\s@<>"]{1,64}@[A-Za-z0-9.-]{1,190}\.[A-Za-z0-9-]{2,}$/;
 
 function emailForm(r, value = '') {
   return `<form method="post" action="/access/email" style="margin:0 auto 18px;max-width:340px;display:grid;gap:10px">
@@ -283,15 +284,20 @@ async function sendCode(request, cfg) {
   }
   const sent = await supabase(cfg, '/auth/v1/otp', { email, create_user: true }, true);
   if (sent === 'busy') {
-    return page(429, 'A code was sent a moment ago',
-      'Check your inbox (and spam) for it, or wait a minute and ask for another.', null, emailForm(r, email), back);
+    // Supabase limits codes per address (one a minute) and for the whole project (so many an hour)
+    return page(429, 'We can&rsquo;t send another code just yet',
+      'If you asked for one in the last minute, check your inbox (and spam) for it. Otherwise too many codes have been ' +
+      'asked for just now: wait a few minutes and try again, or use Google or Microsoft sign-in.', null, emailForm(r, email), back);
   }
-  if (!sent || sent === 'refused') {
+  if (!sent) {
     return page(503, 'We couldn&rsquo;t send the code just now', 'Try again in a minute, or use Google or Microsoft sign-in.', null, emailForm(r, email), back);
   }
+  // 'refused' (Supabase turned the address away, as it does an address nobody has given access to when the project only
+  // lets listed addresses have accounts) reads the same as a code sent, so the page never tells who has access
   const st = await seal({ t: 'code', e: email, r, x: now() + CODE_SECONDS }, cfg);
   return page(200, 'Check your email',
-    `We&rsquo;ve sent a sign-in code to ${esc(email)}. It can take a minute to arrive; check spam if it doesn&rsquo;t. Type it in below.`,
+    `If ${esc(email)} has been given access, a sign-in code is on its way to it. It can take a minute to arrive; check spam ` +
+    'if it doesn&rsquo;t. Type it in below.',
     null, codeForm(), { href: '/access/email?r=' + encodeURIComponent(r), label: 'Send a new code, or use a different address' },
     [cookie(CODE_COOKIE, st, '/access', CODE_SECONDS)]);
 }
@@ -310,7 +316,11 @@ async function checkCode(request, cfg) {
     return page(400, 'Check the code', 'The code is the number in the email. Type it in again.', null, codeForm(), again);
   }
   const tokens = await supabase(cfg, '/auth/v1/verify', { type: 'email', email: st.e, token: code }, true);
-  if (tokens === 'refused' || tokens === 'busy') {
+  if (tokens === 'busy') {
+    // Supabase limits how often codes are checked from one place (here, Netlify's), so the code may well be right
+    return page(429, 'Too many sign-in attempts just now', 'Wait a few minutes, then type the same code in again.', null, codeForm(), again);
+  }
+  if (tokens === 'refused') {
     return page(401, 'That code isn&rsquo;t right', 'It may be mistyped or expired. Try again, or ask for a new one.', null, codeForm(), again);
   }
   if (!tokens || !tokens.access_token || !tokens.refresh_token) {

@@ -466,7 +466,12 @@ types their address, gets a code and types it in, so it works for any address
 and on any device. This needs custom SMTP in Supabase (Authentication > Emails >
 SMTP Settings; the built-in sender only reaches the project's own team) and the
 **Magic Link** and **Confirm signup** email templates to carry `{{ .Token }}`
-instead of a link (a first-time address gets the Confirm signup email).
+instead of a link (a first-time address gets the Confirm signup email). Set the
+**Email OTP Length** to 10 and the **Email OTP Expiration** to 900 seconds
+(Authentication > Sign In / Providers > Email): Supabase limits how often codes
+are checked only per IP, and every check through the sign-in comes from
+Netlify's, so a long code that lives fifteen minutes is what keeps it from
+being guessed.
 Microsoft is Supabase's Azure provider, set
 up from the Entra app registration "RenewaBlox Atlas" (any Entra tenant plus
 personal Microsoft accounts; the `email` and `xms_edov` optional claims, on
