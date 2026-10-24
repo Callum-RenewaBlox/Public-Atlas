@@ -550,7 +550,10 @@ that would place the network without naming it (not the energy centres' plant,
 nor where their heat pump takes its heat from). Its cover, `ihn-cover.jpg`, is
 the owner's render of the block with the plant room cut away beneath it, framed
 whole at 16:9 (the empty margin above and below trimmed, its dark ground carried
-out to the sides) and saved with no metadata.
+out to the sides) and saved with no metadata. The build addresses each card's
+image by its content (`?v=` and a hash of the file, in `merge_front`), so a
+cover replaced under the same name reaches visitors at once, rather than after
+the week browsers may keep `/assets/`.
 
 Build and look at it locally:
 

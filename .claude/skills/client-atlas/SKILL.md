@@ -54,7 +54,10 @@ the client atlas markers. It comes after the existing site cards and before the 
 - Cover `atlas/front/<code>-cover.jpg`:
   - a frame of the site's own 3D model in daylight, with every label, HUD, panel and lettered 3D sign hidden;
   - 1280×720, progressive JPEG, quality 82, no EXIF or ICC (Pillow);
-  - look at it before using it, and make it differ from the other covers.
+  - look at it before using it, and make it differ from the other covers;
+  - replacing a cover under the same name is fine: the build addresses each front-page image by its content
+    (`?v=<hash>`, `merge_front` in `atlas/build.py`), so browsers fetch the new one rather than keep the old
+    for the week `/assets/` may be cached.
   - How the earlier covers were shot: serve the repository root, open the model in Playwright's Chromium with
     `--enable-unsafe-swiftshader --use-angle=swiftshader`, use the page's own view hooks (`window.__atlas`,
     `window.__SITING__`, `window.__hn` on Heat Network 3D), hide the DOM except the canvas, hide meshes textured with

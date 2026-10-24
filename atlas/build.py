@@ -477,6 +477,11 @@ def merge_front(dest):
               "put the two marker comments (FRONT_BEGIN, FRONT_END) where the section belongs and build again")
         return
     section = (FRONT / "clients.html").read_text(encoding="utf-8").rstrip("\n")
+    # each image is addressed by its content (?v=), so a cover replaced under the same name is fetched afresh rather
+    # than kept for the week browsers may hold /assets/ (root/_headers); the front page itself is revalidated each time
+    section = re.sub(rf'(src="/{re.escape(FRONT_ASSETS)}/([^"?#]+))"',
+                     lambda m: f'{m.group(1)}?v={hashlib.sha1((FRONT / m.group(2)).read_bytes()).hexdigest()[:10]}"',
+                     section)
     a = text.index(FRONT_BEGIN) + len(FRONT_BEGIN)
     b = text.index(FRONT_END)
     page.write_text(text[:a] + "\n" + section + "\n  " + text[b:], encoding="utf-8")
