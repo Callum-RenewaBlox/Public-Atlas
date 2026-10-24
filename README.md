@@ -548,7 +548,10 @@ the streets around the plant room, the postcode district, the city) belong in
 naming it: not the energy centres' plant, and not where their heat pump takes
 its heat from. Its cover, `ihn-cover.jpg`, is a frame of Heat Network 3D (the
 BLOX hall and the thermal store, never the opening scene, whose imagery and
-streets would place it), taken the same way as SRV's.
+streets would place it), its view set with the model's `window.__hn` hook. Heat
+Network 3D's renderer doesn't keep its drawing buffer, so a plain read of the
+canvas comes back blank: the shot asked for the buffer by wrapping `getContext`
+in an init script, then read the canvas as for SRV's.
 
 Build and look at it locally:
 

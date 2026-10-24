@@ -145,7 +145,7 @@ def client_map(code):
 # the plant room cut away, its view strip and its caveat, as ihn_atlas.html has them. Its bar and its badge are the
 # family's: the RenewaBlox bar in place of the page's own header (whose two buttons go: the badge opens the model, and
 # "How it works" moves into the view strip, where the page's script still finds it by its id), and the badge in the
-# shared style, one line, its chip the 44 px roundel. The page's script still places and docks the badge, measuring it
+# shared style, one line, its chip the 44 px roundel in its white border. The page's script still places and docks the badge, measuring it
 # as drawn.
 IHN_BAR = ("Proposed data-centre plant room · IHN Atlas", "Seward Street plant room, Bunhill heat network, Islington EC1")
 IHN_STYLE = """<style>
@@ -155,7 +155,11 @@ IHN_STYLE = """<style>
 /* the badge as on the other atlases: a 44 px chip with its pulse, a one-line pill, the arrow towards the chip */
 #ihn-badge,#ihn-badge.docked{height:46px;gap:7px}
 #ihn-badge .chipbox,#ihn-badge.docked .chipbox{width:46px;height:46px}
-#ihn-badge .chip,#ihn-badge.docked .chip{inset:auto;left:-1.5px;top:-1.5px;width:44px;height:44px}
+/* the page sizes every box border-box; the roundel is 44 px inside its 2.5 px border and centred on its box, as on
+   the shared map, hover included */
+#ihn-badge .chip,#ihn-badge.docked .chip{box-sizing:content-box;inset:auto;left:50%;top:50%;width:44px;height:44px;
+  transform:translate(-50%,-50%)}
+#ihn-badge:hover .chip{transform:translate(-50%,-50%) scale(1.12)}
 #ihn-badge .ring,#ihn-badge.docked .ring{width:52px;height:52px;margin:-26px 0 0 -26px}
 #ihn-badge .core,#ihn-badge.docked .core{width:44px;height:44px;margin:-22px 0 0 -22px}
 #ihn-badge .cta,#ihn-badge.docked .cta{gap:7px;padding:9px 20px 9px 14px;font:700 12px/1 var(--font)}

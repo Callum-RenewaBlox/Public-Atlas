@@ -33,7 +33,9 @@ site's entry in `CLIENT_MAPS` in `atlas/pages.py` and served by `client_map("<co
 a page still takes the family's bar and badge: the RenewaBlox bar from `client_bar()` (`atlas/client_map/bar.html`,
 the file the shared map takes it from) in place of the page's own header, a header's buttons going (the badge opens
 the model; anything else moves into the page's own controls, keeping any id its script looks up), and the BLOX
-badge restyled to the shared look (44 px chip, pulse, one-line pill, arrow towards the chip). See `ihn_atlas()` in
+badge restyled to the shared look (the 44 px roundel inside a 2.5 px white border, 49 px across and centred on its
+46 px box and its pulse; a one-line pill; the arrow towards the chip). Check the page's `box-sizing`: IHN's is
+border-box, so its chip needs `box-sizing:content-box` to come out the same size. See `ihn_atlas()` in
 `atlas/pages.py`. The card is the same as any other site's.
 
 **Views.** The model page as it comes from upstream, with only the patches `pages.py` needs: a title of
@@ -55,8 +57,11 @@ the client atlas markers. It comes after the existing site cards and before the 
   - look at it before using it, and make it differ from the other covers.
   - How the earlier covers were shot: serve the repository root, open the model in Playwright's Chromium with
     `--enable-unsafe-swiftshader --use-angle=swiftshader`, use the page's own view hooks (`window.__atlas`,
-    `window.__SITING__`), hide the DOM except the canvas, hide meshes textured with a `CanvasTexture`, and read the
-    canvas back with `toDataURL` (SwiftShader is too slow for `page.screenshot` at 1920×1080).
+    `window.__SITING__`, `window.__hn` on Heat Network 3D), hide the DOM except the canvas, hide meshes textured with
+    a `CanvasTexture`, and read the canvas back with `toDataURL` (SwiftShader is too slow for `page.screenshot` at
+    1920×1080). A renderer made without `preserveDrawingBuffer` (Heat Network 3D) reads back blank: ask for it by
+    wrapping `getContext` in an init script, or read inside a `requestAnimationFrame` callback, straight after the
+    page's own render.
 - Paragraph in the house voice, one or two sentences: the scheme's size, its limit or constraint, and what BLOX does
   there. Trace every figure to the site's own pages.
 - Four bullets on what the visitor finds: the map with its badge(s) first, then each view.
