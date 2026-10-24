@@ -1,0 +1,32 @@
+# What atlas.renewablox.com is built from (atlas/build.py), as paths from the repository's root.
+# Netlify builds the site only when one of these changes (atlas/netlify.toml's ignore, tools/netlify-ignore.sh), and
+# the build fails if it reads a file of this repository that isn't covered here (site_inputs.py).
+atlas/
+packs.py
+build_energy_site.py
+site_inputs.py
+# the client atlases and their models
+srv_atlas.html
+srv_atlas_3d_badge.html
+srv_3d_sim.html
+srv_siting_3d.html
+srv_contractor.html
+bryn_atlas.html
+bryn_atlas_3d_badge.html
+bryn_3d_sim.html
+bryn_compute_3d.html
+kld_atlas.html
+kld_hydro_chrome.html
+kld_interactive.html
+ihn_atlas.html
+ihn_heat_chrome.html
+heat_network_3d.html
+kh_atlas.html
+moray_atlas.html
+# the investor packs and the standalone peakers
+investor_demo_home.html
+investor_demo_aus_home.html
+investor_portal_home.html
+peaker_plant_3d.html
+demand_for_constraints_3d.html
+nem_negative_price_atlas.html

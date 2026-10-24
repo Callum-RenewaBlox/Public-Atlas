@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Market Atlas · RenewaBlox Atlas</title>
+<meta name="description" content="The RenewaBlox Market Atlas: 129 anaerobic digestion sites, 1,306 fuelled renewable generators and 57 hydro sites, with Balancing Mechanism tiers and a PPA benchmark.">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32.png">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="stylesheet" href="/assets/atlas.css?v=6a0e7230">
+</head>
+<body>
+<div class="app">
+  <header class="appbar">
+    <a class="brand" href="/" aria-label="RenewaBlox Atlas home"><img src="/assets/logos/renewablox-wordmark-light.png" alt="RenewaBlox" width="146" height="17"><span class="brand__app">Market Atlas</span></a>
+    <nav class="appbar__links" aria-label="Atlas">
+      <a href="/">Atlas home</a>
+      <a class="hide-sm" href="/investors/">Investor Atlas</a>
+      <a class="hide-sm" id="full" href="/market/map/" target="_blank" rel="noopener">Open full screen <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3h4v4M13 3 7.5 8.5M12 9.5V13H3V4h3.5"/></svg></a>
+    </nav>
+  </header>
+  <div class="frame">
+    <div class="loading" id="loading" role="status">
+      <div><div class="spinner"></div><strong>Loading the Market Atlas</strong><noscript>The map needs JavaScript.</noscript></div>
+    </div>
+    <iframe id="atlas" title="RenewaBlox Market Atlas" allow="fullscreen; clipboard-write"></iframe>
+  </div>
+</div>
+<script>
+  (function () {
+    // The map opens where a shared link points (/market/?view=hydro&site=…&theme=night, or a #… view), so its
+    // address is set here, once, rather than in the frame's markup.
+    var map = '/market/map/' + location.search + location.hash;
+    var atlas = document.getElementById('atlas'), full = document.getElementById('full');
+    atlas.src = map;
+    full.href = map;
+    // "Open full screen" opens the view on screen: the map keeps it in its own address (#v=…), read as the link is used.
+    var current = function () {
+      try { var l = atlas.contentWindow.location; if (l.pathname === '/market/map/') full.href = l.pathname + l.search + l.hash; } catch (e) {}
+    };
+    ['mousedown', 'focus', 'click'].forEach(function (t) { full.addEventListener(t, current); });
+    var done = function () { document.getElementById('loading').classList.add('is-done'); };
+    atlas.addEventListener('load', function () { setTimeout(done, 300); });
+    setTimeout(done, 8000);
+  })();
+</script>
+</body>
+</html>

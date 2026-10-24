@@ -1,9 +1,11 @@
 # energy.renewablox.co.uk — the client packs as a static site (build_energy_site.py).
-# Netlify builds on every push to main; the Streamlit apps are untouched by it.
+# Netlify (the renewablox-energy project) builds it on a push to live that changes one of its inputs: every build
+# and deploy costs credits, so the ignore command skips the rest (energy_inputs.txt, tools/netlify-ignore.sh).
 
 [build]
   command = "python3 build_energy_site.py"
   publish = "energy_site"
+  ignore = "bash ./tools/netlify-ignore.sh energy_inputs.txt"
 
 [build.environment]
   PYTHON_VERSION = "3.12"

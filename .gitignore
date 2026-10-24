@@ -2,12 +2,12 @@
 venv/
 __pycache__/
 *.pyc
-.streamlit/secrets.toml
 .DS_Store
 Thumbs.db
 energy_site/
-ai/site/
-.netlify/
 atlas/site/
 atlas/.names
 atlas/.address
+ai/site/
+.netlify/
+atlas/netlify/edge-lib/pages.js
