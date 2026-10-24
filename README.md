@@ -526,8 +526,16 @@ named SRV only and held to the same checks, so its words (the village, the
 farm, the town, the postcode district, the operator) belong in `ATLAS_NAMES`
 too. Its cover, `srv-cover.jpg`, is a frame of the 3D Dispatch Sim with the
 pins off (its labels button) and every panel hidden, read back from the WebGL
-canvas and saved as a JPEG with no metadata. With three sites across, the
-invitation card runs the full width of its row on a desktop screen.
+canvas and saved as a JPEG with no metadata. The invitation card fills out the
+last row when it would leave it short (three across on a desktop, two on a
+tablet), its art one column wide.
+
+**KLD** (`/clients/kld/`, client code `kld`) is the fourth card, named KLD only,
+so its words (the estate, the loch, the river, the area, the nearby villages)
+belong in `ATLAS_NAMES` too. Its cover, `kld-cover.jpg`, is a frame of the 3D
+Revenue Sim from the south-east, with the pins off and every panel hidden,
+taken the same way as SRV's. Its card gives no annual figure: the map gave
+3.5 GWh a year and the model's typical year makes 3.3.
 
 Build and look at it locally:
 

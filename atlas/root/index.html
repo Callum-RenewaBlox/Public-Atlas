@@ -80,6 +80,11 @@
       .cards--clients .card--soon:nth-child(2n+1) { grid-column: 1 / -1; flex-direction: row; }
       .cards--clients .card--soon:nth-child(2n+1) .card__art { flex: 0 0 calc((100% - 24px) / 2); aspect-ratio: auto; min-height: 200px; }
     }
+    /* laid out as a row, its words sit level with the lock, however tall the row */
+    @media (min-width: 721px) {
+      .cards--clients .card--soon .card__body { justify-content: center; }
+      .cards--clients .card--soon .card__cta { margin-top: 0; }
+    }
   </style>
   <section class="section" id="clients">
     <div class="wrap">
@@ -142,6 +147,25 @@
             <div class="card__cta">
               <a class="btn btn--primary" href="/clients/srv/">Open SRV <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
               <a class="btn btn--ghost" href="/clients/srv/?view=3d">3D model</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <img class="card__img" src="/assets/img/clients/kld-cover.jpg" alt="3D render of the KLD hydro scheme: the powerhouse with its turbine, penstock and BLOX racks beside the stream, with the valley beyond" width="1280" height="720" loading="lazy">
+          <div class="card__body">
+            <div class="eyebrow">Run-of-river hydro</div>
+            <h3>KLD</h3>
+            <p>A 999 kW hydro scheme, built but with no grid connection. A BLOX data centre in the powerhouse puts its output to work now, and export can follow later.</p>
+            <ul>
+              <li>The powerhouse on satellite imagery, a badge for the 3D view</li>
+              <li>3D model from intake to tailrace, with the river-cooled BLOX data centre in the powerhouse</li>
+              <li>A hydrological year day by day, or a rainy week hour by hour: the miners following the river</li>
+              <li>Mining revenue as it builds, in a base and a bull case</li>
+            </ul>
+            <div class="card__cta">
+              <a class="btn btn--primary" href="/clients/kld/">Open KLD <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
+              <a class="btn btn--ghost" href="/clients/kld/?view=3d">3D model</a>
             </div>
           </div>
         </article>
