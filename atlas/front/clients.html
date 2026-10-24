@@ -2,6 +2,11 @@
     /* the client atlas: the sites' cards and the invitation, three across (two on a tablet), stacked on a phone */
     @media (max-width: 720px) { .cards--clients { grid-template-columns: 1fr; } }
     .cards--clients .card__img { background: #1b2a33; }
+    /* three across, the invitation alone on its row runs the full width, its art one column wide */
+    @media (min-width: 1021px) {
+      .cards--clients .card--soon:nth-child(3n+1) { grid-column: 1 / -1; flex-direction: row; }
+      .cards--clients .card--soon:nth-child(3n+1) .card__art { flex: 0 0 calc((100% - 48px) / 3); aspect-ratio: auto; min-height: 200px; }
+    }
   </style>
   <section class="section" id="clients">
     <div class="wrap">
@@ -45,6 +50,25 @@
             <div class="card__cta">
               <a class="btn btn--primary" href="/clients/bry/">Open BRY <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
               <a class="btn btn--ghost" href="/clients/bry/?view=3d">3D model</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <img class="card__img" src="/assets/img/clients/srv-cover.jpg" alt="3D render of the SRV site: the BLOX compute container on its slab beside the biogas engine, with the digesters beyond" width="1280" height="720" loading="lazy">
+          <div class="card__body">
+            <div class="eyebrow">Anaerobic digestion</div>
+            <h3>SRV</h3>
+            <p>An AD plant with a 499 kW biogas engine on a constrained 11 kV line. When export prices are low, a 350 kW block of its output runs BLOX compute on site instead.</p>
+            <ul>
+              <li>The plant on satellite imagery, a badge for each 3D view</li>
+              <li>3D model of the site with the BLOX compute in place</li>
+              <li>A real metered year, half hour by half hour: the 350 kW block switching between export and compute</li>
+              <li>The compute kiosk in 3D, in two siting options</li>
+            </ul>
+            <div class="card__cta">
+              <a class="btn btn--primary" href="/clients/srv/">Open SRV <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
+              <a class="btn btn--ghost" href="/clients/srv/?view=3d">3D model</a>
             </div>
           </div>
         </article>

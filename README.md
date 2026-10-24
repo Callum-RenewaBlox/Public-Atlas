@@ -522,6 +522,14 @@ no metadata). The pages behind the sign-in name the site; `/clients/bryn/`, its
 address for a day, redirects there once signed in. The code keeps the website
 from naming the client in public; this repository names it throughout.
 
+**SRV** (`/clients/srv/`, client code `srv`) is the front page's third card,
+named SRV only and held to the same checks, so its words (the village, the
+farm, the town, the postcode district, the operator) belong in `ATLAS_NAMES`
+too. Its cover, `srv-cover.jpg`, is a frame of the 3D Dispatch Sim with the
+pins off (its labels button) and every panel hidden, read back from the WebGL
+canvas and saved as a JPEG with no metadata. With three sites across, the
+invitation card runs the full width of its row on a desktop screen.
+
 Build and look at it locally:
 
     python atlas/build.py
