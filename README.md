@@ -541,6 +541,15 @@ Revenue Sim from the south-east, with the pins off and every panel hidden,
 taken the same way as SRV's. Its card gives no annual figure: the map gave
 3.5 GWh a year and the model's typical year makes 3.3.
 
+**IHN** (`/clients/ihn/`, client code `ihn`) is the fifth card, under the
+eyebrow "Heat network", named IHN only, so its words (the borough, the network,
+the streets around the plant room, the postcode district, the city) belong in
+`ATLAS_NAMES` too. Its card says nothing that would place the network without
+naming it: not the energy centres' plant, and not where their heat pump takes
+its heat from. Its cover, `ihn-cover.jpg`, is a frame of Heat Network 3D (the
+BLOX hall and the thermal store, never the opening scene, whose imagery and
+streets would place it), taken the same way as SRV's.
+
 Build and look at it locally:
 
     python atlas/build.py
