@@ -22,7 +22,13 @@
    Microsoft is Supabase's Azure provider (Authentication > Sign In / Providers > Azure): the Entra app registration
    "RenewaBlox Atlas" (any Entra tenant + personal Microsoft accounts, the email and xms_edov optional claims), its client
    ID and secret value, and the tenant URL left blank. The secret expires; when it does, Microsoft sign-in fails until a
-   new one is pasted in. Either way in, access is the verified address checked against public.atlas_access.
+   new one is pasted in.
+   The fallback for anyone without either account, or whose organisation blocks the Microsoft app, is a one-time code
+   sent by email (/access/email): Supabase's email OTP, typed in on the page, so it works when the email is read on
+   another device. It needs, in Supabase: custom SMTP (Authentication > Emails > SMTP Settings; the built-in sender
+   only reaches the project's own team), and the Magic Link and Confirm signup templates carrying {{ .Token }}, not a
+   link (a first-time address gets the Confirm signup email). Every way in, access is the verified address checked
+   against public.atlas_access.
 
    The pages, their ?view= routes and their security policies come from the build (atlas/build.py writes
    ../edge-lib/pages.js). Netlify's _headers rules don't reach responses that pass through an edge function, so every
@@ -32,6 +38,8 @@ import { PAGES, CSP, REDIRECTS } from '../edge-lib/pages.js';
 
 const SESSION_COOKIE = 'rbx_atlas';
 const STATE_COOKIE = 'rbx_atlas_signin';
+const CODE_COOKIE = 'rbx_atlas_code';
+const CODE_SECONDS = 15 * 60;             // how long the code page waits for the code (Supabase's own expiry also applies)
 const SESSION_SECONDS = 30 * 24 * 3600;   // how long a sign-in lasts
 const ACCESS_SECONDS = 10 * 60;           // how old the access may be before a page asks Supabase again
 const STALE_SECONDS = 24 * 3600;          // if Supabase can't be reached, how old an answer may still be trusted
@@ -57,7 +65,7 @@ const GATED_HEADERS = {
 const PAGE_HEADERS = {
   'content-type': 'text/html; charset=utf-8',
   'content-security-policy': "default-src 'none'; script-src 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; " +
-    "font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+    "font-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'",
   'x-robots-tag': 'noindex, nofollow',
   'x-content-type-options': 'nosniff',
   'referrer-policy': 'same-origin',
@@ -78,6 +86,8 @@ export default async (request, context) => {
   if (url.pathname === '/access/start') return start(url, cfg);
   if (url.pathname === '/access/callback') return callback(request, url, cfg);
   if (url.pathname === '/access/sign-out') return signOut();
+  if (url.pathname === '/access/email') return request.method === 'POST' ? sendCode(request, cfg) : emailPage(url);
+  if (url.pathname === '/access/email/code' && request.method === 'POST') return checkCode(request, cfg);
   if (url.pathname.startsWith('/access/')) return page(404, 'That page isn&rsquo;t here', 'Head back to Atlas.', { href: '/', label: 'Back to Atlas' });
 
   let session = await unseal(readCookie(request, SESSION_COOKIE), 'session', cfg);
@@ -176,7 +186,8 @@ function signInPage(url) {
     'This page is shared privately. Sign in with the account for the address it was shared with: Google for Gmail or ' +
     'Google Workspace, Microsoft for Outlook, Hotmail, Live or Microsoft&nbsp;365.',
     Object.entries(PROVIDERS).map(([p, v]) => ({ href: `/access/start?p=${p}&r=${r}`, label: v.label })),
-    `<script>try{sessionStorage.setItem('rbx.atlas.hash',location.hash||'')}catch(e){}</script>`);
+    `<script>try{sessionStorage.setItem('rbx.atlas.hash',location.hash||'')}catch(e){}</script>`,
+    { href: `/access/email?r=${r}`, label: 'No Google or Microsoft account, or can&rsquo;t sign in? Get a code by email' });
 }
 
 async function start(url, cfg) {
@@ -212,6 +223,12 @@ async function callback(request, url, cfg) {
     return page(403, 'That account can&rsquo;t be used here',
       'Sign in with a Google or Microsoft account whose address the provider has verified.', retry, '', null, [clearState]);
   }
+  return finish(tokens, email, st.r, cfg, clearState);
+}
+
+// Signed in as a verified address: Supabase says what it may open, and the session starts (or not).
+async function finish(tokens, email, r, cfg, clearState) {
+  const retry = { href: '/access/?r=' + encodeURIComponent(r), label: 'Try again' };
   const access = await myAccess(tokens.access_token, cfg);
   if (!access) {
     return page(503, 'We can&rsquo;t check your access just now', 'The sign-in service didn&rsquo;t answer. Try again in a minute.', retry, '', null, [clearState]);
@@ -219,14 +236,90 @@ async function callback(request, url, cfg) {
   if (!access.length) {
     return page(403, 'Nothing is shared with this account',
       `No page on Atlas is shared with ${esc(email)}. Sign in with the address RenewaBlox shared the page with, or ask for this one to be added.`,
-      { href: '/access/?r=' + encodeURIComponent(st.r), label: 'Use a different account' }, '', null, [clearState]);
+      { href: '/access/?r=' + encodeURIComponent(r), label: 'Use a different account' }, '', null, [clearState]);
   }
   const session = { t: 'session', e: email, a: access, r: tokens.refresh_token, c: now(), x: now() + SESSION_SECONDS };
   // a page, not a redirect, so the #fragment kept at the sign-in page can be put back on the address
-  return page(200, 'Signed in', 'Opening the page&hellip;', { href: st.r, label: 'Open it' },
+  return page(200, 'Signed in', 'Opening the page&hellip;', { href: r, label: 'Open it' },
     `<script>var h='';try{h=sessionStorage.getItem('rbx.atlas.hash')||'';sessionStorage.removeItem('rbx.atlas.hash')}catch(e){}` +
-    `location.replace(${JSON.stringify(st.r)}+(/^#[\\w\\-.~%=&,;:+\\/?!]*$/.test(h)?h:''))</script>`, null,
+    `location.replace(${JSON.stringify(r)}+(/^#[\\w\\-.~%=&,;:+\\/?!]*$/.test(h)?h:''))</script>`, null,
     [clearState, cookie(SESSION_COOKIE, await seal(session, cfg), '/', SESSION_SECONDS)]);
+}
+
+/* ---- the fallback: a one-time code by email ---- */
+
+const EMAIL_RE = /^[^\s@<>"']{1,64}@[A-Za-z0-9.-]{1,190}\.[A-Za-z]{2,}$/;
+
+function emailForm(r, value = '') {
+  return `<form method="post" action="/access/email" style="margin:0 auto 18px;max-width:340px;display:grid;gap:10px">
+<input type="hidden" name="r" value="${esc(r)}"><input name="email" type="email" autocomplete="email" required maxlength="254"
+value="${esc(value)}" placeholder="Your email address" aria-label="Your email address" class="field">
+<button class="btn btn--primary" type="submit">Email me a code</button></form>`;
+}
+function codeForm() {
+  return `<form method="post" action="/access/email/code" style="margin:0 auto 18px;max-width:340px;display:grid;gap:10px">
+<input name="code" inputmode="numeric" autocomplete="one-time-code" required pattern="[0-9 ]{6,12}" maxlength="12"
+placeholder="Code from the email" aria-label="Code from the email" class="field">
+<button class="btn btn--primary" type="submit">Sign in</button></form>`;
+}
+
+function emailPage(url) {
+  const r = safeReturn(url.searchParams.get('r'));
+  return page(200, 'Get a sign-in code by email',
+    'Enter the address the page was shared with. We&rsquo;ll email you a one-time code to type in here.',
+    null, emailForm(r), { href: '/access/?r=' + encodeURIComponent(r), label: 'Back to Google or Microsoft sign-in' });
+}
+
+async function sendCode(request, cfg) {
+  const form = await request.formData().catch(() => null);
+  const r = safeReturn(String((form && form.get('r')) || ''));
+  const email = String((form && form.get('email')) || '').trim().toLowerCase();
+  const back = { href: '/access/?r=' + encodeURIComponent(r), label: 'Back to Google or Microsoft sign-in' };
+  if (email.length > 254 || !EMAIL_RE.test(email)) {
+    return page(400, 'Check the address', 'That doesn&rsquo;t look like an email address. Try again.', null, emailForm(r, email), back);
+  }
+  const sent = await supabase(cfg, '/auth/v1/otp', { email, create_user: true }, true);
+  if (sent === 'busy') {
+    return page(429, 'A code was sent a moment ago',
+      'Check your inbox (and spam) for it, or wait a minute and ask for another.', null, emailForm(r, email), back);
+  }
+  if (!sent || sent === 'refused') {
+    return page(503, 'We couldn&rsquo;t send the code just now', 'Try again in a minute, or use Google or Microsoft sign-in.', null, emailForm(r, email), back);
+  }
+  const st = await seal({ t: 'code', e: email, r, x: now() + CODE_SECONDS }, cfg);
+  return page(200, 'Check your email',
+    `We&rsquo;ve sent a sign-in code to ${esc(email)}. It can take a minute to arrive; check spam if it doesn&rsquo;t. Type it in below.`,
+    null, codeForm(), { href: '/access/email?r=' + encodeURIComponent(r), label: 'Send a new code, or use a different address' },
+    [cookie(CODE_COOKIE, st, '/access', CODE_SECONDS)]);
+}
+
+async function checkCode(request, cfg) {
+  const clearCode = cookie(CODE_COOKIE, '', '/access', 0);
+  const st = await unseal(readCookie(request, CODE_COOKIE), 'code', cfg);
+  if (!st || typeof st.e !== 'string') {
+    return page(400, 'That code has expired', 'Ask for a new code and use it within fifteen minutes, in this browser.', null,
+      emailForm('/clients/'), null, [clearCode]);
+  }
+  const form = await request.formData().catch(() => null);
+  const code = String((form && form.get('code')) || '').replace(/\s+/g, '');
+  const again = { href: '/access/email?r=' + encodeURIComponent(st.r), label: 'Send a new code' };
+  if (!/^[0-9]{6,10}$/.test(code)) {
+    return page(400, 'Check the code', 'The code is the number in the email. Type it in again.', null, codeForm(), again);
+  }
+  const tokens = await supabase(cfg, '/auth/v1/verify', { type: 'email', email: st.e, token: code }, true);
+  if (tokens === 'refused' || tokens === 'busy') {
+    return page(401, 'That code isn&rsquo;t right', 'It may be mistyped or expired. Try again, or ask for a new one.', null, codeForm(), again);
+  }
+  if (!tokens || !tokens.access_token || !tokens.refresh_token) {
+    return page(503, 'We can&rsquo;t check the code just now', 'The sign-in service didn&rsquo;t answer. Try again in a minute.', null, codeForm(), again);
+  }
+  const u = tokens.user || {};
+  const email = String(u.email || '').toLowerCase();
+  // the code proves the address; Supabase also marks it confirmed
+  if (email !== st.e || !(u.email_confirmed_at || u.confirmed_at)) {
+    return page(403, 'That code can&rsquo;t be used here', 'Ask for a new code and try again.', again, '', null, [clearCode]);
+  }
+  return finish(tokens, email, st.r, cfg, clearCode);
 }
 
 function signOut() {
@@ -264,7 +357,8 @@ async function supabase(cfg, endpoint, body, refusals = false, bearer = '') {
       signal: AbortSignal.timeout(SUPABASE_TIMEOUT_MS) });
     if (!res.ok) {
       console.error(`Atlas sign-in: Supabase ${endpoint.split('?')[0]} answered ${res.status}`);
-      return refusals && [400, 401, 403].includes(res.status) ? 'refused' : null;
+      if (refusals && res.status === 429) return 'busy';
+      return refusals && [400, 401, 403, 422].includes(res.status) ? 'refused' : null;
     }
     return await res.json();
   } catch (err) {
@@ -411,7 +505,8 @@ function page(status, title, textHtml, action, extra = '', secondary = null, coo
 <link rel="stylesheet" href="/assets/atlas.css?v=6a0e7230">
 <style>.guard .list{list-style:none;margin:18px 0 0;padding:0;text-align:left}.guard .list li{margin:0 0 8px}
 .guard .list a{display:block;padding:12px 16px;border:1px solid rgba(18,71,94,.18);border-radius:12px;text-decoration:none;font-weight:600}
-.guard .sub{display:block;margin-top:14px;font-size:14px}.guard .btn+br+.btn{margin-top:10px}</style></head>
+.guard .sub{display:block;margin-top:14px;font-size:14px}.guard .btn+br+.btn{margin-top:10px}
+.guard .field{font:inherit;padding:12px 14px;border:1px solid rgba(255,255,255,.28);border-radius:12px;background:#fff;color:#0d1b23}</style></head>
 <body><div class="guard"><div><img src="/assets/logos/renewablox-wordmark-dark.png" alt="RenewaBlox" width="175" height="20" style="margin:0 auto">
 <h1>${title}</h1><p>${textHtml}</p>${extra.startsWith('<script') ? '' : extra}
 ${[].concat(action || []).map(a => `<a class="btn btn--primary" href="${esc(a.href)}">${a.label}</a>`).join('<br>')}

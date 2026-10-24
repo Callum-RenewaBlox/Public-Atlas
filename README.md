@@ -456,7 +456,13 @@ Reabold maps) and `citygate`; the address is stored in lower case. A client
 signs in with Google (a Gmail or Google Workspace address) or Microsoft (a
 personal Outlook, Hotmail or Live address, or a Microsoft 365 work one); either
 way the address must be one the provider has verified, and it is the address
-that is checked, not the provider. Microsoft is Supabase's Azure provider, set
+that is checked, not the provider. As a fallback, the sign-in page also offers a
+one-time code by email (`/access/email`): the client types their address, gets a
+code and types it in, so it works for any address and on any device. This needs
+custom SMTP in Supabase (Authentication > Emails > SMTP Settings; the built-in
+sender only reaches the project's own team) and the **Magic Link** and **Confirm
+signup** email templates to carry `{{ .Token }}` instead of a link (a
+first-time address gets the Confirm signup email). Microsoft is Supabase's Azure provider, set
 up from the Entra app registration "RenewaBlox Atlas" (any Entra tenant plus
 personal Microsoft accounts; the `email` and `xms_edov` optional claims). Its
 client secret expires: renew it in Entra and paste the new value into Supabase
