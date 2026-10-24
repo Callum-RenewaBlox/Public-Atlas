@@ -63,7 +63,11 @@ the client atlas markers. It comes after the existing site cards and before the 
     wrapping `getContext` in an init script, or read inside a `requestAnimationFrame` callback, straight after the
     page's own render.
 - Paragraph in the house voice, one or two sentences: the scheme's size, its limit or constraint, and what BLOX does
-  there. Trace every figure to the site's own pages.
+  there. Trace every figure to the site's own pages. Leave out any figure that is commercially confidential, or that
+  gives one away (a heat network's demand, or the share of it BLOX meets: IHN's card gives no figures at all); when
+  unsure, leave the figure out and say so to the owner.
+- If the owner supplies the cover, use it as given: trim only empty margin, frame it whole at 16:9 (carry its own
+  ground out to the sides rather than crop the subject), save it as above and look for text or metadata all the same.
 - Four bullets on what the visitor finds: the map with its badge(s) first, then each view.
 - Buttons: "Open <CODE>" → `/clients/<code>/`, and "3D model" → `/clients/<code>/?view=3d`.
 - The grid is three across. The invitation card stretches to fill its row when it would sit short of one (the

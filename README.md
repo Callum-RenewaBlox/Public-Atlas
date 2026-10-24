@@ -544,14 +544,13 @@ taken the same way as SRV's. Its card gives no annual figure: the map gave
 **IHN** (`/clients/ihn/`, client code `ihn`) is the fifth card, under the
 eyebrow "Heat network", named IHN only, so its words (the borough, the network,
 the streets around the plant room, the postcode district, the city) belong in
-`ATLAS_NAMES` too. Its card says nothing that would place the network without
-naming it: not the energy centres' plant, and not where their heat pump takes
-its heat from. Its cover, `ihn-cover.jpg`, is a frame of Heat Network 3D (the
-BLOX hall and the thermal store, never the opening scene, whose imagery and
-streets would place it), its view set with the model's `window.__hn` hook. Heat
-Network 3D's renderer doesn't keep its drawing buffer, so a plain read of the
-canvas comes back blank: the shot asked for the buffer by wrapping `getContext`
-in an init script, then read the canvas as for SRV's.
+`ATLAS_NAMES` too. Its card gives no figures at all: the network's demand, and
+the share of it the data centre meets, are confidential, and it says nothing
+that would place the network without naming it (not the energy centres' plant,
+nor where their heat pump takes its heat from). Its cover, `ihn-cover.jpg`, is
+the owner's render of the block with the plant room cut away beneath it, framed
+whole at 16:9 (the empty margin above and below trimmed, its dark ground carried
+out to the sides) and saved with no metadata.
 
 Build and look at it locally:
 
