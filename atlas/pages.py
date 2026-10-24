@@ -110,21 +110,76 @@ CLIENT_MAPS = {
 }
 
 
+def client_bar(kick, place):
+    """The RenewaBlox bar every client atlas opens under (atlas/client_map/bar.html), as (its stylesheet, for the
+    page's head; the bar, for the top of its body): the wordmark, then the kick ("what is proposed · CODE Atlas") over
+    the site's name and place."""
+    what = "atlas/client_map/bar.html"
+    style, bar = (CLIENT_MAP / "bar.html").read_text(encoding="utf-8").split("<!-- bar -->\n")
+    kick = re.sub(r"\b([kMG]Wh?|kV)\b", r'<span class="u">\1</span>', html.escape(kick))  # 999 kW, not KW
+    for key, value in (("WORDMARK", png_data(CLIENT_MAP / "wordmark.png")), ("KICK", kick), ("PLACE", html.escape(place))):
+        bar = once(bar, f"%%{key}%%", value, what)
+    return style.rstrip("\n"), bar.rstrip("\n")
+
+
+def png_data(path):
+    return "data:image/png;base64," + base64.b64encode(path.read_bytes()).decode("ascii")
+
+
 def client_map(code):
     """The opening page of /clients/<code>/: atlas/client_map/map.html filled in from the site's entry in CLIENT_MAPS."""
     site, what = CLIENT_MAPS[code], "atlas/client_map/map.html"
     badged, views = sorted(b["view"] for b in site["badges"]), sorted(CLIENT_PAGES[f"/clients/{code}/"].get("views", {}))
     if badged != views:
         raise PageError(f"{what}: {code} needs a badge for each of its views, and no other (badges {badged}, views {views})")
-    image = lambda name: "data:image/png;base64," + base64.b64encode((CLIENT_MAP / name).read_bytes()).decode("ascii")
+    style, bar = client_bar(site["kick"], site["place"])
     config = {"at": site["at"], "zoom": site["zoom"], "nativeZoom": site.get("nativeZoom", 19), "badges": site["badges"]}
     page = (CLIENT_MAP / "map.html").read_text(encoding="utf-8")
-    kick = re.sub(r"\b([kMG]Wh?|kV)\b", r'<span class="u">\1</span>', html.escape(site["kick"]))  # 999 kW, not KW
-    for key, value in (("TITLE", html.escape(site["title"])), ("KICK", kick),
-                       ("PLACE", html.escape(site["place"])), ("SITE", json.dumps(config, ensure_ascii=False)),
-                       ("WORDMARK", image("wordmark.png")), ("CHIP", image("blox-chip.png"))):
+    for key, value in (("TITLE", html.escape(site["title"])), ("BAR_STYLE", style), ("BAR", bar),
+                       ("SITE", json.dumps(config, ensure_ascii=False)), ("CHIP", png_data(CLIENT_MAP / "blox-chip.png"))):
         page = once(page, f"%%{key}%%", value, what)
     return page
+
+
+# IHN keeps its opening page by the owner's word: the three.js scene of the district with the network, its callouts and
+# the plant room cut away, its view strip and its caveat, as ihn_atlas.html has them. Its bar and its badge are the
+# family's: the RenewaBlox bar in place of the page's own header (whose two buttons go: the badge opens the model, and
+# "How it works" moves into the view strip, where the page's script still finds it by its id), and the badge in the
+# shared style, one line, its chip the 44 px roundel. The page's script still places and docks the badge, measuring it
+# as drawn.
+IHN_BAR = ("Proposed data-centre plant room · IHN Atlas", "Seward Street plant room, Bunhill heat network, Islington EC1")
+IHN_STYLE = """<style>
+/* ---- the IHN Atlas in the family's bar and badge (atlas/pages.py, ihn_atlas) ---- */
+/* the bar takes its place above the scene, as the page's own header did, rather than floating over it */
+#rbx-bar{position:relative;flex:none;z-index:6}
+/* the badge as on the other atlases: a 44 px chip with its pulse, a one-line pill, the arrow towards the chip */
+#ihn-badge,#ihn-badge.docked{height:46px;gap:7px}
+#ihn-badge .chipbox,#ihn-badge.docked .chipbox{width:46px;height:46px}
+#ihn-badge .chip,#ihn-badge.docked .chip{inset:auto;left:-1.5px;top:-1.5px;width:44px;height:44px}
+#ihn-badge .ring,#ihn-badge.docked .ring{width:52px;height:52px;margin:-26px 0 0 -26px}
+#ihn-badge .core,#ihn-badge.docked .core{width:44px;height:44px;margin:-22px 0 0 -22px}
+#ihn-badge .cta,#ihn-badge.docked .cta{gap:7px;padding:9px 20px 9px 14px;font:700 12px/1 var(--font)}
+#ihn-badge .cta b{font:inherit;letter-spacing:.015em}
+#ihn-badge.flip .cta{padding:9px 14px 9px 20px}
+#ihn-badge.flip .cta i{order:-1;transform:scaleX(-1)}
+#ihn-badge.flip:hover .cta i{transform:scaleX(-1) translateX(3px)}
+</style>"""
+
+
+def ihn_atlas(page):
+    """IHN's opening page with the family's bar and badge (IHN_STYLE says what changes and why)."""
+    what = "ihn_atlas.html"
+    page = once(page, "<title>RenewaBlox — IHN Atlas</title>", f"<title>{CLIENT_PAGES['/clients/ihn/']['title']}</title>", what)
+    style, bar = client_bar(*IHN_BAR)
+    page = once(page, "</head>", f"{style}\n{IHN_STYLE}\n</head>", what)
+    head = re.findall(r"<header>\n  <div class=\"logo\">.*?</header>\n", page, flags=re.S)
+    if len(head) != 1 or 'id="btn-about"' not in head[0]:
+        raise PageError(f"{what}: expected one <header> holding the How it works button, found {len(head)}")
+    page = once(page, head[0], bar + "\n", what)
+    page = once(page, '<button class="chip" type="button" id="btn-layers">Layers</button>',
+                '<button class="chip" type="button" id="btn-layers">Layers</button>'
+                '<button class="chip" type="button" id="btn-about">How it works</button>', what)
+    return once(page, "<span>half-hourly dispatch model of this plant room</span>", "", what)
 
 
 def client_pages():
@@ -187,9 +242,9 @@ def client_pages():
     page = once(page, "  #stage{background:#0d1b23}", "  #stage{background:#0d1b23}\n  html{overflow:hidden}", "kld_hydro_chrome.html")
     out["clients/kld/3d.html"] = noindex(top_level_nav(page, "kld_hydro_chrome.html"), "kld_interactive.html")
 
-    # IHN: the heat network. The 3D view is the shared Heat Network 3D with the IHN chrome spliced in.
-    page = once(source("ihn_atlas.html"), "<title>RenewaBlox — IHN Atlas</title>", "<title>IHN Atlas</title>", "ihn_atlas.html")
-    out["clients/ihn/index.html"] = noindex(top_level_nav(page, "ihn_atlas.html"), "ihn_atlas.html")
+    # IHN: the heat network. Its opening page keeps its own scene (ihn_atlas below); the 3D view is the shared Heat
+    # Network 3D with the IHN chrome spliced in.
+    out["clients/ihn/index.html"] = noindex(top_level_nav(ihn_atlas(source("ihn_atlas.html")), "ihn_atlas.html"), "ihn_atlas.html")
     chrome = top_level_nav(source("ihn_heat_chrome.html"), "ihn_heat_chrome.html")
     page = splice(source("heat_network_3d.html"), chrome, "heat_network_3d.html")
     page = once(page, "<title>RenewaBlox — Heat Network 3D</title>", "<title>IHN Atlas — Heat Network 3D</title>", "heat_network_3d.html")
@@ -233,7 +288,7 @@ CLIENT_PAGES = {
     "/clients/bry/": {"client": "bry", "title": "Bryn Atlas — Bryn Power AD plant", "list": True,
                       "views": {"3d": "bryn_3d_sim.html", "compute": "bryn_compute_3d.html"}},
     "/clients/kld/": {"client": "kld", "title": "KLD Atlas — Kinlochdamph", "list": True, "views": {"3d": "3d.html"}},
-    "/clients/ihn/": {"client": "ihn", "title": "IHN Atlas", "list": True, "views": {"3d": "3d.html"}},
+    "/clients/ihn/": {"client": "ihn", "title": "IHN Atlas — Islington heat network", "list": True, "views": {"3d": "3d.html"}},
     "/clients/reabold/west-newton/": {"client": "reabold", "title": "West Newton infrastructure map", "list": True},
     "/clients/reabold/reservoirs/": {"client": "reabold", "title": "UKCS reservoir atlas (prototype)", "list": True},
     "/clients/citygate/": {"client": "citygate", "title": "Citygate Church · Electricity Portrait", "list": True},

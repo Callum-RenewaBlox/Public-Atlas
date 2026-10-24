@@ -1,0 +1,44 @@
+<style>
+/* ---------------------------------------------------------- the RenewaBlox bar --
+   The same on every client atlas (atlas/client_map/bar.html; client_bar() in atlas/pages.py puts this stylesheet in
+   the page's head and the bar at the top of its body). Its tokens and type are its own, so a page's own rules can't
+   change it. A page that lays out under it, rather than under a map it floats over, sets #rbx-bar{position:relative}. */
+#rbx-bar{
+  --b-brand:#12475e; --b-accent-l:#3a89ae; --b-site:#2e9e4f; --b-muted:#6a7a83; --b-line:#dfe8ed;
+  --b-glass:rgba(255,255,255,.94);
+  --b-font:"Inter","Inter var",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  position:absolute;top:0;left:0;right:0;height:56px;z-index:1200;box-sizing:border-box;
+  display:flex;align-items:center;gap:14px;padding:0 16px;
+  font:400 14px var(--b-font);letter-spacing:normal;color:var(--b-brand);white-space:normal;text-align:left;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  background:var(--b-glass);-webkit-backdrop-filter:blur(14px) saturate(1.7);
+  backdrop-filter:blur(14px) saturate(1.7);
+  border-bottom:1px solid var(--b-line);box-shadow:0 1px 6px rgba(9,26,35,.14);
+  transition:opacity .35s ease;
+}
+/* zoomed in on a map, the bar recedes so it never covers site detail; hover restores it */
+#rbx-bar.dim{opacity:.22}
+#rbx-bar.dim:hover{opacity:1}
+#rbx-bar::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;
+  background:linear-gradient(90deg,var(--b-brand),var(--b-accent-l) 55%,var(--b-site))}
+#rbx-bar .logo{height:22px;width:auto;display:block;flex:0 0 auto}
+#rbx-bar .div{width:1px;height:26px;background:var(--b-line);flex:0 0 auto}
+#rbx-bar .txt{min-width:0}
+#rbx-bar .kick{font-weight:700;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--b-muted)}
+#rbx-bar .kick .u{text-transform:none} /* a unit keeps its case in the capitals */
+#rbx-bar .ttl{font-weight:700;font-size:14px;color:var(--b-brand);line-height:1.2;letter-spacing:-.005em}
+/* on a phone the bar keeps one line: the wordmark and the site, cut short if it must be */
+@media (max-width:620px){
+  #rbx-bar{gap:10px;padding:0 12px}
+  #rbx-bar .logo{height:17px}
+  #rbx-bar .kick{display:none}
+  #rbx-bar .ttl{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}
+</style>
+<!-- bar -->
+<div id="rbx-bar">
+<img class="logo" src="%%WORDMARK%%" alt="RenewaBlox">
+<div class="div"></div>
+<div class="txt"><div class="kick">%%KICK%%</div>
+<div class="ttl">%%PLACE%%</div></div>
+</div>

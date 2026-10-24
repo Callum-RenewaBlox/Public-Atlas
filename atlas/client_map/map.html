@@ -11,7 +11,7 @@
 /* ===================================================================
    RenewaBlox client atlas — the opening page every client map shares
    (atlas/client_map/, filled in by atlas/pages.py from CLIENT_MAPS):
-   the RenewaBlox bar, the site on satellite imagery, and a BLOX badge
+   the RenewaBlox bar (bar.html), the site on satellite imagery, and a BLOX badge
    for each 3D view. Nothing else is drawn on the map.
    =================================================================== */
 :root{
@@ -25,38 +25,10 @@
 html,body{margin:0;height:100%;font-family:var(--font);color:var(--ink-2);
   -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
 #map{position:absolute;inset:0;background:#0d1b23}
-/* keep Leaflet's top controls clear of the overlaying brand bar */
+/* keep Leaflet's top controls clear of the RenewaBlox bar over the map (atlas/client_map/bar.html) */
 .leaflet-top{top:56px}
 *:focus{outline:none}
 *:focus-visible{outline:2px solid var(--accent-l);outline-offset:2px;border-radius:4px}
-
-/* ---------------------------------------------------------- brand bar -- */
-#brand{
-  position:absolute;top:0;left:0;right:0;height:56px;z-index:1200;box-sizing:border-box;
-  display:flex;align-items:center;gap:14px;padding:0 16px;
-  background:var(--glass);-webkit-backdrop-filter:blur(14px) saturate(1.7);
-  backdrop-filter:blur(14px) saturate(1.7);
-  border-bottom:1px solid var(--line);box-shadow:0 1px 6px rgba(9,26,35,.14);
-  transition:opacity .35s ease;
-}
-/* zoomed in, the bar recedes so it never covers site detail; hover restores it */
-#brand.dim{opacity:.22}
-#brand.dim:hover{opacity:1}
-#brand::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;
-  background:linear-gradient(90deg,var(--brand),var(--accent-l) 55%,var(--site))}
-#brand .logo{height:22px;width:auto;display:block;flex:0 0 auto}
-#brand .div{width:1px;height:26px;background:var(--line);flex:0 0 auto}
-#brand .txt{min-width:0}
-#brand .kick{font-weight:700;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
-#brand .kick .u{text-transform:none} /* a unit keeps its case in the capitals */
-#brand .ttl{font-weight:700;font-size:14px;color:var(--brand);line-height:1.2;letter-spacing:-.005em}
-/* on a phone the bar keeps one line: the wordmark and the site, cut short if it must be */
-@media (max-width:620px){
-  #brand{gap:10px;padding:0 12px}
-  #brand .logo{height:17px}
-  #brand .kick{display:none}
-  #brand .ttl{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-}
 
 /* ------------------------------------------------------ map furniture -- */
 .leaflet-container{font-family:var(--font);background:#0d1b23}
@@ -128,14 +100,10 @@ html,body{margin:0;height:100%;font-family:var(--font);color:var(--ink-2);
   .b3d-badge.nudge .cta{animation:none}
 }
 </style>
+%%BAR_STYLE%%
 </head>
 <body>
-<div id="brand">
-<img class="logo" src="%%WORDMARK%%" alt="RenewaBlox">
-<div class="div"></div>
-<div class="txt"><div class="kick">%%KICK%%</div>
-<div class="ttl">%%PLACE%%</div></div>
-</div>
+%%BAR%%
 <div id="map"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -198,7 +166,7 @@ SITE.badges.forEach(function (b, i) {
 
 /* the brand bar recedes once the visitor is zoomed into site detail */
 (function () {
-  const bar = document.getElementById('brand');
+  const bar = document.getElementById('rbx-bar');
   const sync = function () { bar.classList.toggle('dim', map.getZoom() >= 19); };
   map.on('zoomend', sync); sync();
 })();

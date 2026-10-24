@@ -29,6 +29,13 @@ site's entry in `CLIENT_MAPS` in `atlas/pages.py` and served by `client_map("<co
   panels, caveat boxes or extra buttons. Don't cut or patch the source's map to get there; leave it in the repo for
   its Streamlit app and take it out of `atlas/inputs.txt` once nothing reads it.
 
+**Owner's exceptions.** Only the owner can let a site keep its own opening page (IHN, for its heat network scene). Such
+a page still takes the family's bar and badge: the RenewaBlox bar from `client_bar()` (`atlas/client_map/bar.html`,
+the file the shared map takes it from) in place of the page's own header, a header's buttons going (the badge opens
+the model; anything else moves into the page's own controls, keeping any id its script looks up), and the BLOX
+badge restyled to the shared look (44 px chip, pulse, one-line pill, arrow towards the chip). See `ihn_atlas()` in
+`atlas/pages.py`. The card is the same as any other site's.
+
 **Views.** The model page as it comes from upstream, with only the patches `pages.py` needs: a title of
 "<CODE> Atlas — <view name>", `top_level_nav`, and an "Atlas" control back to the map. Never bake atlas chrome into
 a model that's shared with other pages (`kld_interactive.html` and `heat_network_3d.html` serve four surfaces): put
@@ -112,8 +119,7 @@ the client atlas markers. It comes after the existing site cards and before the 
 | BRY | its own (`bryn_atlas.html` + badge layer): numbered labels, a teal fan chip, caveat | yes |
 | SRV | shared | yes |
 | KLD | shared | yes |
-| IHN | its own three.js satellite scene | not yet |
+| IHN | its own three.js scene, by the owner's word, under the shared bar and badge | yes |
 
 BRY and BLN are off the standard and wait on the owner's word. A site whose source opens on something other than
-a map (IHN's scene) still gets the shared map; ask whether its scene becomes a view or goes. Update this table when
-a site changes.
+a map gets the shared map unless the owner says otherwise (as for IHN); ask. Update this table when a site changes.
