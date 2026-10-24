@@ -453,13 +453,20 @@ security), add a row for the address they sign in with in Supabase's SQL editor:
     values ('name@example.com', 'srv', 'SRV Atlas for the farm manager');
 
 The codes are `srv`, `srv-contractor`, `bryn`, `kld`, `ihn`, `reabold` (both
-Reabold maps) and `citygate`; the address is stored in lower case. A client
+Reabold maps), `citygate` and `bln`; the address is stored in lower case. A client
 signs in with Google (a Gmail or Google Workspace address) or Microsoft (a
 personal Outlook, Hotmail or Live address, or a Microsoft 365 work one); either
 way the address must be one the provider has verified, and it is the address
-that is checked, not the provider. Microsoft is Supabase's Azure provider, set
+that is checked, not the provider. Supabase joins identities that share an
+address into one account, so every Google and Microsoft identity on it must
+vouch for the address; one that no longer does (a renamed Microsoft account,
+say) shuts the account out until it is unlinked in Supabase. Microsoft is Supabase's Azure provider, set
 up from the Entra app registration "RenewaBlox Atlas" (any Entra tenant plus
-personal Microsoft accounts; the `email` and `xms_edov` optional claims). Its
+personal Microsoft accounts; the `email` and `xms_edov` optional claims, on
+the ID token). A personal Microsoft address counts as verified; a work one only
+when Microsoft says its domain is verified (`xms_edov`), and the sign-in
+refuses a work account whose token lacks the claim, which Supabase alone would
+accept. Keep the app's `removeUnverifiedEmailClaim` setting on. Its
 client secret expires: renew it in Entra and paste the new value into Supabase
 before it does, or Microsoft sign-in stops. Until the app has a verified
 publisher, a Microsoft 365 organisation that doesn't let its staff consent to

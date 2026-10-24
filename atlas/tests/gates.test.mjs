@@ -46,7 +46,10 @@ const ctx = { next: async () => new Response('STATIC', { status: 200, headers: {
 const req = (path, { cookie = '', page = true, method = 'GET' } = {}) => new Request(O + path, { method, headers: { cookie, ...(page ? { 'sec-fetch-dest': 'document', accept: 'text/html' } : { accept: '*/*' }) } });
 const setCookies = res => res.headers.getSetCookie();
 const cookieVal = (res, name) => { const c = setCookies(res).find(c => c.startsWith(name + '=')); return c ? c.split(';')[0].slice(name.length + 1) : null; };
-const user = (email, verified = true, provider = 'google') => ({ email, identities: [{ provider, identity_data: { email, email_verified: verified } }] });
+const MSA = '9188040d-6c67-4c5b-b112-36a304b66dad';   // Microsoft's tenant for personal accounts
+const identity = (provider, email, verified = true, custom = provider === 'azure' ? { tid: MSA } : undefined) =>
+  ({ provider, identity_data: { email, email_verified: verified, ...(custom ? { custom_claims: custom } : {}) } });
+const user = (email, verified = true, provider = 'google', custom) => ({ email, identities: [identity(provider, email, verified, custom)] });
 
 // settings
 env = {}; let r = await gate(req('/clients/srv/'), ctx); assert.equal(r.status, 503); env = { ...ENV }; ok('locked without settings');
@@ -121,10 +124,33 @@ r = await gate(req('/access/callback?code=abc', { cookie: 'rbx_atlas_signin=' + 
   r = await gate(req('/access/callback?code=abc', { cookie: 'rbx_atlas_signin=' + stateMs }), ctx); assert.equal(r.status, 403); assert.equal(cookieVal(r, 'rbx_atlas'), null); ok('unverified Microsoft address refused');
   sb.token = async () => json(200, { access_token: 'AT1', refresh_token: 'RT1', user: user('client@example.com', true, 'google') });
   r = await gate(req('/access/callback?code=abc', { cookie: 'rbx_atlas_signin=' + stateMs }), ctx); assert.equal(r.status, 403); ok('Microsoft sign-in answered by another identity refused');
+  const work = { tid: '72f988bf-86f1-41af-91ab-2d7cd011db47' };
+  const signIn = async (u, st = stateMs) => { sb.token = async () => json(200, { access_token: 'AT1', refresh_token: 'RT1', user: u });
+    return gate(req('/access/callback?code=abc', { cookie: 'rbx_atlas_signin=' + st }), ctx); };
+  r = await signIn(user('client@contoso.com', true, 'azure', { ...work, xms_edov: true })); assert.equal(r.status, 200); ok('work Microsoft address with a verified domain (xms_edov) -> session');
+  r = await signIn(user('client@contoso.com', true, 'azure', { ...work, xms_edov: false })); assert.equal(r.status, 403);
+  r = await signIn(user('client@contoso.com', true, 'azure', work)); assert.equal(r.status, 403); assert.equal(cookieVal(r, 'rbx_atlas'), null);
+  r = await signIn(user('client@contoso.com', true, 'azure', {})); assert.equal(r.status, 403);
+  ok('work Microsoft address without xms_edov refused, though Supabase counts it verified');
+  // one account, several identities: every Google and Microsoft one must vouch for the address, whichever ?p= was used
+  const both = (ms) => ({ email: 'client@example.com', identities: [identity('google', 'client@example.com'), ms] });
+  r = await signIn(both(identity('azure', 'client@example.com')), state); assert.equal(r.status, 200);
+  r = await signIn(both(identity('azure', 'client@example.com')), stateMs); assert.equal(r.status, 200); ok('Google and Microsoft identities that agree -> session either way in');
+  r = await signIn(both(identity('azure', 'someone.else@example.com')), state); assert.equal(r.status, 403); assert.equal(cookieVal(r, 'rbx_atlas'), null);
+  r = await signIn(both(identity('azure', 'client@example.com', true, { tid: work.tid })), state); assert.equal(r.status, 403);
+  ok('a Google sign-in on an account whose Microsoft identity no longer vouches for the address refused');
+  r = await signIn({ email: 'client@example.com', identities: [identity('azure', 'client@example.com'), identity('azure', 'old@example.com')] }); assert.equal(r.status, 403);
+  ok('two Microsoft identities, one stale -> refused');
+  r = await signIn({ email: 'client@example.com', identities: [identity('google', 'client@example.com'), identity('email', 'x@y.z', false)] }, state); assert.equal(r.status, 200);
+  ok('an identity of another kind (email) is not consulted');
   sb.token = saved; sb.rpc = savedRpc;
 }
 sb.token = async () => json(200, { access_token: 'AT2', refresh_token: 'RT2', user: user('stranger@example.com') }); sb.rpc = async () => json(200, []);
 r = await gate(req('/access/callback?code=abc', { cookie: 'rbx_atlas_signin=' + state }), ctx); assert.equal(r.status, 403); assert.equal(cookieVal(r, 'rbx_atlas'), null); ok('nothing shared -> 403, no session');
+html = await r.text();
+for (const p of ['google', 'microsoft']) assert.ok(html.includes(`href="/access/start?p=${p}&amp;r=%2Fclients%2Fsrv%2F%3Fview%3D3d"`), p);
+assert.ok(!html.includes('href="/access/?r='), 'not back through /access/, which would overwrite the kept #fragment');
+ok('nothing shared: a different account goes straight to each provider');
 sb.token = async () => json(400, { error: 'invalid_grant' });
 r = await gate(req('/access/callback?code=abc', { cookie: 'rbx_atlas_signin=' + state }), ctx); assert.equal(r.status, 400); ok('code refused by Supabase');
 sb.token = async () => json(200, { access_token: 'AT1', refresh_token: 'RT1', user: user('client@example.com') }); sb.rpc = async () => json(500, {});

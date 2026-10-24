@@ -20,8 +20,9 @@
    And in Supabase (Authentication > URL Configuration > Redirect URLs): https://atlas.renewablox.com/access/callback.
    Without it Supabase sends the browser to the CRM instead and the sign-in can't finish.
    Microsoft is Supabase's Azure provider (Authentication > Sign In / Providers > Azure): the Entra app registration
-   "RenewaBlox Atlas" (any Entra tenant + personal Microsoft accounts, the email and xms_edov optional claims), its client
-   ID and secret value, and the tenant URL left blank. The secret expires; when it does, Microsoft sign-in fails until a
+   "RenewaBlox Atlas" (any Entra tenant + personal Microsoft accounts, the email and xms_edov optional claims on the ID
+   token: a work account's sign-in is refused without xms_edov), its client ID and secret value, and the tenant URL
+   left blank. The secret expires; when it does, Microsoft sign-in fails until a
    new one is pasted in. Either way in, access is the verified address checked against public.atlas_access.
 
    The pages, their ?view= routes and their security policies come from the build (atlas/build.py writes
@@ -219,7 +220,9 @@ async function callback(request, url, cfg) {
   if (!access.length) {
     return page(403, 'Nothing is shared with this account',
       `No page on Atlas is shared with ${esc(email)}. Sign in with the address RenewaBlox shared the page with, or ask for this one to be added.`,
-      { href: '/access/?r=' + encodeURIComponent(st.r), label: 'Use a different account' }, '', null, [clearState]);
+      // straight to each provider, not back through /access/, whose page would overwrite the #fragment kept for the return
+      Object.entries(PROVIDERS).map(([p, v]) => ({ href: `/access/start?p=${p}&r=${encodeURIComponent(st.r)}`,
+        label: v.label.replace('Sign in with', 'Use a different') + ' account' })), '', null, [clearState]);
   }
   const session = { t: 'session', e: email, a: access, r: tokens.refresh_token, c: now(), x: now() + SESSION_SECONDS };
   // a page, not a redirect, so the #fragment kept at the sign-in page can be put back on the address
@@ -273,16 +276,28 @@ async function supabase(cfg, endpoint, body, refusals = false, bearer = '') {
   }
 }
 
-// The address of the identity just signed in with ('google' or 'azure'), if that provider verified it and it is the
-// user's own; else ''. For Microsoft, Supabase marks the address verified for a personal account, and for a work
-// account only when Microsoft says the address's domain is verified (the xms_edov claim), so an unverified Microsoft
-// 365 address can't stand in for a client's.
+// The account's address, if it holds an identity of the provider just signed in with ('google' or 'azure') and every
+// Google and Microsoft identity on it vouches for that address; else ''. Supabase joins identities that share an
+// address into one account, and the visitor names the provider (?p=), so the check can't rest on one identity: all of
+// them must agree, and an identity that no longer does (a renamed Microsoft account, say) shuts the account out until
+// it is unlinked in Supabase.
+const MICROSOFT_CONSUMER_TENANT = '9188040d-6c67-4c5b-b112-36a304b66dad';
 function verifiedEmail(user, provider) {
-  const id = user && (user.identities || []).find(i => i && i.provider === provider);
-  const claims = (id && id.identity_data) || {};
-  const email = String(claims.email || '').toLowerCase();
+  const email = String((user && user.email) || '').toLowerCase();
+  const ids = ((user && user.identities) || []).filter(i => i && (i.provider === 'google' || i.provider === 'azure'));
+  if (!email || !ids.some(i => i.provider === provider)) return '';
+  return ids.every(i => vouches(i, email)) ? email : '';
+}
+// An identity vouches for an address its provider verified. A Microsoft address counts only for a personal account
+// (the consumer tenant) or a work account whose domain Microsoft has verified (the xms_edov claim, on the ID token):
+// Supabase also counts a work address with no xms_edov at all as verified, which this does not.
+function vouches(id, email) {
+  const claims = id.identity_data || {};
   const verified = claims.email_verified === true || claims.email_verified === 'true';
-  return id && email && verified && email === String(user.email || '').toLowerCase() ? email : '';
+  if (!verified || String(claims.email || '').toLowerCase() !== email) return false;
+  if (id.provider !== 'azure') return true;
+  const custom = claims.custom_claims || {};
+  return custom.tid === MICROSOFT_CONSUMER_TENANT || [true, 'true', '1', 1].includes(custom.xms_edov);
 }
 
 /* ---- what the visitor can open ---- */
