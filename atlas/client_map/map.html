@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>%%TITLE%%</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%2312475e'/%3E%3Cpath%20d='M16%205.6c4.5%205.5%206.8%209.1%206.8%2012A6.8%206.8%200%200%201%2016%2024.4a6.8%206.8%200%200%201-6.8-6.8C9.2%2014.7%2011.5%2011.1%2016%205.6z'%20fill='%23fff'/%3E%3C/svg%3E"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<style>
+/* ===================================================================
+   RenewaBlox client atlas — the opening page every client map shares
+   (atlas/client_map/, filled in by atlas/pages.py from CLIENT_MAPS):
+   the RenewaBlox bar, the site on satellite imagery, and a BLOX badge
+   for each 3D view. Nothing else is drawn on the map.
+   =================================================================== */
+:root{
+  --brand:#12475e; --accent:#1f5f7f; --accent-l:#3a89ae;
+  --ink:#0d1b23; --ink-2:#33454f; --muted:#6a7a83; --muted-2:#93a2aa;
+  --line:#dfe8ed; --glass:rgba(255,255,255,.94); --site:#2e9e4f;
+  --sh-1:0 1px 2px rgba(9,26,35,.10), 0 4px 14px rgba(9,26,35,.14);
+  --font:"Inter","Inter var",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --r-s:8px; --r-m:12px; --r-pill:999px;
+}
+html,body{margin:0;height:100%;font-family:var(--font);color:var(--ink-2);
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
+#map{position:absolute;inset:0;background:#0d1b23}
+/* keep Leaflet's top controls clear of the overlaying brand bar */
+.leaflet-top{top:56px}
+*:focus{outline:none}
+*:focus-visible{outline:2px solid var(--accent-l);outline-offset:2px;border-radius:4px}
+
+/* ---------------------------------------------------------- brand bar -- */
+#brand{
+  position:absolute;top:0;left:0;right:0;height:56px;z-index:1200;box-sizing:border-box;
+  display:flex;align-items:center;gap:14px;padding:0 16px;
+  background:var(--glass);-webkit-backdrop-filter:blur(14px) saturate(1.7);
+  backdrop-filter:blur(14px) saturate(1.7);
+  border-bottom:1px solid var(--line);box-shadow:0 1px 6px rgba(9,26,35,.14);
+  transition:opacity .35s ease;
+}
+/* zoomed in, the bar recedes so it never covers site detail; hover restores it */
+#brand.dim{opacity:.22;pointer-events:none}
+#brand.dim:hover{opacity:1;pointer-events:auto}
+#brand::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;
+  background:linear-gradient(90deg,var(--brand),var(--accent-l) 55%,var(--site))}
+#brand .logo{height:22px;width:auto;display:block;flex:0 0 auto}
+#brand .div{width:1px;height:26px;background:var(--line);flex:0 0 auto}
+#brand .txt{min-width:0}
+#brand .kick{font-weight:700;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+#brand .ttl{font-weight:700;font-size:14px;color:var(--brand);line-height:1.2;letter-spacing:-.005em}
+/* on a phone the bar keeps one line: the wordmark and the site, cut short if it must be */
+@media (max-width:620px){
+  #brand{gap:10px;padding:0 12px}
+  #brand .logo{height:17px}
+  #brand .kick{display:none}
+  #brand .ttl{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+}
+
+/* ------------------------------------------------------ map furniture -- */
+.leaflet-container{font-family:var(--font);background:#0d1b23}
+.leaflet-touch .leaflet-bar,.leaflet-bar{border:0!important;box-shadow:var(--sh-1)!important;
+  border-radius:10px;overflow:hidden}
+.leaflet-bar a,.leaflet-bar a:hover{width:30px;height:30px;line-height:30px;
+  background:var(--glass);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  color:var(--brand);border-bottom:1px solid var(--line);font-size:17px;font-weight:600;
+  transition:background .14s,color .14s}
+.leaflet-bar a:last-child{border-bottom:0}
+.leaflet-bar a:hover{background:#fff;color:var(--accent-l)}
+.leaflet-bar a.leaflet-disabled{color:var(--muted-2);background:rgba(255,255,255,.7)}
+.leaflet-control-attribution{background:rgba(255,255,255,.86)!important;
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  border-radius:8px 0 0 0;padding:3px 8px!important;font-size:9.5px!important;color:var(--muted)!important}
+.leaflet-control-attribution a{color:var(--accent)!important;text-decoration:none}
+.leaflet-control-scale-line{border:1.5px solid rgba(13,27,35,.75);border-top:none;border-radius:0 0 4px 4px;
+  background:rgba(255,255,255,.85);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+  color:var(--ink);font:700 9.5px/13px var(--font);letter-spacing:.03em;padding:1px 6px 2px}
+
+/* ------------------------------------------------- the BLOX badges ---- */
+.b3d-badge{pointer-events:auto;cursor:pointer}
+.b3d-badge .ring{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;
+  border-radius:50%;background:rgba(31,95,127,.32);animation:b3dpulse 2.1s cubic-bezier(.2,.6,.35,1) infinite}
+.b3d-badge .ring2{animation-delay:1.05s}
+.b3d-badge .chip{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:44px;height:44px;border-radius:50%;border:2.5px solid #fff;background:#fff;
+  box-shadow:0 2px 12px rgba(9,26,35,.5);transition:transform .18s cubic-bezier(.2,.8,.3,1)}
+.b3d-badge:hover .chip{transform:translate(-50%,-50%) scale(1.12)}
+.b3d-badge .cta{
+  /* the chip is 48px wide centred in the 46px badge div (edges at -1 and 47),
+     so the pill must end left of -1 or it covers the B of BLOX */
+  position:absolute;right:53px;top:50%;transform:translateY(-50%);
+  display:flex;align-items:center;gap:7px;white-space:nowrap;
+  background:linear-gradient(135deg,var(--brand),var(--accent) 85%);
+  color:#fff;font:700 12px/1 var(--font);letter-spacing:.015em;
+  padding:9px 20px 9px 14px;border-radius:999px;
+  box-shadow:0 3px 16px rgba(9,26,35,.45);
+  overflow:hidden;transition:transform .18s cubic-bezier(.2,.8,.3,1),box-shadow .18s;
+}
+.b3d-badge:hover .cta{transform:translateY(-50%) translateX(-2px);box-shadow:0 5px 22px rgba(9,26,35,.55)}
+.b3d-badge .cta::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(115deg,transparent 30%,rgba(255,255,255,.28) 48%,transparent 62%);
+  transform:translateX(-110%);animation:b3dsheen 4.6s ease-in-out infinite}
+.b3d-badge .cta i{font-style:normal;font-size:10px;transition:transform .18s}
+.b3d-badge:hover .cta i{transform:translateX(3px)}
+.b3d-badge .cta .s{display:none}
+@keyframes b3dpulse{0%{transform:scale(.4);opacity:.95}72%{transform:scale(1.7);opacity:0}100%{opacity:0}}
+@keyframes b3dsheen{0%,55%{transform:translateX(-110%)}72%,100%{transform:translateX(115%)}}
+@keyframes b3dnudge{0%,100%{transform:translateY(-50%)}30%{transform:translateY(-50%) translateX(-7px)}55%{transform:translateY(-50%)}}
+.b3d-badge.nudge .cta{animation:b3dnudge 1s cubic-bezier(.3,.7,.3,1) .9s 2}
+/* a badge whose pill would cover another carries it on the RIGHT of the chip */
+.b3d-badge.b3d-right .cta{right:auto;left:53px;padding:9px 14px 9px 20px}
+.b3d-badge.b3d-right:hover .cta{transform:translateY(-50%) translateX(2px)}
+.b3d-badge.b3d-right:hover .cta i{transform:translateX(-3px)}
+@keyframes b3dnudgeR{0%,100%{transform:translateY(-50%)}30%{transform:translateY(-50%) translateX(7px)}55%{transform:translateY(-50%)}}
+.b3d-badge.b3d-right.nudge .cta{animation-name:b3dnudgeR}
+@media (max-width:620px){
+  .b3d-badge .cta .f{display:none}
+  .b3d-badge .cta .s{display:inline}
+  /* beside the chip the pill can run off a phone screen: hang it centred underneath */
+  .b3d-badge .cta,.b3d-badge.b3d-right .cta{right:auto;left:50%;top:42px;transform:translateX(-50%);padding:8px 14px}
+  .b3d-badge:hover .cta,.b3d-badge.b3d-right:hover .cta{transform:translateX(-50%) translateY(2px)}
+  .b3d-badge.nudge .cta,.b3d-badge.b3d-right.nudge .cta{animation:none}
+}
+@media (prefers-reduced-motion:reduce){
+  .b3d-badge .ring,.b3d-badge .cta::after{animation:none}
+  .b3d-badge .ring{opacity:0}
+  .b3d-badge.nudge .cta{animation:none}
+}
+</style>
+</head>
+<body>
+<div id="brand">
+<img class="logo" src="%%WORDMARK%%" alt="RenewaBlox">
+<div class="div"></div>
+<div class="txt"><div class="kick">%%KICK%%</div>
+<div class="ttl">%%PLACE%%</div></div>
+</div>
+<div id="map"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+// The site, as atlas/pages.py's CLIENT_MAPS gives it: where the map opens, and a badge for each 3D view.
+const SITE = %%SITE%%;
+const CHIP = "%%CHIP%%";
+
+const map = L.map('map', {zoomSnap: .5});
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+  {maxZoom: 21, maxNativeZoom: SITE.nativeZoom, attribution: 'Imagery © Esri, Maxar, Earthstar Geographics'}).addTo(map);
+L.control.scale({imperial: false, position: 'bottomleft'}).addTo(map);
+map.setView(SITE.at, SITE.zoom);
+
+// A badge opens its view as the page's own address with ?view=, a full-window page of its own (each carries an
+// "Atlas" control to come back), so the map carries none of the models' weight.
+function openView(view) {
+  const u = new URL(location.href);
+  u.searchParams.set('view', view);
+  u.hash = '';
+  location.assign(u.toString());
+}
+// (a focused badge opens on Enter too: Leaflet turns the key into a click)
+SITE.badges.forEach(function (b, i) {
+  const right = b.side === 'right';
+  const f = '<span class="f">' + b.label + '</span><span class="s">' + b.short + '</span>';
+  const m = L.marker(b.at, {zIndexOffset: 4000, title: b.label, alt: b.label,
+    icon: L.divIcon({className: 'b3d-badge' + (right ? ' b3d-right' : ''), iconSize: [46, 46], iconAnchor: b.anchor || [23, 23],
+      html: '<div class="ring"></div><div class="ring ring2"></div><img class="chip" alt="" src="' + CHIP + '">' +
+            '<div class="cta">' + (right ? '<i>◀</i>' + f : f + '<i>▶</i>') + '</div>'})});
+  m.on('click', function () { openView(b.view); });
+  m.addTo(map);
+  // one gentle nudge each shortly after load, staggered, so the pills catch the eye once without waving in unison
+  setTimeout(function () {
+    const el = m.getElement();
+    if (el) { el.classList.add('nudge'); setTimeout(function () { el.classList.remove('nudge'); }, 4200); }
+  }, 700 + 800 * i);
+});
+
+// on a small screen the opening view can leave a badge at the edge: bring them all in, no closer than the site's view
+(function () {
+  const at = L.latLngBounds(SITE.badges.map(function (b) { return b.at; }));
+  if (!map.getBounds().pad(-0.2).contains(at)) map.fitBounds(at, {padding: [70, 70], maxZoom: SITE.zoom});
+})();
+
+/* the brand bar recedes once the visitor is zoomed into site detail */
+(function () {
+  const bar = document.getElementById('brand');
+  const sync = function () { bar.classList.toggle('dim', map.getZoom() >= 19); };
+  map.on('zoomend', sync); sync();
+})();
+</script>
+</body>
+</html>

@@ -6,8 +6,6 @@ packs.py
 build_energy_site.py
 site_inputs.py
 # the client atlases and their models
-srv_atlas.html
-srv_atlas_3d_badge.html
 srv_3d_sim.html
 srv_siting_3d.html
 srv_contractor.html
@@ -15,7 +13,6 @@ bryn_atlas.html
 bryn_atlas_3d_badge.html
 bryn_3d_sim.html
 bryn_compute_3d.html
-kld_atlas.html
 kld_hydro_chrome.html
 kld_interactive.html
 ihn_atlas.html

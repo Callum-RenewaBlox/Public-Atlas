@@ -25,6 +25,7 @@ behind the sign-in; only a client's public cover on the front page is held to th
 /investors/portal/ is not gated: the Wix investor portal's members area links to it, and only its address keeps it
 from the public.
 """
+import base64
 import html
 import json
 import re
@@ -56,14 +57,6 @@ def once(text, old, new, what):
     if n != 1:
         raise PageError(f"{what}: expected {old[:70]!r} once, found it {n} times")
     return text.replace(old, new, 1)
-
-
-def cut(text, start, end, what):
-    """Take out everything from start up to (not including) end, each found once and in that order."""
-    a, b = text.find(start), text.find(end)
-    if text.count(start) != 1 or text.count(end) != 1 or b < a:
-        raise PageError(f"{what}: expected {start[:50]!r} once, then {end[:50]!r} once")
-    return text[:a] + text[b:]
 
 
 def splice(page, insert, what):
@@ -98,30 +91,38 @@ def noindex(text, what):
     return text
 
 
-# All of Leaflet the bare SRV map uses: the map, its imagery and its scale bar (the badges, added after, are markers
-# of their own). Anything more, a tooltip or popup bound to something, or one of the three gone fails the build.
-BARE_MAP_LEAFLET = {"L.map", "L.tileLayer", "L.control.scale"}
-LEAFLET_USE = re.compile(r"\bL\.[A-Za-z_][\w.]*|\.(?:bind|open)(?:Tooltip|Popup)\b")
+# The opening page of every client atlas with a map, so they all look the same: the RenewaBlox bar (what is proposed
+# and the site's code, over its name and place), the site on satellite imagery, and a BLOX badge for each of its 3D
+# views, with nothing else drawn (atlas/client_map/map.html). A badge's pill stands to the left of its chip, or to
+# the right with "side": "right" where it would cover another; "anchor" moves the chip off its point, in pixels
+# (Leaflet's iconAnchor; [23, 23] centres it). The map opens at "zoom" on "at" (on a small screen, no closer than
+# fits every badge in), and the imagery's own detail runs to "nativeZoom" (19 unless given).
+CLIENT_MAP = HERE / "client_map"
+CLIENT_MAPS = {
+    "srv": {"title": "SRV Atlas — Scrivelsby", "kick": "Proposed compute load bank · SRV Atlas",
+            "place": "Home Farm AD site, Scrivelsby, Horncastle LN9 6JB", "at": [53.17680, -0.11020], "zoom": 18.5,
+            "badges": [{"at": [53.176703, -0.110826], "label": "3D Dispatch Sim", "short": "3D Sim", "view": "3d"},
+                       {"at": [53.176878, -0.110333], "label": "3D Compute Kiosk", "short": "Kiosk", "view": "siting",
+                        "side": "right", "anchor": [-37, 4]}]},
+    "kld": {"title": "KLD Atlas — Kinlochdamph", "kick": "999 kW run-of-river hydro · KLD Atlas",
+            "place": "Kinlochdamph hydro scheme, Loch Damh, Wester Ross", "at": [57.46160, -5.55778], "zoom": 17,
+            "badges": [{"at": [57.46160, -5.55778], "label": "3D Revenue Sim", "short": "3D Sim", "view": "3d"}]},
+}
 
 
-def srv_bare_map(page):
-    """SRV's map opens on the yard with nothing drawn but the two BLOX badges (the 3D Dispatch Sim, the 3D Compute
-    Kiosk). srv_atlas.html, generated upstream, also draws the four numbered assets with their labels and photo
-    popups, the proposed cable route with its three labels, a layer switch for them and a caveat about the drawn
-    siting; the build takes them out, and fails if a regenerated file can't be cut the same way or uses any more of
-    Leaflet than the bare map needs."""
-    what = "srv_atlas.html"
-    page = cut(page, "const C={", "const map=L.map(", what)  # the assets, and the photographs only their popups showed
-    page = cut(page, "function popup(a){", "map.setView(", what)  # the assets, labels, cable route and layer switch
-    page = once(page, "refreshLabels();\n", "", what)
-    page = once(page, '<div id="caveat"><b>Indicative.</b> Indicative siting and connection, drawn from aerial imagery '
-                      'and site photographs — not a measured survey and not a construction drawing.</div>\n', "", what)
-    used = set(LEAFLET_USE.findall(page))
-    if used - BARE_MAP_LEAFLET:
-        raise PageError(f"{what}: still draws something besides the badges ({', '.join(sorted(used - BARE_MAP_LEAFLET))}); "
-                        "cut it in srv_bare_map")
-    if BARE_MAP_LEAFLET - used:
-        raise PageError(f"{what}: the cut took the map's own {', '.join(sorted(BARE_MAP_LEAFLET - used))} with it")
+def client_map(code):
+    """The opening page of /clients/<code>/: atlas/client_map/map.html filled in from the site's entry in CLIENT_MAPS."""
+    site, what = CLIENT_MAPS[code], "atlas/client_map/map.html"
+    badged, views = sorted(b["view"] for b in site["badges"]), sorted(CLIENT_PAGES[f"/clients/{code}/"].get("views", {}))
+    if badged != views:
+        raise PageError(f"{what}: {code} needs a badge for each of its views, and no other (badges {badged}, views {views})")
+    image = lambda name: "data:image/png;base64," + base64.b64encode((CLIENT_MAP / name).read_bytes()).decode("ascii")
+    config = {"at": site["at"], "zoom": site["zoom"], "nativeZoom": site.get("nativeZoom", 19), "badges": site["badges"]}
+    page = (CLIENT_MAP / "map.html").read_text(encoding="utf-8")
+    for key, value in (("TITLE", html.escape(site["title"])), ("KICK", html.escape(site["kick"])),
+                       ("PLACE", html.escape(site["place"])), ("SITE", json.dumps(config, ensure_ascii=False)),
+                       ("WORDMARK", image("wordmark.png")), ("CHIP", image("blox-chip.png"))):
+        page = once(page, f"%%{key}%%", value, what)
     return page
 
 
@@ -129,13 +130,9 @@ def client_pages():
     """{site path: text} for the client atlases and the team pages."""
     out = {}
 
-    # SRV: Scrivelsby (Home Farm AD). The badge on the map opens the two 3D views; the contractor survey has a grant of
-    # its own (client 'srv-contractor'), so a contractor never sees the client's views.
-    badge = top_level_nav(source("srv_atlas_3d_badge.html"), "srv_atlas_3d_badge.html")
-    page = splice(srv_bare_map(source("srv_atlas.html")), badge, "srv_atlas.html")
-    page = once(page, "<title>RenewaBlox — SRV Atlas · Home Farm, Scrivelsby (LN9 6JB) · Proposed compute load bank</title>",
-                "<title>SRV Atlas — Scrivelsby</title>", "srv_atlas.html")
-    out["clients/srv/index.html"] = noindex(page, "srv_atlas.html")
+    # SRV: Scrivelsby (Home Farm AD). The map's badges open the two 3D views; the contractor survey has a grant of its
+    # own (client 'srv-contractor'), so a contractor never sees the client's views.
+    out["clients/srv/index.html"] = client_map("srv")
     page = once(source("srv_3d_sim.html"), "<title>SRV 3D Sim - Scrivelsby Peaker</title>",
                 "<title>SRV Atlas — 3D Dispatch Sim</title>", "srv_3d_sim.html")
     out["clients/srv/3d.html"] = top_level_nav(page, "srv_3d_sim.html")
@@ -180,11 +177,9 @@ def client_pages():
                 "window.history.length > 1) { window.history.back(); return; }", "bryn_compute_3d.html")
     out["clients/bry/bryn_compute_3d.html"] = page
 
-    # KLD: Kinlochdamph. The 3D view is the shared model with the KLD chrome (its "Atlas" control) spliced in, and
-    # the root clip Streamlit's frame gave it, without which a phone pans sideways.
-    page = once(source("kld_atlas.html"), "<title>KLD Atlas - Kinlochdamph 999 kW hydro</title>",
-                "<title>KLD Atlas — Kinlochdamph</title>", "kld_atlas.html")
-    out["clients/kld/index.html"] = noindex(top_level_nav(page, "kld_atlas.html"), "kld_atlas.html")
+    # KLD: Kinlochdamph. The map's badge opens the 3D view, the shared model with the KLD chrome (its "Atlas" control)
+    # spliced in, and the root clip Streamlit's frame gave it, without which a phone pans sideways.
+    out["clients/kld/index.html"] = client_map("kld")
     page = splice(source("kld_interactive.html"), source("kld_hydro_chrome.html"), "kld_interactive.html")
     page = once(page, "<title>RenewaBlox — Kinlochdamph Living Site Model</title>", "<title>KLD Atlas — 3D Revenue Sim</title>",
                 "kld_interactive.html")
@@ -252,11 +247,13 @@ CLIENT_REDIRECTS = {"/clients/reabold/": "/clients/", "/clients/bryn/": "/client
 # and whether three.js fetches its textures as blob: URLs. A view file has its own policy where it needs one.
 _END = "object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
 _OSM = "https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org"
+# the opening page every client map shares (client_map): Leaflet from cdnjs, the imagery from Esri
+CLIENT_MAP_CSP = ("default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; "
+                  "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; "
+                  "img-src 'self' data: https://server.arcgisonline.com https://cdnjs.cloudflare.com; font-src 'self'; "
+                  "connect-src 'self'; media-src 'none'; worker-src 'none'; frame-src 'none'; " + _END)
 CLIENT_CSP = {
-    "/clients/srv/": ("default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; "
-                      "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; "
-                      "img-src 'self' data: https://server.arcgisonline.com https://cdnjs.cloudflare.com; font-src 'self'; "
-                      "connect-src 'self'; media-src 'none'; worker-src 'none'; frame-src 'none'; " + _END),
+    "/clients/srv/": CLIENT_MAP_CSP,
     "/clients/srv/3d.html": ("default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; "
                              "img-src 'self' data: blob:; font-src 'self'; connect-src 'self' blob:; media-src 'none'; "
                              "worker-src 'none'; frame-src 'none'; " + _END),
@@ -272,9 +269,10 @@ CLIENT_CSP = {
                        "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; "
                        "img-src 'self' data: blob: https://server.arcgisonline.com; font-src 'self' data:; connect-src 'self' blob:; "
                        "media-src 'none'; worker-src 'none'; frame-src 'none'; " + _END),
-    "/clients/kld/": ("default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; "
-                      f"img-src 'self' data: https://server.arcgisonline.com {_OSM}; font-src 'self'; connect-src 'self'; "
-                      "media-src 'self'; worker-src 'self'; " + _END),
+    "/clients/kld/": CLIENT_MAP_CSP,
+    "/clients/kld/3d.html": ("default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; "
+                             f"img-src 'self' data: https://server.arcgisonline.com {_OSM}; font-src 'self'; connect-src 'self'; "
+                             "media-src 'self'; worker-src 'self'; " + _END),
     "/clients/ihn/": "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; " + _END,
     "/clients/reabold/west-newton/": ("default-src 'none'; script-src 'unsafe-inline' https://cdnjs.cloudflare.com; "
                                       "style-src 'unsafe-inline' https://cdnjs.cloudflare.com; "

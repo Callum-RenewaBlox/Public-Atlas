@@ -2,10 +2,16 @@
     /* the client atlas: the sites' cards and the invitation, three across (two on a tablet), stacked on a phone */
     @media (max-width: 720px) { .cards--clients { grid-template-columns: 1fr; } }
     .cards--clients .card__img { background: #1b2a33; }
-    /* three across, the invitation alone on its row runs the full width, its art one column wide */
+    /* the invitation fills out its row rather than leave it short, its art one column wide */
     @media (min-width: 1021px) {
       .cards--clients .card--soon:nth-child(3n+1) { grid-column: 1 / -1; flex-direction: row; }
       .cards--clients .card--soon:nth-child(3n+1) .card__art { flex: 0 0 calc((100% - 48px) / 3); aspect-ratio: auto; min-height: 200px; }
+      .cards--clients .card--soon:nth-child(3n+2) { grid-column: span 2; flex-direction: row; }
+      .cards--clients .card--soon:nth-child(3n+2) .card__art { flex: 0 0 calc((100% - 24px) / 2); aspect-ratio: auto; min-height: 200px; }
+    }
+    @media (min-width: 721px) and (max-width: 1020px) {
+      .cards--clients .card--soon:nth-child(2n+1) { grid-column: 1 / -1; flex-direction: row; }
+      .cards--clients .card--soon:nth-child(2n+1) .card__art { flex: 0 0 calc((100% - 24px) / 2); aspect-ratio: auto; min-height: 200px; }
     }
   </style>
   <section class="section" id="clients">
