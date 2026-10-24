@@ -40,14 +40,15 @@ html,body{margin:0;height:100%;font-family:var(--font);color:var(--ink-2);
   transition:opacity .35s ease;
 }
 /* zoomed in, the bar recedes so it never covers site detail; hover restores it */
-#brand.dim{opacity:.22;pointer-events:none}
-#brand.dim:hover{opacity:1;pointer-events:auto}
+#brand.dim{opacity:.22}
+#brand.dim:hover{opacity:1}
 #brand::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:3px;
   background:linear-gradient(90deg,var(--brand),var(--accent-l) 55%,var(--site))}
 #brand .logo{height:22px;width:auto;display:block;flex:0 0 auto}
 #brand .div{width:1px;height:26px;background:var(--line);flex:0 0 auto}
 #brand .txt{min-width:0}
 #brand .kick{font-weight:700;font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+#brand .kick .u{text-transform:none} /* a unit keeps its case in the capitals */
 #brand .ttl{font-weight:700;font-size:14px;color:var(--brand);line-height:1.2;letter-spacing:-.005em}
 /* on a phone the bar keeps one line: the wordmark and the site, cut short if it must be */
 @media (max-width:620px){
@@ -157,7 +158,6 @@ function openView(view) {
   u.hash = '';
   location.assign(u.toString());
 }
-// (a focused badge opens on Enter too: Leaflet turns the key into a click)
 SITE.badges.forEach(function (b, i) {
   const right = b.side === 'right';
   const f = '<span class="f">' + b.label + '</span><span class="s">' + b.short + '</span>';
@@ -167,6 +167,10 @@ SITE.badges.forEach(function (b, i) {
             '<div class="cta">' + (right ? '<i>◀</i>' + f : f + '<i>▶</i>') + '</div>'})});
   m.on('click', function () { openView(b.view); });
   m.addTo(map);
+  // a badge is a button to the keyboard too (Leaflet gives it role=button and a tab stop, but no key handling)
+  m.getElement().addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openView(b.view); }
+  });
   // one gentle nudge each shortly after load, staggered, so the pills catch the eye once without waving in unison
   setTimeout(function () {
     const el = m.getElement();
@@ -174,10 +178,22 @@ SITE.badges.forEach(function (b, i) {
   }, 700 + 800 * i);
 });
 
-// on a small screen the opening view can leave a badge at the edge: bring them all in, no closer than the site's view
+// on a small screen the opening view can leave a badge or its pill off the edge: measure them as drawn (an anchor
+// can set a chip off its point, and a pill reaches past its chip), centre them, and step out half a zoom only when
+// they can't all fit; a view that already shows them all is left as it is
 (function () {
-  const at = L.latLngBounds(SITE.badges.map(function (b) { return b.at; }));
-  if (!map.getBounds().pad(-0.2).contains(at)) map.fitBounds(at, {padding: [70, 70], maxZoom: SITE.zoom});
+  const parts = document.querySelectorAll('.b3d-badge .chip, .b3d-badge .cta');
+  const room = {l: 8, r: innerWidth - 8, t: 64, b: innerHeight - 28};
+  for (let i = 0; i < 8; i++) {
+    let l = Infinity, r = -Infinity, t = Infinity, b = -Infinity;
+    [].forEach.call(parts, function (el) {
+      const q = el.getBoundingClientRect();
+      l = Math.min(l, q.left); r = Math.max(r, q.right); t = Math.min(t, q.top); b = Math.max(b, q.bottom);
+    });
+    if (l >= room.l && r <= room.r && t >= room.t && b <= room.b) return;
+    if (r - l > room.r - room.l || b - t > room.b - room.t) map.setZoom(map.getZoom() - 0.5, {animate: false});
+    else map.panBy([(l + r - room.l - room.r) / 2, (t + b - room.t - room.b) / 2], {animate: false});
+  }
 })();
 
 /* the brand bar recedes once the visitor is zoomed into site detail */

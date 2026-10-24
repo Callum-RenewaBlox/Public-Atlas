@@ -79,16 +79,21 @@ the client atlas markers. It comes after the existing site cards and before the 
    - `node atlas/tests/gates.test.mjs` passes.
    - In Playwright, against `python3 -m http.server -d atlas/site` (locally the gated pages open with no sign-in):
      - The map at 1440×900 and 390×844 shows the bar, the imagery and the badges only, with no console errors.
+       Every chip and pill starts on screen at phone, landscape-phone (640×360), tablet and desktop sizes.
+     - A badge reached with Tab opens its view on Enter and on Space, once.
      - Each badge opens `?view=<v>`; locally that reloads the map, so open `/clients/<code>/<file>.html` to see a
        view.
      - Compare it side by side with SRV's map: the chrome must match.
      - The front-page section at 1600, 1100, 1000 and 390 wide: no horizontal scroll, and the cover loads at
        1280 px.
    - An independent review (a workflow of reviewers plus skeptics) before the paid push. Fix what it confirms.
-6. Credits: a push to `live` that changes an Atlas input costs 15 credits. Push work in progress with
-   `[skip netlify]` in the commit message. Then make one push without it, which builds once with everything since
-   the last build. A push that changes only README, `.claude/` or tools builds nothing. Confirm on the live site
-   (`curl` the front page for the cover) and in Netlify that only the Atlas built.
+6. Credits: each Atlas deploy costs 15 credits. Netlify builds a push unless its head commit says
+   `[skip netlify]`, or nothing on the site's list (`atlas/inputs.txt`) changed since the site's last *successful
+   build*, not since the previous push. So:
+   - push work in progress with `[skip netlify]` on every commit, README and `.claude/` ones included: once one of
+     them has touched an Atlas input, any later push without it builds and deploys everything since the last build;
+   - make the one push without it when the work is reviewed and ready to go live;
+   - confirm on the live site (`curl` the front page for the cover) and in Netlify that only the Atlas built.
 7. Tell the owner, short and in this order:
    - that it's live, with the link;
    - what changed;

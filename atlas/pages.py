@@ -119,7 +119,8 @@ def client_map(code):
     image = lambda name: "data:image/png;base64," + base64.b64encode((CLIENT_MAP / name).read_bytes()).decode("ascii")
     config = {"at": site["at"], "zoom": site["zoom"], "nativeZoom": site.get("nativeZoom", 19), "badges": site["badges"]}
     page = (CLIENT_MAP / "map.html").read_text(encoding="utf-8")
-    for key, value in (("TITLE", html.escape(site["title"])), ("KICK", html.escape(site["kick"])),
+    kick = re.sub(r"\b([kMG]Wh?|kV)\b", r'<span class="u">\1</span>', html.escape(site["kick"]))  # 999 kW, not KW
+    for key, value in (("TITLE", html.escape(site["title"])), ("KICK", kick),
                        ("PLACE", html.escape(site["place"])), ("SITE", json.dumps(config, ensure_ascii=False)),
                        ("WORDMARK", image("wordmark.png")), ("CHIP", image("blox-chip.png"))):
         page = once(page, f"%%{key}%%", value, what)

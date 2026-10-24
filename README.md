@@ -717,6 +717,9 @@ each project builds only when its own files change:
   deploy", or "Trigger deploy" of a commit already built. A build hook always
   builds.
 * `[skip netlify]` in the last commit's message skips a push that does change a
-  site, for publishing it with a later push instead.
+  site, for publishing it with a later push instead. The later push needn't
+  touch the site itself: its build compares with the last build, not the last
+  push, so after a skipped change any push without the tag builds, a README
+  one included. Keep the tag on every push until the one meant to go live.
 * Set a project's environment variables before its first build: changing them
   takes a redeploy, which is another production deploy.
