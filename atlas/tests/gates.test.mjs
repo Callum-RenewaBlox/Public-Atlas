@@ -35,6 +35,8 @@ globalThis.fetch = async (url, init) => {
   if (String(url).includes('grant_type=pkce')) return sb.token(body);
   if (String(url).includes('grant_type=refresh_token')) return sb.refresh(body);
   if (String(url).endsWith('/rest/v1/rpc/atlas_my_access')) return sb.rpc(init.headers.authorization);
+  if (String(url).endsWith('/auth/v1/otp')) return sb.otp(body);
+  if (String(url).endsWith('/auth/v1/verify')) return sb.verify(body);
   throw new Error('unexpected fetch ' + url);
 };
 const json = (status, obj) => new Response(JSON.stringify(obj), { status, headers: { 'content-type': 'application/json' } });
@@ -155,6 +157,42 @@ sb.token = async () => json(400, { error: 'invalid_grant' });
 r = await gate(req('/access/callback?code=abc', { cookie: 'rbx_atlas_signin=' + state }), ctx); assert.equal(r.status, 400); ok('code refused by Supabase');
 sb.token = async () => json(200, { access_token: 'AT1', refresh_token: 'RT1', user: user('client@example.com') }); sb.rpc = async () => json(500, {});
 r = await gate(req('/access/callback?code=abc', { cookie: 'rbx_atlas_signin=' + state }), ctx); assert.equal(r.status, 503); ok('access unknown -> 503, no session');
+
+// the fallback: a one-time code by email
+{
+  const post = (path, fields, cookie = '') => new Request(O + path, { method: 'POST', headers: { cookie, 'content-type': 'application/x-www-form-urlencoded', 'sec-fetch-dest': 'document', accept: 'text/html' }, body: new URLSearchParams(fields).toString() });
+  r = await gate(req('/access/?r=' + encodeURIComponent('/clients/srv/')), ctx); html = await r.text();
+  assert.match(html, /href="\/access\/email\?r=%2Fclients%2Fsrv%2F"/); ok('sign-in page offers a code by email');
+  r = await gate(req('/access/email?r=' + encodeURIComponent('/clients/srv/')), ctx); assert.equal(r.status, 200); html = await r.text();
+  assert.match(html, /<form method="post" action="\/access\/email"/); assert.match(html, /name="r" value="\/clients\/srv\/"/);
+  assert.match(r.headers.get('content-security-policy'), /form-action 'self'/); ok('email page: a form that may post to the site');
+  sb.otp = async () => { throw new Error('should not be called'); };
+  r = await gate(post('/access/email', { email: 'not an address', r: '/clients/srv/' }), ctx); assert.equal(r.status, 400); ok('a non-address is refused before Supabase');
+  let sentTo = null; sb.otp = async body => { sentTo = body; return json(200, {}); };
+  r = await gate(post('/access/email', { email: ' Client@Contoso.COM ', r: '//evil.com/' }), ctx); assert.equal(r.status, 200);
+  assert.deepEqual(sentTo, { email: 'client@contoso.com', create_user: true }); html = await r.text(); assert.match(html, /action="\/access\/email\/code"/);
+  const codeState = cookieVal(r, 'rbx_atlas_code'); assert.ok(codeState); assert.match(setCookies(r)[0], /Path=\/access;.*HttpOnly/);
+  assert.ok(!Buffer.from(codeState.split('.')[1], 'base64url').toString().includes('contoso'), 'address sealed'); ok('code sent to the address, lower case; sealed state');
+  sb.otp = async () => json(429, { msg: 'rate limit' });
+  r = await gate(post('/access/email', { email: 'client@contoso.com', r: '/clients/srv/' }), ctx); assert.equal(r.status, 429); ok('Supabase busy -> wait a minute');
+  r = await gate(post('/access/email/code', { code: '123456' }), ctx); assert.equal(r.status, 400); ok('code without its state -> expired');
+  let verified = null;
+  sb.verify = async body => { verified = body; return json(403, { msg: 'Token has expired or is invalid' }); };
+  r = await gate(post('/access/email/code', { code: '123 456' }, 'rbx_atlas_code=' + codeState), ctx); assert.equal(r.status, 401);
+  assert.deepEqual(verified, { type: 'email', email: 'client@contoso.com', token: '123456' }); assert.equal(cookieVal(r, 'rbx_atlas'), null); ok('wrong code refused, no session');
+  r = await gate(post('/access/email/code', { code: 'abc' }, 'rbx_atlas_code=' + codeState), ctx); assert.equal(r.status, 400); ok('a non-code is refused before Supabase');
+  sb.verify = async () => json(200, { access_token: 'AT3', refresh_token: 'RT3', user: { email: 'client@contoso.com', email_confirmed_at: '2026-10-24T08:00:00Z', identities: [{ provider: 'email' }] } });
+  sb.rpc = async bearer => { assert.equal(bearer, 'Bearer AT3'); return json(200, ['srv']); };
+  r = await gate(post('/access/email/code', { code: '123456' }, 'rbx_atlas_code=' + codeState), ctx); assert.equal(r.status, 200);
+  assert.ok(cookieVal(r, 'rbx_atlas')); assert.equal(cookieVal(r, 'rbx_atlas_code'), ''); html = await r.text();
+  assert.match(html, /location\.replace\("\/clients\/"/, 'an unsafe return address falls back to /clients/'); ok('right code -> session, code state cleared');
+  sb.verify = async () => json(200, { access_token: 'AT3', refresh_token: 'RT3', user: { email: 'someone@else.com', email_confirmed_at: '2026-10-24T08:00:00Z' } });
+  r = await gate(post('/access/email/code', { code: '123456' }, 'rbx_atlas_code=' + codeState), ctx); assert.equal(r.status, 403); assert.equal(cookieVal(r, 'rbx_atlas'), null); ok('code answered for another address refused');
+  sb.verify = async () => json(200, { access_token: 'AT3', refresh_token: 'RT3', user: { email: 'client@contoso.com' } }); sb.rpc = async () => json(200, []);
+  r = await gate(post('/access/email/code', { code: '123456' }, 'rbx_atlas_code=' + codeState), ctx); assert.equal(r.status, 403); ok('unconfirmed address refused');
+  sb.verify = async () => json(200, { access_token: 'AT3', refresh_token: 'RT3', user: { email: 'client@contoso.com', email_confirmed_at: 'x' } });
+  r = await gate(post('/access/email/code', { code: '123456' }, 'rbx_atlas_code=' + codeState), ctx); assert.equal(r.status, 403); assert.match(await r.text(), /Nothing is shared/); ok('code for an address with nothing shared -> 403');
+}
 
 // signed in as a client of srv
 const c = 'rbx_atlas=' + session;

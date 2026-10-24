@@ -460,7 +460,14 @@ way the address must be one the provider has verified, and it is the address
 that is checked, not the provider. Supabase joins identities that share an
 address into one account, so every Google and Microsoft identity on it must
 vouch for the address; one that no longer does (a renamed Microsoft account,
-say) shuts the account out until it is unlinked in Supabase. Microsoft is Supabase's Azure provider, set
+say) shuts the account out until it is unlinked in Supabase. As a fallback, the
+sign-in page also offers a one-time code by email (`/access/email`): the client
+types their address, gets a code and types it in, so it works for any address
+and on any device. This needs custom SMTP in Supabase (Authentication > Emails >
+SMTP Settings; the built-in sender only reaches the project's own team) and the
+**Magic Link** and **Confirm signup** email templates to carry `{{ .Token }}`
+instead of a link (a first-time address gets the Confirm signup email).
+Microsoft is Supabase's Azure provider, set
 up from the Entra app registration "RenewaBlox Atlas" (any Entra tenant plus
 personal Microsoft accounts; the `email` and `xms_edov` optional claims, on
 the ID token). A personal Microsoft address counts as verified; a work one only
