@@ -9,7 +9,9 @@
     /clients/, /team/   the client atlases and the team's pages, behind the sign-in (pages.py, team/), BLN's
                   among them: /clients/bln/, the powerhouse on the satellite imagery with the BLOX badge
                   (bln/index.html), and /clients/bln/3d/, the 3D render the badge opens (bln/3d/index.html);
-                  its old public address, /bln/, now redirects there (_redirects)
+                  its old public address, /bln/, now redirects there (_redirects). Bryn's Compute Render,
+                  /clients/bry/?view=compute, is bry/compute.html with its model, flythrough and stills in
+                  bry/assets/, copied into the same folder as the Bryn pages pages.py builds
     /investors/demo/, /investors/australia/, /investors/portal/, /models/   the investor packs and the
                   standalone peakers (pages.py), with the Investor Atlas at /investors/portal/atlas/
                   (Eunice-Platform's investor_atlas_v3.html, a copy in vendor/). The portal is not gated here:
@@ -29,8 +31,9 @@ checks what would otherwise go wrong quietly:
   * the two brand fonts (FONTS) are fetched from renewablox.com's own font files and must match their
     hashes: they are licensed for the website, so they are not kept in this public repository.
 
-The client pages built here (CLIENTS) are behind the sign-in, so they may name their site in full; what stays
-public is their cover on the front page (front/), which is checked further:
+The client pages written here (CLIENTS: each folder is copied to /clients/<code>/, beside whatever pages.py builds
+there) are behind the sign-in, so they may name their site in full; what stays public is their cover on the front
+page (front/), which is checked further:
 
   * anonymity: the cover names the client by its code (BLN) only. No file in front/ may carry a word that names
     or places the site (the list is kept out of this public repository, in atlas/.names or ATLAS_NAMES), nor a
@@ -67,7 +70,7 @@ import site_inputs  # the list of what the site is built from (inputs.txt), chec
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "site"
 ROOT = HERE / "root"
-CLIENTS = ["bln"]
+CLIENTS = ["bln", "bry"]
 ON_NETLIFY = os.environ.get("NETLIFY") == "true"
 
 # The words that would name or place a client's site (the site, the places around it, the firms on
@@ -413,9 +416,10 @@ def build(names):
             dest = OUT / "clients" / rel
             dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(path, dest)
-        for page in sorted(src.rglob("index.html")):
+        for page in sorted(src.rglob("*.html")):
             text = check_page(page, page.relative_to(HERE).as_posix(), src.resolve())
-            if page.parent == src and not site_confirmed(text):
+            # the client's own map page (BLN's; Bryn's is built by pages.py) says whether its site has been placed
+            if page == src / "index.html" and not site_confirmed(text):
                 warnings.append(f"{client}/index.html: the powerhouse's place on the imagery is not confirmed yet "
                                 f"(open /clients/{client}/?place, set it, and paste the line into SITE)")
     put_address(warnings)

@@ -131,7 +131,7 @@ the client atlas markers. It comes after the existing site cards and before the 
 | Code | Opening map | Front-page card |
 | --- | --- | --- |
 | BLN | its own (`atlas/bln/index.html`): labels, caveat, an extra "3D render" button | yes |
-| BRY | its own (`bryn_atlas.html` + badge layer): numbered labels, a teal fan chip, caveat | yes |
+| BRY | its own (`bryn_atlas.html` + badge layer): numbered labels, a teal fan chip, caveat. Its Compute Render (`?view=compute`) is written in this repository, `atlas/bry/compute.html` with `atlas/bry/assets/`, in BLN 3D's shape | yes |
 | SRV | shared | yes |
 | KLD | shared | yes |
 | IHN | its own three.js scene, by the owner's word, under the shared bar and badge | yes |

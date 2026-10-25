@@ -227,15 +227,8 @@ def client_pages():
                 '!r.searchParams.has("view"))(new URL(document.referrer))&&window.history.length>1){window.history.back();return}',
                 "bryn_3d_sim.html")
     out["clients/bry/bryn_3d_sim.html"] = page
-    page = once(source("bryn_compute_3d.html"), "<title>Bryn Compute Render</title>",
-                "<title>Bryn Atlas — Compute Render</title>", "bryn_compute_3d.html")
-    page = once(page, 'window.__ATLAS_PAGE = "bryn_atlas.html";', 'window.__ATLAS_PAGE = "/clients/bry/";', "bryn_compute_3d.html")
-    page = once(page, "if (document.referrer && new URL(document.referrer).origin === window.location.origin && "
-                      "window.history.length > 1) { window.history.back(); return; }",
-                "if (document.referrer && (function(r){ return r.origin === window.location.origin && r.pathname === "
-                "window.location.pathname && !r.searchParams.has(\"view\"); })(new URL(document.referrer)) && "
-                "window.history.length > 1) { window.history.back(); return; }", "bryn_compute_3d.html")
-    out["clients/bry/bryn_compute_3d.html"] = page
+    # The Compute Render (?view=compute) is written for the Atlas: atlas/bry/compute.html, with its model, flythrough
+    # and stills in atlas/bry/assets/, which build.py copies into the same folder (CLIENTS), so it needs no patch here.
 
     # KLD: Kinlochdamph. The map's badge opens the 3D view, the shared model with the KLD chrome (its "Atlas" control)
     # spliced in, and the root clip Streamlit's frame gave it, without which a phone pans sideways.
@@ -290,7 +283,7 @@ CLIENT_PAGES = {
                       "views": {"3d": "3d.html", "siting": "siting.html"}},
     "/clients/srv-contractor/": {"client": "srv-contractor", "title": "SRV Contractor Atlas — electrical site survey", "list": True},
     "/clients/bry/": {"client": "bry", "title": "Bryn Atlas — Bryn Power AD plant", "list": True,
-                      "views": {"3d": "bryn_3d_sim.html", "compute": "bryn_compute_3d.html"}},
+                      "views": {"3d": "bryn_3d_sim.html", "compute": "compute.html"}},
     "/clients/kld/": {"client": "kld", "title": "KLD Atlas — Kinlochdamph", "list": True, "views": {"3d": "3d.html"}},
     "/clients/ihn/": {"client": "ihn", "title": "IHN Atlas — Islington heat network", "list": True, "views": {"3d": "3d.html"}},
     "/clients/reabold/west-newton/": {"client": "reabold", "title": "West Newton infrastructure map", "list": True},
@@ -325,10 +318,16 @@ CLIENT_CSP = {
                                  f"img-src 'self' data: https://server.arcgisonline.com {_OSM} https://cdnjs.cloudflare.com; "
                                  "font-src 'self' https://fonts.gstatic.com; connect-src 'self'; media-src 'none'; worker-src 'none'; "
                                  "frame-src 'self'; " + _END),
+    # the map (Leaflet from cdnjs, Esri imagery), the 3D Site Model (its mesh decoder compiles WebAssembly) and the Compute
+    # Render (three.js and its model from the folder; the flythrough is the one thing played, so media-src is 'self')
     "/clients/bry/": ("default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdnjs.cloudflare.com; "
                        "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; "
                        "img-src 'self' data: blob: https://server.arcgisonline.com; font-src 'self' data:; connect-src 'self' blob:; "
-                       "media-src 'none'; worker-src 'none'; frame-src 'none'; " + _END),
+                       "media-src 'self'; worker-src 'none'; frame-src 'none'; " + _END),
+    # the Compute Render (?view=compute): its script, model, flythrough, stills and font from the folder, nothing else
+    "/clients/bry/compute.html": ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
+                                  "img-src 'self' data: blob:; font-src 'self'; connect-src 'self' blob:; media-src 'self'; "
+                                  "worker-src 'none'; frame-src 'none'; " + _END),
     "/clients/kld/": CLIENT_MAP_CSP,
     "/clients/kld/3d.html": ("default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; "
                              f"img-src 'self' data: https://server.arcgisonline.com {_OSM}; font-src 'self'; connect-src 'self'; "

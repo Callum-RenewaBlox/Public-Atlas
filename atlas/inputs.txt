@@ -12,7 +12,6 @@ srv_contractor.html
 bryn_atlas.html
 bryn_atlas_3d_badge.html
 bryn_3d_sim.html
-bryn_compute_3d.html
 kld_hydro_chrome.html
 kld_interactive.html
 ihn_atlas.html
