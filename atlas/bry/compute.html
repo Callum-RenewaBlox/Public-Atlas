@@ -105,7 +105,7 @@ header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2.5
 #labels *{pointer-events:none}
 .lab{position:absolute;width:0;height:0}
 #labels .lbl{pointer-events:auto}
-.lbl{position:absolute;left:0;bottom:0;transform:translate(-50%,-20px);cursor:pointer;white-space:nowrap;text-align:left;
+.lbl{position:absolute;left:0;bottom:0;transform:translate(-50%,-20px);cursor:pointer;white-space:nowrap;text-align:left;touch-action:none;
   font:650 12px/1.2 var(--font);color:var(--brand);background:var(--glass);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
   border:1px solid var(--line);padding:6px 11px;border-radius:var(--r-pill);box-shadow:var(--sh-1);transition:box-shadow .15s,border-color .15s}
 .lbl::after{content:"";position:absolute;left:50%;top:100%;width:2px;height:20px;margin-left:-1px;background:var(--glass);box-shadow:0 0 0 1px var(--line)}
@@ -113,10 +113,10 @@ header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2.5
 .lbl.int{border-color:#bfe3d6}
 .lbl.int::after{box-shadow:0 0 0 1px #bfe3d6}
 .lbl:hover,.lbl:focus-visible{border-color:var(--accent-l);box-shadow:var(--sh-2)}
-/* the labels of the chosen view lead; the others stand back, without their second line, until pointed at */
-.lab.dim .lbl{opacity:.62;font-weight:600}
+/* the labels of the chosen view lead; the others stand back (flat, in the muted ink, without their second line) until pointed at */
+.lab.dim .lbl{color:var(--muted);font-weight:600;border-color:var(--line-2);box-shadow:none}
 .lab.dim .lbl small{display:none}
-.lab.dim .lbl:hover,.lab.dim .lbl:focus-visible{opacity:1}
+.lab.dim .lbl:hover,.lab.dim .lbl:focus-visible{color:var(--brand);border-color:var(--accent-l);box-shadow:var(--sh-2)}
 @media (max-width:860px){ .lbl{font-size:11px;padding:5px 9px} .lbl small{display:none} }
 
 #loading{position:absolute;inset:0;z-index:9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
@@ -298,9 +298,9 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
 <main id="stage">
   <!-- ============================================================ model -->
   <section class="view" id="p-model" role="tabpanel" aria-labelledby="t-model">
-    <nav class="panel" id="rail" aria-label="Camera and model">
+    <nav class="panel" id="rail" aria-label="Camera and model" inert>
       <div class="rail-h">Camera</div>
-      <button type="button" data-v="overview" aria-current="true" title="The pad and the plant from the south-west (click again to reset the view)"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.8 11.4l6.2-3.4 6.2 3.4"/><path d="M1.8 11.4V5.2L8 1.8l6.2 3.4v6.2"/><path d="M8 8V1.8"/></svg><span>Overview</span></button>
+      <button type="button" data-v="overview" aria-current="true" title="The pad and the plant from the south-east (click again to reset the view)"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.8 11.4l6.2-3.4 6.2 3.4"/><path d="M1.8 11.4V5.2L8 1.8l6.2 3.4v6.2"/><path d="M8 8V1.8"/></svg><span>Overview</span></button>
       <button type="button" data-v="container" title="The BLOX container from the pad"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.8" y="4.2" width="12.4" height="8.4" rx="1"/><path d="M8 4.2v8.4M4.6 7h1.2M10.2 7h1.2"/></svg><span>Container</span></button>
       <button type="button" data-v="cooler" title="The dry cooler, and the flow and return to it"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M8 8c0-2.2.9-3.6 2.4-3.6M8 8c1.9 1.1 2.7 2.6 1.9 3.9M8 8c-1.9 1.1-3.6 1-4.3-.3"/><circle cx="8" cy="8" r=".9" fill="currentColor"/></svg><span>Dry cooler</span></button>
       <button type="button" data-v="power" title="The supply: the LV panel, the cable route and the isolator"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 1.8L3.6 9h3.8l-1 5.2L12.4 7H8.6z"/></svg><span>Power</span></button>
@@ -318,7 +318,7 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
     <div id="labels"></div>
     <div id="loading" role="status"><span id="loadmsg">Loading the site</span><div class="bar"><i id="loadbar"></i></div></div>
 
-    <div class="panel" id="caption" aria-live="polite">
+    <div class="panel" id="caption" aria-live="polite" inert>
       <div class="k" id="cap-k">Camera · Overview</div>
       <h2 id="cap-h">The pad and the plant</h2>
       <p id="cap-p"></p>
@@ -331,7 +331,7 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
   <section class="view page" id="p-media" role="tabpanel" aria-labelledby="t-media" tabindex="0" hidden>
     <div class="wrap">
       <h2>Flythrough</h2>
-      <p class="sub">51 seconds: in over the sheds and their solar roofs to the digesters and the CHP, down to the pad from the west, over the container and its dry cooler, across the Heras fence to the power compound, along the flow and return between the two, and in through the container&rsquo;s doors to the rack. The layout is the one of 25 October: the container on the east side of the pad next to the power compound, the dry cooler on the ground west of it.</p>
+      <p class="sub">51 seconds: in over the sheds and their solar roofs to the digesters and the CHP, down to the pad past the purple containers, round the container&rsquo;s east side and the power compound at the Heras fence, over the roofs of the container and its dry cooler, back along the pad from the west over the sunken pit, along the flow and return between the two, and in through the container&rsquo;s doors to the rack. The layout is the one of 25 October: the container on the east side of the pad next to the power compound, the dry cooler on the ground west of it.</p>
       <div class="vidcard">
         <video id="fly" controls preload="none" playsinline poster="assets/flythrough_poster.jpg">
           <source src="assets/bryn_flythrough_720p.mp4" type="video/mp4"/>
@@ -343,7 +343,7 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
       <h2 id="stills" class="sec">Stills</h2>
       <p class="sub">Rendered views of the model. Click one to see it full size; the arrow keys step through them.</p>
       <div class="grid" id="gallery">
-        <button type="button" class="still" data-full="assets/hero.jpg"><img src="assets/hero_thumb.jpg" alt="The BLOX container and the dry cooler from the open pad" loading="lazy"/><span><b>The container and the dry cooler</b>From the open pad: the Green Hash 10 ft container on its four plinth blocks, the dry cooler on its two concrete strips 2.85 m to the west, and the flow and return between them at low level; the feed tank and the digesters behind the retaining wall</span></button>
+        <button type="button" class="still" data-full="assets/hero.jpg"><img src="assets/hero_thumb.jpg" alt="The BLOX container and the dry cooler from the open pad" loading="lazy"/><span><b>The container and the dry cooler</b>From the open pad: the Green Hash 10 ft container on its four plinth blocks, the dry cooler on its two concrete strips 2.85 m to the west, and the flow and return between them at low level; the Trioliet feeder and the digesters behind the retaining wall</span></button>
         <button type="button" class="still" data-full="assets/doors-open.jpg"><img src="assets/doors-open_thumb.jpg" alt="The container with both doors open on the hydro rack" loading="lazy"/><span><b>Inside the container</b>Both doors open: the hydro rack with a status light on each miner, its flow and return in red and blue, and the cooling distribution unit beside it</span></button>
         <button type="button" class="still" data-full="assets/aerial.jpg"><img src="assets/aerial_thumb.jpg" alt="Aerial view of the pad, the container, the dry cooler and the power compound" loading="lazy"/><span><b>Aerial</b>The pad from above: the container next to the power compound, the dry cooler west of it, the LV panel and the transformer beyond the Heras fence, the two purple process containers, and the CHP containers and the stack to the east</span></button>
         <button type="button" class="still" data-full="assets/pad-west.jpg"><img src="assets/pad-west_thumb.jpg" alt="The pad from the west, with the feed tank and the pipe gantry behind" loading="lazy"/><span><b>The pad from the west</b>Over the sunken pit to the dry cooler and the container, with the Trioliet feeder on the raised slab behind the retaining wall, the pipe gantry along the wall top, and the CHP containers at the far end</span></button>
@@ -366,9 +366,9 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
           <h3>From documents and the site photographs</h3>
           <p class="src">The Green Hash 410 kW outdoor hydro proposal, the 27 site photographs of 13 October 2026, and the client&rsquo;s notes of 24 and 25 October</p>
           <ul>
-            <li><b>Container</b>: a 10 ft high-cube, 2.991 × 2.438 × 2.896 m with its corner castings (the Green Hash specification)</li>
+            <li><b>Container</b>: a 10 ft high-cube, 2.991 × 2.438 × 2.896 m external (the Green Hash specification)</li>
             <li><b>Dry cooler</b>: 3.64 × 2.306 × 2.50 m, six fans, V-coil (the specification); its layout drawing gives the 2.85 m gap to the container</li>
-            <li><b>Rack</b>: one rack of 3 × 20 slots, 172.8 kW rated and 200 kW at most including cooling (the client&rsquo;s figure); the site may grow to 400 kW</li>
+            <li><b>Rack</b>: one rack of 3 × 20 slots, 172.8 kW rated and 200 kW at most including cooling (the client&rsquo;s figure). The render fits 30 miners, 5.76 kW each at the rating, where the revenue-share model counts 24 at 7.2 kW: the same 172.8 kW, a count to confirm. The Atlas notes record that the site may grow to 400 kW</li>
             <li><b>Supply</b>: the spare 400 A outgoing way in the LV panel, an ABB SACE Emax 2 air circuit breaker (the panel carries 400 A and 630 A frames in the photographs). The panel stays as it is: only a new outgoing cable is added</li>
             <li><b>11 kV ring main unit</b>: a Schneider Ringmaster CE2 on legs on a plinth, with a canopy (photographed)</li>
             <li><b>Transformer 3</b>: Wilson Power Solutions, grey and finned, about 2.5 × 1.6 × 2.2 m (scaled from the photographs)</li>
@@ -380,7 +380,7 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
           <p class="src">Google Maps satellite at zoom 21 (0.052 m per pixel; it predates the photographs), the Google Earth oblique, and the photographs</p>
           <ul>
             <li><b>Pad</b>: about 12 × 10 m free once the trailer and the telehandler are moved</li>
-            <li><b>Retaining wall</b>: about 2.0 m high and 0.3 m thick, with the upper hardstanding behind it at +2.0 m carrying the Trioliet feeder (about 8.4 × 2.6 m, 2.4 m high above the wall top)</li>
+            <li><b>Retaining wall</b>: about 2.0 m high and 0.3 m thick, with the upper hardstanding behind it at +2.0 m carrying the Trioliet feeder, the feed tank on the Atlas map (about 8.4 × 2.6 m, 2.4 m high above the wall top)</li>
             <li><b>Pipe gantry</b> along the wall top: two silver pipes of about DN150 at 2.3 to 2.7 m, and a red heating pipe</li>
             <li><b>Digester</b>: about 26 m across, a 6 m wall and a dome 5 m above it, its centre about 20 m behind the wall; the small ring tank about 10 m across and 5 m high, west of the pad</li>
             <li><b>CHP</b>: two lime-green containers of about 12 × 3 × 3 m with black radiator banks on top, 14 to 20 m east of the pad; the stack about 16 m with its platform at 10 m</li>
@@ -398,7 +398,7 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
             <li><b>Cable route</b>: a 4-core 240 mm² XLPE/SWA cable (about 400 A) from the spare breaker, in a 0.4 m trench across the fence line to a 400 A isolator on the container&rsquo;s east side, about 5 m in all (LV panel, plinth edge, a draw pit at the fence, the riser); shown as a reinstated strip in the plinth and the pad, with a cable-protector ramp where it crosses the trench grating</li>
             <li><b>Container colour</b>: RenewaBlox light grey (RAL 7035) with a RenewaBlox blue band; the Atlas shows it white</li>
             <li><b>Terrain beyond the pad</b>: wooded banks to the north, east and south and the chip yard to the west are indicative only (no LiDAR; the Google Earth mesh is too coarse here)</li>
-            <li><b>Vehicles</b>: the white trailer and the vehicles differ between the imagery and the photographs; none is shown</li>
+            <li><b>Vehicles</b>: none on the pad (the trailer and the telehandler moved off it, as agreed); the white trailer and a van stand off the pad to the south-west by the sheds, where the imagery had them, and are indicative only</li>
           </ul>
         </div>
       </div>
@@ -483,7 +483,7 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
   const VIEWS = {
     overview: { pos: [34, -56, 34], tgt: [2, 2, 1],
       k: 'Overview', h: 'The pad and the plant',
-      p: 'The yard south of the feed tank: the BLOX container on the east side of the pad next to the power compound, its dry cooler on the ground west of it, the retaining wall and the Trioliet feeder behind, the digesters beyond and the CHP containers to the east. Terrain beyond the pad is indicative.' },
+      p: 'The yard south of the Trioliet feeder: the BLOX container on the east side of the pad next to the power compound, its dry cooler on the ground west of it, the retaining wall and the feeder behind, the digesters beyond and the CHP containers to the east. Terrain beyond the pad is indicative.' },
     container: { pos: [12.5, -15.5, 3.2], tgt: [3.5, -4.0, 2.0],
       k: 'Container', h: 'The BLOX container',
       p: 'A Green Hash 10 ft high-cube container, 2.99 × 2.44 × 2.90 m, on four plinth blocks with its doors facing the open pad and its east face 1.8 m clear of the Heras line. The pump cabinet with the glazed door is on the west face; the 400 A isolator on the east.' },
@@ -504,7 +504,7 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
     ['Dry cooler', '6 fans · 3.64 × 2.3 m · 2.85 m from the container', [-0.67, -4.3, 3.3], 'cooler', false, 60],
     ['Flow / return', 'DN100 insulated, 55 °C out · 40 °C back', [1.9, -3.6, 1.15], 'cooler', false, 16],
     ['BLOX container', '10 ft HC · 2.99 × 2.44 × 2.9 m', [4.55, -4.3, 3.65], 'container', false, 400],
-    ['Hydro rack', '3 × 20 slots · 30 miners fitted · 172.8 kW', [4.95, -3.6, 2.25], 'inside', true, 16],
+    ['Hydro rack', '3 × 20 slots · 172.8 kW rated', [4.95, -3.6, 2.25], 'inside', true, 16],
     ['CDU', 'Plate HX, duty/standby pumps, vessels', [3.85, -4.9, 2.05], 'inside', true, 16],
     ['Distribution board', '400 A incomer, MCCB ways per rack column', [5.65, -5.1, 1.95], 'inside', true, 14],
     ['400 A isolator', 'Container end of the new supply', [5.95, -5.3, 1.95], 'power', false, 14],
@@ -527,13 +527,17 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
   let view = 'overview', xray = false, fansOn = true, labelsOn = true, doorOpen = 0, doorTarget = 0, loaded = false;
   let renderer = null, labelR = null, scene = null, camera = null, controls = null, tween = null, raf = 0, clock = null;
   const xrayMeshes = [], fans = [], doors = [], labelObjs = [];
-  let xrayMat = null, B = null, THREE = null, lastMove = 0;
+  let xrayMat = null, B = null, THREE = null, lastMove = 0, pmrem = null;
 
   function pressed(id, on){ $(id).setAttribute('aria-pressed', on ? 'true' : 'false'); }
-  function failed(msg){
+  function failed(msg, retry){
     const l = $('loading'); l.classList.remove('hide'); l.classList.add('failed');
-    $('loadmsg').innerHTML = msg + ' The <a href="#media">flythrough and stills</a> show the same model.';
-    l.querySelectorAll('a').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); setTab(a.getAttribute('href').slice(1)); }));
+    $('loadmsg').innerHTML = msg + (retry ? ' <a href="#retry">Try again</a>, or see the' : ' The') + ' <a href="#media">flythrough and stills</a>, which show the same model.';
+    l.querySelectorAll('a').forEach((a) => a.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (a.getAttribute('href') === '#retry') { l.classList.remove('failed'); $('loadmsg').textContent = 'Loading the site'; bar(0); load(); }
+      else setTab(a.getAttribute('href').slice(1));
+    }));
   }
   function bar(f){ $('loadbar').style.width = Math.round(Math.max(0, Math.min(1, f)) * 100) + '%'; }
 
@@ -568,8 +572,10 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
     controls.addEventListener('start', () => { document.body.classList.add('moved'); tween = null; lastMove = performance.now(); run(); });
     controls.addEventListener('change', () => { lastMove = performance.now(); run(); });
 
-    const pmrem = new THREE.PMREMGenerator(renderer);
+    pmrem = new THREE.PMREMGenerator(renderer);
     scene.environment = pmrem.fromScene(new L.RoomEnvironment(), 0.04).texture;
+    // a context lost to the system (a phone switching apps) comes back empty: its lighting is made again and the scene redrawn
+    renderer.domElement.addEventListener('webglcontextrestored', () => { scene.environment = pmrem.fromScene(new L.RoomEnvironment(), 0.04).texture; if (loaded) draw(); });
     scene.add(new THREE.HemisphereLight(0xcfe2f3, 0x7a7a5e, 0.9));
     const sun = new THREE.DirectionalLight(0xfff1d6, 2.6);
     sun.position.copy(B(0.587, -0.70, 0.407).multiplyScalar(90)); sun.castShadow = true;
@@ -610,10 +616,10 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
       const buf = new Uint8Array(got); let o = 0;
       for (const c of chunks) { buf.set(c, o); o += c.length; }
       bar(0.9); $('loadmsg').textContent = 'Building the scene';
-      new L.GLTFLoader().parse(buf.buffer, '', build, (err) => { tries++; failed('The 3D model could not be read.'); });
+      new L.GLTFLoader().parse(buf.buffer, '', build, (err) => { tries++; failed('The 3D model could not be read.', true); });
     } catch (e) {
       tries++;
-      failed('The 3D model could not be loaded here.');
+      failed('The 3D model could not be loaded here.', true);
     }
   }
 
@@ -668,6 +674,7 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
     setTimeout(() => {
       $('loading').classList.add('hide');
       document.body.classList.add('ready');
+      $('rail').removeAttribute('inert'); $('caption').removeAttribute('inert');
       clampCaption(); railEdges();
     }, 150);
     run();
@@ -679,18 +686,44 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
       const wrap = document.createElement('div'); wrap.className = 'lab';
       const el = document.createElement('button'); el.className = 'lbl' + (interior ? ' int' : ''); el.type = 'button';
       el.innerHTML = title + (sub ? '<small>' + sub + '</small>' : '');
-      el.title = 'Go to the ' + title.toLowerCase();
+      el.title = 'Go to: ' + title;
       el.addEventListener('click', () => flyTo(B(...p)));
       wrap.appendChild(el);
       const o = new L.CSS2DObject(wrap); o.position.copy(B(...p)); o.userData.interior = interior; o.userData.near = near; o.userData.view = v;
       scene.add(o); labelObjs.push(o);
     }
     updateLabels();
+    // a finger or a mouse that lands on a pill and moves is a drag of the scene, not a click: hand it to the canvas
+    let pd = null;
+    $('labels').addEventListener('pointerdown', (e) => { pd = e; });
+    $('labels').addEventListener('pointermove', (e) => {
+      if (!pd || Math.hypot(e.clientX - pd.clientX, e.clientY - pd.clientY) < 6) return;
+      renderer.domElement.dispatchEvent(new PointerEvent('pointerdown', pd)); pd = null;
+    });
+    $('labels').addEventListener('pointerup', () => { pd = null; });
+    $('labels').addEventListener('pointercancel', () => { pd = null; });
   }
   function updateLabels(){
+    const v = new THREE.Vector3();
     for (const o of labelObjs) {
       o.visible = labelsOn && (!o.userData.interior || xray || doorOpen > 0.5) && camera.position.distanceTo(o.position) < o.userData.near;
       o.element.classList.toggle('dim', view !== 'overview' && o.userData.view !== view);
+      // a label off the edge of the frame is clipped, not hidden: it leaves the Tab order
+      v.copy(o.position).project(camera);
+      o.element.firstElementChild.tabIndex = (o.visible && Math.abs(v.x) <= 1 && Math.abs(v.y) <= 1 && v.z < 1) ? 0 : -1;
+    }
+    queueCover();
+  }
+  // ...as does one the rail or the caption covers, checked once the picture has settled
+  let coverT = 0;
+  function queueCover(){ clearTimeout(coverT); coverT = setTimeout(coverCheck, 200); }
+  function coverCheck(){
+    const panels = ['rail', 'caption'].map((id) => $(id).getBoundingClientRect()).filter((r) => r.width);
+    for (const o of labelObjs) {
+      const b = o.element.firstElementChild;
+      if (b.tabIndex < 0) continue;
+      const r = b.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      if (panels.some((p) => cx >= p.left && cx <= p.right && cy >= p.top && cy <= p.bottom)) b.tabIndex = -1;
     }
   }
 
@@ -707,7 +740,7 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
     animateCamera(target.clone().add(off), target);
   }
   function setView(name){
-    const v = VIEWS[name]; if (!v) return;
+    const v = VIEWS[name]; if (!v || !loaded) return;
     view = name;
     if (controls.autoRotate) { controls.autoRotate = false; pressed('b-rot', false); }
     document.querySelectorAll('#rail [data-v]').forEach((b) => b.setAttribute('aria-current', b.dataset.v === name ? 'true' : 'false'));
@@ -748,10 +781,10 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
   /* ------------------------------------------------------------- loop */
   // One frame; and the loop, which runs only while the model tab shows, the page is visible and something moves
   // (a camera flight, the doors, the fans, a slow turn or the controls' damping), so a still scene costs nothing.
-  function draw(){
+  function draw(dt){
     if (!loaded) return;
     updateLabels();
-    controls.update();
+    controls.update(dt == null ? null : dt);
     renderer.render(scene, camera); labelR.render(scene, camera);
   }
   function moving(){
@@ -771,7 +804,7 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
     }
     placeDoors();
     if (fansOn && !REDUCED) for (const f of fans) f.rotation.y += dt * 2 * Math.PI * 300 / 60;
-    draw();
+    draw(dt);
     run();
   }
   function run(){
@@ -779,7 +812,7 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
     if (want && !raf) { clock.getDelta(); raf = requestAnimationFrame(frame); }
     else if (!want && raf) { cancelAnimationFrame(raf); raf = 0; }
   }
-  document.addEventListener('visibilitychange', run);
+  document.addEventListener('visibilitychange', () => { run(); if (!document.hidden && loaded && !raf) draw(); });
 
   /* ------------------------------------------------- caption and rail */
   // on a phone the caption shows two lines; "More" appears only when there is more to show

@@ -318,12 +318,11 @@ CLIENT_CSP = {
                                  f"img-src 'self' data: https://server.arcgisonline.com {_OSM} https://cdnjs.cloudflare.com; "
                                  "font-src 'self' https://fonts.gstatic.com; connect-src 'self'; media-src 'none'; worker-src 'none'; "
                                  "frame-src 'self'; " + _END),
-    # the map (Leaflet from cdnjs, Esri imagery), the 3D Site Model (its mesh decoder compiles WebAssembly) and the Compute
-    # Render (three.js and its model from the folder; the flythrough is the one thing played, so media-src is 'self')
+    # the map (Leaflet from cdnjs, Esri imagery) and the 3D Site Model (its mesh decoder compiles WebAssembly)
     "/clients/bry/": ("default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdnjs.cloudflare.com; "
                        "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; "
                        "img-src 'self' data: blob: https://server.arcgisonline.com; font-src 'self' data:; connect-src 'self' blob:; "
-                       "media-src 'self'; worker-src 'none'; frame-src 'none'; " + _END),
+                       "media-src 'none'; worker-src 'none'; frame-src 'none'; " + _END),
     # the Compute Render (?view=compute): its script, model, flythrough, stills and font from the folder, nothing else
     "/clients/bry/compute.html": ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
                                   "img-src 'self' data: blob:; font-src 'self'; connect-src 'self' blob:; media-src 'self'; "
