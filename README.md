@@ -12,6 +12,7 @@ public, the apps deploy as **public apps** on Streamlit Community Cloud
 | --- | --- | --- |
 | `app_srv_atlas.py` | `srv_atlas.html` + `srv_atlas_3d_badge.html` + `srv_3d_sim.html` + `srv_siting_3d.html` | SRV Atlas — the client view of the Scrivelsby (Home Farm AD) scheme: where the compute load bank sits, how it connects, and the site around it, kept deliberately minimal (LN9 6JB). Two pulsing BLOX badges on the yard open the 3D Dispatch Sim (`?view=3d`) and the 3D Compute Kiosk (`?view=siting`, two siting schemes on one page: option A, one 4 m kiosk for the LV board, three DCX hydro racks and their cooling loop with the dry cooler on the roof; option B, the existing kiosk extended for the board and the Winchain 10 ft hydro cooling container behind it with the dry cooler on the container roof) full-screen — the same app serving each route, so the map page carries none of the models' weight |
 | `app_srv_contractor.py` | `srv_contractor.html` | SRV Contractor Atlas — the same site surveyed for the LV connection RFQ: switchgear detail, the full 12-photo survey including switchroom interiors, the feeder route with its tie-in and containment notes, and OSM/DNO context |
+| `app_srv_electrical.py` | `srv_electrical/shell.html` + `srv_electrical/sld.html` + `srv_electrical/site3d.template.html` + `srv_electrical/site.glb` | SRV Electrical — the LV connection at Scrivelsby drawn two ways: Paktronic's quoted changeover board (LF42344) against the shared-busbar design RenewaBlox needs. Two main tabs in the brand bar, opening on **Single-line diagram** (the animated SLD: the DNO transformer, the existing 2014 board, the new board with the CHP's generator breaker, and the data-centre section with its racks, cooler and CDU), with **Site view** beside it (the same scheme on the September 2026 Scrivelsby site model: the GRP kiosk with both boards back to back, the data-centre container under the cooler gantry, and the cable routes carrying the power, with a status pill on each asset). Each has the same two sub-tabs, **What Lee designed** (the quote as drawn: two 1250 A ACBs, mechanically interlocked, so the engine feeds the site or the data centre, never both) and **What we need** (the interlock removed, the miners turned down in software, and a hardwired trip that drops the racks if the engine stops), each stepping through three operating states, power drawn in engine orange or grid blue; the design and state picked in one view carry over when the other is opened. The site view loads only when first opened; `?view=site`, `?design=what-we-need` and `?state=1` to `3` deep-link |
 | `app_bryn_atlas.py` | `bryn_atlas.html` + `bryn_atlas_3d_badge.html` + `bryn_3d_sim.html` + `bryn_compute_3d.html` | Bryn Atlas — the client view of the Bryn Power AD plant scheme (Gelliargwellt Farm, Gelligaer CF82 8FY): where a BLOX data centre would stand, on the yard a few metres from the LV room at the CHP engines, to take about 200 kW of the site's surplus power by a short connection with no cable route across the site, kept deliberately minimal. A pulsing BLOX badge on the proposed plot opens the 3D Site Model full-screen (`?view=3d`): a three.js model of the plant, built in Blender from aerial imagery, with the data centre in place, in four tabs in the header. It opens on **Site**, the model alone. **Dispatch** plays the site's power half hour by half hour on a representative day per season (weekday or weekend, average or sunny; site load 125 kW on weekdays and 25 kW less at weekends and on bank holidays), Today against With BLOX: a live readout, the dispatch desk (two chart lanes: potential generation, and export against the 1.8 MW limit), Bryn's extra export as a single assumption (350,400 kWh a year at 16p/kWh, £56,064 a year, the figure Finance uses), and the seasons side by side in a fold that opens on demand; the data centre is 24 miners, 172.8 kW of compute installed, drawing at most 200 kW overclocked with its pumps, dry cooler and controls (their own load, about 5–8 kW, comes out of the 200 kW); with BLOX load following, export is held at 1,715 kW (85 kW headroom) against 1,675 kW today and the data centre takes the rest up to its 200 kW, and that target and the engines' warm-weather easing are set so a typical year matches the Finance tab (350,400 kWh of extra export, and 1,548,857 kWh into the data centre in a typical year: less 5% for outages, the 84% site capacity factor the revenue-share model uses); the scene follows the clock (the sun, the data centre rising out of its slab, its fans and the solar roofs' glow). **Finance** is the walk-through of the three ways of funding it (RenewaBlox funds it, 50:50 CAPEX share, Bryn funds it), from the revenue-share model for the final deployment (*Bryn Recycling 172.8kW final*, 19 October 2026: 172.8 kW, 24 miners, RenewaBlox's option recovering its CAPEX over 24 months; the options are scaled to the model's site-level outputs, £593,693 over the contract and a 17.6-month project payback) with Bryn's extra export added to Bryn's side: the panel is led by the 50:50 CAPEX share, opening on it in every size and keeping a soft amber mark on it when another option is chosen, and starts as a pill quoting it (Bryn receives £577,166), with the engine strip along the bottom; the strip maximises into a big-figure view led by the installation's 5-year total contract value; the pill opens a card of the three options, the chosen one showing what Bryn receives, its payback and a sparkline (and from then the split callout rides on the unit), and "Cash flow, year by year" widens it for the discussion: the options as chips with each one's outlay, total and payback, the answer in one line ("Bryn receives £755,274 over 5 years · paid back in 14.4 months"), one sentence on how the option works, what Bryn puts in against what it receives as two bars, and each side's cash in hand year by year on one fixed scale, with the installation and every model figure behind one disclosure; the engine strip stays under the wide panel when both fit. **Export only – assumes no Bitcoin** is the hypothetical with no Bitcoin income: Bryn's £280,320 over 5 years from its extra export alone against what it puts in under each option (paid back in 19.6 months on the 50:50 CAPEX share, 39.2 months when it pays it all), anchored on the 50:50 CAPEX share, which the tab opens on and keeps softly marked, with the sum behind it along the bottom and Bryn's £91,684 half paid back in 19.6 months on a 5-year line; the two tabs share the chosen option. Opened as a plain file, `bryn_3d_sim.html?tab=dispatch`, `?tab=finance` or `?tab=export` starts on that tab and `?deal=card`, `?deal=open` and `?engine=max` start Finance at those stages (the Streamlit frame passes no query string through, so the app always opens on Site). A second, teal badge on the compute container's spot by the LV cabinet opens the Compute Render full-screen (`?view=compute`): the yard south of the feed tank rebuilt in metres from imagery and the 13 October 2026 site photos, with the Green Hash 10 ft container in place and the two ways of placing its dry cooler (on the roof, or on the pad beside it), the LV cabinet at the west end of its compound by the Heras line with the transformer a walkway east of it, the cable route into the open trench, and every part carrying its source and what was assumed (click it); the same app serves each route, so the map page carries none of the models' weight |
 | `app_kld_atlas.py` | `kld_atlas.html` + `kld_hydro_chrome.html` + `kld_interactive.html` | KLD Atlas — Kinlochdamph 999 kW run-of-river hydro (Loch Damh, Wester Ross): site assets, the 11/33/132 kV network and the two SSEN connection options. A pulsing BLOX badge on the powerhouse opens the 3D Revenue Sim full-screen — the same app serving `?view=3d`, so the atlas page carries none of the model's weight |
 | `app_ihn_atlas.py` | `ihn_atlas.html` + `ihn_heat_chrome.html` + `heat_network_3d.html` | IHN Atlas — the IHN heat network: a still, daytime three.js satellite atlas of the district with the network main, the existing and proposed connections, the 11 kV route and the HNES blocks drawn on the imagery, and the 76 × 25 m plant room cut away under the block; four camera views (Overview, the Plant room as an amber call to action, EC1, EC2) with a caption that follows the view, a key, layers and a Council site-map overlay. A pulsing BLOX badge over the plant room opens the dispatch model, Heat Network 3D, full-screen — the same app serving `?view=3d` with the same model file the investor pack serves, all data included, so the atlas page carries none of the model's weight |
@@ -129,6 +130,35 @@ to the map). **Never edit `kld_interactive.html` to add atlas-specific chrome** 
 it is served by four apps, and a "back to the KLD Atlas" button baked into it
 would appear, pointing at the wrong place, in both investor packs and the
 generator pack.
+
+## SRV Electrical sources
+
+`app_srv_electrical.py` has no builder: its sources live in `srv_electrical/`
+and are edited in place, and the app assembles them at serve time, filling the
+shell's placeholders with the two pages (as inert JSON in `<script>` blocks,
+`<`, `>` and `&` escaped) and the site model (base64, into the site page's
+`__GLB_B64__`). Each page runs in its own frame under the shell's brand bar,
+built the first time its tab is opened, so the 3D model costs nothing until
+someone asks for it. The pages report the reader's picks to the shell
+(`postMessage`) and expose `window.LV.show(design, state)`, which is how the
+other view opens on the same design and state.
+
+| File | What it is | Where things live |
+| --- | --- | --- |
+| `shell.html` | the brand bar with the two main tabs, and a pane per view | the views in `VIEWS`; the deep links arrive as `window.__LV_QUERY` |
+| `sld.html` | the single-line diagram, a self-contained page | the operating states and copy in `TABS`; the geometry in `SEG` (wires), `BUS` (busbars) and `BRK` (breakers) |
+| `site3d.template.html` | the site view, three.js 0.169.0 from jsDelivr through an import map (GLTFLoader, OrbitControls, RoomEnvironment) | the states and copy in `TABS`, the cable routes in `ROUTES`, the trip line in `TRIP_ROUTE`, the scene labels in `LABELS`, and the new kiosk, boards and data-centre container in `buildNewWorks()` |
+| `site.glb` | the Scrivelsby site model from the September 2026 siting build (Blender to GLB) | siting options A to C, the old switch room and parts of option D are hidden at runtime by node name and group |
+
+Site coordinates are metres, x east, y north, h up, and `P(x, y, h)` maps them
+to three.js. Orange is engine power, blue is grid power, purple dashed is the
+engine-status trip signal and red marks a trip, in both views. The pages carry
+the house type (Inter) and petrol accent; the operating-state colours are their
+own. Known approximations: the September model is the base (the live Atlas
+siting view was not reachable when the pages were built), so the Winchain
+container is drawn as a plain 10 ft container under the cooler gantry; the GRP
+kiosk position and the back-to-back board layout follow Paktronic's 5 × 3 m
+estimate and are indicative; and the cable to the AD plant loads is schematic.
 
 ## The site-atlas pattern
 
@@ -430,6 +460,7 @@ folder, where the live sources are called directly):
     pip install -r requirements.txt
     streamlit run app_srv_atlas.py
     streamlit run app_srv_contractor.py
+    streamlit run app_srv_electrical.py
     streamlit run app_bryn_atlas.py
     streamlit run app_kld_atlas.py
     streamlit run app_ihn_atlas.py
@@ -474,6 +505,11 @@ to `outreach/app_outreach.py` (`renewablox-outreach.streamlit.app` would suit).
 decision page that draws on a Savills report marked Sensitive, so share its
 link with the team rather than publicly, and add it to the keep-awake list
 only if it is to stay up between meetings.
+`app_srv_electrical.py`, SRV Electrical, is ready to deploy as well
+(`srv-electrical.streamlit.app` matches its name). It sets Paktronic's quote
+against what RenewaBlox needs, so the same goes for its link: share it with the
+people working on the connection, and add it to the keep-awake list only if it
+is to stay up between meetings.
 The IHN and Bryn atlases serve their models with all of their data at
 `?view=3d` (and Bryn's compute render at `?view=compute`), so their links are for the client, not the public demo's footing.
 All six deployed apps are visited hourly by the keep-awake workflow
