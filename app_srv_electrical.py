@@ -9,7 +9,7 @@ operator Qila Energy). Two main tabs in the brand bar, opening on the first:
   generator breaker, and the data-centre section with its racks, cooler and
   CDU, power drawn flowing in engine orange or grid blue.
 * **Site view** — the same scheme on the September 2026 Scrivelsby site model
-  (``srv_electrical/site3d.template.html`` with ``srv_electrical/site.glb``):
+  (``srv_electrical/site3d.html`` with ``static/srv_electrical/site.glb``):
   the GRP kiosk with both boards back to back, the data-centre container under
   the cooler gantry, and the cable routes carrying the power, with a status
   pill on each asset.
@@ -22,19 +22,18 @@ if the engine stops), and each sub-tab steps through three operating states.
 The design and state picked in one view carry over when the other is opened.
 
 The bar and the two frames are ``srv_electrical/shell.html``; this script
-fills it at serve time with the two pages, the site model embedded in the
-site view as base64, so the sources in ``srv_electrical/`` are edited in place
-with no build step. The site view is only built into its frame the first time
-it is opened. Deep links: ``?view=site`` opens on the site view,
-``?design=what-we-need`` on the second sub-tab, ``?state=2`` on that
-operating state (1 to 3).
+fills it at serve time with the two pages, so the sources in
+``srv_electrical/`` are edited in place with no build step. The site view is
+only built into its frame the first time it is opened, and only then fetches
+its 3 MB model, which Streamlit serves from ``static/`` (``enableStaticServing``
+in ``.streamlit/config.toml``), so the page it opens on stays light. Deep
+links: ``?view=site`` opens on the site view, ``?design=what-we-need`` on the
+second sub-tab, ``?state=2`` on that operating state (1 to 3).
 
-Self-contained apart from three.js and the fonts, which load from CDNs. No
-database, no secrets.
+three.js and the fonts load from CDNs. No database, no secrets.
 
 Run locally:  streamlit run app_srv_electrical.py
 """
-import base64
 import json
 from pathlib import Path
 
@@ -71,7 +70,10 @@ st.markdown(
           width:100% !important;}
       [data-testid="stIFrame"] {
           height:100dvh !important; width:100% !important; display:block; border:0;}
-      html, body, .stApp {overflow:hidden !important; background:#0d1b23 !important;}
+      /* the shell's own background, light or dark, so nothing flashes while it loads */
+      html, body, .stApp {overflow:hidden !important; background:#eef2f5 !important;}
+      @media (prefers-color-scheme: dark) {
+          html, body, .stApp {background:#11161c !important;}}
     </style>
     """,
     unsafe_allow_html=True,
@@ -110,8 +112,7 @@ if params.get("state") in ("1", "2", "3"):
 # can keep imported modules cached, so reading here keeps the pages current
 # after every redeploy).
 sld = (SRC / "sld.html").read_text(encoding="utf-8")
-site = fill((SRC / "site3d.template.html").read_text(encoding="utf-8"), "__GLB_B64__",
-            base64.b64encode((SRC / "site.glb").read_bytes()).decode("ascii"))
+site = (SRC / "site3d.html").read_text(encoding="utf-8")
 html = (SRC / "shell.html").read_text(encoding="utf-8")
 html = fill(html, "__LV_QUERY__", json.dumps(query))
 html = fill(html, "__SLD_JSON__", script_json(sld))

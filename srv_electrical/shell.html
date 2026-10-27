@@ -7,8 +7,8 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
 <style>
 /* SRV Electrical: the house brand bar carries the two main views as tabs; each
-   view is its own page in a frame below it (sld.html, and the site view built
-   from site3d.template.html), loaded the first time it is opened. */
+   view is its own page in a frame below it (sld.html and site3d.html),
+   built the first time it is opened. */
 :root{
   --bg:#eef2f5; --bar:#ffffff; --fg:#0d1b23; --muted:#5b6876; --line:#d6dde4;
   --brand:#12475e; --accent:#1f5f7f; --accent-l:#3a89ae; --site:#2e9e4f;
@@ -51,7 +51,7 @@ body{background:var(--bg);color:var(--fg);font:14px/1.4 var(--font)}
 .views .short{display:none}
 .views button:focus-visible{outline:2px solid var(--accent);outline-offset:-6px;border-radius:8px}
 
-.pane{position:fixed;left:0;right:0;bottom:0;top:calc(var(--bar-h) + 3px)}
+.pane{position:fixed;left:0;right:0;bottom:0;top:calc(var(--bar-h) + 2px)}
 .pane[hidden]{display:none}
 .pane iframe{display:block;width:100%;height:100%;border:0;background:var(--bg)}
 
@@ -80,11 +80,11 @@ body{background:var(--bg);color:var(--fg);font:14px/1.4 var(--font)}
     <div class="ttl">Home Farm AD site, Scrivelsby, Horncastle LN9 6JB</div>
   </div>
   <nav class="views" role="tablist" aria-label="View">
-    <button type="button" role="tab" id="v-sld" aria-controls="p-sld" aria-selected="true">
+    <button type="button" role="tab" id="v-sld" aria-controls="p-sld" aria-selected="true" aria-label="Single-line diagram (SLD)">
       <svg viewBox="0 0 18 18" aria-hidden="true"><path d="M3 3.5h12M9 3.5v3.2M6.6 6.7h4.8v3.6H6.6zM9 10.3v4.2M4.5 14.5h9"/></svg>
       <span class="long">Single-line diagram</span><span class="short">SLD</span>
     </button>
-    <button type="button" role="tab" id="v-site" aria-controls="p-site" aria-selected="false" tabindex="-1">
+    <button type="button" role="tab" id="v-site" aria-controls="p-site" aria-selected="false" tabindex="-1" aria-label="Site view">
       <svg viewBox="0 0 18 18" aria-hidden="true"><path d="M9 2.2l6 3.4v6.8l-6 3.4-6-3.4V5.6zM3 5.6l6 3.4 6-3.4M9 9v6.8"/></svg>
       <span class="long">Site view</span><span class="short">Site</span>
     </button>
@@ -117,8 +117,9 @@ body{background:var(--bg);color:var(--fg);font:14px/1.4 var(--font)}
   });
   function sync(k) { try { frames[k].contentWindow.LV.show(pick.tab, pick.idx); } catch (e) {} }
 
-  /* each view's page is built into a frame the first time it is opened, so the
-     3D site model only loads when someone asks for it */
+  /* each view's page is built into a frame the first time it is opened, so
+     three.js and the 3D site model (fetched from the app's static folder) only
+     load when someone opens the site view */
   function build(k) {
     const f = document.createElement('iframe');
     f.title = TITLES[k];
@@ -152,6 +153,7 @@ body{background:var(--bg);color:var(--fg);font:14px/1.4 var(--font)}
 
   for (const k of VIEWS) tabs[k].addEventListener('click', () => open(k));
   document.querySelector('.views').addEventListener('keydown', e => {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
     const i = VIEWS.indexOf(view);
     const j = e.key === 'ArrowRight' ? (i + 1) % VIEWS.length
             : e.key === 'ArrowLeft' ? (i + VIEWS.length - 1) % VIEWS.length

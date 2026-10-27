@@ -15,11 +15,11 @@
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#141a21; --panel:rgba(26,34,43,.95); --fg:#e6ebf0; --muted:#97a3b0; --line:#334150;
-  --accent:#6fb3d3; --accent-fg:#0b161c; --tab-bg:#1f2833;
+  --accent:#6fb3d3; --accent-fg:#0b161c; --tab-bg:#1f2833; --tab-sel:#34424f;
   color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#141a21; --panel:rgba(26,34,43,.95); --fg:#e6ebf0; --muted:#97a3b0; --line:#334150;
-  --accent:#6fb3d3; --accent-fg:#0b161c; --tab-bg:#1f2833;
+  --accent:#6fb3d3; --accent-fg:#0b161c; --tab-bg:#1f2833; --tab-sel:#34424f;
   color-scheme:dark}
 *{box-sizing:border-box}
 html,body{height:100%}
@@ -46,9 +46,10 @@ body{background:var(--bg);color:var(--fg);font:14px/1.45 var(--font);overflow:hi
 .eyebrow{font:600 11px/1.2 var(--font);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
 .tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--tab-bg);border-radius:9px;padding:3px}
 .tabs button{font:500 13.5px/1.2 var(--font);border:0;border-radius:7px;padding:8px 6px;background:transparent;color:var(--muted);cursor:pointer}
-.tabs button[aria-selected="true"]{background:var(--panel);color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.tabs button[aria-selected="true"]{background:var(--tab-sel,var(--panel));color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.12)}
 .summary{margin:0;font-size:13.5px;color:var(--fg);text-wrap:pretty}
 .steps{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.steps .step{display:inline-flex;align-items:center;gap:6px}
 .steps .arr{color:var(--muted);font-size:15px;line-height:1}
 .steps .arr.next{color:var(--accent)}
 .steps button{font:500 12.5px/1.2 var(--font);border:1px solid var(--line);background:transparent;color:var(--fg);
@@ -73,6 +74,10 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   .lbl{font-size:11.5px;padding:3px 5px 3px 9px}
   .chip{font-size:10.5px}
 }
+/* "What Lee designed" stays on one line on the narrowest phones */
+@media (max-width:360px){.tabs button{white-space:nowrap}}
+/* in the SRV Electrical app the brand bar names the site and topic from 901 px up */
+@media (min-width:901px){.eyebrow{display:none}}
 </style>
 
 <canvas id="c" aria-label="3D model of the Scrivelsby site showing the CHP, LV kiosk, data centre and their cable routes"></canvas>
@@ -99,7 +104,6 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 </section>
 <div id="msg">Loading the site model…</div>
 
-<script>window.__GLB__="__GLB_B64__";</script>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
 <script type="module">
 import * as THREE from 'three';
@@ -299,13 +303,15 @@ for (const [k, L] of Object.entries(LABELS)) {
 }
 
 /* ---------- site model ---------- */
-function decodeB64(b64) { const bin = atob(b64); const u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u.buffer; }
+/* served beside the app (static/srv_electrical/site.glb, through Streamlit's static
+   serving), so it only downloads when the site view is opened */
+const MODEL_URL = 'app/static/srv_electrical/site.glb';
 const HIDE_GROUPS = new Set(['OPT_A','OPT_B','OPT_C','ROUTES','CAMS']);
 const KEEP_D = new Set(['D_gantry','D_GH_dry_cooler_roof','D_GH_pipes','D_pad']);
 const HIDE_NAMES = new Set(['switchroom','MDP_paktronic']);
 const found = {};
 try {
-  new GLTFLoader().parse(decodeB64(window.__GLB__), '', gltf => {
+  new GLTFLoader().load(MODEL_URL, gltf => {
     const root = gltf.scene;
     for (const o of root.children) {
       const grp = o.userData && o.userData.group;
@@ -322,7 +328,7 @@ try {
     scene.add(root);
     buildNewWorks();
     msg.hidden = true;
-  }, err => { msg.textContent = 'The site model could not be loaded.'; console.error(err); });
+  }, undefined, err => { msg.textContent = 'The site model could not be loaded.'; console.error(err); });
 } catch (e) { msg.textContent = 'The site model could not be loaded.'; console.error(e); }
 
 /* new works: GRP kiosk with both boards back to back, data centre container under the cooler gantry */
@@ -366,10 +372,11 @@ const tabBtns = { lee:document.getElementById('tab-lee'), ours:document.getEleme
 function renderSteps() {
   stepsEl.innerHTML = '';
   TABS[tab].states.forEach((s, i) => {
-    if (i > 0) { const a = document.createElement('span'); a.className = 'arr'; a.setAttribute('aria-hidden', 'true'); a.textContent = '→'; stepsEl.appendChild(a); }
+    const g = document.createElement('span'); g.className = 'step';
+    if (i > 0) { const a = document.createElement('span'); a.className = 'arr'; a.setAttribute('aria-hidden', 'true'); a.textContent = '→'; g.appendChild(a); }
     const b = document.createElement('button'); b.type = 'button'; b.textContent = s.name;
     b.addEventListener('click', () => { setState(i); notify(); });
-    stepsEl.appendChild(b);
+    g.appendChild(b); stepsEl.appendChild(g);
   });
 }
 function setState(i) {
@@ -427,7 +434,15 @@ window.addEventListener('resize', resize); resize();
 
 const clock = new THREE.Clock();
 const vp = new THREE.Vector3();
+let homed = false;
 function tick() {
+  /* in the SRV Electrical app this page sits in a pane that is hidden while the
+     SLD tab is open, and the browser does not pause a hidden frame: draw nothing
+     until it is shown again */
+  if (!canvas.clientWidth) { requestAnimationFrame(tick); return; }
+  /* frame the camera from the size the view is first shown at (it may have
+     started up in a hidden pane, at no size at all) */
+  if (!homed) { homed = true; goHome(); }
   const dt = Math.min(clock.getDelta(), 0.1);
 
   for (const c of Object.values(cables)) {
