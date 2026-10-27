@@ -141,8 +141,8 @@ under the shell's brand bar, built the first time its tab is opened. The site
 model is not in the page: the site view fetches it from
 `app/static/srv_electrical/site.glb` when it is first opened, which Streamlit
 serves from `static/` beside the entry script because `.streamlit/config.toml`
-turns on `enableStaticServing` (repo-wide, but it only exposes `static/`, and no
-other app keeps one). While the SLD is open the site view's render loop idles,
+turns on `enableStaticServing` (repo-wide: every app at the root shares
+`static/`, so each also serves the model, which is public in this repo anyway). While the SLD is open the site view's render loop idles,
 and the camera is framed from the size the view is first shown at. The pages
 report the reader's own picks to the shell (`postMessage` of `{lv: {tab, idx}}`)
 and expose `window.LV.show(tab, idx)`, with `tab` `'lee'` or `'ours'` and `idx`

@@ -5,5 +5,6 @@
 # Serve static/ beside the entry script at app/static/. SRV Electrical's site
 # view fetches its 3 MB model from there (static/srv_electrical/site.glb) the
 # first time it is opened, so the single-line diagram it opens on loads light.
-# Apps that keep no static/ folder are unaffected.
+# Every app at the repo root shares this static/ folder, so each also serves
+# the model at its own app/static/ URL: harmless, as it is public in this repo.
 enableStaticServing = true
