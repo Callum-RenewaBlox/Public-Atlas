@@ -1,0 +1,497 @@
+<title>Scrivelsby LV Site View</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: full-bleed daylight site model (matches the SRV Atlas siting view), one floating control card top-left, status pills pinned to each asset */
+:root{
+  --bg:#e9eef2; --panel:rgba(255,255,255,.95); --fg:#18222d; --muted:#5b6876; --line:#d3dae2;
+  --accent:#1f5f7f; --accent-fg:#ffffff; --tab-bg:#eef2f6;
+  --engine:#f2711c; --grid:#1798d6; --trip:#8b5cf6; --alarm:#d93636; --off:#7d8894;
+  --lc-engine:#fff0e3; --lc-grid:#e3f3fb; --lc-off:#eef1f4; --lc-alarm:#fde8e8; --lc-trip:#f1ebfd;
+  --lc-engine-fg:#a64607; --lc-grid-fg:#0b6a99; --lc-off-fg:#4c5662; --lc-alarm-fg:#a31f1f; --lc-trip-fg:#5b30c2;
+  --label-bg:#ffffff; --label-fg:#18222d; --label-line:rgba(24,34,45,.18);
+  --font:"Inter","Inter var",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141a21; --panel:rgba(26,34,43,.95); --fg:#e6ebf0; --muted:#97a3b0; --line:#334150;
+  --accent:#6fb3d3; --accent-fg:#0b161c; --tab-bg:#1f2833; --tab-sel:#34424f;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141a21; --panel:rgba(26,34,43,.95); --fg:#e6ebf0; --muted:#97a3b0; --line:#334150;
+  --accent:#6fb3d3; --accent-fg:#0b161c; --tab-bg:#1f2833; --tab-sel:#34424f;
+  color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font:14px/1.45 var(--font);overflow:hidden;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+#c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none}
+#labels{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+.lbl{position:absolute;left:0;top:0;display:flex;align-items:center;gap:6px;white-space:nowrap;
+  background:var(--label-bg);color:var(--label-fg);border:1px solid var(--label-line);border-radius:999px;
+  padding:4px 6px 4px 11px;font:500 12.5px/1.2 var(--font);box-shadow:0 1px 3px rgba(20,30,40,.18);will-change:transform}
+.lbl::after{content:"";position:absolute;left:50%;top:100%;width:1px;height:14px;background:var(--label-line)}
+.lbl[hidden]{display:none!important}
+.chip{font:500 11px/1 var(--mono);padding:4px 7px;border-radius:999px;letter-spacing:.01em;background:var(--lc-off);color:var(--lc-off-fg)}
+.chip.engine{background:var(--lc-engine);color:var(--lc-engine-fg)}
+.chip.grid{background:var(--lc-grid);color:var(--lc-grid-fg)}
+.chip.alarm{background:var(--lc-alarm);color:var(--lc-alarm-fg)}
+.chip.trip{background:var(--lc-trip);color:var(--lc-trip-fg)}
+
+#panel{position:fixed;left:calc(16px + env(safe-area-inset-left,0px));top:calc(16px + env(safe-area-inset-top,0px));
+  width:372px;max-width:calc(100% - 32px - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px));
+  max-height:calc(100% - 32px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px 12px;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);display:flex;flex-direction:column;gap:10px}
+.eyebrow{font:600 11px/1.2 var(--font);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--tab-bg);border-radius:9px;padding:3px}
+.tabs button{font:500 13.5px/1.2 var(--font);border:0;border-radius:7px;padding:8px 6px;background:transparent;color:var(--muted);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--tab-sel,var(--panel));color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.summary{margin:0;font-size:13.5px;color:var(--fg);text-wrap:pretty}
+.steps{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.steps .step{display:inline-flex;align-items:center;gap:6px}
+.steps .arr{color:var(--muted);font-size:15px;line-height:1}
+.steps .arr.next{color:var(--accent)}
+.steps button{font:500 12.5px/1.2 var(--font);border:1px solid var(--line);background:transparent;color:var(--fg);
+  border-radius:999px;padding:5px 11px;cursor:pointer}
+.steps button:hover{border-color:var(--accent)}
+.steps button.next{border-color:var(--accent);color:var(--accent)}
+.steps button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.caption{margin:0;min-height:3.9em;font-size:13.5px;color:var(--fg);text-wrap:pretty}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.legend .dash{width:16px;height:0;border-radius:0;border-top:2px dashed var(--trip);vertical-align:3px}
+.legend [hidden]{display:none!important}
+.foot{display:flex;align-items:center;gap:8px;border-top:1px solid var(--line);padding-top:10px;font-size:12px;color:var(--muted)}
+.foot button{font:500 12.5px/1.2 var(--font);border:1px solid var(--line);background:transparent;color:var(--fg);border-radius:7px;padding:5px 10px;cursor:pointer}
+.foot .hint{margin-left:auto}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#msg{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));
+  background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:12.5px;color:var(--muted)}
+@media (max-width:640px){
+  #panel{width:auto;right:calc(16px + env(safe-area-inset-right,0px));max-height:48%;gap:8px;padding:12px 14px 10px}
+  .foot .hint{display:none}
+  .lbl{font-size:11.5px;padding:3px 5px 3px 9px}
+  .chip{font-size:10.5px}
+}
+/* "What Lee designed" stays on one line on the narrowest phones */
+@media (max-width:360px){.tabs button{white-space:nowrap}}
+/* in the SRV Electrical app the brand bar names the site and topic from 901 px up */
+@media (min-width:901px){.eyebrow{display:none}}
+</style>
+
+<canvas id="c" aria-label="3D model of the Scrivelsby site showing the CHP, LV kiosk, data centre and their cable routes"></canvas>
+<div id="labels" aria-hidden="true"></div>
+
+<section id="panel" aria-label="Scheme controls">
+  <div class="eyebrow">Scrivelsby · LV connection</div>
+  <div class="tabs" role="tablist" aria-label="Design">
+    <button role="tab" id="tab-lee" aria-selected="true" aria-controls="panel">What Lee designed</button>
+    <button role="tab" id="tab-ours" aria-selected="false" aria-controls="panel">What we need</button>
+  </div>
+  <p class="summary" id="summary"></p>
+  <div class="steps" id="steps" role="group" aria-label="Operating state"></div>
+  <p class="caption" id="caption" aria-live="polite"></p>
+  <div class="legend">
+    <span><i style="background:var(--engine)"></i>Engine power</span>
+    <span><i style="background:var(--grid)"></i>Grid power</span>
+    <span id="lg-trip" hidden><i class="dash"></i>Engine-status trip</span>
+  </div>
+  <div class="foot">
+    <button id="reset" type="button">Reset view</button>
+    <span class="hint">Pick a state · drag to orbit · scroll to zoom</span>
+  </div>
+</section>
+<div id="msg">Loading the site model…</div>
+
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+const msg = document.getElementById('msg');
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* site frame: x east, y north (metres), h up  ->  three.js (x, h, -y) */
+const P = (x, y, h = 0) => new THREE.Vector3(x, h, -y);
+
+/* ---------- scheme content ---------- */
+const TABS = {
+  lee: {
+    hash: 'lees-design',
+    summary: "Changeover board. The two ACBs are interlocked, so the engine feeds the site and grid, or the data centre. Never both.",
+    states: [
+      { name: 'Export position',
+        caption: 'The engine feeds the site loads and exports the rest. The data centre is off.',
+        flows: { chp:[1,'engine',1], tie:[.9,'engine',1], grid:[.75,'engine',1], site:[.4,'engine',1], dc:null },
+        status: { chp:['Running','engine'], kiosk:['ACBs interlocked','off'], dc:['Off','off'], tx:['Exporting','engine'], site:['On engine','engine'] } },
+      { name: 'Changeover',
+        caption: 'To swap over, the engine comes off load and has to re-sync. Nothing mines and nothing exports. The site imports.',
+        flows: { chp:null, tie:null, grid:[.4,'grid',-1], site:[.4,'grid',1], dc:null },
+        status: { chp:['Off load','off'], kiosk:['Both ACBs open','off'], dc:['Off','off'], tx:['Importing','grid'], site:['On grid','grid'] } },
+      { name: 'Data centre position',
+        caption: 'The engine runs alone on the miners, as an island. The site imports from the grid and nothing exports.',
+        flows: { chp:[.85,'engine',1], tie:null, grid:[.4,'grid',-1], site:[.4,'grid',1], dc:[.85,'engine',1] },
+        status: { chp:['Island on miners','engine'], kiosk:['ACBs interlocked','off'], dc:['Mining','engine'], tx:['Importing','grid'], site:['On grid','grid'] } },
+    ]
+  },
+  ours: {
+    hash: 'what-we-need',
+    summary: "Shared busbar. Both ACBs stay closed. Our software flexes the miners, and a hardwired trip drops them if the engine stops.",
+    states: [
+      { name: 'Normal running',
+        caption: 'Site loads take what they need. The miners take the rest and a small margin exports.',
+        flows: { chp:[1,'engine',1], tie:[.45,'engine',1], grid:[.15,'engine',1], site:[.4,'engine',1], dc:[.85,'engine',1] },
+        trip: 'idle',
+        status: { chp:['Running','engine'], kiosk:['Both ACBs closed','off'], dc:['Mining','engine'], tx:['Small export','engine'], site:['On engine','engine'], trip:['Healthy','trip'] } },
+      { name: 'Price above strike',
+        caption: 'Power is worth more than mining. Software turns the miners down and the surplus exports. No breaker moves.',
+        flows: { chp:[1,'engine',1], tie:[.9,'engine',1], grid:[.8,'engine',1], site:[.4,'engine',1], dc:[.2,'engine',1] },
+        trip: 'idle',
+        status: { chp:['Running','engine'], kiosk:['Both ACBs closed','off'], dc:['Turned down','engine'], tx:['Exporting','engine'], site:['On engine','engine'], trip:['Healthy','trip'] } },
+      { name: 'Engine trips',
+        caption: 'The engine breaker opens and the racks trip in under 0.1 s. Cooling and the site run on the grid until the engine is back.',
+        flows: { chp:null, tie:[.15,'grid',-1], grid:[.5,'grid',-1], site:[.4,'grid',1], dc:[.15,'grid',1] },
+        trip: 'fire',
+        status: { chp:['Tripped','alarm'], kiosk:['Both ACBs closed','off'], dc:['Racks tripped','alarm'], tx:['Importing','grid'], site:['On grid','grid'], trip:['Racks tripped','alarm'] } },
+    ]
+  }
+};
+
+const LABELS = {
+  chp:   { name:'CHP engine',        at:[-6.1,-13.5,7.4] },
+  kiosk: { name:'LV kiosk',          at:[-6.6, 1.43,3.0] },
+  dc:    { name:'Data centre',       at:[0.7,-0.76,5.6] },
+  tx:    { name:'DNO transformer',   at:[-7.16,20.76,3.1] },
+  site:  { name:'AD plant loads',    at:[5.6,-8.4,0.8] },
+  trip:  { name:'Engine-status trip', at:[-5.4,-3.4,0.5], oursOnly:true },
+};
+
+/* cable routes, [east, north, height] */
+const ROUTES = {
+  chp:  [[-6.1,-4.95,.25],[-6.1,-0.4,.25],[-6.1,1.85,.25]],
+  tie:  [[-6.8,1.8,2.45],[-6.8,1.62,2.66],[-6.8,1.32,2.52],[-6.8,1.15,2.0]],
+  grid: [[-6.4,1.1,.25],[-7.6,1.1,.25],[-8.6,1.6,.25],[-8.6,16.8,.25],[-7.16,18.3,.25],[-7.16,19.7,.25]],
+  site: [[-4.4,1.1,.25],[-3.5,1.0,.25],[-3.5,-3.4,.25],[3.2,-3.4,.25],[5.6,-8.4,.25]],
+  dc:   [[-3.8,1.9,.25],[-2.6,1.9,.25],[-2.6,0.0,.25],[-1.75,0.0,.25]],
+};
+const TRIP_ROUTE = [[-5.4,-4.95,.32],[-5.4,-0.4,.32],[-5.4,1.6,.32]];
+
+/* ---------- renderer, scene, camera ---------- */
+const canvas = document.getElementById('c');
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias:true, powerPreference:'high-performance' });
+} catch (e) {
+  msg.textContent = 'This view needs WebGL, which this browser has turned off.';
+  throw e;
+}
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+{
+  const cv = document.createElement('canvas'); cv.width = 2; cv.height = 256;
+  const g = cv.getContext('2d'); const gr = g.createLinearGradient(0,0,0,256);
+  gr.addColorStop(0,'#94b0d0'); gr.addColorStop(.5,'#c6d5e4'); gr.addColorStop(1,'#e3e9e6');
+  g.fillStyle = gr; g.fillRect(0,0,2,256);
+  const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace;
+  scene.background = t;
+}
+scene.fog = new THREE.Fog(0xd2dce5, 160, 600);
+{ const pm = new THREE.PMREMGenerator(renderer); scene.environment = pm.fromScene(new RoomEnvironment(), 0.04).texture; scene.environmentIntensity = 0.55; }
+
+const camera = new THREE.PerspectiveCamera(38, 1, 0.3, 2000);
+const HOME = { pos: P(7,-31,29), target: P(-2.8,2.5,0.5) };
+function homeView() {
+  if (window.innerWidth >= 640) return HOME;
+  const d = HOME.pos.clone().sub(HOME.target).multiplyScalar(1.5);
+  return { pos: HOME.target.clone().add(d), target: HOME.target.clone() };
+}
+const controls = new OrbitControls(camera, canvas);
+function goHome() { const v = homeView(); camera.position.copy(v.pos); controls.target.copy(v.target); controls.update(); }
+goHome();
+controls.enableDamping = true; controls.dampingFactor = 0.08;
+controls.maxPolarAngle = 1.42; controls.minDistance = 6; controls.maxDistance = 160;
+controls.update();
+
+scene.add(new THREE.HemisphereLight(0xe6eef6, 0x5f5b48, 0.8));
+const sun = new THREE.DirectionalLight(0xfff3e0, 2.5);
+{
+  const el = 40*Math.PI/180, bz = 160*Math.PI/180, d = 90;
+  sun.position.copy(P(Math.sin(bz)*Math.cos(el)*d - 2, Math.cos(bz)*Math.cos(el)*d, Math.sin(el)*d));
+  sun.target.position.copy(P(-2,0,0));
+  sun.castShadow = true; sun.shadow.mapSize.set(2048,2048);
+  const sc = sun.shadow.camera; sc.left=-42; sc.right=42; sc.top=42; sc.bottom=-42; sc.near=1; sc.far=240;
+  sun.shadow.bias = -0.0004; sun.shadow.normalBias = 0.03;
+  scene.add(sun, sun.target);
+}
+
+/* ---------- flow colours ---------- */
+const COL = { engine:new THREE.Color('#ff7a1a'), grid:new THREE.Color('#19a3e6'), off:new THREE.Color('#3c4248'), trip:new THREE.Color('#8b5cf6'), alarm:new THREE.Color('#e03a3a') };
+
+/* ---------- helpers ---------- */
+function roundedPath(pts, r = 0.5) {
+  const V = pts.map(p => P(p[0], p[1], p[2]));
+  const path = new THREE.CurvePath();
+  let prev = V[0].clone();
+  for (let i = 1; i < V.length - 1; i++) {
+    const a = V[i-1], b = V[i], c = V[i+1];
+    const ab = b.clone().sub(a), bc = c.clone().sub(b);
+    const rr = Math.min(r, ab.length()/2, bc.length()/2);
+    const p1 = b.clone().sub(ab.normalize().multiplyScalar(rr));
+    const p2 = b.clone().add(bc.normalize().multiplyScalar(rr));
+    if (prev.distanceTo(p1) > 1e-4) path.add(new THREE.LineCurve3(prev.clone(), p1));
+    path.add(new THREE.QuadraticBezierCurve3(p1, b.clone(), p2));
+    prev = p2;
+  }
+  path.add(new THREE.LineCurve3(prev, V[V.length-1]));
+  return path;
+}
+function smoothPath(pts) { return new THREE.CatmullRomCurve3(pts.map(p => P(p[0],p[1],p[2])), false, 'centripetal'); }
+function addBox(w, h, d, mat, x, y, base, cast = true) {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+  m.position.copy(P(x, y, base + h/2)); m.castShadow = cast; m.receiveShadow = true;
+  scene.add(m); return m;
+}
+
+/* ---------- cables with moving power ---------- */
+const sphere = new THREE.SphereGeometry(0.13, 12, 8);
+const cables = {};
+for (const [key, pts] of Object.entries(ROUTES)) {
+  const curve = key === 'tie' ? smoothPath(pts) : roundedPath(pts);
+  const len = curve.getLength();
+  const tubeMat = new THREE.MeshStandardMaterial({ color:COL.off.clone(), roughness:.55, metalness:.1 });
+  const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, Math.max(24, Math.round(len*8)), 0.075, 8, false), tubeMat);
+  tube.castShadow = true; scene.add(tube);
+  const n = Math.max(4, Math.round(len / 0.62));
+  const dotMat = new THREE.MeshBasicMaterial({ color:COL.engine.clone(), toneMapped:false });
+  const dots = new THREE.InstancedMesh(sphere, dotMat, n); dots.frustumCulled = false; scene.add(dots);
+  const samples = curve.getSpacedPoints(600);
+  cables[key] = { curve, len, tubeMat, dots, dotMat, n, samples, off:Math.random(), cur:{ r:0, c:'engine', d:1 }, tgt:{ r:0, c:'engine', d:1 } };
+}
+const tmpM = new THREE.Matrix4(), tmpQ = new THREE.Quaternion(), tmpS = new THREE.Vector3(), tmpV = new THREE.Vector3();
+function sampleAt(c, t) { const i = t * (c.samples.length - 1); const i0 = Math.floor(i), f = i - i0; return tmpV.copy(c.samples[i0]).lerp(c.samples[Math.min(i0+1, c.samples.length-1)], f); }
+
+/* trip signal: dashed line that runs only on the "What we need" tab */
+const trip = (() => {
+  const curve = roundedPath(TRIP_ROUTE, 0.4); const len = curve.getLength();
+  const cv = document.createElement('canvas'); cv.width = 64; cv.height = 4;
+  const g = cv.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0,0,34,4);
+  const tex = new THREE.CanvasTexture(cv); tex.wrapS = THREE.RepeatWrapping; tex.repeat.set(len/0.55, 1);
+  const mat = new THREE.MeshBasicMaterial({ map:tex, color:COL.trip.clone(), transparent:true, alphaTest:.5, toneMapped:false });
+  const mesh = new THREE.Mesh(new THREE.TubeGeometry(curve, 60, 0.045, 6, false), mat);
+  mesh.visible = false; scene.add(mesh);
+  return { mesh, mat, tex, mode:'idle' };
+})();
+
+/* ---------- labels ---------- */
+const labelLayer = document.getElementById('labels');
+const labelEls = {};
+for (const [k, L] of Object.entries(LABELS)) {
+  const el = document.createElement('div'); el.className = 'lbl';
+  el.innerHTML = `<span class="nm"></span><span class="chip"></span>`;
+  el.querySelector('.nm').textContent = L.name;
+  labelLayer.appendChild(el);
+  labelEls[k] = { el, chip:el.querySelector('.chip'), anchor:P(...L.at), oursOnly:!!L.oursOnly };
+}
+
+/* ---------- site model ---------- */
+/* served beside the app (static/srv_electrical/site.glb, through Streamlit's static
+   serving), so it only downloads when the site view is opened */
+const MODEL_URL = 'app/static/srv_electrical/site.glb';
+const HIDE_GROUPS = new Set(['OPT_A','OPT_B','OPT_C','ROUTES','CAMS']);
+const KEEP_D = new Set(['D_gantry','D_GH_dry_cooler_roof','D_GH_pipes','D_pad']);
+const HIDE_NAMES = new Set(['switchroom','MDP_paktronic']);
+const found = {};
+try {
+  new GLTFLoader().load(MODEL_URL, gltf => {
+    const root = gltf.scene;
+    for (const o of root.children) {
+      const grp = o.userData && o.userData.group;
+      if (HIDE_GROUPS.has(grp) || HIDE_NAMES.has(o.name) || (grp === 'OPT_D' && !KEEP_D.has(o.name))) o.visible = false;
+    }
+    root.traverse(o => {
+      if (!o.isMesh) return;
+      const m = o.material;
+      if (m && m.name === 'clearance') { o.visible = false; return; }
+      if (m && m.name && !found[m.name]) found[m.name] = m;
+      const ground = /ground|surround/.test(o.name) || (o.parent && /ground|surround/.test(o.parent.name));
+      o.castShadow = !ground; o.receiveShadow = true;
+    });
+    scene.add(root);
+    buildNewWorks();
+    msg.hidden = true;
+  }, undefined, err => { msg.textContent = 'The site model could not be loaded.'; console.error(err); });
+} catch (e) { msg.textContent = 'The site model could not be loaded.'; console.error(e); }
+
+/* new works: GRP kiosk with both boards back to back, data centre container under the cooler gantry */
+function buildNewWorks() {
+  const concrete = found['concrete'] || new THREE.MeshStandardMaterial({ color:0xb9b3a8, roughness:.9 });
+  const boardMat = new THREE.MeshStandardMaterial({ color:0xd3d6d8, roughness:.5, metalness:.05 });
+  const doorMat = new THREE.MeshStandardMaterial({ color:0x2c3136, roughness:.6 });
+  const contMat = new THREE.MeshStandardMaterial({ color:0xe7e9e6, roughness:.55, metalness:.05 });
+  const edgeMat = new THREE.LineBasicMaterial({ color:0x5f6f68, transparent:true, opacity:.85 });
+
+  addBox(5.4, 0.15, 3.4, concrete, -5.4, 1.43, 0, false);
+  const shellGeo = new THREE.BoxGeometry(5.0, 2.8, 3.0);
+  const glass = new THREE.MeshPhysicalMaterial({ color:0xd6ebe0, transparent:true, opacity:.2, roughness:.12, metalness:0, depthWrite:false, side:THREE.DoubleSide });
+  const shell = new THREE.Mesh(shellGeo, glass); shell.position.copy(P(-5.4, 1.43, 0.15 + 1.4)); shell.renderOrder = 3; scene.add(shell);
+  const se = new THREE.LineSegments(new THREE.EdgesGeometry(shellGeo), edgeMat); se.position.copy(shell.position); scene.add(se);
+
+  addBox(2.25, 1.85, 0.58, boardMat, -5.4, 1.115, 0.15);   /* existing 2014 board, faces south */
+  addBox(3.40, 2.30, 0.80, boardMat, -5.4, 1.855, 0.15);   /* new Paktronic board, faces north */
+  const door = (w, h, x, y, base, faceNorth) => {
+    const p = new THREE.Mesh(new THREE.PlaneGeometry(w, h), doorMat);
+    p.position.copy(P(x, y, base + h/2)); if (faceNorth) p.rotation.y = Math.PI; scene.add(p);
+  };
+  door(.62,.62,-6.55,2.262,1.0,true); door(.62,.62,-5.75,2.262,1.0,true);
+  door(.34,.5,-4.85,2.262,1.1,true); door(.34,.5,-4.4,2.262,1.1,true);
+  door(.55,.55,-5.9,0.818,0.9,false); door(.3,.4,-5.05,0.818,1.05,false); door(.3,.4,-4.65,0.818,1.05,false);
+
+  const dcBox = addBox(2.99, 2.59, 2.44, contMat, -0.33, -0.76, 0.1);
+  const de = new THREE.LineSegments(new THREE.EdgesGeometry(dcBox.geometry), edgeMat); de.position.copy(dcBox.position); scene.add(de);
+  door(1.0, 2.1, -0.33, -1.985, 0.25, false);
+
+  const post = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.5, 16), new THREE.MeshStandardMaterial({ color:0x6b7178, roughness:.6 }));
+  post.position.copy(P(5.6, -8.4, 0.25)); post.castShadow = true; scene.add(post);
+}
+
+/* ---------- state machine ---------- */
+let tab = 'lee', idx = 0;
+const stepsEl = document.getElementById('steps'), captionEl = document.getElementById('caption');
+const summaryEl = document.getElementById('summary');
+const tabBtns = { lee:document.getElementById('tab-lee'), ours:document.getElementById('tab-ours') };
+
+function renderSteps() {
+  stepsEl.innerHTML = '';
+  TABS[tab].states.forEach((s, i) => {
+    const g = document.createElement('span'); g.className = 'step';
+    if (i > 0) { const a = document.createElement('span'); a.className = 'arr'; a.setAttribute('aria-hidden', 'true'); a.textContent = '→'; g.appendChild(a); }
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = s.name;
+    b.addEventListener('click', () => { setState(i); notify(); });
+    g.appendChild(b); stepsEl.appendChild(g);
+  });
+}
+function setState(i) {
+  idx = i; const s = TABS[tab].states[i];
+  stepsEl.querySelectorAll('button').forEach((b, j) => { b.setAttribute('aria-pressed', j === i ? 'true' : 'false'); b.classList.toggle('next', j === i + 1); });
+  stepsEl.querySelectorAll('.arr').forEach((a, j) => a.classList.toggle('next', j === i));
+  captionEl.textContent = s.caption;
+  for (const [k, c] of Object.entries(cables)) {
+    const f = s.flows[k];
+    c.tgt = f ? { r:f[0], c:f[1], d:f[2] } : { r:0, c:c.cur.c, d:c.cur.d };
+  }
+  trip.mesh.visible = tab === 'ours';
+  trip.mode = s.trip || 'idle';
+  document.getElementById('lg-trip').hidden = tab !== 'ours';
+  for (const [k, L] of Object.entries(labelEls)) {
+    const st = s.status[k];
+    L.hidden = (L.oursOnly && tab !== 'ours') || !st;
+    if (st) { L.chip.textContent = st[0]; L.chip.className = 'chip ' + st[1]; }
+  }
+}
+/* inside the SRV Electrical app: report the reader's picks to the frame, so the
+   other view opens on the same design and state, and let the frame set them */
+function notify() { try { if (parent !== window) parent.postMessage({ lv:{ tab, idx } }, '*'); } catch (e) {} }
+window.LV = { show(t, i) {
+  if (!TABS[t]) return;
+  if (t !== tab) setTab(t, true);
+  setState(Math.max(0, Math.min(TABS[t].states.length - 1, i | 0)));
+} };
+function setTab(t, fromHash) {
+  tab = t; idx = 0;
+  for (const [k, b] of Object.entries(tabBtns)) b.setAttribute('aria-selected', k === t ? 'true' : 'false');
+  summaryEl.textContent = TABS[t].summary;
+  renderSteps(); setState(0);
+  if (!fromHash) { try { history.replaceState(null, '', '#' + TABS[t].hash); } catch (e) {} }
+}
+tabBtns.lee.addEventListener('click', () => { setTab('lee'); notify(); });
+tabBtns.ours.addEventListener('click', () => { setTab('ours'); notify(); });
+document.getElementById('reset').addEventListener('click', goHome);
+function fromHash() { const h = (location.hash || '').slice(1); setTab(h === TABS.ours.hash ? 'ours' : 'lee', true); }
+window.addEventListener('hashchange', fromHash);
+fromHash();
+
+/* ---------- frame loop ---------- */
+function resize() {
+  const w = window.innerWidth, h = window.innerHeight;
+  renderer.setSize(w, h, false); camera.aspect = w / h;
+  camera.fov = w < 640 ? 50 : 38;
+  const panel = document.getElementById('panel');
+  if (w >= 900) camera.setViewOffset(w, h, -(panel.offsetWidth + 16) / 2, 0, w, h);
+  else if (w < 640) camera.setViewOffset(w, h, 0, -(panel.offsetHeight + 16) / 2, w, h);
+  else camera.clearViewOffset();
+  camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', resize); resize();
+
+const clock = new THREE.Clock();
+const vp = new THREE.Vector3();
+let homed = false;
+function tick() {
+  /* in the SRV Electrical app this page sits in a pane that is hidden while the
+     SLD tab is open, and the browser does not pause a hidden frame: draw nothing
+     until it is shown again */
+  if (!canvas.clientWidth) { requestAnimationFrame(tick); return; }
+  /* frame the camera from the size the view is first shown at (it may have
+     started up in a hidden pane, at no size at all) */
+  if (!homed) { homed = true; goHome(); }
+  const dt = Math.min(clock.getDelta(), 0.1);
+
+  for (const c of Object.values(cables)) {
+    const { cur, tgt } = c;
+    if (tgt.r > 0 && (cur.c !== tgt.c || cur.d !== tgt.d)) {
+      cur.r = Math.max(0, cur.r - dt * 2.4);
+      if (cur.r === 0) { cur.c = tgt.c; cur.d = tgt.d; }
+    } else {
+      cur.r += (tgt.r - cur.r) * Math.min(1, dt * 3.5);
+    }
+    const col = COL[cur.c];
+    c.tubeMat.color.copy(COL.off).lerp(col, Math.min(1, cur.r * 1.6) * 0.55);
+    c.dotMat.color.copy(col);
+    const on = cur.r > 0.02;
+    c.dots.visible = on;
+    if (on) {
+      const speed = (reduceMotion ? 0.35 : 1) * (0.9 + 3.4 * cur.r);
+      c.off = (c.off + cur.d * speed * dt / c.len + 1) % 1;
+      const s = 0.45 + 0.75 * Math.min(1, cur.r);
+      tmpS.set(s, s, s);
+      for (let i = 0; i < c.n; i++) {
+        const t = ((i / c.n) + c.off) % 1;
+        tmpM.compose(sampleAt(c, t), tmpQ, tmpS);
+        c.dots.setMatrixAt(i, tmpM);
+      }
+      c.dots.instanceMatrix.needsUpdate = true;
+    }
+  }
+
+  if (trip.mesh.visible) {
+    const fire = trip.mode === 'fire';
+    trip.tex.offset.x -= dt * (reduceMotion ? 0.3 : (fire ? 3.2 : 0.6));
+    trip.mat.color.copy(fire ? COL.alarm : COL.trip);
+    trip.mat.opacity = fire ? 0.75 + 0.25 * Math.sin(clock.elapsedTime * 10) : 0.9;
+  }
+
+  controls.update();
+  renderer.render(scene, camera);
+
+  const w = window.innerWidth, h = window.innerHeight;
+  for (const L of Object.values(labelEls)) {
+    if (L.hidden) { L.el.hidden = true; continue; }
+    vp.copy(L.anchor).project(camera);
+    const vis = vp.z < 1 && vp.x > -1.2 && vp.x < 1.2 && vp.y > -1.2 && vp.y < 1.2;
+    L.el.hidden = !vis;
+    if (vis) L.el.style.transform = `translate(${(vp.x * .5 + .5) * w}px, ${(-vp.y * .5 + .5) * h - 14}px) translate(-50%, -100%)`;
+  }
+  requestAnimationFrame(tick);
+}
+
+requestAnimationFrame(tick);
+</script>

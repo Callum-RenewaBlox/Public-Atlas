@@ -1,0 +1,374 @@
+<title>Scrivelsby LV Single Line</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one centred column, controls above a single animated single-line diagram card, house type (Inter) and petrol accent */
+:root{
+  --bg:#eef2f5; --card:#ffffff; --fg:#18222d; --muted:#5b6876; --line:#d6dde4; --tab-bg:#e3e9ee;
+  --accent:#1f5f7f; --accent-fg:#ffffff;
+  --engine:#e8650c; --grid:#1384c2; --trip:#7a4fd8; --alarm:#d12f2f; --dead:#b7c0c9; --wire:#18222d;
+  --engine-bg:#fff0e3; --engine-fg:#a64607; --grid-bg:#e3f2fb; --grid-fg:#0b6a99;
+  --alarm-bg:#fde8e8; --alarm-fg:#a31f1f; --off-bg:#eceff2; --off-fg:#4c5662;
+  --font:"Inter","Inter var",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#11161c; --card:#1a222b; --fg:#e6ebf0; --muted:#98a4b1; --line:#2e3a47; --tab-bg:#232d38; --tab-sel:#34424f;
+  --accent:#6fb3d3; --accent-fg:#0b161c;
+  --engine:#ff8a3d; --grid:#40b4ef; --trip:#a98bff; --alarm:#ff6b6b; --dead:#455260; --wire:#e6ebf0;
+  --engine-bg:#3a2410; --engine-fg:#ffb27a; --grid-bg:#0f2d3d; --grid-fg:#8fd3f4;
+  --alarm-bg:#3d1717; --alarm-fg:#ff9b9b; --off-bg:#28313b; --off-fg:#b4bec9;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#11161c; --card:#1a222b; --fg:#e6ebf0; --muted:#98a4b1; --line:#2e3a47; --tab-bg:#232d38; --tab-sel:#34424f;
+  --accent:#6fb3d3; --accent-fg:#0b161c;
+  --engine:#ff8a3d; --grid:#40b4ef; --trip:#a98bff; --alarm:#ff6b6b; --dead:#455260; --wire:#e6ebf0;
+  --engine-bg:#3a2410; --engine-fg:#ffb27a; --grid-bg:#0f2d3d; --grid-fg:#8fd3f4;
+  --alarm-bg:#3d1717; --alarm-fg:#ff9b9b; --off-bg:#28313b; --off-fg:#b4bec9;
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 var(--font);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 40px}
+.wrap{max-width:1060px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+.eyebrow{font:600 11.5px/1.2 var(--font);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+h1{font:600 26px/1.2 var(--font);margin:4px 0 0;text-wrap:balance}
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px}
+.tabs{display:inline-grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--tab-bg);border-radius:10px;padding:3px;min-width:min(100%,340px)}
+.tabs button{font:500 14px/1.2 var(--font);border:0;border-radius:8px;padding:9px 14px;background:transparent;color:var(--muted);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--tab-sel,var(--card));color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.summary{margin:0;max-width:70ch;text-wrap:pretty}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.steps{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.steps .step{display:inline-flex;align-items:center;gap:8px}
+.steps .arr{color:var(--muted);font-size:16px;line-height:1}
+.steps .arr.next{color:var(--accent)}
+.steps button{font:500 13px/1.2 var(--font);border:1px solid var(--line);background:transparent;color:var(--fg);border-radius:999px;padding:6px 12px;cursor:pointer}
+.steps button:hover{border-color:var(--accent)}
+.steps button.next{border-color:var(--accent);color:var(--accent)}
+.steps button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.caption{margin:0;min-height:3em;font-size:15px;text-wrap:pretty}
+figure{margin:0}
+.scroller{overflow-x:auto;-webkit-overflow-scrolling:touch}
+svg.sld{display:block;width:100%;min-width:760px;height:auto;color:var(--wire);font-family:var(--font)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:12.5px;color:var(--muted);align-items:center}
+.legend svg{vertical-align:-3px;margin-right:6px}
+.swipe{display:none;margin:0;font-size:12.5px;color:var(--muted)}
+@media (max-width:800px){.swipe{display:block}}
+.note{margin:0;font-size:13.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:12px;text-wrap:pretty}
+.note b{color:var(--fg);font-weight:600}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* diagram */
+.t{font-size:12.5px;fill:currentColor}
+.t.b{font-weight:600}
+.t.m{fill:var(--muted)}
+.t.s{font-size:11.5px}
+.bus{stroke:var(--dead);stroke-width:7;stroke-linecap:round;transition:stroke .4s}
+.bus.engine{stroke:var(--engine)} .bus.grid{stroke:var(--grid)}
+.wire{stroke:var(--dead);stroke-width:3;fill:none;transition:stroke .4s,stroke-width .4s}
+.wire.engine{stroke:var(--engine)} .wire.grid{stroke:var(--grid)}
+.flow{stroke:var(--card);stroke-width:2;stroke-linecap:round;stroke-dasharray:3 11;fill:none;opacity:0;transition:opacity .3s}
+.flow.on{opacity:.95;animation:flow var(--dur,1s) linear infinite}
+.flow.rev{animation-direction:reverse}
+@keyframes flow{to{stroke-dashoffset:-14}}
+.brk{fill:currentColor;stroke:currentColor;stroke-width:1.5;transition:fill .3s,stroke .3s}
+.brk.open{fill:var(--card)}
+.brk.tripped{fill:var(--alarm-bg);stroke:var(--alarm)}
+.load{fill:var(--card);stroke:currentColor;stroke-width:1.2}
+.outline{fill:none;stroke:var(--muted);stroke-width:1;stroke-dasharray:4 4}
+.sig{fill:none;stroke:var(--trip);stroke-width:1.6;stroke-dasharray:5 5}
+.sig.meter{stroke:var(--muted);stroke-dasharray:2 4}
+.sig.fire{stroke:var(--alarm);animation:sigflow .5s linear infinite}
+@keyframes sigflow{to{stroke-dashoffset:-10}}
+.lock{fill:none;stroke:var(--alarm);stroke-width:1.8;stroke-dasharray:6 4}
+.box{fill:var(--card);stroke:var(--trip);stroke-width:1.4}
+.box.fire{stroke:var(--alarm);fill:var(--alarm-bg)}
+.uvr{fill:none;stroke:var(--trip);stroke-width:1.4;stroke-dasharray:4 3}
+.uvr.fire{stroke:var(--alarm)}
+.chipbg{fill:var(--off-bg)} .chiptx{font:500 11.5px var(--mono);fill:var(--off-fg)}
+.chip-engine .chipbg{fill:var(--engine-bg)} .chip-engine .chiptx{fill:var(--engine-fg)}
+.chip-grid .chipbg{fill:var(--grid-bg)} .chip-grid .chiptx{fill:var(--grid-fg)}
+.chip-alarm .chipbg{fill:var(--alarm-bg)} .chip-alarm .chiptx{fill:var(--alarm-fg)}
+[data-tab="lee"] .ours-only{display:none}
+[data-tab="ours"] .lee-only{display:none}
+@media (prefers-reduced-motion: reduce){.flow.on,.sig.fire{animation:none}}
+@media (max-width:560px){h1{font-size:22px}.card{padding:14px}
+  /* "What Lee designed" stays on one line down to the narrowest phones */
+  .tabs button{padding:9px 8px;white-space:nowrap}}
+/* in the SRV Electrical app the brand bar names the site and topic from 901 px up */
+@media (min-width:901px){.eyebrow{display:none}}
+</style>
+
+<main class="wrap" id="app" data-tab="lee">
+  <header class="top">
+    <div>
+      <div class="eyebrow">Scrivelsby · LV connection</div>
+      <h1>Single-line diagram</h1>
+    </div>
+    <div class="tabs" role="tablist" aria-label="Design">
+      <button role="tab" id="tab-lee" aria-selected="true" aria-controls="app">What Lee designed</button>
+      <button role="tab" id="tab-ours" aria-selected="false" aria-controls="app">What we need</button>
+    </div>
+  </header>
+  <p class="summary" id="summary"></p>
+
+  <section class="card" aria-label="Diagram">
+    <div class="controls">
+      <div class="steps" id="steps" role="group" aria-label="Operating state"></div>
+    </div>
+    <p class="caption" id="caption" aria-live="polite"></p>
+
+    <p class="swipe">Swipe the diagram sideways to see all of it.</p>
+    <figure>
+      <div class="scroller">
+        <svg class="sld" id="sld" viewBox="0 0 960 470" role="img" aria-labelledby="figcap">
+          <!-- signal paths: ours -->
+          <g class="ours-only">
+            <path class="sig meter" d="M124 120 H64 V16 H870 V40"/>
+            <text class="t s m" x="300" y="11">boundary meter (CTs on transformer incomer)</text>
+            <path class="sig" id="sig-eng" d="M569 128 H790"/>
+            <text class="t s m" x="680" y="120" text-anchor="middle">breaker closed = healthy</text>
+            <path class="sig" id="sig-wd" d="M870 76 V106"/>
+            <text class="t s m" x="878" y="95">watchdog</text>
+            <path class="sig" id="sig-out" d="M870 142 V355 H836"/>
+          </g>
+          <!-- interlock: Lee -->
+          <g class="lee-only">
+            <path class="lock" d="M400 209 V268 H672 V245 H691"/>
+            <text class="t s" x="536" y="286" text-anchor="middle" style="fill:var(--alarm)">Mechanical interlock: one ACB closed at a time</text>
+          </g>
+
+          <!-- 2G container outline -->
+          <rect class="outline" x="500" y="28" width="190" height="122" rx="6"/>
+          <text class="t s m" x="682" y="142" text-anchor="end">2G container</text>
+
+          <g id="wires"></g>
+          <g id="buses"></g>
+          <g id="breakers"></g>
+
+          <!-- transformer -->
+          <circle cx="130" cy="64" r="16" fill="none" stroke="currentColor" stroke-width="1.6"/>
+          <circle cx="130" cy="84" r="16" fill="none" stroke="currentColor" stroke-width="1.6"/>
+          <text class="t b" x="156" y="60">DNO transformer</text>
+          <g id="chip-grid" transform="translate(156 70)"><rect class="chipbg" width="74" height="20" rx="10"/><text class="chiptx" x="37" y="14" text-anchor="middle"></text></g>
+          <circle class="ours-only" cx="130" cy="120" r="6" fill="var(--card)" stroke="var(--muted)" stroke-width="1.4"/>
+          <text class="t s m ours-only" x="142" y="124">CT</text>
+          <text class="t s" x="146" y="154">ACB · set 850 A</text>
+
+          <!-- existing board -->
+          <text class="t b" x="215" y="222">Existing board (2014)</text>
+          <text class="t s m" x="186" y="254" text-anchor="end">MCCBs</text>
+          <rect class="load" x="150" y="286" width="100" height="30" rx="4"/>
+          <text class="t" x="200" y="305" text-anchor="middle">Site loads</text>
+
+          <!-- tie and new board -->
+          <text class="t s" x="400" y="188" text-anchor="middle">ACB 1250 A</text>
+          <text class="t b" x="480" y="222">New board</text>
+
+          <!-- CHP -->
+          <circle cx="560" cy="60" r="22" fill="var(--card)" stroke="currentColor" stroke-width="1.6"/>
+          <text class="t b" x="560" y="65" text-anchor="middle" style="font-size:15px">G</text>
+          <text class="t b" x="592" y="56">CHP engine</text>
+          <g id="chip-chp" transform="translate(592 64)"><rect class="chipbg" width="88" height="20" rx="10"/><text class="chiptx" x="44" y="14" text-anchor="middle"></text></g>
+          <text class="t s" x="576" y="104">Generator breaker</text>
+
+          <!-- data centre feeder and section -->
+          <text class="t s" x="716" y="249">ACB 1250 A</text>
+          <text class="t b" x="530" y="314" text-anchor="end">Data centre section</text>
+          <text class="t s ours-only" x="774" y="335" text-anchor="middle" style="fill:var(--trip)">UVR</text>
+          <rect class="uvr ours-only" id="uvr" x="714" y="340" width="120" height="30" rx="5"/>
+          <rect class="load" x="522" y="390" width="76" height="36" rx="4"/>
+          <text class="t" x="560" y="405" text-anchor="middle">Dry cooler</text><text class="t s m" x="560" y="419" text-anchor="middle">63 A</text>
+          <rect class="load" x="607" y="390" width="76" height="36" rx="4"/>
+          <text class="t" x="645" y="405" text-anchor="middle">CDU pump</text><text class="t s m" x="645" y="419" text-anchor="middle">32 A</text>
+          <rect class="load" x="692" y="390" width="76" height="36" rx="4"/>
+          <text class="t" x="730" y="405" text-anchor="middle">Rack 1</text><text class="t s m" x="730" y="419" text-anchor="middle">400 A</text>
+          <rect class="load" x="777" y="390" width="76" height="36" rx="4"/>
+          <text class="t" x="815" y="405" text-anchor="middle">Rack 3</text><text class="t s m" x="815" y="419" text-anchor="middle">400 A</text>
+          <g id="chip-dc" transform="translate(722 438)"><rect class="chipbg" width="100" height="20" rx="10"/><text class="chiptx" x="50" y="14" text-anchor="middle"></text></g>
+
+          <!-- controller and trip relay: ours -->
+          <g class="ours-only">
+            <rect class="box" x="790" y="40" width="160" height="36" rx="6"/>
+            <text class="t b" x="870" y="56" text-anchor="middle">Our controller</text>
+            <text class="t s m" x="870" y="70" text-anchor="middle">sets miner power</text>
+            <rect class="box" id="relay" x="790" y="106" width="160" height="36" rx="6"/>
+            <text class="t b" x="870" y="128" text-anchor="middle">Trip relay</text>
+          </g>
+        </svg>
+      </div>
+      <figcaption id="figcap" class="note"></figcaption>
+    </figure>
+
+    <div class="legend" aria-label="Legend">
+      <span><svg width="22" height="8" aria-hidden="true"><line x1="1" y1="4" x2="21" y2="4" stroke="var(--engine)" stroke-width="4" stroke-linecap="round"/></svg>Engine power</span>
+      <span><svg width="22" height="8" aria-hidden="true"><line x1="1" y1="4" x2="21" y2="4" stroke="var(--grid)" stroke-width="4" stroke-linecap="round"/></svg>Grid power</span>
+      <span><svg width="22" height="8" aria-hidden="true"><line x1="1" y1="4" x2="21" y2="4" stroke="var(--dead)" stroke-width="4" stroke-linecap="round"/></svg>Dead</span>
+      <span><svg width="14" height="14" aria-hidden="true"><rect x="1" y="1" width="12" height="12" rx="2" fill="currentColor"/></svg>Breaker closed</span>
+      <span><svg width="14" height="14" aria-hidden="true"><rect x="1" y="1" width="12" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Open</span>
+      <span><svg width="14" height="14" aria-hidden="true"><rect x="1" y="1" width="12" height="12" rx="2" fill="var(--alarm-bg)" stroke="var(--alarm)" stroke-width="1.5"/></svg>Tripped</span>
+      <span class="ours-only"><svg width="22" height="8" aria-hidden="true"><line x1="1" y1="4" x2="21" y2="4" stroke="var(--trip)" stroke-width="1.6" stroke-dasharray="5 4"/></svg>Trip signal</span>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const NS = 'http://www.w3.org/2000/svg';
+
+  /* power segments, each drawn in its "+" direction */
+  const SEG = {
+    gridA:[130,200,130,159], gridB:[130,141,130,100],
+    siteA:[200,200,200,241], siteB:[200,259,200,286],
+    tieA:[470,200,409,200], tieB:[391,200,330,200],
+    chpA:[560,82,560,121],  chpB:[560,139,560,200],
+    dcA:[700,200,700,236],  dcB:[700,254,700,310],
+    coolA:[560,310,560,346], coolB:[560,364,560,390],
+    cduA:[645,310,645,346],  cduB:[645,364,645,390],
+    r1A:[730,310,730,346],   r1B:[730,364,730,390],
+    r3A:[815,310,815,346],   r3B:[815,364,815,390],
+  };
+  const FLOWS = { grid:['gridA','gridB'], site:['siteA','siteB'], tie:['tieA','tieB'], chp:['chpA','chpB'], dc:['dcA','dcB'],
+                  cool:['coolA','coolB'], cdu:['cduA','cduB'], r1:['r1A','r1B'], r3:['r3A','r3B'] };
+  const BUS = { exist:[80,330,200], newb:[470,770,200], dcb:[540,840,310] };
+  const BRK = { E:[130,150], T:[400,200], G:[560,130], D:[700,245], S:[200,250], C:[560,355], P:[645,355], R1:[730,355], R3:[815,355] };
+
+  const wiresG = document.getElementById('wires'), busG = document.getElementById('buses'), brkG = document.getElementById('breakers');
+  const el = {};
+  for (const [k, [x1,y1,x2,y2]] of Object.entries(SEG)) {
+    const d = `M${x1} ${y1} L${x2} ${y2}`;
+    const w = document.createElementNS(NS,'path'); w.setAttribute('d', d); w.setAttribute('class','wire');
+    const f = document.createElementNS(NS,'path'); f.setAttribute('d', d); f.setAttribute('class','flow');
+    wiresG.append(w, f); el[k] = { w, f };
+  }
+  const busEl = {};
+  for (const [k, [x1,x2,y]] of Object.entries(BUS)) {
+    const l = document.createElementNS(NS,'line');
+    l.setAttribute('x1',x1); l.setAttribute('x2',x2); l.setAttribute('y1',y); l.setAttribute('y2',y); l.setAttribute('class','bus');
+    busG.append(l); busEl[k] = l;
+  }
+  const brkEl = {};
+  for (const [k, [x,y]] of Object.entries(BRK)) {
+    const r = document.createElementNS(NS,'rect');
+    r.setAttribute('x', x-9); r.setAttribute('y', y-9); r.setAttribute('width',18); r.setAttribute('height',18); r.setAttribute('rx',2);
+    r.setAttribute('class','brk'); brkG.append(r); brkEl[k] = r;
+  }
+
+  /* states. flows: [rate 0-1, 'engine'|'grid', direction]; breakers listed are open (o) or tripped (x), all others closed */
+  const TABS = {
+    lee: {
+      hash:'lees-design',
+      summary:"As quoted (LF42344): the engine's output goes through two 1250 A ACBs that are mechanically interlocked, so it feeds the existing board or the data centre, never both.",
+      note:"<b>Quote LF42344 as drawn.</b> Two 1250 A ACBs set at 1000 A, mechanically interlocked. Cooler and CDU sit behind the data centre ACB. No trip, metering or controller interface.",
+      states:[
+        { name:'Export position', caption:'The engine feeds the site loads and exports the rest. The data centre ACB is held open, so nothing mines.',
+          brk:{ D:'o' }, buses:{ exist:'engine', newb:'engine', dcb:'' },
+          flows:{ chp:[1,'engine',1], tie:[.9,'engine',1], grid:[.75,'engine',1], site:[.4,'engine',1] },
+          chips:{ grid:['Export','engine'], chp:['Running','engine'], dc:['Off',''] } },
+        { name:'Changeover', caption:'To swap over, the engine comes off load and both ACBs open. Nothing mines, nothing exports, and the site imports until the engine re-syncs.',
+          brk:{ D:'o', T:'o', G:'o' }, buses:{ exist:'grid', newb:'', dcb:'' },
+          flows:{ grid:[.4,'grid',-1], site:[.4,'grid',1] },
+          chips:{ grid:['Import','grid'], chp:['Off load',''], dc:['Off',''] } },
+        { name:'Data centre position', caption:'The engine runs alone on the miners, as an island with no grid behind it. The site imports and nothing exports.',
+          brk:{ T:'o' }, buses:{ exist:'grid', newb:'engine', dcb:'engine' },
+          flows:{ chp:[.85,'engine',1], dc:[.85,'engine',1], r1:[.45,'engine',1], r3:[.45,'engine',1], cool:[.15,'engine',1], cdu:[.1,'engine',1], grid:[.4,'grid',-1], site:[.4,'grid',1] },
+          chips:{ grid:['Import','grid'], chp:['Island','engine'], dc:['Mining','engine'] } },
+      ]
+    },
+    ours: {
+      hash:'what-we-need',
+      summary:"Remove the interlock: both ACBs stay closed so engine, site, grid and data centre share one busbar. Turndown happens in software at the miners; a hardwired trip drops the racks if the engine stops.",
+      note:"<b>Changes to LF42344.</b> Remove the interlock. Undervoltage-release coils, motor operators and status contacts on the two 400 A rack MCCBs. Trip relay fed by the 2G generator breaker and our controller's watchdog. CTs on the transformer incomer for a Modbus boundary meter, an MID meter on the data centre feed.",
+      states:[
+        { name:'Normal running', caption:'Site loads take what they need, the miners take the rest, and a small margin exports. Every breaker stays closed.',
+          brk:{}, buses:{ exist:'engine', newb:'engine', dcb:'engine' },
+          flows:{ chp:[1,'engine',1], tie:[.45,'engine',1], grid:[.15,'engine',1], site:[.4,'engine',1], dc:[.85,'engine',1], r1:[.45,'engine',1], r3:[.45,'engine',1], cool:[.15,'engine',1], cdu:[.1,'engine',1] },
+          sig:'idle', chips:{ grid:['Export','engine'], chp:['Running','engine'], dc:['Mining','engine'] } },
+        { name:'Price above strike', caption:'Power is worth more than mining. Our controller turns the miners down and the surplus exports. No breaker moves.',
+          brk:{}, buses:{ exist:'engine', newb:'engine', dcb:'engine' },
+          flows:{ chp:[1,'engine',1], tie:[.9,'engine',1], grid:[.8,'engine',1], site:[.4,'engine',1], dc:[.25,'engine',1], r1:[.1,'engine',1], r3:[.1,'engine',1], cool:[.1,'engine',1], cdu:[.08,'engine',1] },
+          sig:'idle', chips:{ grid:['Export','engine'], chp:['Running','engine'], dc:['Turned down','engine'] } },
+        { name:'Engine trips', caption:'The generator breaker opens, the trip relay drops out and both rack MCCBs open in under 0.1 s. Cooling and the site run on the grid until the engine re-syncs.',
+          brk:{ G:'x', R1:'x', R3:'x' }, buses:{ exist:'grid', newb:'grid', dcb:'grid' },
+          flows:{ grid:[.5,'grid',-1], site:[.4,'grid',1], tie:[.15,'grid',-1], dc:[.15,'grid',1], cool:[.1,'grid',1], cdu:[.08,'grid',1] },
+          sig:'fire', chips:{ grid:['Import','grid'], chp:['Tripped','alarm'], dc:['Racks tripped','alarm'] } },
+      ]
+    }
+  };
+
+  const app = document.getElementById('app');
+  const stepsEl = document.getElementById('steps'), cap = document.getElementById('caption'), sum = document.getElementById('summary');
+  const figcap = document.getElementById('figcap');
+  const tabBtn = { lee:document.getElementById('tab-lee'), ours:document.getElementById('tab-ours') };
+  const chipEl = { grid:document.getElementById('chip-grid'), chp:document.getElementById('chip-chp'), dc:document.getElementById('chip-dc') };
+  const sigFire = ['sig-eng','sig-out'].map(id => document.getElementById(id));
+  const relay = document.getElementById('relay'), uvr = document.getElementById('uvr');
+  let tab = 'lee', idx = 0;
+
+  function setChip(k, [txt, kind]) {
+    const g = chipEl[k]; g.querySelector('text').textContent = txt;
+    g.setAttribute('class', kind ? 'chip-' + kind : '');
+  }
+  function apply() {
+    const s = TABS[tab].states[idx];
+    stepsEl.querySelectorAll('button').forEach((b, j) => { b.setAttribute('aria-pressed', j === idx ? 'true' : 'false'); b.classList.toggle('next', j === idx + 1); });
+    stepsEl.querySelectorAll('.arr').forEach((a, j) => a.classList.toggle('next', j === idx));
+    cap.textContent = s.caption;
+    for (const [fk, segs] of Object.entries(FLOWS)) {
+      const f = s.flows[fk];
+      for (const sk of segs) {
+        const { w, f:fl } = el[sk];
+        w.setAttribute('class', 'wire' + (f ? ' ' + f[1] : ''));
+        w.style.strokeWidth = f ? (2.6 + 3.4 * f[0]) : 3;
+        fl.setAttribute('class', 'flow' + (f ? ' on' : '') + (f && f[2] < 0 ? ' rev' : ''));
+        if (f) fl.style.setProperty('--dur', (1.5 - 1.05 * f[0]).toFixed(2) + 's');
+      }
+    }
+    for (const [k, l] of Object.entries(busEl)) l.setAttribute('class', 'bus' + (s.buses[k] ? ' ' + s.buses[k] : ''));
+    for (const [k, r] of Object.entries(brkEl)) {
+      const st = s.brk[k];
+      r.setAttribute('class', 'brk' + (st === 'o' ? ' open' : st === 'x' ? ' tripped' : ''));
+    }
+    for (const k of Object.keys(chipEl)) setChip(k, s.chips[k]);
+    const fire = s.sig === 'fire';
+    sigFire.forEach(p => p.setAttribute('class', 'sig' + (fire ? ' fire' : '')));
+    relay.setAttribute('class', 'box' + (fire ? ' fire' : ''));
+    uvr.setAttribute('class', 'uvr ours-only' + (fire ? ' fire' : ''));
+  }
+  function renderSteps() {
+    stepsEl.innerHTML = '';
+    TABS[tab].states.forEach((st, i) => {
+      const g = document.createElement('span'); g.className = 'step';
+      if (i > 0) { const a = document.createElement('span'); a.className = 'arr'; a.setAttribute('aria-hidden', 'true'); a.textContent = '→'; g.appendChild(a); }
+      const b = document.createElement('button'); b.type = 'button'; b.textContent = st.name;
+      b.addEventListener('click', () => { idx = i; apply(); notify(); });
+      g.appendChild(b); stepsEl.appendChild(g);
+    });
+  }
+  /* inside the SRV Electrical app: report the reader's picks to the frame, so the
+     other view opens on the same design and state, and let the frame set them */
+  function notify() { try { if (parent !== window) parent.postMessage({ lv:{ tab, idx } }, '*'); } catch (e) {} }
+  window.LV = { show(t, i) {
+    if (!TABS[t]) return;
+    if (t !== tab) setTab(t, true);
+    idx = Math.max(0, Math.min(TABS[t].states.length - 1, i | 0)); apply();
+  } };
+  function setTab(k, fromHash) {
+    tab = k; idx = 0;
+    app.dataset.tab = k;
+    for (const [kk, b] of Object.entries(tabBtn)) b.setAttribute('aria-selected', kk === k ? 'true' : 'false');
+    sum.textContent = TABS[k].summary;
+    figcap.innerHTML = TABS[k].note;
+    renderSteps(); apply();
+    if (!fromHash) { try { history.replaceState(null, '', '#' + TABS[k].hash); } catch (e) {} }
+  }
+  tabBtn.lee.addEventListener('click', () => { setTab('lee'); notify(); });
+  tabBtn.ours.addEventListener('click', () => { setTab('ours'); notify(); });
+  function fromHash() { setTab(location.hash.slice(1) === TABS.ours.hash ? 'ours' : 'lee', true); }
+  window.addEventListener('hashchange', fromHash);
+  fromHash();
+
+})();
+</script>
