@@ -26,7 +26,13 @@ both pages): eleven numbered steps with their owners, what stays as quoted,
 and what we confirm before ordering. It starts collapsed behind a call to
 action, a "Step-by-step (11)" button: on the SLD it opens a card under the
 diagram, on the site view a card pinned top right from 1280 px, with the
-scene re-centred between the two cards (a bottom sheet below that).
+scene re-centred between the two cards (a bottom sheet below that). Each step
+opens up (``srv_electrical/steps_explained.js``): what's needed as numbered
+points, why, and done when, shown on the diagram with its parts lit and
+numbered markers where each point applies, and on the site with the camera
+flown there, the equipment outlined and the points pinned. The step open in
+one view is open in the other. A glossary of the key terms and acronyms
+(``srv_electrical/glossary.js``) sits under both views.
 
 The bar and the two frames are ``srv_electrical/shell.html``; this script
 fills it at serve time with the two pages, so the sources in
@@ -35,7 +41,8 @@ only built into its frame the first time it is opened, and only then fetches
 its 3 MB model, which Streamlit serves from ``static/`` (``enableStaticServing``
 in ``.streamlit/config.toml``), so the page it opens on stays light. Deep
 links: ``?view=site`` opens on the site view, ``?design=what-we-need`` on the
-second sub-tab, ``?state=2`` on that operating state (1 to 3).
+second sub-tab, ``?state=2`` on that operating state (1 to 3), ``?step=4`` on
+that step of What we need, opened up (1 to 11).
 
 three.js and the fonts load from CDNs. No database, no secrets.
 
@@ -115,17 +122,25 @@ if params.get("design") in ("what-we-need", "ours"):
     query["design"] = "ours"
 if params.get("state") in ("1", "2", "3"):
     query["state"] = int(params.get("state")) - 1
+if params.get("step") in [str(n) for n in range(1, 12)]:
+    query["step"] = int(params.get("step")) - 1
 
 # Read fresh from the main script each run (Streamlit re-runs this script but
 # can keep imported modules cached, so reading here keeps the pages current
 # after every redeploy).
-# The step list on the What we need tabs: one copy for both pages, inlined as
-# the data script each page keeps for it. It must not end that script early.
-steps = (SRC / "what_we_need.js").read_text(encoding="utf-8")
-if re.search(r"</script|<!--", steps, re.IGNORECASE):
-    raise RuntimeError("what_we_need.js must not contain </script or <!--")
-sld = fill((SRC / "sld.html").read_text(encoding="utf-8"), "/*__WHAT_WE_NEED__*/", steps)
-site = fill((SRC / "site3d.html").read_text(encoding="utf-8"), "/*__WHAT_WE_NEED__*/", steps)
+# The data both pages share (the step list, each step opened up, and the
+# glossary): one copy of each, inlined as the data script each page keeps for
+# them. None of it may end that script early.
+DATA_FILES = ("what_we_need.js", "steps_explained.js", "glossary.js")
+data = []
+for name in DATA_FILES:
+    text = (SRC / name).read_text(encoding="utf-8")
+    if re.search(r"</script|<!--", text, re.IGNORECASE):
+        raise RuntimeError(f"{name} must not contain </script or <!--")
+    data.append(text)
+data = "\n".join(data)
+sld = fill((SRC / "sld.html").read_text(encoding="utf-8"), "/*__WHAT_WE_NEED__*/", data)
+site = fill((SRC / "site3d.html").read_text(encoding="utf-8"), "/*__WHAT_WE_NEED__*/", data)
 html = (SRC / "shell.html").read_text(encoding="utf-8")
 html = fill(html, "__LV_QUERY__", json.dumps(query))
 html = fill(html, "__SLD_JSON__", script_json(sld))
