@@ -10,20 +10,22 @@ a regenerated source that loses it fails the build instead of shipping a page th
     /clients/srv/             SRV Atlas (?view=3d the 3D Dispatch Sim, ?view=siting the 3D Compute Kiosk)
     /clients/srv-contractor/  SRV Contractor Atlas, the electrical survey for the LV connection RFQ
     /clients/bry/             Bryn Atlas, code BRY (?view=3d the 3D Site Model, ?view=compute the Compute Render)
-    /clients/kld/             KLD Atlas (?view=3d the 3D Revenue Sim, ?view=twin the 3D Site Twin)
+    /clients/kld/             KLD Atlas (?view=3d the 3D Revenue Sim; its "3D Site Twin" badge opens /twins/kld/)
     /clients/ihn/             IHN Atlas (?view=3d Heat Network 3D)
     /clients/reabold/west-newton/, /clients/reabold/reservoirs/   Reabold's two maps
     /clients/citygate/        Citygate Church's electricity portrait
     /team/keith-huntly/, /team/moray/   the team's decision pages for the Moray primaries
     /investors/demo/, /investors/australia/, /investors/portal/   the investor packs (landing + models)
     /models/peaker-plant/, /models/peaker-demo/   Peaker Plant 3D on links of its own
+    /twins/kld/               the KLD 3D Site Twin, open to anyone with the link (no sign-in)
 
 /clients/ and /team/ are behind the sign-in (netlify/edge-functions/atlas-gate.js), which opens
 /clients/<code>/ to the addresses listed for <code> in Supabase's public.atlas_access and to the
 team, /team/ to the team only, and routes ?view=. The client pages name their sites, so they live only
 behind the sign-in; only a client's public cover on the front page is held to the anonymity checks (build.py).
 /investors/portal/ is not gated: the Wix investor portal's members area links to it, and only its address keeps it
-from the public.
+from the public. /twins/ is not gated either: the site twins open to anyone with the link, are kept out of search
+engines (noindex), and fetch their files through a signer that answers any visitor (netlify/edge-functions/kld-twin-assets.js).
 """
 import base64
 import html
@@ -107,7 +109,7 @@ CLIENT_MAPS = {
     "kld": {"title": "KLD Atlas — Kinlochdamph", "kick": "999 kW run-of-river hydro · KLD Atlas",
             "place": "Kinlochdamph hydro scheme, Loch Damh, Wester Ross", "at": [57.46160, -5.55778], "zoom": 17,
             "badges": [{"at": [57.46160, -5.55778], "label": "3D Revenue Sim", "short": "3D Sim", "view": "3d"},
-                       {"at": [57.46160, -5.55778], "label": "3D Site Twin", "short": "Twin", "view": "twin",
+                       {"at": [57.46160, -5.55778], "label": "3D Site Twin", "short": "Twin", "href": "/twins/kld/",
                         "side": "right", "anchor": [-37, 4]}]},
 }
 
@@ -131,9 +133,13 @@ def png_data(path):
 def client_map(code):
     """The opening page of /clients/<code>/: atlas/client_map/map.html filled in from the site's entry in CLIENT_MAPS."""
     site, what = CLIENT_MAPS[code], "atlas/client_map/map.html"
-    badged, views = sorted(b["view"] for b in site["badges"]), sorted(CLIENT_PAGES[f"/clients/{code}/"].get("views", {}))
+    # a badge opens one of the page's views (?view=), or, with "href", a public page outside the sign-in (/twins/)
+    badged, views = sorted(b["view"] for b in site["badges"] if "view" in b), sorted(CLIENT_PAGES[f"/clients/{code}/"].get("views", {}))
     if badged != views:
         raise PageError(f"{what}: {code} needs a badge for each of its views, and no other (badges {badged}, views {views})")
+    for b in site["badges"]:
+        if ("view" in b) == ("href" in b) or ("href" in b and not re.fullmatch(r"/twins/[a-z0-9-]+/", b["href"])):
+            raise PageError(f"{what}: {code}'s badge {b['label']!r} needs a view, or an href to a page under /twins/")
     style, bar = client_bar(site["kick"], site["place"])
     config = {"at": site["at"], "zoom": site["zoom"], "nativeZoom": site.get("nativeZoom", 19), "badges": site["badges"]}
     page = (CLIENT_MAP / "map.html").read_text(encoding="utf-8")
@@ -240,11 +246,6 @@ def client_pages():
                 "kld_interactive.html")
     page = once(page, "  #stage{background:#0d1b23}", "  #stage{background:#0d1b23}\n  html{overflow:hidden}", "kld_hydro_chrome.html")
     out["clients/kld/3d.html"] = noindex(top_level_nav(page, "kld_hydro_chrome.html"), "kld_interactive.html")
-    # The site twin (?view=twin): the Gaussian-splat capture of the powerhouse with the proposed data centre in X-ray. It
-    # is written for the Atlas, with its own "Atlas" link, and fetches its files through /clients/kld/twin-assets
-    # (netlify/edge-functions/kld-twin-assets.js), which signs short-lived URLs for a session that may open KLD.
-    page = once(source("kld_twin.html"), "<title>Kinlochdamph twin</title>", "<title>KLD Atlas — 3D Site Twin</title>", "kld_twin.html")
-    out["clients/kld/twin.html"] = noindex(page, "kld_twin.html")
 
     # IHN: the heat network. Its opening page keeps its own scene (ihn_atlas below); the 3D view is the shared Heat
     # Network 3D with the IHN chrome spliced in.
@@ -291,7 +292,7 @@ CLIENT_PAGES = {
     "/clients/srv-contractor/": {"client": "srv-contractor", "title": "SRV Contractor Atlas — electrical site survey", "list": True},
     "/clients/bry/": {"client": "bry", "title": "Bryn Atlas — Bryn Power AD plant", "list": True,
                       "views": {"3d": "bryn_3d_sim.html", "compute": "compute.html"}},
-    "/clients/kld/": {"client": "kld", "title": "KLD Atlas — Kinlochdamph", "list": True, "views": {"3d": "3d.html", "twin": "twin.html"}},
+    "/clients/kld/": {"client": "kld", "title": "KLD Atlas — Kinlochdamph", "list": True, "views": {"3d": "3d.html"}},
     "/clients/ihn/": {"client": "ihn", "title": "IHN Atlas — Islington heat network", "list": True, "views": {"3d": "3d.html"}},
     "/clients/reabold/west-newton/": {"client": "reabold", "title": "West Newton infrastructure map", "list": True},
     "/clients/reabold/reservoirs/": {"client": "reabold", "title": "UKCS reservoir atlas (prototype)", "list": True},
@@ -301,13 +302,6 @@ CLIENT_PAGES = {
 }
 # /clients/bryn/ was Bryn's address for a day: the public front page names a client by its code only (BRY)
 CLIENT_REDIRECTS = {"/clients/reabold/": "/clients/", "/clients/bryn/": "/clients/bry/"}
-
-# THE ONE SETTING for views that open without the sign-in, for now (the client sign-in comes at a later stage):
-# {page: {view: [other addresses of that view that open with it]}}. The gate opens these views, their files and the
-# listed addresses to anyone, and the KLD twin's file signer (netlify/edge-functions/kld-twin-assets.js) stops asking
-# for a session while its address is listed. Everything else under /clients/ and /team/ stays behind the sign-in,
-# KLD's map and 3D view included. To put the KLD twin behind the sign-in, delete its entry (leave {}) and rebuild.
-OPEN_WITHOUT_SIGN_IN = {"/clients/kld/": {"twin": ["/clients/kld/twin-assets"]}}
 
 # Each page's security policy, as measured page by page: what it loads (Leaflet from cdnjs, imagery from Esri,
 # OpenStreetMap or CARTO tiles, Google Fonts), whether its mesh decoder compiles WebAssembly ('wasm-unsafe-eval'),
@@ -345,13 +339,6 @@ CLIENT_CSP = {
     "/clients/kld/3d.html": ("default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; "
                              f"img-src 'self' data: https://server.arcgisonline.com {_OSM}; font-src 'self'; connect-src 'self'; "
                              "media-src 'self'; worker-src 'self'; " + _END),
-    # the site twin: three.js from jsDelivr and Spark from sparkjs.dev (which compiles WebAssembly and runs workers), IBM Plex
-    # from Google Fonts, and its three files from the private bucket by the URLs /clients/kld/twin-assets signs
-    "/clients/kld/twin.html": ("default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net "
-                               "https://sparkjs.dev; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-                               "img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; "
-                               "connect-src 'self' blob: data: https://mojwqeqgwyldbghlzgbq.supabase.co https://cdn.jsdelivr.net "
-                               "https://sparkjs.dev; media-src 'none'; worker-src 'self' blob:; frame-src 'none'; " + _END),
     "/clients/ihn/": "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; " + _END,
     "/clients/reabold/west-newton/": ("default-src 'none'; script-src 'unsafe-inline' https://cdnjs.cloudflare.com; "
                                       "style-src 'unsafe-inline' https://cdnjs.cloudflare.com; "
@@ -477,6 +464,17 @@ def model(pack, key):
         page = once(page, "</head>", f"<style>{css}</style></head>", view["file"])
         page = once(page, "</body>", packs.GATE_HTML.format(url=packs.PORTAL_URL) + "</body>", view["file"])
     return page
+
+
+# The site twins, at /twins/<code>/, open to anyone with the link: no sign-in runs there (the gate takes /clients/,
+# /team/ and /access/ only). Each is noindex, in its HTML and by its rule in root/_headers, which also sets its policy.
+# KLD's: the Gaussian-splat capture of the powerhouse with the proposed data centre in X-ray (kld_twin.html), which
+# fetches its three files by the five-minute URLs /twins/kld/assets signs (netlify/edge-functions/kld-twin-assets.js).
+# The KLD map's "3D Site Twin" badge links here.
+def twin_pages():
+    """{site path: text} for the public site twins."""
+    page = once(source("kld_twin.html"), "<title>Kinlochdamph twin</title>", "<title>KLD — 3D Site Twin</title>", "kld_twin.html")
+    return {"twins/kld/index.html": noindex(page, "kld_twin.html")}
 
 
 def investor_pages():

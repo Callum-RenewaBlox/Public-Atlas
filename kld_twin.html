@@ -91,7 +91,7 @@
 </head>
 <body>
 
-<div id="strip"><a class="back" href="/clients/kld/" title="Back to the KLD Atlas">&larr; Atlas</a><div class="logo">Renewa<b>Blox</b></div><div class="cap">Kinlochdamph powerhouse digital twin: the site as captured, with the proposed data centre inside</div></div>
+<div id="strip"><a class="back" href="/" title="RenewaBlox Atlas">&larr; Atlas</a><div class="logo">Renewa<b>Blox</b></div><div class="cap">Kinlochdamph powerhouse digital twin: the site as captured, with the proposed data centre inside</div></div>
 <div id="stage"></div>
 <div id="labels"></div>
 
@@ -138,9 +138,9 @@ import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer
 import { SplatMesh, SparkRenderer } from '@sparkjsdev/spark';
 
 // ---- assets: the splat and the two GLBs sit in a private Supabase bucket, never in this repository. On the Atlas the
-// page asks /clients/kld/twin-assets, behind the sign-in, for short-lived signed URLs before it loads anything; no URL,
-// token or key is written into the page. window.KLD_SPLAT_URL / KLD_KIT_URL / KLD_HALL_URL override them for local tests.
-const ASSETS = '/clients/kld/twin-assets';
+// page asks /twins/kld/assets for short-lived signed URLs before it loads anything; no URL, token or key is written
+// into the page. window.KLD_SPLAT_URL / KLD_KIT_URL / KLD_HALL_URL override them for local tests.
+const ASSETS = '/twins/kld/assets';
 const SPLAT_BYTES = 11618440;                                   // for the progress bar only
 const KIT_BYTES = 764824, HALL_BYTES = 794620;     // for the progress bar only
 
@@ -232,8 +232,6 @@ async function assetUrls() {
              hall: window.KLD_HALL_URL || 'kld_twin/kld_hall.glb' };
   }
   const r = await fetch(ASSETS, { credentials: 'same-origin', cache: 'no-store', headers: { accept: 'application/json' } });
-  if (r.status === 401) throw new Error('your sign-in needs renewing: open the page again');
-  if (r.status === 403) throw new Error('this account can’t open the KLD twin');
   if (!r.ok) throw new Error('HTTP ' + r.status);
   const j = await r.json();
   if (!j.splat || !j.kit || !j.hall) throw new Error('incomplete answer');
