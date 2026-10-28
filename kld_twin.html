@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kinlochdamph twin</title>
+<meta name="description" content="Gaussian-splat capture of the Kinlochdamph powerhouse with an X-ray view of the proposed in-room data centre.">
+<meta name="theme-color" content="#1F5F7F">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%227%22 fill=%22%231F5F7F%22/></svg>">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  /* Layout follows the Bryn BLOX 3D template: full-bleed WebGL stage, a compact control card, a notes strip,
+     3D labels as pills with a stem. Added here: a RenewaBlox header strip and a footer line. */
+  :root {
+    --bg: #1b2730;            /* behind the splat: splats are sparse at the sky, so a quiet dark blue-grey */
+    --panel: rgba(255,255,255,0.92);
+    --panel-fg: #17222b;
+    --muted: #5b6b78;
+    --line: rgba(23,34,43,0.14);
+    --accent: #1F5F7F;        /* RenewaBlox blue */
+    --accent-fg: #ffffff;
+    --accent-soft: rgba(31,95,127,0.12);
+    --pill: #ffffff;
+    --pill-fg: #17222b;
+    --pill-line: rgba(23,34,43,0.18);
+    --strip: #0d1b23;
+    --strip-fg: #ffffff;
+    --strip-muted: #b9c6cd;
+    --font-ui: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+    --font-mono: "IBM Plex Mono", "Cascadia Mono", Consolas, monospace;
+    --strip-h: 44px;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #101a21; --panel: rgba(22,31,40,0.92); --panel-fg: #e8eef3; --muted: #9fb0bd; --line: rgba(232,238,243,0.14);
+    --accent: #6fb3d6; --accent-fg: #0e1a22; --accent-soft: rgba(111,179,214,0.16); --pill: #1d2a35; --pill-fg: #e8eef3; --pill-line: rgba(232,238,243,0.22); color-scheme: dark } }
+  :root[data-theme="dark"] {
+    --bg: #101a21; --panel: rgba(22,31,40,0.92); --panel-fg: #e8eef3; --muted: #9fb0bd; --line: rgba(232,238,243,0.14);
+    --accent: #6fb3d6; --accent-fg: #0e1a22; --accent-soft: rgba(111,179,214,0.16); --pill: #1d2a35; --pill-fg: #e8eef3; --pill-line: rgba(232,238,243,0.22); color-scheme: dark }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--panel-fg); font-family: var(--font-ui); overflow: hidden; }
+  #strip { position: fixed; top: 0; left: 0; right: 0; height: calc(var(--strip-h) + env(safe-area-inset-top, 0px)); padding-top: env(safe-area-inset-top, 0px);
+           background: var(--strip); color: var(--strip-fg); display: flex; align-items: center; gap: 14px; z-index: 6; box-sizing: border-box;
+           padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  #strip .logo { font: 600 15px/1 var(--font-ui); letter-spacing: 0.01em; white-space: nowrap; }
+  #strip .logo b { color: #6fb3d6; font-weight: 600; }
+  #strip .cap { font: 400 12.5px/1.3 var(--font-ui); color: var(--strip-muted); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #stage { position: fixed; top: calc(var(--strip-h) + env(safe-area-inset-top, 0px)); left: 0; right: 0; bottom: 0; touch-action: none; }
+  #stage canvas { display: block; width: 100%; height: 100%; }
+  #labels { position: fixed; top: calc(var(--strip-h) + env(safe-area-inset-top, 0px)); left: 0; right: 0; bottom: 0; pointer-events: none; overflow: hidden; }
+  .lbl { pointer-events: none; transform: translate(-50%, calc(-100% - 22px)); white-space: normal; max-width: min(280px, calc(100vw - 48px)); text-align: center;
+         font: 500 13px/1.25 var(--font-ui); color: var(--pill-fg); background: var(--pill); border: 1px solid var(--accent);
+         padding: 7px 12px; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.25); position: relative; }
+  .lbl::after { content: ""; position: absolute; left: 50%; top: 100%; width: 2px; height: 20px; background: var(--pill); transform: translateX(-1px); box-shadow: 0 0 0 1px var(--pill-line); }
+  .lbl small { display: block; font-weight: 400; color: var(--muted); font-size: 11px; margin-top: 3px; }
+  #ui { position: fixed; top: calc(var(--strip-h) + 12px + env(safe-area-inset-top, 0px)); left: max(16px, env(safe-area-inset-left, 0px)); z-index: 5; display: grid; gap: 10px;
+        width: min(380px, calc(100vw - 32px)); }
+  .card { background: var(--panel); color: var(--panel-fg); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; backdrop-filter: blur(8px); }
+  .eyebrow { font: 600 11px/1 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin: 0 0 6px; }
+  h1 { font: 600 17px/1.25 var(--font-ui); margin: 0; text-wrap: balance; }
+  .sub { color: var(--muted); font-size: 12.5px; margin: 4px 0 0; }
+  .row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .row + .row { margin-top: 8px; }
+  .row .k { flex-basis: 100%; font: 600 10.5px/1 var(--font-ui); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 2px 0 0; }
+  button.t { font: 500 12.5px/1 var(--font-ui); color: var(--panel-fg); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 8px 12px; cursor: pointer; min-height: 32px; }
+  button.t[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+  button.t:hover { background: var(--accent-soft); }
+  button.t[aria-pressed="true"]:hover { background: var(--accent); }
+  button.t:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  #notes { position: fixed; left: max(16px, env(safe-area-inset-left, 0px)); bottom: calc(30px + env(safe-area-inset-bottom, 0px)); z-index: 5; max-width: min(520px, calc(100vw - 32px)); }
+  #notes .card { font-size: 12px; color: var(--muted); padding: 8px 12px; }
+  #notes b { color: var(--panel-fg); font-weight: 600; }
+  #notes .xr { display: none; }
+  #notes .xr.on { display: inline; }
+  #foot { position: fixed; left: 0; right: 0; bottom: 0; height: calc(24px + env(safe-area-inset-bottom, 0px)); padding-bottom: env(safe-area-inset-bottom, 0px); z-index: 6;
+          background: var(--strip); color: var(--strip-muted); font: 400 11.5px/24px var(--font-ui); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+          padding-left: 16px; padding-right: 16px; box-sizing: border-box; }
+  #load { position: fixed; inset: 0; display: grid; place-items: center; background: var(--bg); z-index: 20; }
+  #load .card { width: min(360px, calc(100vw - 48px)); }
+  #load[hidden] { display: none; }
+  #load.err .eyebrow { color: #c0392b; }
+  #bar { height: 6px; background: var(--accent-soft); border-radius: 3px; overflow: hidden; margin-top: 10px; }
+  #bar i { display: block; height: 100%; width: 2%; background: var(--accent); transition: width .25s; }
+  #loadmsg { font-variant-numeric: tabular-nums; }
+  @media (max-width: 520px) { #notes { display: none; } h1 { font-size: 15px; } #strip .cap { display: none; } .sub { display: none; } }
+  @media (max-height: 560px) { #notes { display: none; } }
+  @media (prefers-reduced-motion: reduce) { #bar i { transition: none; } }
+</style>
+</head>
+<body>
+
+<div id="strip"><div class="logo">Renewa<b>Blox</b></div><div class="cap">Kinlochdamph powerhouse digital twin: the site as captured, with the proposed data centre inside</div></div>
+<div id="stage"></div>
+<div id="labels"></div>
+
+<div id="ui">
+  <div class="card">
+    <p class="eyebrow">RenewaBlox · Kinlochdamph hydro</p>
+    <h1>Powerhouse twin and in-room data centre</h1>
+    <p class="sub">Gaussian-splat capture of the powerhouse and its surroundings. Switch on X-ray to see the proposed racks and cooling plant through the walls.</p>
+    <div class="row">
+      <span class="k">Show</span>
+      <button class="t" id="b-xray" aria-pressed="false">X-ray</button>
+      <button class="t" id="b-hall" aria-pressed="true">Hall outline</button>
+    </div>
+    <div class="row">
+      <span class="k">View</span>
+      <button class="t v" data-v="overview" aria-pressed="true">Overview</button>
+      <button class="t v" data-v="approach" aria-pressed="false">Approach</button>
+      <button class="t v" data-v="outfall" aria-pressed="false">Outfall</button>
+      <button class="t v" data-v="ground" aria-pressed="false">Ground level</button>
+      <button class="t v" data-v="dc" aria-pressed="false">Data centre</button>
+    </div>
+  </div>
+</div>
+
+<div id="notes"><div class="card"><b>Site capture, June 2026.</b> Drag to orbit, scroll or pinch to zoom, right-drag or two-finger drag to pan.
+  <span class="xr" id="xrnote">Data-centre layout: position from the 2018 drawings and the site tape-out, about ±0.5 m; rack height under confirmation.</span></div></div>
+
+<div id="foot">Kinlochdamph powerhouse · captured 8 June 2026 · RenewaBlox</div>
+
+<div id="load"><div class="card"><p class="eyebrow" id="loadhead">Loading</p><h1>Kinlochdamph · powerhouse twin</h1><p class="sub" id="loadmsg">Fetching the capture…</p><div id="bar"><i id="bari"></i></div></div></div>
+
+<script type="importmap">
+{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/",
+  "@sparkjsdev/spark": "https://sparkjs.dev/releases/spark/2.1.0/spark.module.js"
+} }
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+import { SplatMesh, SparkRenderer } from '@sparkjsdev/spark';
+
+// ---- assets (separate files next to the page, fetched at load)
+// The splat and the two GLBs are NOT committed to the Atlas repo (no splats or model files in git).
+// TODO(hosting): set window.KLD_SPLAT_URL, window.KLD_KIT_URL and window.KLD_HALL_URL (or replace the defaults below)
+//                with the hosted asset URLs once the three files are uploaded (no Atlas Supabase project exists yet).
+const SPLAT_URL = window.KLD_SPLAT_URL || 'kld_twin/kld_web.sog';
+const SPLAT_BYTES = 11618440;                                   // for the progress bar only
+const KIT_URL = window.KLD_KIT_URL || 'kld_twin/kld_dc_kit.glb', HALL_URL = window.KLD_HALL_URL || 'kld_twin/kld_hall.glb';
+const KIT_BYTES = 857104, HALL_BYTES = 794544;     // for the progress bar only
+
+// ---- frames. The splat is ENU metres, Z up (x east, y north). The GLBs are the same frame in glTF Y-up:
+// glTF (x, y, z) = (east, up, -north). E() takes ENU and returns a three.js vector in the GLBs' frame.
+const E = (x, y, z) => new THREE.Vector3(x, z, -y);
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const q = new URLSearchParams(location.search);
+
+const stage = document.getElementById('stage');
+const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(stage.clientWidth, stage.clientHeight);
+stage.appendChild(renderer.domElement);
+const labelR = new CSS2DRenderer({ element: document.getElementById('labels') });
+labelR.setSize(stage.clientWidth, stage.clientHeight);
+
+const scene = new THREE.Scene();
+const spark = new SparkRenderer({ renderer });   // Spark 2.x: created explicitly with the WebGL renderer and added to the scene
+scene.add(spark);
+scene.background = new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#1b2730');
+const camera = new THREE.PerspectiveCamera(50, stage.clientWidth / stage.clientHeight, 0.2, 600);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true; controls.dampingFactor = 0.08; controls.maxPolarAngle = Math.PI * 0.56;
+controls.minDistance = 0.8; controls.maxDistance = 160; controls.zoomSpeed = 0.9;
+
+// ---- preset views (ENU metres: position, target). The "dc" preset is derived from the rack bounds once the kit has loaded.
+const VIEWS = {
+  overview: { pos: [16, -34, 26], tgt: [-12, 0, -3] },                       // from above, south-east: building, apron, track, river and footbridge
+  approach: { pos: [-5, -14.5, 0.3], tgt: [-13.7, -3.6, -2.4] },             // eye height on the track, coming up to the doors (track at z -1.3 there)
+  outfall:  { pos: [-4, -4, 4.5], tgt: [8, 11, -3] },                        // the footbridge and river from above the bank NE of the building (no tailrace hatch is identifiable in the splat)
+  ground:   { pos: [-10.6, -9.4, -2.0], tgt: [-14.4, -4.0, -2.2], fov: 65 }, // eye height at the foot of the ramp on the apron, looking at the front wall
+  dc:       { pos: [-7.2, -8.5, -1.2], tgt: [-12.1, 4.7, -2.6], xray: true }, // replaced from the rack bounds once the kit has loaded
+};
+const DC_DIR = [Math.sin(159.5 * Math.PI / 180), Math.cos(159.5 * Math.PI / 180)];   // outward normal of the front (SSE) wall, ENU
+let tween = null;
+function animateCamera(pos, tgt, instant, fov = 50) {
+  if (reduced || instant) { camera.position.copy(pos); controls.target.copy(tgt); camera.fov = fov; camera.updateProjectionMatrix(); tween = null; return; }
+  tween = { p0: camera.position.clone(), t0: controls.target.clone(), p1: pos, t1: tgt, f0: camera.fov, f1: fov, start: performance.now() };
+}
+function setView(name, instant) {
+  const v = VIEWS[name]; if (!v) return;
+  document.querySelectorAll('button.v').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === name)));
+  if (v.xray) setXray(true);
+  animateCamera(E(...v.pos), E(...v.tgt), instant, v.fov || 50);
+}
+
+// ---- X-ray: the kit and hall GLBs drawn through the splat (no depth test) in RenewaBlox blue, kit brighter than hall.
+const kitMat = new THREE.MeshBasicMaterial({ color: 0x8fd0f2, transparent: true, opacity: 0.42, depthTest: false, depthWrite: false, side: THREE.DoubleSide });
+const kitEdge = new THREE.LineBasicMaterial({ color: 0xd8f0ff, transparent: true, opacity: 0.55, depthTest: false, depthWrite: false });
+const hallMat = new THREE.MeshBasicMaterial({ color: 0x1F5F7F, transparent: true, opacity: 0.07, depthTest: false, depthWrite: false, side: THREE.DoubleSide });
+const hallEdge = new THREE.LineBasicMaterial({ color: 0x6fb3d6, transparent: true, opacity: 0.28, depthTest: false, depthWrite: false });
+const xrayGroup = new THREE.Group(); xrayGroup.visible = false; scene.add(xrayGroup);
+const hallGroup = new THREE.Group(); xrayGroup.add(hallGroup);
+const kitGroup = new THREE.Group(); xrayGroup.add(kitGroup);
+let xray = false, hallOn = true, labelObj = null;
+const rackBox = new THREE.Box3();
+
+function ghost(root, group, fill, edge, edgeNames) {
+  // Each GLB is a flat list under an "ENU" root node; bake world transforms, replace materials with the ghost ones.
+  root.updateMatrixWorld(true);
+  root.traverse((o) => {
+    if (!o.isMesh) return;
+    const g = o.geometry.clone(); g.applyMatrix4(o.matrixWorld);
+    for (const k of ['normal', 'uv', 'color', 'tangent']) if (g.attributes[k]) g.deleteAttribute(k);
+    const m = new THREE.Mesh(g, fill); m.renderOrder = 1000; m.frustumCulled = false; m.name = o.name; group.add(m);
+    if (edge && (!edgeNames || edgeNames.test(o.name))) {
+      const l = new THREE.LineSegments(new THREE.EdgesGeometry(g, 28), edge); l.renderOrder = 1001; l.frustumCulled = false; group.add(l);
+    }
+  });
+}
+
+// ---- loading with progress (bytes-weighted across the three files)
+const msg = document.getElementById('loadmsg'), bar = document.getElementById('bari'), load = document.getElementById('load');
+const prog = { splat: 0, kit: 0, hall: 0 }, total = SPLAT_BYTES + KIT_BYTES + HALL_BYTES;
+function progress(k, loaded, known) { if (load.classList.contains('err')) return; prog[k] = Math.min(known, loaded); const done = prog.splat + prog.kit + prog.hall;
+  bar.style.width = Math.max(2, Math.round(100 * done / total)) + '%'; msg.textContent = `Fetching ${(done / 1e6).toFixed(1)} of ${(total / 1e6).toFixed(1)} MB…`; }
+function fail(what, err) {
+  console.warn('kld_twin: ' + what, err);
+  load.hidden = false; load.classList.add('err'); document.getElementById('loadhead').textContent = 'Could not load';
+  msg.textContent = `${what} (${(err && err.message) || err}). Check the connection and reload; if it persists, the asset is missing from the server.`;
+  document.getElementById('bar').style.display = 'none';
+}
+
+const gltf = new GLTFLoader();
+const loadGlb = (url, k, bytes) => new Promise((res, rej) => gltf.load(url, res, (e) => progress(k, e.loaded, bytes), (e) => rej(new Error('HTTP ' + (e && e.target && e.target.status || '') + ' ' + url))));
+
+// Spark loads .sog/.spz/.ply directly from a URL. The splat is Z-up: -90° about X puts it in the GLBs' Y-up frame.
+let splat = null;
+const loadSplat = new Promise((res, rej) => {
+  try {
+    splat = new SplatMesh({ url: SPLAT_URL,
+      onProgress: (e) => progress('splat', e.loaded || 0, SPLAT_BYTES),
+      onLoad: () => res(splat) });
+    splat.rotation.x = -Math.PI / 2;
+    if (splat.initialized && splat.initialized.catch) splat.initialized.catch(rej);
+    scene.add(splat);
+  } catch (e) { rej(e); }
+});
+
+const state = { ready: false, splatOk: false, kitOk: false, hallOk: false, racks: null, errors: [] };
+window.KLD = state;   // for the test harness
+state.splat = () => splat; state.scene = scene; state.THREE = THREE;
+try {
+  const r = await Promise.allSettled([loadSplat, loadGlb(KIT_URL, 'kit', KIT_BYTES), loadGlb(HALL_URL, 'hall', HALL_BYTES)]);
+  if (r[0].status === 'fulfilled') { state.splatOk = true; progress('splat', SPLAT_BYTES, SPLAT_BYTES); }
+  else fail('The site capture did not load', r[0].reason);
+  if (r[1].status === 'fulfilled') {
+    const root = r[1].value.scene; ghost(root, kitGroup, kitMat, kitEdge, /^(rack_|heat_exch|duplex|isolation_valve|control_valve|canopy|cable_ladder)/);
+    root.updateMatrixWorld(true);
+    root.traverse((o) => { if (o.isMesh && /^rack_\d/.test(o.name)) rackBox.expandByObject(o, true); });
+    if (!rackBox.isEmpty()) {
+      const c = rackBox.getCenter(new THREE.Vector3());
+      state.racks = { enu: [c.x, -c.z, c.y], size: rackBox.getSize(new THREE.Vector3()).toArray(), top: rackBox.max.y };
+      // label above the racks
+      const el = document.createElement('div'); el.className = 'lbl';
+      el.innerHTML = '4 × DCX racks · 104 × M63S++ · 748 kW (up to ~1 MW)<small>Position from the 2018 drawings and the site tape-out, about ±0.5 m; rack height under confirmation</small>';
+      labelObj = new CSS2DObject(el); labelObj.position.set(c.x, rackBox.max.y + 0.35, c.z); labelObj.visible = false; scene.add(labelObj);
+      // the "Data centre" preset: just outside the front (SSE) wall, looking at the rack row through it
+      const d = 9.5;   // the racks now stand just inside the front wall; the forecourt slope rises outside, so look down from above it
+      VIEWS.dc.tgt = [c.x, -c.z, c.y];
+      VIEWS.dc.pos = [c.x + DC_DIR[0] * d, -c.z + DC_DIR[1] * d, c.y + 5.5];
+    }
+    state.kitOk = true; progress('kit', KIT_BYTES, KIT_BYTES);
+  } else fail('The data-centre model did not load', r[1].reason);
+  if (r[2].status === 'fulfilled') { ghost(r[2].value.scene, hallGroup, hallMat, hallEdge, /^(wall|roof|slab|floor|lin_|door|pen_|penstock|turbine|gen|miv|hpu|tail)/i); state.hallOk = true; progress('hall', HALL_BYTES, HALL_BYTES); }
+  else fail('The building model did not load', r[2].reason);
+} catch (e) { fail('Loading failed', e); }
+
+if (state.splatOk) {
+  // debug: ?pos=e,n,u&tgt=e,n,u (ENU) or ?view=name, and ?xray=1
+  if (q.get('xray') === '1') setXray(true);
+  if (q.get('pos') && q.get('tgt')) { const p = q.get('pos').split(',').map(Number), t = q.get('tgt').split(',').map(Number); animateCamera(E(...p), E(...t), true, Number(q.get('fov') || 50));
+    document.querySelectorAll('button.v').forEach(b => b.setAttribute('aria-pressed', 'false')); }
+  else setView(q.get('view') || 'overview', true);
+  if (q.get('hall') === '0') setHall(false);
+  state.ready = true;
+  if (!load.classList.contains('err')) { bar.style.width = '100%'; setTimeout(() => { load.hidden = true; }, 120); }
+}
+
+// ---- toggles
+function setXray(on) {
+  xray = on; xrayGroup.visible = on; if (labelObj) labelObj.visible = on;
+  document.getElementById('b-xray').setAttribute('aria-pressed', String(on));
+  document.getElementById('xrnote').classList.toggle('on', on);
+}
+function setHall(on) { hallOn = on; hallGroup.visible = on; document.getElementById('b-hall').setAttribute('aria-pressed', String(on)); }
+document.getElementById('b-xray').addEventListener('click', () => setXray(!xray));
+document.getElementById('b-hall').addEventListener('click', () => setHall(!hallOn));
+document.querySelectorAll('button.v').forEach(b => b.addEventListener('click', () => setView(b.dataset.v)));
+window.KLD.setView = setView; window.KLD.setXray = setXray; window.KLD.views = VIEWS;
+window.KLD.camera = () => ({ pos: [camera.position.x, -camera.position.z, camera.position.y], tgt: [controls.target.x, -controls.target.z, controls.target.y] });
+
+// ---- loop
+let frames = 0; window.KLD.frames = () => frames;
+function frame() {
+  if (tween) { const tt = Math.min(1, (performance.now() - tween.start) / 1100); const e = tt < 0.5 ? 2 * tt * tt : 1 - Math.pow(-2 * tt + 2, 2) / 2;
+    camera.position.lerpVectors(tween.p0, tween.p1, e); controls.target.lerpVectors(tween.t0, tween.t1, e); camera.fov = tween.f0 + (tween.f1 - tween.f0) * e; camera.updateProjectionMatrix(); if (tt >= 1) tween = null; }
+  controls.update(); renderer.render(scene, camera); labelR.render(scene, camera); frames++;
+  requestAnimationFrame(frame);
+}
+frame();
+window.addEventListener('resize', () => { const w = stage.clientWidth, h = stage.clientHeight; camera.aspect = w / h; camera.updateProjectionMatrix(); renderer.setSize(w, h); labelR.setSize(w, h); });
+</script>
+</body>
+</html>

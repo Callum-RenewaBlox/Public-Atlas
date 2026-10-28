@@ -316,6 +316,7 @@ spam filters, when its links are on the sending domain.
 | `/business/thanks/` | after the savings check, if it was sent without its script |
 | `/generators/` | Generator Demo landing |
 | `/generators/peaker-plant/`, `/generators/run-of-river-hydro/` | the two models |
+| `/generators/kinlochdamph-twin/` | the Kinlochdamph powerhouse twin (`kld_twin.html` + `kld_twin/`): the Gaussian-splat capture of the site with an X-ray of the proposed in-room data centre. Standalone (no pack bar). The splat itself is never committed (`.gitignore`); the page fetches it from the URL named in its `TODO(Netlify)` and a local build only serves it when the file is in `kld_twin/` |
 | `/generators/thanks/` | after the PPA check, if it was sent without its script |
 | `/privacy/` | the privacy notice (`energy_privacy.html`), linked from the welcome page's footer with the registered company details |
 
