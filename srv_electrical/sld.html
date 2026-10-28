@@ -9,6 +9,7 @@
   --engine:#e8650c; --grid:#1384c2; --trip:#7a4fd8; --alarm:#d12f2f; --dead:#b7c0c9; --wire:#18222d;
   --engine-bg:#fff0e3; --engine-fg:#a64607; --grid-bg:#e3f2fb; --grid-fg:#0b6a99;
   --alarm-bg:#fde8e8; --alarm-fg:#a31f1f; --off-bg:#eceff2; --off-fg:#4c5662;
+  --mk-bg:#facc15; --mk-fg:#1c1917; --mk-line:#a16207; --hl-fill:rgba(250,204,21,.34); --hl-line:rgba(202,138,4,.8); --hl-wire:rgba(250,204,21,.55);
   --font:"Inter","Inter var",system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
   --mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
 }
@@ -18,6 +19,7 @@
   --engine:#ff8a3d; --grid:#40b4ef; --trip:#a98bff; --alarm:#ff6b6b; --dead:#455260; --wire:#e6ebf0;
   --engine-bg:#3a2410; --engine-fg:#ffb27a; --grid-bg:#0f2d3d; --grid-fg:#8fd3f4;
   --alarm-bg:#3d1717; --alarm-fg:#ff9b9b; --off-bg:#28313b; --off-fg:#b4bec9;
+  --mk-line:#fde68a; --hl-fill:rgba(250,204,21,.2); --hl-line:rgba(250,204,21,.7); --hl-wire:rgba(250,204,21,.35);
   color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#11161c; --card:#1a222b; --fg:#e6ebf0; --muted:#98a4b1; --line:#2e3a47; --tab-bg:#232d38; --tab-sel:#34424f;
@@ -25,6 +27,7 @@
   --engine:#ff8a3d; --grid:#40b4ef; --trip:#a98bff; --alarm:#ff6b6b; --dead:#455260; --wire:#e6ebf0;
   --engine-bg:#3a2410; --engine-fg:#ffb27a; --grid-bg:#0f2d3d; --grid-fg:#8fd3f4;
   --alarm-bg:#3d1717; --alarm-fg:#ff9b9b; --off-bg:#28313b; --off-fg:#b4bec9;
+  --mk-line:#fde68a; --hl-fill:rgba(250,204,21,.2); --hl-line:rgba(250,204,21,.7); --hl-wire:rgba(250,204,21,.35);
   color-scheme:dark}
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--fg);font:15px/1.5 var(--font);
@@ -114,7 +117,17 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .wn-cols{display:grid;grid-template-columns:1fr;column-gap:32px}
 @media (min-width:720px){.wn-cols{grid-template-columns:1fr 1fr}}
 .wn-list{list-style:none;margin:0;padding:0}
-.wn-list li{display:grid;grid-template-columns:1.7em 1fr;gap:10px;padding:11px 0;border-top:1px solid var(--line)}
+.wn-list li{border-top:1px solid var(--line)}
+.wn-row{display:grid;grid-template-columns:1.7em 1fr auto;gap:10px;width:100%;padding:11px 10px 11px 0;border:0;border-radius:8px;
+  background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.wn-row:hover{background:var(--tab-bg)}
+.wn-row[aria-current="step"]{background:var(--tab-bg);box-shadow:inset 3px 0 0 var(--accent)}
+.wn-go{align-self:center;display:inline-flex;align-items:center;gap:4px;font:600 12.5px/1 var(--font);color:var(--accent);white-space:nowrap}
+.wn-go svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.wn-hint{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin:0 0 12px;font-size:13.5px;color:var(--muted)}
+.wn-start{font:600 13px/1.2 var(--font);border:1px solid var(--accent);background:var(--accent);color:var(--accent-fg);
+  border-radius:999px;padding:6px 12px;cursor:pointer}
+.wn-start:hover{filter:brightness(1.1)}
 .wn-n{font-weight:600;color:var(--accent);text-align:right;font-variant-numeric:tabular-nums}
 .wn-lead{display:block;font-weight:600}
 .wn-detail{color:var(--muted);font-size:14px}
@@ -124,9 +137,81 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .wn-confirm-h{margin:16px 0 6px;font:600 11.5px/1.2 var(--font);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
 .wn-confirm{margin:0;padding-left:1.1em;font-size:13.5px;color:var(--muted)}
 .wn-confirm li{margin:2px 0}
+/* step view: one step of What we need opened up on the diagram card, its parts lit
+   in highlighter yellow and the rest faded, with what is needed and why */
+.sv-head{display:flex;flex-direction:column;gap:8px}
+.sv-head[hidden],.sv-body[hidden]{display:none}
+.sv-top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 12px}
+.sv-kicker{font:600 11.5px/1.2 var(--font);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.sv-nav{display:flex;flex-wrap:wrap;gap:6px}
+.sv-btn{display:inline-flex;align-items:center;gap:6px;font:500 13px/1.2 var(--font);border:1px solid var(--line);
+  background:transparent;color:var(--fg);border-radius:999px;padding:6px 12px;cursor:pointer}
+.sv-btn:hover:not(:disabled){border-color:var(--accent)}
+.sv-btn:disabled{opacity:.4;cursor:default}
+.sv-btn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.sv-stepper{display:flex;flex-wrap:wrap;gap:4px}
+.sv-stepper button{width:30px;height:30px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--muted);
+  font:600 12.5px/1 var(--font);font-variant-numeric:tabular-nums;cursor:pointer}
+.sv-stepper button:hover{border-color:var(--accent);color:var(--fg)}
+.sv-stepper button[aria-current="step"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.sv-lead{font:600 21px/1.25 var(--font);margin:2px 0 0;text-wrap:balance}
+.sv-lead:focus{outline:none}
+.sv-detail{margin:0;color:var(--muted);font-size:14.5px;text-wrap:pretty}
+.sv-body{display:grid;grid-template-columns:1fr;gap:14px 28px;border-top:1px solid var(--line);padding-top:14px}
+@media (min-width:760px){.sv-body{grid-template-columns:1.15fr 1fr}}
+.sv-h{margin:0 0 8px;font:600 11.5px/1.2 var(--font);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.sv-needed{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:9px}
+.sv-needed li{display:grid;grid-template-columns:24px 1fr;gap:10px;align-items:start;font-size:14.5px;text-wrap:pretty}
+.mk{display:inline-grid;place-items:center;width:22px;height:22px;margin-top:1px;border-radius:999px;font:700 12px/1 var(--font);
+  font-variant-numeric:tabular-nums;background:var(--mk-bg);color:var(--mk-fg);border:1px solid var(--mk-line)}
+.mk.plain{background:transparent;color:var(--muted);border-color:var(--line)}
+.sv-why{margin:0;font-size:14.5px;text-wrap:pretty}
+.sv-done{margin:12px 0 0;padding:10px 12px;border-radius:8px;background:var(--tab-bg);font-size:13.5px;text-wrap:pretty}
+.sv-done b{font-weight:600}
+.sv-key{margin:12px 0 0;font-size:12.5px;color:var(--muted)}
+.sv-key .mk{width:18px;height:18px;font-size:10.5px;vertical-align:-4px;margin:0 2px}
+.linkbtn{font:inherit;color:var(--accent);background:none;border:0;padding:0;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+svg [data-dim]{opacity:.2;transition:opacity .25s}
+.halo{fill:var(--hl-fill);stroke:var(--hl-line);stroke-width:1.2}
+.halo-line{fill:none;stroke:var(--hl-wire);stroke-width:15;stroke-linecap:round;stroke-linejoin:round}
+.badge circle{fill:var(--mk-bg);stroke:var(--mk-line);stroke-width:1.2}
+.badge text{font:700 11px var(--font);fill:var(--mk-fg)}
+.x-box{fill:var(--card);stroke:var(--accent);stroke-width:1.4}
+.x-text,.x-note{paint-order:stroke;stroke:var(--card);stroke-width:4px;stroke-linejoin:round}
+.x-text{font:600 11px var(--font);fill:currentColor}
+.x-note{font:500 10.5px var(--font);fill:var(--muted)}
+.x-frame{fill:none;stroke:var(--accent);stroke-width:1.4;stroke-dasharray:6 4}
+.x-wall{fill:none;stroke:currentColor;stroke-width:1.4}
+.x-hatch{fill:var(--hl-fill);stroke:var(--hl-line);stroke-width:1}
+.x-swing{fill:none;stroke:var(--accent);stroke-width:1.1;stroke-dasharray:3 2}
+.x-fault{fill:var(--alarm);stroke:var(--card);stroke-width:1.2;stroke-linejoin:round}
+.x-cross{stroke:var(--alarm);stroke-width:2.6;stroke-linecap:round}
+.sig.live{animation:sigflow 1s linear infinite}
+.card.stepview .controls,.card.stepview .caption,.card.stepview .note{display:none}
+@media (min-width:1240px){
+  #app.stepview{max-width:1400px}
+  .card.stepview{display:grid;grid-template-columns:minmax(0,1fr) 380px;column-gap:28px;row-gap:12px;align-items:start}
+  .card.stepview>.sv-head{grid-column:1 / -1;grid-row:1}
+  .card.stepview>figure{grid-column:1;grid-row:2}
+  .card.stepview>.legend{grid-column:1;grid-row:3}
+  .card.stepview>.sv-body{grid-column:2;grid-row:2 / span 2;grid-template-columns:1fr;border-top:0;padding-top:0;
+    border-left:1px solid var(--line);padding-left:24px}
+}
+/* glossary card, on both tabs */
+.gl-body{margin-top:14px}
+.gl-body[hidden]{display:none}
+.gl-find{width:100%;max-width:360px;font:inherit;font-size:14px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;
+  background:var(--bg);color:var(--fg)}
+.gl-find:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.gl-list{margin:12px 0 0;columns:2 340px;column-gap:32px}
+.gl-item{break-inside:avoid;padding:9px 0;border-top:1px solid var(--line)}
+.gl-item dt{font-weight:600}
+.gl-item dt .full{font-weight:400;color:var(--muted)}
+.gl-item dd{margin:2px 0 0;color:var(--muted);font-size:14px;text-wrap:pretty}
+.gl-none{margin:12px 0 0;color:var(--muted);font-size:14px}
 [data-tab="lee"] .ours-only{display:none}
 [data-tab="ours"] .lee-only{display:none}
-@media (prefers-reduced-motion: reduce){.flow.on,.sig.fire{animation:none}.wn-toggle svg{transition:none}}
+@media (prefers-reduced-motion: reduce){.flow.on,.sig.fire,.sig.live{animation:none}.wn-toggle svg{transition:none}svg [data-dim]{transition:none}}
 @media (max-width:560px){h1{font-size:22px}.card{padding:14px}
   /* "What Lee designed" stays on one line down to the narrowest phones */
   .tabs button{padding:9px 8px;white-space:nowrap}}
@@ -152,7 +237,20 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M4 9l4 4 4-4"/></svg>
   </button>
 
-  <section class="card" aria-label="Diagram">
+  <section class="card" id="dia" aria-label="Diagram">
+    <div class="sv-head" id="sv-head" hidden>
+      <div class="sv-top">
+        <span class="sv-kicker" id="sv-kicker" aria-live="polite"></span>
+        <div class="sv-nav">
+          <button type="button" class="sv-btn" id="sv-prev"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3.5L5.5 8l4.5 4.5"/></svg>Previous</button>
+          <button type="button" class="sv-btn" id="sv-next">Next<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5L10.5 8 6 12.5"/></svg></button>
+          <button type="button" class="sv-btn" id="sv-close" aria-label="Close the step and go back to the operating states"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>Close</button>
+        </div>
+      </div>
+      <div class="sv-stepper" id="sv-stepper" role="group" aria-label="Go to step"></div>
+      <h2 class="sv-lead" id="sv-lead" tabindex="-1"></h2>
+      <p class="sv-detail"><span id="sv-detail"></span> <span class="wn-owner" id="sv-owner"></span></p>
+    </div>
     <div class="controls">
       <div class="steps" id="steps" role="group" aria-label="Operating state"></div>
     </div>
@@ -162,15 +260,16 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     <figure>
       <div class="scroller">
         <svg class="sld" id="sld" viewBox="0 0 960 470" role="img" aria-labelledby="figcap">
+          <g id="halos" aria-hidden="true"></g>
           <!-- signal paths: ours -->
           <g class="ours-only">
-            <path class="sig meter" d="M124 120 H64 V16 H870 V40"/>
-            <text class="t s m" x="300" y="11">boundary meter (CTs on transformer incomer)</text>
-            <path class="sig" id="sig-eng" d="M569 128 H790"/>
-            <text class="t s m" x="680" y="120" text-anchor="middle">breaker closed = healthy</text>
-            <path class="sig" id="sig-wd" d="M870 76 V106"/>
-            <text class="t s m" x="878" y="95">watchdog</text>
-            <path class="sig" id="sig-out" d="M870 142 V355 H836"/>
+            <g data-k="meter"><path class="sig meter" d="M124 120 H64 V16 H870 V40"/>
+              <text class="t s m" x="300" y="11">boundary meter (CTs on transformer incomer)</text></g>
+            <g data-k="sigeng"><path class="sig" id="sig-eng" d="M569 128 H790"/>
+              <text class="t s m" x="680" y="120" text-anchor="middle">breaker closed = healthy</text></g>
+            <g data-k="sigwd"><path class="sig" id="sig-wd" d="M870 76 V106"/>
+              <text class="t s m" x="878" y="95">watchdog</text></g>
+            <g data-k="sigout"><path class="sig" id="sig-out" d="M870 142 V355 H836"/></g>
           </g>
           <!-- interlock: Lee -->
           <g class="lee-only">
@@ -179,66 +278,92 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
           </g>
 
           <!-- 2G container outline -->
-          <rect class="outline" x="500" y="28" width="190" height="122" rx="6"/>
-          <text class="t s m" x="682" y="142" text-anchor="end">2G container</text>
+          <g data-k="cont"><rect class="outline" x="500" y="28" width="190" height="122" rx="6"/>
+            <text class="t s m" x="682" y="142" text-anchor="end">2G container</text></g>
 
           <g id="wires"></g>
           <g id="buses"></g>
           <g id="breakers"></g>
 
           <!-- transformer -->
-          <circle cx="130" cy="64" r="16" fill="none" stroke="currentColor" stroke-width="1.6"/>
-          <circle cx="130" cy="84" r="16" fill="none" stroke="currentColor" stroke-width="1.6"/>
-          <text class="t b" x="156" y="60">DNO transformer</text>
-          <g id="chip-grid" transform="translate(156 70)"><rect class="chipbg" width="74" height="20" rx="10"/><text class="chiptx" x="37" y="14" text-anchor="middle"></text></g>
-          <circle class="ours-only" cx="130" cy="120" r="6" fill="var(--card)" stroke="var(--muted)" stroke-width="1.4"/>
-          <text class="t s m ours-only" x="142" y="124">CT</text>
-          <text class="t s" x="146" y="154">ACB · set 850 A</text>
+          <g data-k="tx">
+            <circle cx="130" cy="64" r="16" fill="none" stroke="currentColor" stroke-width="1.6"/>
+            <circle cx="130" cy="84" r="16" fill="none" stroke="currentColor" stroke-width="1.6"/>
+            <text class="t b" x="156" y="60">DNO transformer</text>
+            <g id="chip-grid" transform="translate(156 70)"><rect class="chipbg" width="74" height="20" rx="10"/><text class="chiptx" x="37" y="14" text-anchor="middle"></text></g>
+          </g>
+          <g data-k="ct" class="ours-only">
+            <circle cx="130" cy="120" r="6" fill="var(--card)" stroke="var(--muted)" stroke-width="1.4"/>
+            <text class="t s m" x="142" y="124">CT</text>
+          </g>
+          <text data-k="E" class="t s" x="146" y="154">ACB · set 850 A</text>
 
           <!-- existing board -->
-          <text class="t b" x="215" y="222">Existing board (2014)</text>
-          <text class="t s m" x="186" y="254" text-anchor="end">MCCBs</text>
-          <rect class="load" x="150" y="286" width="100" height="30" rx="4"/>
-          <text class="t" x="200" y="305" text-anchor="middle">Site loads</text>
+          <text data-k="exist" class="t b" x="215" y="222">Existing board (2014)</text>
+          <text data-k="S" class="t s m" x="186" y="254" text-anchor="end">MCCBs</text>
+          <g data-k="site"><rect class="load" x="150" y="286" width="100" height="30" rx="4"/>
+            <text class="t" x="200" y="305" text-anchor="middle">Site loads</text></g>
 
           <!-- tie and new board -->
-          <text class="t s" x="400" y="188" text-anchor="middle">ACB 1250 A</text>
-          <text class="t b" x="480" y="222">New board</text>
+          <text data-k="T" class="t s" x="400" y="188" text-anchor="middle">ACB 1250 A</text>
+          <text data-k="newb" class="t b" x="480" y="222">New board</text>
 
           <!-- CHP -->
-          <circle cx="560" cy="60" r="22" fill="var(--card)" stroke="currentColor" stroke-width="1.6"/>
-          <text class="t b" x="560" y="65" text-anchor="middle" style="font-size:15px">G</text>
-          <text class="t b" x="592" y="56">CHP engine</text>
-          <g id="chip-chp" transform="translate(592 64)"><rect class="chipbg" width="88" height="20" rx="10"/><text class="chiptx" x="44" y="14" text-anchor="middle"></text></g>
-          <text class="t s" x="576" y="104">Generator breaker</text>
+          <g data-k="chp">
+            <circle cx="560" cy="60" r="22" fill="var(--card)" stroke="currentColor" stroke-width="1.6"/>
+            <text class="t b" x="560" y="65" text-anchor="middle" style="font-size:15px">G</text>
+            <text class="t b" x="592" y="56">CHP engine</text>
+            <g id="chip-chp" transform="translate(592 64)"><rect class="chipbg" width="88" height="20" rx="10"/><text class="chiptx" x="44" y="14" text-anchor="middle"></text></g>
+          </g>
+          <text data-k="G" class="t s" x="576" y="104">Generator breaker</text>
 
           <!-- data centre feeder and section -->
-          <text class="t s" x="716" y="249">ACB 1250 A</text>
-          <text class="t b" x="530" y="314" text-anchor="end">Data centre section</text>
-          <text class="t s ours-only" x="774" y="335" text-anchor="middle" style="fill:var(--trip)">UVR</text>
-          <rect class="uvr ours-only" id="uvr" x="714" y="340" width="120" height="30" rx="5"/>
-          <rect class="load" x="522" y="390" width="76" height="36" rx="4"/>
-          <text class="t" x="560" y="405" text-anchor="middle">Dry cooler</text><text class="t s m" x="560" y="419" text-anchor="middle">63 A</text>
-          <rect class="load" x="607" y="390" width="76" height="36" rx="4"/>
-          <text class="t" x="645" y="405" text-anchor="middle">CDU pump</text><text class="t s m" x="645" y="419" text-anchor="middle">32 A</text>
-          <rect class="load" x="692" y="390" width="76" height="36" rx="4"/>
-          <text class="t" x="730" y="405" text-anchor="middle">Rack 1</text><text class="t s m" x="730" y="419" text-anchor="middle">400 A</text>
-          <rect class="load" x="777" y="390" width="76" height="36" rx="4"/>
-          <text class="t" x="815" y="405" text-anchor="middle">Rack 3</text><text class="t s m" x="815" y="419" text-anchor="middle">400 A</text>
-          <g id="chip-dc" transform="translate(722 438)"><rect class="chipbg" width="100" height="20" rx="10"/><text class="chiptx" x="50" y="14" text-anchor="middle"></text></g>
+          <text data-k="D" class="t s" x="716" y="249">ACB 1250 A</text>
+          <text data-k="dcb" class="t b" x="530" y="314" text-anchor="end">Data centre section</text>
+          <g data-k="uvr" class="ours-only">
+            <text class="t s" x="774" y="335" text-anchor="middle" style="fill:var(--trip)">UVR</text>
+            <rect class="uvr ours-only" id="uvr" x="714" y="340" width="120" height="30" rx="5"/>
+          </g>
+          <g data-k="cool"><rect class="load" x="522" y="390" width="76" height="36" rx="4"/>
+            <text class="t" x="560" y="405" text-anchor="middle">Dry cooler</text><text class="t s m" x="560" y="419" text-anchor="middle">63 A</text></g>
+          <g data-k="cdu"><rect class="load" x="607" y="390" width="76" height="36" rx="4"/>
+            <text class="t" x="645" y="405" text-anchor="middle">CDU pump</text><text class="t s m" x="645" y="419" text-anchor="middle">32 A</text></g>
+          <g data-k="rack1"><rect class="load" x="692" y="390" width="76" height="36" rx="4"/>
+            <text class="t" x="730" y="405" text-anchor="middle">Rack 1</text><text class="t s m" x="730" y="419" text-anchor="middle">400 A</text></g>
+          <g data-k="rack3"><rect class="load" x="777" y="390" width="76" height="36" rx="4"/>
+            <text class="t" x="815" y="405" text-anchor="middle">Rack 3</text><text class="t s m" x="815" y="419" text-anchor="middle">400 A</text></g>
+          <g data-k="chipdc"><g id="chip-dc" transform="translate(722 438)"><rect class="chipbg" width="100" height="20" rx="10"/><text class="chiptx" x="50" y="14" text-anchor="middle"></text></g></g>
 
           <!-- controller and trip relay: ours -->
           <g class="ours-only">
-            <rect class="box" x="790" y="40" width="160" height="36" rx="6"/>
-            <text class="t b" x="870" y="56" text-anchor="middle">Our controller</text>
-            <text class="t s m" x="870" y="70" text-anchor="middle">sets miner power</text>
-            <rect class="box" id="relay" x="790" y="106" width="160" height="36" rx="6"/>
-            <text class="t b" x="870" y="128" text-anchor="middle">Trip relay</text>
+            <g data-k="ctrl"><rect class="box" x="790" y="40" width="160" height="36" rx="6"/>
+              <text class="t b" x="870" y="56" text-anchor="middle">Our controller</text>
+              <text class="t s m" x="870" y="70" text-anchor="middle">sets miner power</text></g>
+            <g data-k="relay"><rect class="box" id="relay" x="790" y="106" width="160" height="36" rx="6"/>
+              <text class="t b" x="870" y="128" text-anchor="middle">Trip relay</text></g>
           </g>
+
+          <!-- a step of What we need: what it adds, and its numbers -->
+          <g id="extras" aria-hidden="true"></g>
+          <g id="badges" aria-hidden="true"></g>
         </svg>
       </div>
       <figcaption id="figcap" class="note"></figcaption>
     </figure>
+
+    <div class="sv-body" id="sv-body" hidden>
+      <div>
+        <h3 class="sv-h">What's needed</h3>
+        <ol class="sv-needed" id="sv-needed" role="list"></ol>
+        <p class="sv-key">Each <span class="mk">1</span> on the diagram marks where its point applies; the parts it touches are lit.</p>
+      </div>
+      <div>
+        <h3 class="sv-h">Why</h3>
+        <p class="sv-why" id="sv-why"></p>
+        <p class="sv-done"><b>Done when:</b> <span id="sv-done"></span></p>
+        <p class="sv-key">Terms explained in the <button type="button" class="linkbtn" id="sv-gl">glossary</button>.</p>
+      </div>
+    </div>
 
     <div class="legend" aria-label="Legend">
       <span><svg width="22" height="8" aria-hidden="true"><line x1="1" y1="4" x2="21" y2="4" stroke="var(--engine)" stroke-width="4" stroke-linecap="round"/></svg>Engine power</span>
@@ -263,6 +388,8 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
       </button>
     </div>
     <div class="wn-body" id="wn-body" hidden>
+      <p class="wn-hint" id="wn-hint">Open any step to see it on the diagram above, with what's needed and why.
+        <button type="button" class="wn-start" id="wn-start">Start at step 1</button></p>
       <div class="wn-cols">
         <ol class="wn-list" role="list"></ol>
         <ol class="wn-list" role="list"></ol>
@@ -272,9 +399,28 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
       <ul class="wn-confirm" id="wn-confirm"></ul>
     </div>
   </section>
+
+  <section class="card wn" id="gl" aria-labelledby="gl-title">
+    <div class="wn-head">
+      <div>
+        <h2 class="wn-title" id="gl-title">Glossary</h2>
+        <p class="wn-sub" id="gl-sub"></p>
+      </div>
+      <button type="button" class="wn-toggle" id="gl-toggle" aria-expanded="false" aria-controls="gl-body">
+        <span class="show">Show the glossary</span><span class="hide">Hide the glossary</span>
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>
+      </button>
+    </div>
+    <div class="gl-body" id="gl-body" hidden>
+      <input type="search" class="gl-find" id="gl-find" placeholder="Find a term" aria-label="Find a term" autocomplete="off">
+      <dl class="gl-list" id="gl-list"></dl>
+      <p class="gl-none" id="gl-none" hidden>No term matches that.</p>
+    </div>
+  </section>
 </main>
 
 <script>/*__WHAT_WE_NEED__*/</script>
+
 
 <script>
 (() => {
@@ -298,25 +444,29 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   const BUS = { exist:[80,330,200], newb:[470,770,200], dcb:[540,840,310] };
   const BRK = { E:[130,150], T:[400,200], G:[560,130], D:[700,245], S:[200,250], C:[560,355], P:[645,355], R1:[730,355], R3:[815,355] };
 
+  /* every part of the diagram carries a data-k name, so a step can light it: wires are
+     "w-" and their flow, buses and breakers their own key, the drawn parts their group */
+  const segFlow = {};
+  for (const [fk, segs] of Object.entries(FLOWS)) for (const sk of segs) segFlow[sk] = fk;
   const wiresG = document.getElementById('wires'), busG = document.getElementById('buses'), brkG = document.getElementById('breakers');
   const el = {};
   for (const [k, [x1,y1,x2,y2]] of Object.entries(SEG)) {
     const d = `M${x1} ${y1} L${x2} ${y2}`;
-    const w = document.createElementNS(NS,'path'); w.setAttribute('d', d); w.setAttribute('class','wire');
-    const f = document.createElementNS(NS,'path'); f.setAttribute('d', d); f.setAttribute('class','flow');
+    const w = document.createElementNS(NS,'path'); w.setAttribute('d', d); w.setAttribute('class','wire'); w.setAttribute('data-k', 'w-' + segFlow[k]);
+    const f = document.createElementNS(NS,'path'); f.setAttribute('d', d); f.setAttribute('class','flow'); f.setAttribute('data-k', 'w-' + segFlow[k]);
     wiresG.append(w, f); el[k] = { w, f };
   }
   const busEl = {};
   for (const [k, [x1,x2,y]] of Object.entries(BUS)) {
     const l = document.createElementNS(NS,'line');
-    l.setAttribute('x1',x1); l.setAttribute('x2',x2); l.setAttribute('y1',y); l.setAttribute('y2',y); l.setAttribute('class','bus');
+    l.setAttribute('x1',x1); l.setAttribute('x2',x2); l.setAttribute('y1',y); l.setAttribute('y2',y); l.setAttribute('class','bus'); l.setAttribute('data-k', k);
     busG.append(l); busEl[k] = l;
   }
   const brkEl = {};
   for (const [k, [x,y]] of Object.entries(BRK)) {
     const r = document.createElementNS(NS,'rect');
     r.setAttribute('x', x-9); r.setAttribute('y', y-9); r.setAttribute('width',18); r.setAttribute('height',18); r.setAttribute('rx',2);
-    r.setAttribute('class','brk'); brkG.append(r); brkEl[k] = r;
+    r.setAttribute('class','brk'); r.setAttribute('data-k', k); brkG.append(r); brkEl[k] = r;
   }
 
   /* states. flows: [rate 0-1, 'engine'|'grid', direction]; breakers listed are open (o) or tripped (x), all others closed */
@@ -367,18 +517,17 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   const tabBtn = { lee:document.getElementById('tab-lee'), ours:document.getElementById('tab-ours') };
   const chipEl = { grid:document.getElementById('chip-grid'), chp:document.getElementById('chip-chp'), dc:document.getElementById('chip-dc') };
   const sigFire = ['sig-eng','sig-out'].map(id => document.getElementById(id));
+  const sigWd = document.getElementById('sig-wd');
   const relay = document.getElementById('relay'), uvr = document.getElementById('uvr');
-  let tab = 'lee', idx = 0;
+  const svg = document.getElementById('sld');
+  let tab = 'lee', idx = 0, active = null;
 
   function setChip(k, [txt, kind]) {
     const g = chipEl[k]; g.querySelector('text').textContent = txt;
     g.setAttribute('class', kind ? 'chip-' + kind : '');
   }
-  function apply() {
-    const s = TABS[tab].states[idx];
-    stepsEl.querySelectorAll('button').forEach((b, j) => { b.setAttribute('aria-pressed', j === idx ? 'true' : 'false'); b.classList.toggle('next', j === idx + 1); });
-    stepsEl.querySelectorAll('.arr').forEach((a, j) => a.classList.toggle('next', j === idx));
-    cap.textContent = s.caption;
+  /* draw one state on the diagram: an operating state, or a step's own */
+  function paint(s) {
     for (const [fk, segs] of Object.entries(FLOWS)) {
       const f = s.flows[fk];
       for (const sk of segs) {
@@ -397,8 +546,17 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     for (const k of Object.keys(chipEl)) setChip(k, s.chips[k]);
     const fire = s.sig === 'fire';
     sigFire.forEach(p => p.setAttribute('class', 'sig' + (fire ? ' fire' : '')));
+    sigWd.setAttribute('class', 'sig');
+    svg.querySelectorAll('.sig.live').forEach(p => p.classList.remove('live'));
     relay.setAttribute('class', 'box' + (fire ? ' fire' : ''));
     uvr.setAttribute('class', 'uvr ours-only' + (fire ? ' fire' : ''));
+  }
+  function apply() {
+    const s = TABS[tab].states[idx];
+    stepsEl.querySelectorAll('button').forEach((b, j) => { b.setAttribute('aria-pressed', j === idx ? 'true' : 'false'); b.classList.toggle('next', j === idx + 1); });
+    stepsEl.querySelectorAll('.arr').forEach((a, j) => a.classList.toggle('next', j === idx));
+    cap.textContent = s.caption;
+    paint(s);
   }
   function renderSteps() {
     stepsEl.innerHTML = '';
@@ -410,15 +568,22 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
       g.appendChild(b); stepsEl.appendChild(g);
     });
   }
-  /* inside the SRV Electrical app: report the reader's picks to the frame, so the
-     other view opens on the same design and state, and let the frame set them */
-  function notify() { try { if (parent !== window) parent.postMessage({ lv:{ tab, idx } }, '*'); } catch (e) {} }
-  window.LV = { show(t, i) {
+  /* inside the SRV Electrical app: report the reader's picks to the frame (design,
+     operating state and the step open on the diagram), so the other view opens on
+     the same, and let the frame set them */
+  function notify() { try { if (parent !== window) parent.postMessage({ lv:{ tab, idx, step:active } }, '*'); } catch (e) {} }
+  window.LV = { show(t, i, step) {
     if (!TABS[t]) return;
     if (t !== tab) setTab(t, true);
-    idx = Math.max(0, Math.min(TABS[t].states.length - 1, i | 0)); apply();
+    idx = Math.max(0, Math.min(TABS[t].states.length - 1, i | 0));
+    if (t === 'ours' && SX && Number.isInteger(step) && step >= 0 && step < SX.length) {
+      if (step === active) return;     /* already open: keep the reader's place */
+      apply(); openStep(step, { scroll:true, instant:true });
+    }
+    else { closeStep(); apply(); }
   } };
   function setTab(k, fromHash) {
+    closeStep();                       /* the steps belong to What we need */
     tab = k; idx = 0;
     app.dataset.tab = k;
     for (const [kk, b] of Object.entries(tabBtn)) b.setAttribute('aria-selected', kk === k ? 'true' : 'false');
@@ -427,10 +592,214 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     renderSteps(); apply();
     if (!fromHash) { try { history.replaceState(null, '', '#' + TABS[k].hash); } catch (e) {} }
   }
-  /* what we need, step by step, from WHAT_WE_NEED (what_we_need.js, inlined by the
-     app; opened on its own, the page goes without it): steps 1-6 and 7-11 in two
-     columns on wide screens, collapsed until opened */
+
+  /* ---------- what we need, step by step ---------- */
+  /* WHAT_WE_NEED (what_we_need.js), STEPS_EXPLAINED and STEP_MARKS (steps_explained.js)
+     and GLOSSARY (glossary.js) come in with the app's data script; opened on its own,
+     the page goes without them */
   const W = typeof WHAT_WE_NEED === 'object' ? WHAT_WE_NEED : null;
+  const SX = W && typeof STEPS_EXPLAINED === 'object' ? STEPS_EXPLAINED : null;
+  const GL = typeof GLOSSARY === 'object' ? GLOSSARY : null;
+
+  /* where each mark of steps_explained.js sits on this diagram: the parts it lights
+     (their data-k) and where its number goes */
+  const MARKS = {
+    'tie-acb':        { lit:['T','w-tie'],                               at:[400,226] },
+    'dc-acb':         { lit:['D','w-dc'],                                at:[678,245] },
+    'busbar':         { lit:['exist','newb','dcb'],                      at:[612,186] },
+    'rack-mccbs':     { lit:['R1','R3','w-r1','w-r3','rack1','rack3'],   at:[772,380] },
+    'uvr':            { lit:['uvr','sigout'],                            at:[852,336] },
+    'cool-cdu':       { lit:['C','P','w-cool','w-cdu','cool','cdu'],     at:[602,372] },
+    'gen-breaker':    { lit:['G','w-chp'],                               at:[534,130] },
+    'trip-cable':     { lit:['sigeng'],                                  at:[740,142] },
+    'trip-relay':     { lit:['relay'],                                   at:[790,104] },
+    'controller':     { lit:['ctrl'],                                    at:[790,38] },
+    'watchdog':       { lit:['sigwd','relay'],                           at:[854,91] },
+    'incomer-cts':    { lit:['ct','w-grid'],                             at:[110,136] },
+    'boundary-meter': { lit:['meter'],                                   at:[92,52] },
+    'dc-meter':       { lit:['w-dc'],                                    at:[674,282] },
+    'chp-meter':      { lit:['w-chp'],                                   at:[596,170] },
+    'marshalling':    { lit:['ctrl','relay'],                            at:[780,30] },
+    'ethernet':       { lit:[],                                          at:[864,186] },
+    'ups':            { lit:[],                                          at:[950,156] },
+    'local-remote':   { lit:[],                                          at:[950,186] },
+    'sld':            { lit:[],                                          at:[300,410] },
+    'kiosk-plan':     { lit:[],                                          at:[34,344] },
+    'fault':          { lit:['dcb','w-dc','chipdc','tx','chp','w-grid','w-chp','w-tie'], at:[622,330] },
+  };
+  /* what a mark, or a step, draws in that the diagram does not otherwise show */
+  const EXTRA = {
+    'interlock-removed': `<path class="lock" d="M400 209 V268 H672 V245 H691" opacity=".4"/>
+      <path class="x-cross" d="M528 260 L544 276 M544 260 L528 276"/>
+      <text class="x-text" x="536" y="294" text-anchor="middle">Interlock removed: both ACBs normally closed</text>`,
+    'boundary-meter': `<rect class="x-box" x="44" y="58" width="40" height="20" rx="3"/>
+      <text class="x-text" x="64" y="72" text-anchor="middle">kWh</text>
+      <text class="x-note" x="64" y="94" text-anchor="middle">Modbus TCP</text>`,
+    'dc-meter': `<rect class="x-box" x="682" y="273" width="36" height="18" rx="3"/>
+      <text class="x-text" x="700" y="286" text-anchor="middle">MID</text>
+      <text class="x-note" x="724" y="286">Modbus TCP</text>`,
+    'chp-meter': `<rect class="x-box" x="542" y="161" width="36" height="18" rx="3"/>
+      <text class="x-text" x="560" y="174" text-anchor="middle">MFM</text>
+      <text class="x-note" x="536" y="174" text-anchor="end">Modbus TCP</text>`,
+    'marshalling': `<rect class="x-frame" x="780" y="30" width="179" height="212" rx="8"/>
+      <text class="x-text" x="869" y="258" text-anchor="middle">Marshalling section</text>
+      <rect class="x-box" x="788" y="156" width="76" height="22" rx="3"/>
+      <text class="x-text" x="826" y="171" text-anchor="middle">Terminals</text>`,
+    'ethernet': `<rect class="x-box" x="788" y="186" width="76" height="22" rx="3"/>
+      <text class="x-text" x="826" y="201" text-anchor="middle">Ethernet</text>`,
+    'ups': `<rect class="x-box" x="876" y="156" width="80" height="22" rx="3"/>
+      <text class="x-text" x="916" y="171" text-anchor="middle">UPS 230 V</text>
+      <text class="x-note" x="916" y="226" text-anchor="middle">from grid side</text>`,
+    'local-remote': `<rect class="x-box" x="876" y="186" width="80" height="22" rx="3"/>
+      <text class="x-text" x="916" y="201" text-anchor="middle">Local/remote</text>`,
+    'sld': `<path class="x-frame" d="M292 3 H13 Q3 3 3 13 V457 Q3 467 13 467 H947 Q957 467 957 457 V13 Q957 3 947 3 H560"/>
+      <rect class="x-box" x="300" y="410" width="200" height="46" rx="4"/>
+      <text class="x-text" x="400" y="429" text-anchor="middle">Single-line diagram</text>
+      <text class="x-note" x="400" y="446" text-anchor="middle">as it will be built, for our sign-off</text>`,
+    'kiosk-plan': `<text class="x-text" x="46" y="348">Kiosk plan (indicative)</text>
+      <rect class="x-wall" x="44" y="356" width="220" height="100" rx="2"/>
+      <rect class="x-hatch" x="76" y="370" width="24" height="26"/><rect class="x-hatch" x="106" y="370" width="24" height="26"/>
+      <rect class="x-box" x="70" y="396" width="120" height="10"/><rect class="x-box" x="86" y="406" width="88" height="8"/>
+      <path class="x-swing" d="M100 396 A24 24 0 0 0 76 372 L76 396 M130 396 A24 24 0 0 0 106 372 L106 396 M152 396 A12 12 0 0 0 140 384 L140 396 M172 396 A12 12 0 0 0 160 384 L160 396"/>
+      <path class="x-swing" d="M110 414 A18 18 0 0 1 92 432 L92 414 M136 414 A14 14 0 0 1 122 428 L122 414 M160 414 A14 14 0 0 1 146 428 L146 414"/>
+      <text class="x-note" x="196" y="404">new board</text><text class="x-note" x="180" y="420">existing board</text>
+      <text class="x-note" x="52" y="449">dashed: doors · hatched: ACBs drawn out</text>`,
+    'fault': `<path class="x-fault" d="M604 316 L592 334 L600 334 L594 350 L610 328 L602 328 L608 316 Z"/>`,
+    'mccb-note': `<text class="x-note" x="716" y="266">800 A MCCB instead?</text>`,
+  };
+  /* each step's diagram: the state it is drawn in (one of What we need's operating
+     states, or its own), the signals that run, and what else it shows. The parts lit
+     come from its marks; the last step lights every part the others change */
+  const FAULT = { brk:{}, buses:{ exist:'grid', newb:'engine', dcb:'engine' },
+    flows:{ grid:[.9,'grid',-1], tie:[.8,'grid',-1], chp:[1,'engine',1], dc:[1,'engine',1], site:[.3,'grid',1] },
+    sig:'idle', chips:{ grid:['Fault feed','grid'], chp:['Fault feed','engine'], dc:['Fault','alarm'] } };
+  const SV = [
+    { state:0, extras:['interlock-removed'] },
+    { state:0, live:['#sig-out'] },
+    { state:0, live:['#sig-eng', '#sig-out'] },
+    { state:0, live:['#sig-wd', '#sig-out'] },
+    { state:0, live:['[data-k="meter"] path'] },
+    { state:0 },
+    { state:0 },
+    { state:0, all:true },
+    { state:FAULT },
+    { state:2 },
+    { state:0, changes:true, extras:['mccb-note'] },
+  ];
+
+  const dia = document.getElementById('dia');
+  const svHead = document.getElementById('sv-head'), svBody = document.getElementById('sv-body');
+  const svKicker = document.getElementById('sv-kicker'), svStepper = document.getElementById('sv-stepper');
+  const svLead = document.getElementById('sv-lead'), svDetail = document.getElementById('sv-detail'), svOwner = document.getElementById('sv-owner');
+  const svNeeded = document.getElementById('sv-needed'), svWhy = document.getElementById('sv-why'), svDone = document.getElementById('sv-done');
+  const svPrev = document.getElementById('sv-prev'), svNext = document.getElementById('sv-next'), svClose = document.getElementById('sv-close');
+  const halosG = document.getElementById('halos'), extrasG = document.getElementById('extras'), badgesG = document.getElementById('badges');
+  const wnRows = [];
+
+  function litKeys(i) {
+    const keys = new Set();
+    const items = (SV[i].changes ? SX.slice(0, i).flatMap(st => st.needed) : []).concat(SX[i].needed);
+    for (const n of items) for (const m of n.marks) for (const k of (MARKS[m] ? MARKS[m].lit : [])) keys.add(k);
+    return keys;
+  }
+  /* a lit part gets a highlighter stroke along it if it is a wire, bus or signal
+     line, and a highlighter box round it otherwise */
+  function halo(node) {
+    const tag = node.tagName.toLowerCase();
+    if (tag === 'text') return;
+    if (tag === 'path' || tag === 'line') {
+      const c = document.createElementNS(NS, tag);
+      for (const a of ['d', 'x1', 'y1', 'x2', 'y2']) if (node.hasAttribute(a)) c.setAttribute(a, node.getAttribute(a));
+      c.setAttribute('class', 'halo-line'); halosG.appendChild(c); return;
+    }
+    if (tag === 'g' && node.querySelector('path.sig')) { node.querySelectorAll('path').forEach(halo); return; }
+    let b; try { b = node.getBBox(); } catch (err) { return; }
+    if (!b.width && !b.height) return;
+    const pad = 6, r = document.createElementNS(NS, 'rect');
+    r.setAttribute('x', b.x - pad); r.setAttribute('y', b.y - pad);
+    r.setAttribute('width', b.width + 2 * pad); r.setAttribute('height', b.height + 2 * pad);
+    r.setAttribute('rx', 6); r.setAttribute('class', 'halo'); halosG.appendChild(r);
+  }
+  function drawHalos(keys) {
+    halosG.textContent = '';
+    for (const e of svg.querySelectorAll('[data-k]')) {
+      if (keys.has(e.getAttribute('data-k')) && !e.classList.contains('flow')) halo(e);
+    }
+  }
+  function drawBadges(i) {
+    badgesG.textContent = '';
+    const at = new Map();
+    SX[i].needed.forEach((n, j) => n.marks.forEach(m => { if (!MARKS[m]) return; if (!at.has(m)) at.set(m, []); at.get(m).push(j + 1); }));
+    for (const [m, nums] of at) {
+      const [x0, y] = MARKS[m].at, x = Math.min(x0, 950 - 21 * (nums.length - 1));
+      nums.forEach((num, k) => {
+        const g = document.createElementNS(NS, 'g'); g.setAttribute('class', 'badge'); g.setAttribute('transform', `translate(${x + 21 * k} ${y})`);
+        const c = document.createElementNS(NS, 'circle'); c.setAttribute('r', 9.5);
+        const t = document.createElementNS(NS, 'text'); t.setAttribute('y', 4); t.setAttribute('text-anchor', 'middle'); t.textContent = num;
+        g.append(c, t); badgesG.appendChild(g);
+      });
+    }
+  }
+  function drawStep(i) {
+    const spec = SV[i] || { state:0 };
+    paint(typeof spec.state === 'number' ? TABS.ours.states[spec.state] : spec.state);
+    const keys = litKeys(i);
+    svg.querySelectorAll('[data-k]').forEach(e => { if (spec.all || keys.has(e.getAttribute('data-k'))) e.removeAttribute('data-dim'); else e.setAttribute('data-dim', ''); });
+    for (const sel of spec.live || []) svg.querySelectorAll(sel).forEach(p => p.classList.add('live'));
+    const ex = new Set(spec.extras || []);
+    for (const n of SX[i].needed) for (const m of n.marks) if (EXTRA[m]) ex.add(m);
+    extrasG.innerHTML = [...ex].map(k => EXTRA[k]).join('');
+    drawHalos(spec.all ? new Set() : keys);
+    drawBadges(i);
+    /* where the diagram is wider than the screen, bring the step's parts into view */
+    const sc = svg.parentElement;
+    if (sc.scrollWidth > sc.clientWidth + 1) {
+      const boxes = [halosG, badgesG, extrasG].map(g => { try { return g.getBBox(); } catch (e) { return null; } }).filter(b => b && (b.width || b.height));
+      if (boxes.length) {
+        const x0 = Math.min(...boxes.map(b => b.x)), x1 = Math.max(...boxes.map(b => b.x + b.width));
+        const scale = svg.clientWidth / 960;
+        sc.scrollTo({ left: Math.max(0, (x0 + x1) / 2 * scale - sc.clientWidth / 2), behavior: reduce ? 'auto' : 'smooth' });
+      }
+    }
+  }
+  /* open step i on the diagram card: its parts lit, the rest faded, and what is
+     needed and why beside or under it */
+  function openStep(i, opts = {}) {
+    if (!SX || tab !== 'ours') return;
+    active = i;
+    app.classList.add('stepview'); dia.classList.add('stepview');
+    svHead.hidden = false; svBody.hidden = false;
+    const st = W.steps[i], sx = SX[i];
+    svKicker.textContent = 'Step ' + (i + 1) + ' of ' + W.steps.length;
+    svLead.textContent = st.lead; svDetail.textContent = st.detail; svOwner.textContent = st.owner;
+    svNeeded.textContent = '';
+    sx.needed.forEach((n, j) => {
+      const li = document.createElement('li');
+      const mk = document.createElement('span'); mk.className = 'mk' + (n.marks.some(m => MARKS[m]) ? '' : ' plain'); mk.textContent = j + 1;
+      const tx = document.createElement('span'); tx.textContent = n.text;
+      li.append(mk, tx); svNeeded.appendChild(li);
+    });
+    svWhy.textContent = sx.why; svDone.textContent = sx.done;
+    svPrev.disabled = i === 0; svNext.disabled = i === W.steps.length - 1;
+    svStepper.querySelectorAll('button').forEach((b, j) => b.setAttribute('aria-current', j === i ? 'step' : 'false'));
+    wnRows.forEach((b, j) => b.setAttribute('aria-current', j === i ? 'step' : 'false'));
+    drawStep(i);
+    if (opts.scroll) dia.scrollIntoView({ behavior: reduce || opts.instant ? 'auto' : 'smooth', block: 'start' });
+    if (opts.focus) svLead.focus({ preventScroll: true });
+  }
+  function closeStep() {
+    if (active === null) return null;
+    const was = active; active = null;
+    app.classList.remove('stepview'); dia.classList.remove('stepview');
+    svHead.hidden = true; svBody.hidden = true;
+    svg.querySelectorAll('[data-dim]').forEach(e => e.removeAttribute('data-dim'));
+    halosG.textContent = ''; extrasG.textContent = ''; badgesG.textContent = '';
+    wnRows.forEach(b => b.setAttribute('aria-current', 'false'));
+    apply();
+    return was;
+  }
+  function go(i) { if (active === null || i < 0 || i >= W.steps.length) return; openStep(i); notify(); }
+
   const wnToggle = document.getElementById('wn-toggle'), wnBody = document.getElementById('wn-body');
   const wnJump = document.getElementById('wn-jump'), wnCard = document.getElementById('wn');
   if (!W) { wnCard.remove(); wnJump.remove(); }
@@ -438,16 +807,27 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   document.getElementById('wn-title').textContent = W.title;
   document.getElementById('wn-sub').textContent = W.steps.length + ' steps on quote LF42344, and ' + W.confirm.length + ' things we confirm before ordering';
   document.getElementById('wn-jump-label').textContent = 'Step-by-step (' + W.steps.length + ')';
+  if (!SX) document.getElementById('wn-hint').remove();
   const wnLists = wnBody.querySelectorAll('.wn-list'), half = Math.ceil(W.steps.length / 2);
   wnLists[1].start = half + 1;
   W.steps.forEach((st, i) => {
     const li = document.createElement('li');
+    const row = document.createElement(SX ? 'button' : 'div'); row.className = 'wn-row';
     const n = document.createElement('span'); n.className = 'wn-n'; n.textContent = i + 1;
-    const body = document.createElement('div');
-    const lead = document.createElement('b'); lead.className = 'wn-lead'; lead.textContent = st.lead;
+    const body = document.createElement('span');
+    const lead = document.createElement('span'); lead.className = 'wn-lead'; lead.textContent = st.lead;
     const detail = document.createElement('span'); detail.className = 'wn-detail'; detail.textContent = st.detail;
     const owner = document.createElement('span'); owner.className = 'wn-owner'; owner.textContent = st.owner;
-    body.append(lead, detail, owner); li.append(n, body);
+    body.append(lead, detail, owner); row.append(n, body);
+    if (SX) {
+      row.type = 'button'; row.setAttribute('aria-current', 'false');
+      const goEl = document.createElement('span'); goEl.className = 'wn-go'; goEl.setAttribute('aria-hidden', 'true');
+      goEl.innerHTML = '<svg viewBox="0 0 16 16"><path d="M8 13V3M4 7l4-4 4 4"/></svg>Open';
+      row.appendChild(goEl);
+      row.addEventListener('click', () => { openStep(i, { scroll:true, focus:true }); notify(); });
+      wnRows.push(row);
+    }
+    li.appendChild(row);
     wnLists[i < half ? 0 : 1].appendChild(li);
   });
   document.getElementById('wn-unchanged').textContent = W.unchanged;
@@ -461,6 +841,61 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     wnCard.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
     wnToggle.focus({ preventScroll: true });
   });
+  if (SX) {
+    document.getElementById('wn-start').addEventListener('click', () => { openStep(0, { scroll:true, focus:true }); notify(); });
+    W.steps.forEach((st, i) => {
+      const b = document.createElement('button'); b.type = 'button'; b.textContent = i + 1;
+      b.setAttribute('aria-label', 'Step ' + (i + 1) + ': ' + st.lead); b.setAttribute('aria-current', 'false');
+      b.addEventListener('click', () => go(i));
+      svStepper.appendChild(b);
+    });
+    svPrev.addEventListener('click', () => { go(active - 1); if (svPrev.disabled) svLead.focus(); });
+    svNext.addEventListener('click', () => { go(active + 1); if (svNext.disabled) svLead.focus(); });
+    svClose.addEventListener('click', () => {
+      const was = closeStep(); notify();
+      const back = !wnBody.hidden && wnRows[was] ? wnRows[was] : wnJump;
+      back.focus({ preventScroll: true });
+      back.scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
+    });
+    dia.addEventListener('keydown', e => {
+      if (active === null || e.altKey || e.ctrlKey || e.metaKey) return;
+      if (e.key === 'Escape') { e.preventDefault(); svClose.click(); }
+      else if (svHead.contains(e.target) && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+        e.preventDefault(); go(active + (e.key === 'ArrowRight' ? 1 : -1));
+      }
+    });
+    /* the halos are measured from the drawing, so measure again when the frame is
+       shown after being hidden */
+    window.addEventListener('resize', () => { if (active !== null) drawHalos(SV[active].all ? new Set() : litKeys(active)); });
+  }
+  }
+
+  /* ---------- glossary, on both tabs ---------- */
+  const glCard = document.getElementById('gl'), glToggle = document.getElementById('gl-toggle'), glBody = document.getElementById('gl-body');
+  const glFind = document.getElementById('gl-find'), glList = document.getElementById('gl-list'), glNone = document.getElementById('gl-none');
+  function setGl(open) { glToggle.setAttribute('aria-expanded', open ? 'true' : 'false'); glBody.hidden = !open; }
+  if (!GL) { glCard.remove(); document.getElementById('sv-gl').closest('p').remove(); }
+  else {
+    document.getElementById('gl-sub').textContent = GL.length + ' terms and acronyms used on these pages';
+    const items = GL.map(g => {
+      const d = document.createElement('div'); d.className = 'gl-item';
+      const dt = document.createElement('dt'); dt.textContent = g.term;
+      if (g.full) { const f = document.createElement('span'); f.className = 'full'; f.textContent = ' · ' + g.full; dt.appendChild(f); }
+      const dd = document.createElement('dd'); dd.textContent = g.meaning;
+      d.append(dt, dd); glList.appendChild(d);
+      return { d, text:(g.term + ' ' + g.full + ' ' + g.meaning).toLowerCase() };
+    });
+    glFind.addEventListener('input', () => {
+      const q = glFind.value.trim().toLowerCase(); let any = false;
+      for (const it of items) { const show = !q || it.text.includes(q); it.d.hidden = !show; any = any || show; }
+      glNone.hidden = any;
+    });
+    glToggle.addEventListener('click', () => setGl(glBody.hidden));
+    document.getElementById('sv-gl').addEventListener('click', () => {
+      setGl(true);
+      glCard.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+      glFind.focus({ preventScroll: true });
+    });
   }
 
   tabBtn.lee.addEventListener('click', () => { setTab('lee'); notify(); });

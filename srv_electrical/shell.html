@@ -105,17 +105,19 @@ body{background:var(--bg);color:var(--fg);font:14px/1.4 var(--font)}
   const tabs = {}, panes = {}, frames = {}, ready = {};
   for (const k of VIEWS) { tabs[k] = document.getElementById('v-' + k); panes[k] = document.getElementById('p-' + k); }
 
-  /* the design (What Lee designed / What we need) and operating state the reader
-     last picked: both views show the same pair, so flipping between them is the
-     same moment seen two ways */
-  const pick = { tab: Q.design === 'ours' ? 'ours' : 'lee', idx: Number.isInteger(Q.state) ? Q.state : 0 };
+  /* the design (What Lee designed / What we need), operating state and open step
+     of What we need the reader last picked: both views show the same, so flipping
+     between them is the same moment seen two ways */
+  const step0 = Number.isInteger(Q.step) ? Q.step : null;
+  const pick = { tab: Q.design === 'ours' || step0 !== null ? 'ours' : 'lee', idx: Number.isInteger(Q.state) ? Q.state : 0, step: step0 };
   addEventListener('message', e => {
     const d = e.data && e.data.lv;
     if (!d || !VIEWS.some(k => frames[k] && frames[k].contentWindow === e.source)) return;
     if (d.tab === 'lee' || d.tab === 'ours') pick.tab = d.tab;
     if (Number.isInteger(d.idx)) pick.idx = d.idx;
+    if (d.step === null || Number.isInteger(d.step)) pick.step = d.step;
   });
-  function sync(k) { try { frames[k].contentWindow.LV.show(pick.tab, pick.idx); } catch (e) {} }
+  function sync(k) { try { frames[k].contentWindow.LV.show(pick.tab, pick.idx, pick.step); } catch (e) {} }
 
   /* each view's page is built into a frame the first time it is opened, so
      three.js and the 3D site model (fetched from the app's static folder) only

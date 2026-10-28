@@ -63,7 +63,7 @@ body{background:var(--bg);color:var(--fg);font:14px/1.45 var(--font);overflow:hi
 .legend .dash{width:16px;height:0;border-radius:0;border-top:2px dashed var(--trip);vertical-align:3px}
 .legend [hidden]{display:none!important}
 .foot{display:flex;align-items:center;gap:8px;border-top:1px solid var(--line);padding-top:10px;font-size:12px;color:var(--muted)}
-.foot button{font:500 12.5px/1.2 var(--font);border:1px solid var(--line);background:transparent;color:var(--fg);border-radius:7px;padding:5px 10px;cursor:pointer}
+.foot button{white-space:nowrap;font:500 12.5px/1.2 var(--font);border:1px solid var(--line);background:transparent;color:var(--fg);border-radius:7px;padding:5px 10px;cursor:pointer}
 .foot .hint{margin-left:auto}
 button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 #msg{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));
@@ -73,6 +73,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   .foot .hint{display:none}
   .lbl{font-size:11.5px;padding:3px 5px 3px 9px}
   .chip{font-size:10.5px}
+  .pin{font-size:11px}
 }
 /* what we need, step by step (What we need tab only): closed until the call to
    action in the panel opens it, then a card pinned top right from 1280 px (where
@@ -83,7 +84,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .wn-open:hover{filter:brightness(1.1)}
 .wn-open[aria-expanded="true"]{background:transparent;color:var(--accent)}
 .wn-open[hidden]{display:none}
-.wn-open svg,.wn-close svg{width:16px;height:16px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.wn-open svg,.wn-icon svg,.sv-btn svg,.wn-go svg{width:16px;height:16px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .wn-open .go{margin-left:auto}
 #wn{position:fixed;z-index:2;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:12px;
   backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 8px 28px rgba(20,30,40,.18)}
@@ -95,12 +96,67 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media (min-width:900px) and (max-width:1279px){#wn{left:calc(404px + env(safe-area-inset-left,0px))}}
 .wn-head{display:flex;align-items:center;gap:10px;padding:10px 10px 10px 16px;border-bottom:1px solid var(--line)}
 .wn-head h2{flex:1;margin:0;font:600 15px/1.3 var(--font)}
-.wn-close{flex:0 0 auto;display:grid;place-items:center;width:32px;height:32px;border:1px solid var(--line);border-radius:8px;
+.wn-icon{flex:0 0 auto;display:grid;place-items:center;width:32px;height:32px;border:1px solid var(--line);border-radius:8px;
   background:transparent;color:var(--fg);cursor:pointer}
+.wn-icon[hidden]{display:none}
 .wn-scroll{overflow:auto;overscroll-behavior:contain;padding:2px 16px 14px}
 .wn-list{list-style:none;margin:0;padding:0}
-.wn-list li{display:grid;grid-template-columns:1.6em 1fr;gap:8px;padding:9px 0;border-top:1px solid var(--line)}
+.wn-list li{border-top:1px solid var(--line)}
 .wn-list li:first-child{border-top:0}
+.wn-row{display:grid;grid-template-columns:1.6em 1fr auto;gap:8px;width:100%;padding:9px 4px 9px 0;border:0;border-radius:8px;
+  background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.wn-row:hover{background:var(--tab-bg)}
+.wn-go{align-self:center;color:var(--accent)}
+.wn-hint{margin:10px 0 4px;font-size:12.5px;color:var(--muted);text-wrap:pretty}
+.wn-more{margin:12px 0 0;font-size:13px}
+.linkbtn{font:inherit;color:var(--accent);background:none;border:0;padding:0;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+.wn-view[hidden]{display:none}
+/* one step opened up */
+.sv-stepper{display:flex;flex-wrap:wrap;gap:4px;margin:12px 0 10px}
+.sv-stepper button{width:26px;height:26px;border-radius:999px;border:1px solid var(--line);background:transparent;color:var(--muted);
+  font:600 11.5px/1 var(--font);font-variant-numeric:tabular-nums;cursor:pointer;padding:0}
+.sv-stepper button:hover{border-color:var(--accent);color:var(--fg)}
+.sv-stepper button[aria-current="step"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.sv-lead{margin:0;font:600 16px/1.3 var(--font)}
+.sv-lead:focus{outline:none}
+.sv-detail{margin:4px 0 0;font-size:13px;color:var(--muted);text-wrap:pretty}
+.sv-h{margin:14px 0 6px;font:600 11px/1.2 var(--font);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.sv-needed{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
+.sv-needed li{display:grid;grid-template-columns:22px 1fr;gap:8px;align-items:start;font-size:13.5px;text-wrap:pretty}
+.mk{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:999px;font:700 11px/1 var(--font);
+  font-variant-numeric:tabular-nums;background:#facc15;color:#1c1917;border:1px solid #a16207}
+.mk.plain{background:transparent;color:var(--muted);border-color:var(--line)}
+.sv-key{margin:8px 0 0;font-size:12px;color:var(--muted)}
+.sv-key .mk{width:16px;height:16px;font-size:10px;vertical-align:-3px}
+.sv-why{margin:0;font-size:13.5px;text-wrap:pretty}
+.sv-done{margin:10px 0 0;padding:8px 10px;border-radius:8px;background:var(--tab-bg);font-size:12.5px;text-wrap:pretty}
+.sv-done b{font-weight:600}
+.wn-foot{display:flex;justify-content:space-between;gap:8px;padding:10px 12px;border-top:1px solid var(--line)}
+.wn-foot[hidden]{display:none}
+.sv-btn{display:inline-flex;align-items:center;gap:4px;font:500 12.5px/1.2 var(--font);border:1px solid var(--line);background:transparent;
+  color:var(--fg);border-radius:999px;padding:6px 12px;cursor:pointer}
+.sv-btn:hover:not(:disabled){border-color:var(--accent)}
+.sv-btn:disabled{opacity:.4;cursor:default}
+/* glossary */
+.gl-find{width:100%;margin-top:10px;font:inherit;font-size:13.5px;padding:7px 10px;border:1px solid var(--line);border-radius:8px;
+  background:transparent;color:var(--fg)}
+.gl-find:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.gl-list{margin:8px 0 0}
+.gl-item{padding:8px 0;border-top:1px solid var(--line)}
+.gl-item dt{font-weight:600;font-size:13.5px}
+.gl-item dt .full{font-weight:400;color:var(--muted)}
+.gl-item dd{margin:2px 0 0;font-size:12.5px;color:var(--muted);text-wrap:pretty}
+.gl-none{margin:10px 0 0;font-size:13px;color:var(--muted)}
+/* a step's points, pinned in the scene */
+.pin{position:absolute;left:0;top:0;display:flex;align-items:center;gap:4px;white-space:nowrap;background:var(--label-bg);color:var(--label-fg);
+  border:1.5px solid #ca8a04;border-radius:999px;padding:3px 9px 3px 3px;font:600 12px/1.2 var(--font);
+  box-shadow:0 2px 6px rgba(20,30,40,.25);will-change:transform}
+.pin::after{content:"";position:absolute;left:calc(50% - var(--dx,0px));top:100%;width:2px;height:var(--lead,20px);margin-left:-1px;background:#ca8a04}
+.pin.below::after{top:auto;bottom:100%}
+.pin[hidden]{display:none!important}
+.lbl.dim{opacity:.4}
+/* on a phone with a step sheet open, the panel folds to its tabs to give the scene room */
+#panel.compact>:not(.tabs){display:none}
 .wn-n{font-weight:600;color:var(--accent);text-align:right;font-variant-numeric:tabular-nums}
 .wn-lead{display:block;font-weight:600}
 .wn-detail{font-size:13px;color:var(--muted)}
@@ -140,21 +196,49 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   </div>
   <div class="foot">
     <button id="reset" type="button">Reset view</button>
-    <span class="hint">Pick a state · drag to orbit · scroll to zoom</span>
+    <button id="gl-open" type="button" aria-controls="wn" aria-expanded="false">Glossary</button>
+    <span class="hint">Drag to orbit · scroll to zoom</span>
   </div>
 </section>
 <section id="wn" aria-labelledby="wn-title" hidden>
   <div class="wn-head">
-    <h2 id="wn-title"></h2>
-    <button type="button" class="wn-close" id="wn-close" aria-label="Close the step list">
+    <button type="button" class="wn-icon" id="wn-back" aria-label="Back" hidden>
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3.5L5.5 8l4.5 4.5"/></svg>
+    </button>
+    <h2 id="wn-title" aria-live="polite"></h2>
+    <button type="button" class="wn-icon" id="wn-close" aria-label="Close">
       <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>
     </button>
   </div>
-  <div class="wn-scroll" tabindex="0" role="region" aria-labelledby="wn-title">
-    <ol class="wn-list" id="wn-list" role="list"></ol>
-    <p class="wn-unchanged" id="wn-unchanged"></p>
-    <h3 class="wn-confirm-h" id="wn-confirm-h"></h3>
-    <ul class="wn-confirm" id="wn-confirm"></ul>
+  <div class="wn-scroll" id="wn-scroll" tabindex="0" role="region" aria-labelledby="wn-title">
+    <div class="wn-view" id="wn-listview">
+      <p class="wn-hint" id="wn-hint">Open any step to see it on the site, with what's needed and why.</p>
+      <ol class="wn-list" id="wn-list" role="list"></ol>
+      <p class="wn-unchanged" id="wn-unchanged"></p>
+      <h3 class="wn-confirm-h" id="wn-confirm-h"></h3>
+      <ul class="wn-confirm" id="wn-confirm"></ul>
+      <p class="wn-more"><button type="button" class="linkbtn" id="wn-gl">Glossary of terms</button></p>
+    </div>
+    <div class="wn-view" id="wn-stepview" hidden>
+      <div class="sv-stepper" id="sv-stepper" role="group" aria-label="Go to step"></div>
+      <h3 class="sv-lead" id="sv-lead" tabindex="-1"></h3>
+      <p class="sv-detail"><span id="sv-detail"></span> <span class="wn-owner" id="sv-owner"></span></p>
+      <h4 class="sv-h">What's needed</h4>
+      <ol class="sv-needed" id="sv-needed" role="list"></ol>
+      <p class="sv-key">Each <span class="mk">1</span> is pinned on the site where its point applies; the parts it touches are outlined.</p>
+      <h4 class="sv-h">Why</h4>
+      <p class="sv-why" id="sv-why"></p>
+      <p class="sv-done"><b>Done when:</b> <span id="sv-done"></span></p>
+    </div>
+    <div class="wn-view" id="wn-glview" hidden>
+      <input type="search" class="gl-find" id="gl-find" placeholder="Find a term" aria-label="Find a term" autocomplete="off">
+      <dl class="gl-list" id="gl-list"></dl>
+      <p class="gl-none" id="gl-none" hidden>No term matches that.</p>
+    </div>
+  </div>
+  <div class="wn-foot" id="wn-foot" hidden>
+    <button type="button" class="sv-btn" id="sv-prev"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3.5L5.5 8l4.5 4.5"/></svg>Previous</button>
+    <button type="button" class="sv-btn" id="sv-next">Next<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5L10.5 8 6 12.5"/></svg></button>
   </div>
 </section>
 <div id="msg">Loading the site model…</div>
@@ -344,7 +428,7 @@ const trip = (() => {
   const mat = new THREE.MeshBasicMaterial({ map:tex, color:COL.trip.clone(), transparent:true, alphaTest:.5, toneMapped:false });
   const mesh = new THREE.Mesh(new THREE.TubeGeometry(curve, 60, 0.045, 6, false), mat);
   mesh.visible = false; scene.add(mesh);
-  return { mesh, mat, tex, mode:'idle' };
+  return { mesh, mat, tex, curve, mode:'idle' };
 })();
 
 /* ---------- labels ---------- */
@@ -419,65 +503,6 @@ function buildNewWorks() {
   post.position.copy(P(5.6, -8.4, 0.25)); post.castShadow = true; scene.add(post);
 }
 
-/* ---------- what we need, step by step ---------- */
-/* WHAT_WE_NEED comes from what_we_need.js, inlined by the app (opened on its
-   own, the page goes without the list). The list starts closed; the reader's
-   choice to open it holds while they look at Lee's tab, where the list and its
-   button are hidden */
-const W = typeof WHAT_WE_NEED === 'object' ? WHAT_WE_NEED : null;
-const wnCard = document.getElementById('wn'), wnOpen = document.getElementById('wn-open'), wnClose = document.getElementById('wn-close');
-if (!W) { wnCard.remove(); wnOpen.remove(); }
-else {
-document.getElementById('wn-title').textContent = W.title;
-document.getElementById('wn-open-label').textContent = 'Step-by-step (' + W.steps.length + ')';
-W.steps.forEach((st, i) => {
-  const li = document.createElement('li');
-  const n = document.createElement('span'); n.className = 'wn-n'; n.textContent = i + 1;
-  const body = document.createElement('div');
-  const lead = document.createElement('b'); lead.className = 'wn-lead'; lead.textContent = st.lead;
-  const detail = document.createElement('span'); detail.className = 'wn-detail'; detail.textContent = st.detail;
-  const owner = document.createElement('span'); owner.className = 'wn-owner'; owner.textContent = st.owner;
-  body.append(lead, detail, owner); li.append(n, body);
-  document.getElementById('wn-list').appendChild(li);
-});
-document.getElementById('wn-unchanged').textContent = W.unchanged;
-document.getElementById('wn-confirm-h').textContent = W.confirmTitle;
-for (const c of W.confirm) { const li = document.createElement('li'); li.textContent = c; document.getElementById('wn-confirm').appendChild(li); }
-}
-let wnWanted = false;
-function layoutSteps() {
-  const show = wnWanted && tab === 'ours';
-  wnCard.hidden = !show;
-  wnOpen.hidden = tab !== 'ours';
-  wnOpen.setAttribute('aria-expanded', show ? 'true' : 'false');
-  frameView();
-}
-function closeSteps() { const was = !wnCard.hidden; wnWanted = false; layoutSteps(); if (was) wnOpen.focus(); }
-wnOpen.addEventListener('click', () => { if (wnWanted) closeSteps(); else { wnWanted = true; layoutSteps(); wnClose.focus(); } });
-wnClose.addEventListener('click', closeSteps);
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && !wnCard.hidden) { e.preventDefault(); closeSteps(); } });
-
-/* the scene centres in the space the panel leaves, and from 1280 px, with the
-   list open, in the gap between the two cards, eased there in the frame loop.
-   Only the offset moves: pulling the camera back would crowd the asset labels,
-   which keep their size, into each other */
-const view = { x:0, y:0 }, viewTo = { x:0, y:0 };
-function frameView(now) {
-  const w = window.innerWidth, panel = document.getElementById('panel');
-  viewTo.x = 0; viewTo.y = 0;
-  if (w >= 900) {
-    viewTo.x = -(panel.offsetWidth + 16) / 2;
-    if (!wnCard.hidden && w >= 1280) viewTo.x += (wnCard.offsetWidth + 16) / 2;
-  } else if (w < 640) viewTo.y = -(panel.offsetHeight + 16) / 2;
-  if (now || reduceMotion) Object.assign(view, viewTo);
-  applyView();
-}
-function applyView() {
-  const w = window.innerWidth, h = window.innerHeight;
-  if (view.x || view.y) camera.setViewOffset(w, h, view.x, view.y, w, h); else camera.clearViewOffset();
-  camera.updateProjectionMatrix();
-}
-
 /* ---------- state machine ---------- */
 let tab = 'lee', idx = 0;
 const stepsEl = document.getElementById('steps'), captionEl = document.getElementById('caption');
@@ -490,14 +515,16 @@ function renderSteps() {
     const g = document.createElement('span'); g.className = 'step';
     if (i > 0) { const a = document.createElement('span'); a.className = 'arr'; a.setAttribute('aria-hidden', 'true'); a.textContent = '→'; g.appendChild(a); }
     const b = document.createElement('button'); b.type = 'button'; b.textContent = s.name;
-    b.addEventListener('click', () => { setState(i); notify(); });
+    b.addEventListener('click', () => { if (shownStep !== null) idxSaved = i; setState(i); notify(); });
     g.appendChild(b); stepsEl.appendChild(g);
   });
 }
-function setState(i) {
-  idx = i; const s = TABS[tab].states[i];
-  stepsEl.querySelectorAll('button').forEach((b, j) => { b.setAttribute('aria-pressed', j === i ? 'true' : 'false'); b.classList.toggle('next', j === i + 1); });
+function pressPill(i) {
+  stepsEl.querySelectorAll('button').forEach((b, j) => { b.setAttribute('aria-pressed', j === i ? 'true' : 'false'); b.classList.toggle('next', i >= 0 && j === i + 1); });
   stepsEl.querySelectorAll('.arr').forEach((a, j) => a.classList.toggle('next', j === i));
+}
+/* show one state in the scene: an operating state, or a step's own */
+function showState(s) {
   captionEl.textContent = s.caption;
   for (const [k, c] of Object.entries(cables)) {
     const f = s.flows[k];
@@ -506,31 +533,499 @@ function setState(i) {
   trip.mesh.visible = tab === 'ours';
   trip.mode = s.trip || 'idle';
   document.getElementById('lg-trip').hidden = tab !== 'ours';
-  layoutSteps();
   for (const [k, L] of Object.entries(labelEls)) {
     const st = s.status[k];
     L.hidden = (L.oursOnly && tab !== 'ours') || !st;
     if (st) { L.chip.textContent = st[0]; L.chip.className = 'chip ' + st[1]; }
   }
 }
-/* inside the SRV Electrical app: report the reader's picks to the frame, so the
-   other view opens on the same design and state, and let the frame set them */
-function notify() { try { if (parent !== window) parent.postMessage({ lv:{ tab, idx } }, '*'); } catch (e) {} }
-window.LV = { show(t, i) {
+function setState(i) { idx = i; pressPill(i); showState(TABS[tab].states[i]); }
+/* inside the SRV Electrical app: report the reader's picks to the frame (design,
+   operating state and the step open in the drawer), so the other view opens on the
+   same, and let the frame set them */
+function notify() {
+  const step = shownStep;
+  try { if (parent !== window) parent.postMessage({ lv:{ tab, idx: step !== null ? idxSaved : idx, step } }, '*'); } catch (e) {}
+}
+window.LV = { show(t, i, step) {
   if (!TABS[t]) return;
   if (t !== tab) setTab(t, true);
-  setState(Math.max(0, Math.min(TABS[t].states.length - 1, i | 0)));
+  const ii = Math.max(0, Math.min(TABS[t].states.length - 1, i | 0));
+  const want = t === 'ours' && SX && Number.isInteger(step) && step >= 0 && step < SX.length ? step : null;
+  /* the step already open: keep the camera where the reader left it */
+  if (want !== null && want === shownStep && drawerShown() && drawer.mode === 'step') { idxSaved = ii; return; }
+  if (shownStep !== null) applyStep(null);
+  setState(ii);
+  if (want !== null) Object.assign(drawer, { open:true, mode:'step', step:want });
+  else if (drawer.mode === 'step') drawer.mode = 'list';
+  layoutSteps();
 } };
 function setTab(t, fromHash) {
+  if (shownStep !== null) applyStep(null);      /* the steps belong to What we need */
   tab = t; idx = 0;
   for (const [k, b] of Object.entries(tabBtns)) b.setAttribute('aria-selected', k === t ? 'true' : 'false');
   summaryEl.textContent = TABS[t].summary;
   renderSteps(); setState(0);
+  layoutSteps();
   if (!fromHash) { try { history.replaceState(null, '', '#' + TABS[t].hash); } catch (e) {} }
 }
 tabBtns.lee.addEventListener('click', () => { setTab('lee'); notify(); });
 tabBtns.ours.addEventListener('click', () => { setTab('ours'); notify(); });
-document.getElementById('reset').addEventListener('click', goHome);
+
+/* ---------- scene framing ---------- */
+/* the scene centres in the space the panel leaves; from 1280 px, with the drawer
+   open, in the gap between the two cards, and below that above the drawer's sheet,
+   eased there in the frame loop. Only the offset moves: pulling the camera back
+   would crowd the asset labels, which keep their size, into each other */
+const view = { x:0, y:0 }, viewTo = { x:0, y:0 };
+function frameView(now) {
+  const w = window.innerWidth, panel = document.getElementById('panel');
+  const side = !wnCard.hidden && w >= 1280, sheet = !wnCard.hidden && w < 1280;
+  viewTo.x = 0; viewTo.y = 0;
+  if (w >= 900) {
+    viewTo.x = -(panel.offsetWidth + 16) / 2;
+    if (side) viewTo.x += (wnCard.offsetWidth + 16) / 2;
+  }
+  if (w < 640) viewTo.y = -(panel.offsetHeight + 16) / 2;
+  if (sheet) viewTo.y += (wnCard.offsetHeight + 16) / 2;
+  if (now || reduceMotion) Object.assign(view, viewTo);
+  applyView();
+}
+function applyView() {
+  const w = window.innerWidth, h = window.innerHeight;
+  if (view.x || view.y) camera.setViewOffset(w, h, view.x, view.y, w, h); else camera.clearViewOffset();
+  camera.updateProjectionMatrix();
+}
+/* camera flights to a step's part of the site; the reader can take over at any time */
+const flight = { t:1, dur:1.1, from:{ pos:new THREE.Vector3(), tgt:new THREE.Vector3() }, to:{ pos:new THREE.Vector3(), tgt:new THREE.Vector3() } };
+function flyTo(pos, tgt) {
+  if (reduceMotion) { flight.t = 1; camera.position.copy(pos); controls.target.copy(tgt); controls.update(); return; }
+  flight.from.pos.copy(camera.position); flight.from.tgt.copy(controls.target);
+  flight.to.pos.copy(pos); flight.to.tgt.copy(tgt); flight.t = 0;
+}
+controls.addEventListener('start', () => { flight.t = 1; });
+document.getElementById('reset').addEventListener('click', () => { flight.t = 1; goHome(); });
+
+/* ---------- what we need, step by step ---------- */
+/* WHAT_WE_NEED (what_we_need.js), STEPS_EXPLAINED and STEP_MARKS (steps_explained.js)
+   and GLOSSARY (glossary.js) come in with the app's data script; opened on its own,
+   the page goes without them. One drawer holds the step list, one step opened up,
+   or the glossary. It starts closed; the steps are only ever shown on What we need,
+   and the reader's choice to open the drawer holds while they look at Lee's tab */
+const W = typeof WHAT_WE_NEED === 'object' ? WHAT_WE_NEED : null;
+const SX = W && typeof STEPS_EXPLAINED === 'object' ? STEPS_EXPLAINED : null;
+const MARK_NAMES = typeof STEP_MARKS === 'object' ? STEP_MARKS : {};
+const GL = typeof GLOSSARY === 'object' ? GLOSSARY : null;
+const byId = id => document.getElementById(id);
+const wnCard = byId('wn'), wnOpen = byId('wn-open'), wnClose = byId('wn-close'), wnBack = byId('wn-back'), glOpen = byId('gl-open');
+const wnTitle = byId('wn-title'), wnFoot = byId('wn-foot'), wnScroll = byId('wn-scroll');
+const views = { list:byId('wn-listview'), step:byId('wn-stepview'), glossary:byId('wn-glview') };
+const svStepper = byId('sv-stepper'), svLead = byId('sv-lead'), svPrev = byId('sv-prev'), svNext = byId('sv-next');
+const wnGl = byId('wn-gl');
+const drawer = { open:false, mode:'list', step:null, back:null };
+const wnRows = [];
+let shownStep = null, idxSaved = 0;
+
+if (!W) { wnOpen.remove(); views.list.remove(); views.step.remove(); }
+else {
+  wnOpen.querySelector('#wn-open-label').textContent = 'Step-by-step (' + W.steps.length + ')';
+  if (!SX) byId('wn-hint').remove();
+  W.steps.forEach((st, i) => {
+    const li = document.createElement('li');
+    const row = document.createElement(SX ? 'button' : 'div'); row.className = 'wn-row';
+    const n = document.createElement('span'); n.className = 'wn-n'; n.textContent = i + 1;
+    const body = document.createElement('span');
+    const lead = document.createElement('span'); lead.className = 'wn-lead'; lead.textContent = st.lead;
+    const detail = document.createElement('span'); detail.className = 'wn-detail'; detail.textContent = st.detail;
+    const owner = document.createElement('span'); owner.className = 'wn-owner'; owner.textContent = st.owner;
+    body.append(lead, detail, owner); row.append(n, body);
+    if (SX) {
+      row.type = 'button';
+      const goEl = document.createElement('span'); goEl.className = 'wn-go'; goEl.setAttribute('aria-hidden', 'true');
+      goEl.innerHTML = '<svg viewBox="0 0 16 16"><path d="M6 3.5L10.5 8 6 12.5"/></svg>';
+      row.appendChild(goEl);
+      row.addEventListener('click', () => { openStep(i); svLead.focus({ preventScroll:true }); notify(); });
+      wnRows.push(row);
+    }
+    li.appendChild(row); byId('wn-list').appendChild(li);
+  });
+  byId('wn-unchanged').textContent = W.unchanged;
+  byId('wn-confirm-h').textContent = W.confirmTitle;
+  for (const c of W.confirm) { const li = document.createElement('li'); li.textContent = c; byId('wn-confirm').appendChild(li); }
+  if (SX) W.steps.forEach((st, i) => {
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = i + 1;
+    b.setAttribute('aria-label', 'Step ' + (i + 1) + ': ' + st.lead); b.setAttribute('aria-current', 'false');
+    b.addEventListener('click', () => { openStep(i); notify(); });
+    svStepper.appendChild(b);
+  });
+}
+if (!GL) { glOpen.remove(); wnGl.closest('p').remove(); views.glossary.remove(); }
+else {
+  const glFind = byId('gl-find'), glList = byId('gl-list'), glNone = byId('gl-none');
+  const items = GL.map(g => {
+    const d = document.createElement('div'); d.className = 'gl-item';
+    const dt = document.createElement('dt'); dt.textContent = g.term;
+    if (g.full) { const f = document.createElement('span'); f.className = 'full'; f.textContent = ' · ' + g.full; dt.appendChild(f); }
+    const dd = document.createElement('dd'); dd.textContent = g.meaning;
+    d.append(dt, dd); glList.appendChild(d);
+    return { d, text:(g.term + ' ' + g.full + ' ' + g.meaning).toLowerCase() };
+  });
+  glFind.addEventListener('input', () => {
+    const q = glFind.value.trim().toLowerCase(); let any = false;
+    for (const it of items) { const show = !q || it.text.includes(q); it.d.hidden = !show; any = any || show; }
+    glNone.hidden = any;
+  });
+}
+
+/* where each mark of steps_explained.js sits on the site, [east, north, height]
+   (the board positions are indicative), and the parts it outlines */
+const MARKS = {
+  'tie-acb':        { at:[-6.55,2.3,1.7],  lit:['newboard','c-tie'] },
+  'dc-acb':         { at:[-5.75,2.3,1.7],  lit:['newboard','c-dc'] },
+  'busbar':         { at:[-5.4,1.85,2.55], lit:['newboard','oldboard','c-tie'] },
+  'rack-mccbs':     { at:[-4.62,2.3,1.6],  lit:['newboard','dc','c-dc'] },
+  'uvr':            { at:[-4.62,2.3,1.05], lit:['newboard'] },
+  'cool-cdu':       { at:[-4.0,2.3,0.55],  lit:['newboard','dc'] },
+  'gen-breaker':    { at:[-6.1,-5.3,2.3],  lit:['genbrk','c-chp'] },
+  'trip-cable':     { at:[-5.4,-2.2,0.4],  lit:['c-trip'] },
+  'trip-relay':     { at:[-3.95,2.3,2.05], lit:['newboard'] },
+  'controller':     { at:[-3.95,2.3,1.5],  lit:['newboard'] },
+  'watchdog':       { at:[-3.95,2.3,0.95], lit:['newboard'] },
+  'incomer-cts':    { at:[-7.0,1.1,0.45],  lit:['oldboard','c-grid'] },
+  'boundary-meter': { at:[-6.95,2.3,2.2],  lit:['newboard','tx','c-grid'] },
+  'dc-meter':       { at:[-3.2,1.9,0.55],  lit:['c-dc','dc'] },
+  'chp-meter':      { at:[-6.1,0.25,0.6],  lit:['c-chp','chp'] },
+  'marshalling':    { at:[-3.95,2.3,2.25], lit:['newboard'] },
+  'ethernet':       { at:[-3.95,2.3,1.6],  lit:['newboard'] },
+  'ups':            { at:[-3.95,2.3,0.95], lit:['newboard'] },
+  'local-remote':   { at:[-4.6,2.3,2.25],  lit:['newboard'] },
+  'sld':            { at:[-5.4,1.43,3.3],  lit:['newboard','oldboard'] },
+  'kiosk-plan':     { at:[-6.25,2.6,0.25], lit:[] },
+  'fault':          { at:[-4.62,1.85,2.75],lit:['tx','chp','c-grid','c-chp','newboard'] },
+};
+/* each step's scene: where the camera goes, the state it is shown in (one of What
+   we need's operating states, or its own), and what else it draws. The parts
+   outlined come from its marks; the last step outlines every part the others change */
+const CAMS = {
+  kioskSE:  { pos:[1.5,-6.5,7.5], tgt:[-5.2,1.4,1.0] },
+  kioskNE:  { pos:[2.5,4.5,6.5],  tgt:[-5.2,1.9,1.2] },
+  kioskTop: { pos:[-5.4,0.2,15],  tgt:[-5.4,1.43,0.2] },
+  chpKiosk: { pos:[7,-14,13],     tgt:[-5.2,-1.0,1.0] },
+  grid:     { pos:[-11,-9,11],    tgt:[-7.6,9,0.5] },
+  home:     { pos:[7,-31,29],     tgt:[-2.8,2.5,0.5] },
+};
+const FAULT = { name:'Fault', caption:'A fault on the data centre section is fed by the grid and the engine together.',
+  flows:{ chp:[1,'engine',1], tie:[.8,'grid',-1], grid:[.9,'grid',-1], site:[.3,'grid',1], dc:[1,'engine',1] }, trip:'idle',
+  status:{ chp:['Feeding the fault','engine'], kiosk:['Fault, DC section','alarm'], dc:['Fault','alarm'], tx:['Feeding the fault','grid'], site:['On grid','grid'], trip:['Healthy','trip'] } };
+const SV = [
+  { cam:'kioskSE' }, { cam:'kioskNE' }, { cam:'chpKiosk' }, { cam:'kioskNE' }, { cam:'grid' }, { cam:'kioskSE' },
+  { cam:'kioskNE' }, { cam:'kioskTop', extras:['plan'] }, { cam:'home', state:FAULT }, { cam:'chpKiosk', state:2 },
+  { cam:'home', changes:true },
+];
+/* the outlines: boxes round equipment, glows along cables */
+const HL_BOX = {
+  kiosk:    { c:[-5.4,1.43],   size:[5.15,3.15,3.0],  base:0 },
+  newboard: { c:[-5.4,1.855],  size:[3.55,0.95,2.45], base:0.12 },
+  oldboard: { c:[-5.4,1.115],  size:[2.4,0.72,2.0],   base:0.12 },
+  dc:       { c:[-0.33,-0.76], size:[3.15,2.6,2.75],  base:0.05 },
+  chp:      { c:[-6.1,-10.95], size:[3.3,12.4,3.25],  base:0 },
+  genbrk:   { c:[-6.1,-5.6],   size:[3.3,1.5,3.25],   base:0 },
+  tx:       { c:[-7.2,20.75],  size:[2.7,2.2,2.65],   base:0 },
+};
+const LABEL_PARTS = { chp:['chp','genbrk','c-chp'], kiosk:['kiosk','newboard','oldboard','c-tie'], dc:['dc','c-dc'], tx:['tx','c-grid'], site:['c-site'], trip:['c-trip'] };
+const HL = new THREE.Color('#facc15');
+const hlMade = {};
+function hlPart(key) {
+  if (hlMade[key]) return hlMade[key];
+  let obj;
+  if (HL_BOX[key]) {
+    const b = HL_BOX[key], geo = new THREE.BoxGeometry(b.size[0], b.size[2], b.size[1]);
+    obj = new THREE.Group(); obj.position.copy(P(b.c[0], b.c[1], b.base + b.size[2] / 2));
+    const fill = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color:HL, transparent:true, opacity:.14, depthWrite:false, toneMapped:false }));
+    const edge = new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({ color:HL, transparent:true, opacity:.95, toneMapped:false }));
+    fill.renderOrder = 4; edge.renderOrder = 5; obj.add(fill, edge); obj.userData.fill = fill.material;
+  } else {
+    const curve = key === 'c-trip' ? trip.curve : cables[key.slice(2)] && cables[key.slice(2)].curve;
+    if (!curve) return null;
+    const m = new THREE.MeshBasicMaterial({ color:HL, transparent:true, opacity:.32, depthWrite:false, toneMapped:false });
+    obj = new THREE.Mesh(new THREE.TubeGeometry(curve, 80, 0.2, 10, false), m); obj.renderOrder = 4; obj.userData.fill = m;
+  }
+  obj.visible = false; scene.add(obj); hlMade[key] = obj; return obj;
+}
+/* what a step draws in: an anchor dot for each pin, CT rings on the incomer, the
+   kiosk plan's door swings and ACB draw-out space, and the fault */
+const stepGroup = new THREE.Group(); scene.add(stepGroup);
+const markMat = new THREE.MeshBasicMaterial({ color:HL, toneMapped:false });
+const dotGeo = new THREE.SphereGeometry(0.07, 12, 8);
+let faultGlow = null;
+function buildExtras(i, marks) {
+  for (const m of marks) {
+    if (!MARKS[m]) continue;
+    const d = new THREE.Mesh(dotGeo, markMat); d.position.copy(P(...MARKS[m].at)); stepGroup.add(d);
+    if (m === 'incomer-cts') for (const dx of [-0.15, 0, 0.15]) {
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.035, 8, 24), markMat);
+      ring.rotation.y = Math.PI / 2; ring.position.copy(P(-7.0 + dx, 1.1, 0.25)); stepGroup.add(ring);
+    }
+    if (m === 'fault') {
+      const spark = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 12), new THREE.MeshBasicMaterial({ color:COL.alarm, toneMapped:false }));
+      faultGlow = new THREE.Mesh(new THREE.SphereGeometry(0.45, 20, 14), new THREE.MeshBasicMaterial({ color:COL.alarm, transparent:true, opacity:.3, depthWrite:false, toneMapped:false }));
+      spark.position.copy(P(...MARKS.fault.at)); faultGlow.position.copy(spark.position); stepGroup.add(spark, faultGlow);
+    }
+  }
+  if ((SV[i].extras || []).includes('plan')) {
+    const swing = new THREE.MeshBasicMaterial({ color:HL, transparent:true, opacity:.55, side:THREE.DoubleSide, depthWrite:false, toneMapped:false });
+    const sector = (hx, hy, r, south) => {
+      const g = new THREE.Mesh(new THREE.RingGeometry(0.001, r, 24, 1, south ? -Math.PI / 2 : 0, Math.PI / 2), swing);
+      g.rotation.x = -Math.PI / 2; g.position.copy(P(hx, hy, 0.17)); stepGroup.add(g);
+    };
+    /* the new board's doors open north, the existing board's south; hinged on their west edge */
+    for (const [w, x] of [[.62,-6.55],[.62,-5.75],[.34,-4.85],[.34,-4.4]]) sector(x - w / 2, 2.262, w, false);
+    for (const [w, x] of [[.55,-5.9],[.3,-5.05],[.3,-4.65]]) sector(x - w / 2, 0.818, w, true);
+    /* the space to draw each ACB out of its cradle, in front of the new board */
+    for (const x of [-6.55, -5.75]) {
+      const geo = new THREE.BoxGeometry(0.62, 0.62, 0.6);
+      const zone = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color:HL, transparent:true, opacity:.22, depthWrite:false, toneMapped:false }));
+      zone.position.copy(P(x, 2.262 + 0.3, 1.31));
+      const e = new THREE.LineSegments(new THREE.EdgesGeometry(geo), new THREE.LineBasicMaterial({ color:HL, toneMapped:false }));
+      e.position.copy(zone.position); stepGroup.add(zone, e);
+    }
+  }
+}
+/* a step's points, as numbered pins in the label layer */
+const pinEls = [];
+function addPin(at, nums, text) {
+  const el = document.createElement('div'); el.className = 'pin';
+  for (const n of nums) { const m = document.createElement('span'); m.className = 'mk'; m.textContent = n; el.appendChild(m); }
+  const t = document.createElement('span'); t.textContent = text; el.appendChild(t);
+  labelLayer.appendChild(el); pinEls.push({ el, anchor:P(...at) });
+}
+/* the part of the screen the cards leave the scene: right of the panel from 640 px
+   and below it when it folds to its tabs on a phone, left of the drawer's card from
+   1280 px and above its sheet below that */
+function freeArea(w, h) {
+  const f = { l:8, r:w - 8, t:8, b:h - 8 }, panel = byId('panel');
+  const pr = panel.getBoundingClientRect();
+  if (panel.classList.contains('compact')) f.t = pr.bottom + 8;
+  else if (w >= 640) f.l = pr.right + 8;
+  if (!wnCard.hidden) {
+    const r = wnCard.getBoundingClientRect();
+    if (w >= 1280) f.r = r.left - 8; else f.b = r.top - 8;
+  }
+  return f;
+}
+/* place the pins over their anchors: slid sideways out from under the panel or the
+   drawer (the leader stays on the anchor), then lifted clear of any asset label or
+   pin placed before them (lowest on screen first), with the leader grown to match.
+   They stay on screen and clear of the folded panel: a pin with no room above its
+   anchor hangs below it */
+const placed = [], cards = [];
+function placePins(w, h) {
+  placed.length = 0; cards.length = 0;
+  const panel = byId('panel'), compact = panel.classList.contains('compact');
+  if (!compact) cards.push(panel.getBoundingClientRect());
+  if (!wnCard.hidden) cards.push(wnCard.getBoundingClientRect());
+  const minTop = compact ? panel.getBoundingClientRect().bottom + 6 : 6;
+  const maxBot = (!wnCard.hidden && w < 1280 ? wnCard.getBoundingClientRect().top : h) - 6;
+  for (const L of Object.values(labelEls)) {
+    if (L.el.hidden) continue;
+    const r = L.el.getBoundingClientRect(); placed.push({ l:r.left, r:r.right, t:r.top, b:r.bottom });
+  }
+  const todo = [];
+  for (const pin of pinEls) {
+    vp.copy(pin.anchor).project(camera);
+    const vis = vp.z < 1 && vp.x > -1 && vp.x < 1 && vp.y > -1 && vp.y < 1;
+    pin.el.hidden = !vis;
+    if (vis) todo.push({ pin, x:(vp.x * .5 + .5) * w, y:(-vp.y * .5 + .5) * h, pw:pin.el.offsetWidth, ph:pin.el.offsetHeight });
+  }
+  todo.sort((a, b) => b.y - a.y);
+  for (const t of todo) {
+    const xMin = 8 + t.pw / 2, xMax = w - 8 - t.pw / 2;
+    let lift = 0, cx = t.x;
+    for (const c of cards) {
+      const top = t.y - 20 - t.ph, bot = t.y - 20;
+      if (!(cx - t.pw / 2 < c.right + 6 && cx + t.pw / 2 > c.left - 6 && top < c.bottom && bot > c.top)) continue;
+      const right = c.right + 8 + t.pw / 2, left = c.left - 8 - t.pw / 2;
+      const first = (c.left + c.right) / 2 < w / 2 ? right : left, other = first === right ? left : right;
+      /* a card as wide as the screen leaves no side to go to */
+      if (first >= xMin && first <= xMax) cx = first; else if (other >= xMin && other <= xMax) cx = other;
+    }
+    t.x0 = t.x; t.x = Math.min(xMax, Math.max(xMin, cx));
+    const l = t.x - t.pw / 2, r = t.x + t.pw / 2;
+    const hitAt = (top, bot) => placed.find(o => l < o.r + 4 && r > o.l - 4 && top < o.b + 4 && bot > o.t - 4);
+    for (let k = 0; k < 12; k++) {
+      const hit = hitAt(t.y - 20 - lift - t.ph, t.y - 20 - lift);
+      if (!hit) break;
+      lift = t.y - 20 - (hit.t - 4);
+    }
+    const room = t.y - 20 - t.ph - minTop;
+    let below = false;
+    if (lift > room) {
+      /* no room above (off the top, or under the folded panel): hang it below the
+         anchor, dropped clear in the same way, or failing that keep it on screen
+         and overlap a label */
+      let drop = 0;
+      for (let k = 0; k < 12; k++) {
+        const hit = hitAt(t.y + 20 + drop, t.y + 20 + drop + t.ph);
+        if (!hit) break;
+        drop = hit.b + 4 - (t.y + 20);
+      }
+      if (t.y + 20 + drop + t.ph <= maxBot) { below = true; lift = drop; }
+      else if (room >= 0) lift = room;
+      else { below = true; lift = 0; }
+    }
+    t.pin.el.classList.toggle('below', below);
+    const top = below ? t.y + 20 + lift : t.y - 20 - lift - t.ph;
+    placed.push({ l, r, t:top, b:top + t.ph });
+    t.pin.el.style.setProperty('--lead', (20 + lift) + 'px');
+    t.pin.el.style.setProperty('--dx', (t.x - t.x0) + 'px');
+    t.pin.el.style.transform = `translate(${t.x}px, ${top}px) translate(-50%, 0)`;
+  }
+}
+/* show step i in the scene (or none, with null) */
+function applyStep(i) {
+  if (i === shownStep) return;
+  for (const o of Object.values(hlMade)) o.visible = false;
+  stepGroup.traverse(o => {
+    if (o.geometry && o.geometry !== dotGeo) o.geometry.dispose();
+    if (o.material && o.material !== markMat) o.material.dispose();
+  });
+  stepGroup.clear(); faultGlow = null;
+  for (const p of pinEls) p.el.remove();
+  pinEls.length = 0;
+  for (const L of Object.values(labelEls)) L.el.classList.remove('dim');
+  if (i === null) {
+    if (shownStep !== null) setState(idxSaved);
+    shownStep = null; return;
+  }
+  if (shownStep === null) idxSaved = idx;
+  shownStep = i;
+  const spec = SV[i] || {};
+  if (spec.state && typeof spec.state === 'object') { pressPill(-1); showState(spec.state); }
+  else setState(spec.state || 0);
+  const items = (spec.changes ? SX.slice(0, i).flatMap(st => st.needed) : []).concat(SX[i].needed);
+  const lit = new Set();
+  for (const n of items) for (const m of n.marks) for (const k of (MARKS[m] ? MARKS[m].lit : [])) lit.add(k);
+  for (const k of lit) { const o = hlPart(k); if (o) o.visible = true; }
+  for (const [k, parts] of Object.entries(LABEL_PARTS)) if (labelEls[k] && !parts.some(p => lit.has(p))) labelEls[k].el.classList.add('dim');
+  const at = new Map();
+  SX[i].needed.forEach((n, j) => n.marks.forEach(m => { if (!MARKS[m]) return; if (!at.has(m)) at.set(m, []); at.get(m).push(j + 1); }));
+  for (const [m, nums] of at) addPin(MARKS[m].at, nums, MARK_NAMES[m] || m);
+  buildExtras(i, [...at.keys()]);
+  flyToStep(i);
+}
+/* fly to step i's camera: pulled back on a phone, and below 1280 px, where the
+   drawer is a sheet, pulled back or slid across until every pinned part shows in
+   the space the cards leave (from 640 to 900 px that slides it out from under the
+   panel, which the scene is not offset for), with room above it for the pins that
+   stack there */
+function flyToStep(i) {
+  const c = CAMS[(SV[i] || {}).cam || 'home'];
+  let pos = P(...c.pos), tgt = P(...c.tgt);
+  const w = window.innerWidth, h = window.innerHeight;
+  if (w < 640) pos = tgt.clone().add(pos.clone().sub(tgt).multiplyScalar(1.5));
+  const anchors = SX[i].needed.flatMap(n => n.marks).filter(m => MARKS[m]).map(m => P(...MARKS[m].at));
+  if (w < 1280 && canvas.clientWidth && anchors.length) {
+    const f = freeArea(w, h), cam = camera.clone(), v = new THREE.Vector3();
+    cam.aspect = w / h;
+    if (viewTo.x || viewTo.y) cam.setViewOffset(w, h, viewTo.x, viewTo.y, w, h); else cam.clearViewOffset();
+    /* how far the anchors fall outside the free area, leaving room above each for its
+       pin and for the pins of the anchors below it, which stack up over it */
+    const over = (p, t) => {
+      cam.position.copy(p); cam.lookAt(t); cam.updateMatrixWorld(); cam.updateProjectionMatrix();
+      const at = a => { v.copy(a).project(cam); return [(v.x * .5 + .5) * w, (-v.y * .5 + .5) * h]; };
+      const xy = anchors.map(at);
+      let o = 0;
+      for (const [x, y] of xy) {
+        const stack = xy.filter(([x2, y2]) => Math.abs(x2 - x) < 160 && y2 >= y - 30).length;
+        o += Math.max(0, f.l + 24 - x) + Math.max(0, x - f.r + 24) + Math.max(0, f.t + 26 + 30 * stack - y) + Math.max(0, y - f.b + 8);
+      }
+      return o;
+    };
+    /* each pass takes whichever move helps most: back a little, or a slide up, down,
+       left or right; it stops when none helps */
+    let o = over(pos, tgt), back = 0;
+    for (let k = 0; k < 12 && o > 0; k++) {
+      cam.position.copy(pos); cam.lookAt(tgt);
+      const up = new THREE.Vector3(0, 1, 0).applyQuaternion(cam.quaternion), side = new THREE.Vector3(1, 0, 0).applyQuaternion(cam.quaternion);
+      const d = pos.distanceTo(tgt) * 0.06, moves = [];
+      if (back < 6) moves.push([tgt.clone().add(pos.clone().sub(tgt).multiplyScalar(1.15)), tgt, 1]);
+      for (const [dir, s] of [[up, d], [up, -d], [side, d], [side, -d]])
+        moves.push([pos.clone().addScaledVector(dir, s), tgt.clone().addScaledVector(dir, s), 0]);
+      let best = null;
+      for (const m of moves) { const om = over(m[0], m[1]); if (om < o) { o = om; best = m; } }
+      if (!best) break;
+      [pos, tgt] = best; back += best[2];
+    }
+  }
+  flyTo(pos, tgt);
+}
+function fillStep(i) {
+  const st = W.steps[i], sx = SX[i];
+  svLead.textContent = st.lead; byId('sv-detail').textContent = st.detail; byId('sv-owner').textContent = st.owner;
+  const ol = byId('sv-needed'); ol.textContent = '';
+  sx.needed.forEach((n, j) => {
+    const li = document.createElement('li');
+    const mk = document.createElement('span'); mk.className = 'mk' + (n.marks.some(m => MARKS[m]) ? '' : ' plain'); mk.textContent = j + 1;
+    const tx = document.createElement('span'); tx.textContent = n.text;
+    li.append(mk, tx); ol.appendChild(li);
+  });
+  byId('sv-why').textContent = sx.why; byId('sv-done').textContent = sx.done;
+  svPrev.disabled = i === 0; svNext.disabled = i === W.steps.length - 1;
+  svStepper.querySelectorAll('button').forEach((b, j) => b.setAttribute('aria-current', j === i ? 'step' : 'false'));
+}
+function drawerShown() { return drawer.open && (drawer.mode === 'glossary' ? !!GL : tab === 'ours' && !!W); }
+function layoutSteps() {
+  const show = drawerShown(), mode = drawer.mode;
+  wnCard.hidden = !show;
+  for (const [k, v] of Object.entries(views)) v.hidden = k !== mode;
+  wnFoot.hidden = mode !== 'step';
+  wnBack.hidden = !(mode === 'step' || (mode === 'glossary' && drawer.back && tab === 'ours'));
+  wnBack.setAttribute('aria-label', mode === 'step' ? 'Back to all steps' : 'Back');
+  wnClose.setAttribute('aria-label', mode === 'glossary' ? 'Close the glossary' : 'Close the step list');
+  if (mode === 'step' && SX) { wnTitle.textContent = 'Step ' + (drawer.step + 1) + ' of ' + W.steps.length; fillStep(drawer.step); }
+  else wnTitle.textContent = mode === 'glossary' ? 'Glossary' : (W ? W.title : '');
+  if (W) { wnOpen.hidden = tab !== 'ours'; wnOpen.setAttribute('aria-expanded', show && mode !== 'glossary' ? 'true' : 'false'); }
+  if (GL) glOpen.setAttribute('aria-expanded', show && mode === 'glossary' ? 'true' : 'false');
+  byId('panel').classList.toggle('compact', show && window.innerWidth < 640);
+  frameView();
+  applyStep(show && mode === 'step' && SX ? drawer.step : null);
+}
+function openStep(i) { Object.assign(drawer, { open:true, mode:'step', step:i }); wnScroll.scrollTop = 0; layoutSteps(); }
+function closeDrawer() {
+  const was = drawer.mode; drawer.open = false; layoutSteps(); notify();
+  const back = was === 'glossary' ? glOpen : wnOpen;
+  if (back && back.isConnected && !back.hidden) back.focus();
+}
+if (W) wnOpen.addEventListener('click', () => {
+  if (drawerShown() && drawer.mode !== 'glossary') { closeDrawer(); return; }
+  Object.assign(drawer, { open:true, mode: drawer.step !== null && drawer.mode === 'step' ? 'step' : 'list' });
+  layoutSteps(); wnClose.focus(); notify();
+});
+if (GL) {
+  const showGlossary = from => {
+    Object.assign(drawer, { open:true, mode:'glossary', back:from }); wnScroll.scrollTop = 0; layoutSteps();
+    byId('gl-find').focus({ preventScroll:true }); notify();
+  };
+  glOpen.addEventListener('click', () => { if (drawerShown() && drawer.mode === 'glossary') closeDrawer(); else showGlossary(drawerShown() ? drawer.mode : null); });
+  wnGl.addEventListener('click', () => showGlossary('list'));
+}
+wnClose.addEventListener('click', closeDrawer);
+wnBack.addEventListener('click', () => {
+  const from = drawer.mode === 'step' ? drawer.step : null;
+  drawer.mode = drawer.mode === 'glossary' ? (drawer.back || 'list') : 'list';
+  layoutSteps(); notify();
+  if (drawer.mode === 'list' && from !== null && wnRows[from]) wnRows[from].focus(); else wnClose.focus();
+});
+svPrev.addEventListener('click', () => { if (drawer.step > 0) { openStep(drawer.step - 1); notify(); } if (svPrev.disabled) svLead.focus(); });
+svNext.addEventListener('click', () => { if (drawer.step < W.steps.length - 1) { openStep(drawer.step + 1); notify(); } if (svNext.disabled) svLead.focus(); });
+document.addEventListener('keydown', e => {
+  if (wnCard.hidden || e.altKey || e.ctrlKey || e.metaKey) return;
+  if (e.key === 'Escape') { e.preventDefault(); closeDrawer(); }
+  else if (drawer.mode === 'step' && wnCard.contains(e.target) && e.target.tagName !== 'INPUT' && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+    e.preventDefault(); (e.key === 'ArrowRight' ? svNext : svPrev).click();
+  }
+});
+
 function fromHash() { const h = (location.hash || '').slice(1); setTab(h === TABS.ours.hash ? 'ours' : 'lee', true); }
 window.addEventListener('hashchange', fromHash);
 fromHash();
@@ -540,6 +1035,7 @@ function resize() {
   const w = window.innerWidth, h = window.innerHeight;
   renderer.setSize(w, h, false); camera.aspect = w / h;
   camera.fov = w < 640 ? 50 : 38;
+  byId('panel').classList.toggle('compact', !wnCard.hidden && w < 640);
   frameView(true);
 }
 window.addEventListener('resize', resize); resize();
@@ -554,7 +1050,10 @@ function tick() {
   if (!canvas.clientWidth) { requestAnimationFrame(tick); return; }
   /* frame the camera from the size the view is first shown at (it may have
      started up in a hidden pane, at no size at all) */
-  if (!homed) { homed = true; goHome(); }
+  if (!homed) {
+    homed = true; goHome(); flight.t = 1;
+    if (shownStep !== null) flyToStep(shownStep);
+  }
   const dt = Math.min(clock.getDelta(), 0.1);
 
   for (const c of Object.values(cables)) {
@@ -600,6 +1099,18 @@ function tick() {
     applyView();
   }
 
+  if (flight.t < 1) {
+    flight.t = Math.min(1, flight.t + dt / flight.dur);
+    const e = flight.t < .5 ? 4 * flight.t ** 3 : 1 - (-2 * flight.t + 2) ** 3 / 2;
+    camera.position.lerpVectors(flight.from.pos, flight.to.pos, e);
+    controls.target.lerpVectors(flight.from.tgt, flight.to.tgt, e);
+  }
+  if (shownStep !== null) {
+    const pulse = reduceMotion ? 0 : Math.sin(clock.elapsedTime * 3);
+    for (const o of Object.values(hlMade)) if (o.visible) o.userData.fill.opacity = (o.isGroup ? .14 : .32) + (o.isGroup ? .06 : .1) * pulse;
+    if (faultGlow) { const k = 1 + .25 * pulse; faultGlow.scale.set(k, k, k); }
+  }
+
   controls.update();
   renderer.render(scene, camera);
 
@@ -611,6 +1122,7 @@ function tick() {
     L.el.hidden = !vis;
     if (vis) L.el.style.transform = `translate(${(vp.x * .5 + .5) * w}px, ${(-vp.y * .5 + .5) * h - 14}px) translate(-50%, -100%)`;
   }
+  if (pinEls.length) placePins(w, h);
   requestAnimationFrame(tick);
 }
 
