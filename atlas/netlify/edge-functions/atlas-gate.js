@@ -32,9 +32,15 @@
 
    The pages, their ?view= routes and their security policies come from the build (atlas/build.py writes
    ../edge-lib/pages.js). Netlify's _headers rules don't reach responses that pass through an edge function, so every
-   header these pages need is set here. */
+   header these pages need is set here.
 
-import { PAGES, CSP, REDIRECTS } from '../edge-lib/pages.js';
+   A few views open without the sign-in for now (OPEN_WITHOUT_SIGN_IN in atlas/pages.py, written here as OPEN_VIEWS
+   and OPEN_PATHS): those exact views and addresses are served to anyone, with the same headers; nothing else is. */
+
+import * as EDGE_LIB from '../edge-lib/pages.js';
+const { PAGES, CSP, REDIRECTS } = EDGE_LIB;
+const OPEN_VIEWS = EDGE_LIB.OPEN_VIEWS || {};
+const OPEN_PATHS = EDGE_LIB.OPEN_PATHS || [];
 
 const SESSION_COOKIE = 'rbx_atlas';
 const STATE_COOKIE = 'rbx_atlas_signin';
@@ -89,6 +95,21 @@ export default async (request, context) => {
   if (url.pathname === '/access/email') return request.method === 'POST' ? sendCode(request, cfg) : emailPage(url);
   if (url.pathname === '/access/email/code' && request.method === 'POST') return checkCode(request, cfg);
   if (url.pathname.startsWith('/access/')) return page(404, 'That page isn&rsquo;t here', 'Head back to Atlas.', { href: '/', label: 'Back to Atlas' });
+
+  // the views opened without the sign-in for now: only the exact view (?view=<v> on its page), its file and the listed
+  // addresses, with the gated pages' headers; a signed-in visitor is served the same way
+  const openView = url.searchParams.get('view');
+  if (OPEN_VIEWS[url.pathname] && openView && OPEN_VIEWS[url.pathname].includes(openView)) {
+    const pg = PAGES[url.pathname];
+    if (pg && pg.views && Object.prototype.hasOwnProperty.call(pg.views, openView)) return new URL(url.pathname + pg.views[openView], url.origin);
+  }
+  if (OPEN_PATHS.includes(url.pathname)) {
+    const res = await context.next();
+    const out = new Response(res.body, res);
+    for (const [k, v] of Object.entries(GATED_HEADERS)) out.headers.set(k, v);
+    out.headers.set('content-security-policy', policyFor(url.pathname));
+    return out;
+  }
 
   let session = await unseal(readCookie(request, SESSION_COOKIE), 'session', cfg);
   if (!session) return signedOut(request, url);

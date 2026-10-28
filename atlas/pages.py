@@ -302,6 +302,13 @@ CLIENT_PAGES = {
 # /clients/bryn/ was Bryn's address for a day: the public front page names a client by its code only (BRY)
 CLIENT_REDIRECTS = {"/clients/reabold/": "/clients/", "/clients/bryn/": "/clients/bry/"}
 
+# THE ONE SETTING for views that open without the sign-in, for now (the client sign-in comes at a later stage):
+# {page: {view: [other addresses of that view that open with it]}}. The gate opens these views, their files and the
+# listed addresses to anyone, and the KLD twin's file signer (netlify/edge-functions/kld-twin-assets.js) stops asking
+# for a session while its address is listed. Everything else under /clients/ and /team/ stays behind the sign-in,
+# KLD's map and 3D view included. To put the KLD twin behind the sign-in, delete its entry (leave {}) and rebuild.
+OPEN_WITHOUT_SIGN_IN = {"/clients/kld/": {"twin": ["/clients/kld/twin-assets"]}}
+
 # Each page's security policy, as measured page by page: what it loads (Leaflet from cdnjs, imagery from Esri,
 # OpenStreetMap or CARTO tiles, Google Fonts), whether its mesh decoder compiles WebAssembly ('wasm-unsafe-eval'),
 # and whether three.js fetches its textures as blob: URLs. A view file has its own policy where it needs one.

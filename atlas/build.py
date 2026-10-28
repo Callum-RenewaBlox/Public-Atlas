@@ -706,11 +706,29 @@ def write_edge_lib():
     for old, new in EDGE_REDIRECTS.items():
         if not old.startswith(("/clients/", "/team/")) or not new.startswith(("/clients/", "/team/")):
             fail(f"EDGE_REDIRECTS: {old} -> {new} must stay under /clients/ or /team/")
+    # views opened without the sign-in for now (OPEN_WITHOUT_SIGN_IN in pages.py): each must be a view of a gated client
+    # page, and its extra addresses must sit in that page's folder
+    open_views, open_paths = {}, []
+    for path, views in getattr(pages, "OPEN_WITHOUT_SIGN_IN", {}).items():
+        if not path.startswith("/clients/") or path not in GATED_PAGES:
+            fail(f"OPEN_WITHOUT_SIGN_IN: {path} is not a client page")
+        for view, extra in views.items():
+            file = (GATED_PAGES[path].get("views") or {}).get(view)
+            if not file:
+                fail(f"OPEN_WITHOUT_SIGN_IN: {path} has no view {view!r}")
+            open_views.setdefault(path, []).append(view)
+            open_paths.append(path + file)
+            for p in extra:
+                if not p.startswith(path) or p == path or "?" in p:
+                    fail(f"OPEN_WITHOUT_SIGN_IN: {p} must be an address inside {path}")
+                open_paths.append(p)
     js = lambda v: json.dumps(v, indent=1, sort_keys=True, ensure_ascii=True)
     EDGE_LIB.parent.mkdir(parents=True, exist_ok=True)
     EDGE_LIB.write_text("// Written by atlas/build.py: the gated pages, their policies and moved addresses. Do not edit.\n"
                         f"export const PAGES = {js(GATED_PAGES)};\nexport const CSP = {js(EDGE_CSP)};\n"
-                        f"export const REDIRECTS = {js(EDGE_REDIRECTS)};\n", encoding="utf-8")
+                        f"export const REDIRECTS = {js(EDGE_REDIRECTS)};\n"
+                        f"export const OPEN_VIEWS = {js(open_views)};\nexport const OPEN_PATHS = {js(sorted(open_paths))};\n",
+                        encoding="utf-8")
 
 
 def sync():

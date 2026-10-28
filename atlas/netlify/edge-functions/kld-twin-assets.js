@@ -3,7 +3,10 @@
    The page (kld_twin.html, served as /clients/kld/?view=twin) asks here before it loads anything; no URL, token or
    key is ever written into the page or this repository.
 
-   The address is under /clients/, so the sign-in (atlas-gate.js) checks it first. This function does not rely on
+   FOR NOW THE TWIN OPENS WITHOUT THE SIGN-IN: while this address is listed in OPEN_WITHOUT_SIGN_IN (atlas/pages.py,
+   written by the build into ../edge-lib/pages.js as OPEN_PATHS), the gate lets anyone through and this function signs
+   for any visitor. Delete the twin's entry there and rebuild, and both checks come back at once:
+   the address is under /clients/, so the sign-in (atlas-gate.js) checks it first, and this function does not rely on
    that: it opens the session cookie itself, with the gate's scheme (sealed below, which must match atlas-gate.js),
    and answers only an unexpired session whose access includes 'kld' or '*' (the team). Anything missing or wrong
    fails closed.
@@ -26,20 +29,25 @@ const SESSION_COOKIE = 'rbx_atlas';
 const CLIENT = 'kld';
 const TIMEOUT_MS = 8000;
 
+import * as EDGE_LIB from '../edge-lib/pages.js';
+
 export const config = { path: '/clients/kld/twin-assets' };
+const OPEN = (EDGE_LIB.OPEN_PATHS || []).includes(config.path);   // listed in OPEN_WITHOUT_SIGN_IN: no session needed
 
 export default async (request) => {
   if (request.method !== 'GET') return answer(405, { error: 'GET only' });
   const env = k => String((globalThis.Netlify && Netlify.env.get(k)) || '').trim();
   const secret = env('ATLAS_SESSION_SECRET'), key = env('KLD_TWIN_SUPABASE_SECRET');
-  if (secret.length < 32 || !key) {
-    console.error('kld-twin-assets is locked until ATLAS_SESSION_SECRET and KLD_TWIN_SUPABASE_SECRET are set');
+  if (!key || (!OPEN && secret.length < 32)) {
+    console.error('kld-twin-assets is locked until KLD_TWIN_SUPABASE_SECRET (and, behind the sign-in, ATLAS_SESSION_SECRET) are set');
     return answer(503, { error: 'not set up' });
   }
-  const session = await unseal(readCookie(request, SESSION_COOKIE), secret);
-  if (!session) return answer(401, { error: 'sign in again' });
-  if (now() - session.c > FILE_SECONDS) return answer(401, { error: 'open the page again' });
-  if (!(session.a.includes('*') || session.a.includes(CLIENT))) return answer(403, { error: 'not shared with this account' });
+  if (!OPEN) {
+    const session = await unseal(readCookie(request, SESSION_COOKIE), secret);
+    if (!session) return answer(401, { error: 'sign in again' });
+    if (now() - session.c > FILE_SECONDS) return answer(401, { error: 'open the page again' });
+    if (!(session.a.includes('*') || session.a.includes(CLIENT))) return answer(403, { error: 'not shared with this account' });
+  }
 
   const paths = Object.values(FILES).map(f => `${FOLDER}/${f}`);
   let signed;
