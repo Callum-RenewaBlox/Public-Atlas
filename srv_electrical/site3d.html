@@ -152,6 +152,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   border:1.5px solid #ca8a04;border-radius:999px;padding:3px 9px 3px 3px;font:600 12px/1.2 var(--font);
   box-shadow:0 2px 6px rgba(20,30,40,.25);will-change:transform}
 .pin::after{content:"";position:absolute;left:calc(50% - var(--dx,0px));top:100%;width:2px;height:var(--lead,20px);margin-left:-1px;background:#ca8a04}
+.pin.below::after{top:auto;bottom:100%}
 .pin[hidden]{display:none!important}
 .lbl.dim{opacity:.4}
 /* on a phone with a step sheet open, the panel folds to its tabs to give the scene room */
@@ -204,7 +205,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     <button type="button" class="wn-icon" id="wn-back" aria-label="Back" hidden>
       <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3.5L5.5 8l4.5 4.5"/></svg>
     </button>
-    <h2 id="wn-title"></h2>
+    <h2 id="wn-title" aria-live="polite"></h2>
     <button type="button" class="wn-icon" id="wn-close" aria-label="Close">
       <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>
     </button>
@@ -549,9 +550,13 @@ function notify() {
 window.LV = { show(t, i, step) {
   if (!TABS[t]) return;
   if (t !== tab) setTab(t, true);
+  const ii = Math.max(0, Math.min(TABS[t].states.length - 1, i | 0));
+  const want = t === 'ours' && SX && Number.isInteger(step) && step >= 0 && step < SX.length ? step : null;
+  /* the step already open: keep the camera where the reader left it */
+  if (want !== null && want === shownStep && drawerShown() && drawer.mode === 'step') { idxSaved = ii; return; }
   if (shownStep !== null) applyStep(null);
-  setState(Math.max(0, Math.min(TABS[t].states.length - 1, i | 0)));
-  if (t === 'ours' && SX && Number.isInteger(step) && step >= 0 && step < SX.length) Object.assign(drawer, { open:true, mode:'step', step });
+  setState(ii);
+  if (want !== null) Object.assign(drawer, { open:true, mode:'step', step:want });
   else if (drawer.mode === 'step') drawer.mode = 'list';
   layoutSteps();
 } };
@@ -594,7 +599,6 @@ function applyView() {
 /* camera flights to a step's part of the site; the reader can take over at any time */
 const flight = { t:1, dur:1.1, from:{ pos:new THREE.Vector3(), tgt:new THREE.Vector3() }, to:{ pos:new THREE.Vector3(), tgt:new THREE.Vector3() } };
 function flyTo(pos, tgt) {
-  if (window.innerWidth < 640) pos = tgt.clone().add(pos.clone().sub(tgt).multiplyScalar(1.5));
   if (reduceMotion) { flight.t = 1; camera.position.copy(pos); controls.target.copy(tgt); controls.update(); return; }
   flight.from.pos.copy(camera.position); flight.from.tgt.copy(controls.target);
   flight.to.pos.copy(pos); flight.to.tgt.copy(tgt); flight.t = 0;
@@ -617,6 +621,7 @@ const wnCard = byId('wn'), wnOpen = byId('wn-open'), wnClose = byId('wn-close'),
 const wnTitle = byId('wn-title'), wnFoot = byId('wn-foot'), wnScroll = byId('wn-scroll');
 const views = { list:byId('wn-listview'), step:byId('wn-stepview'), glossary:byId('wn-glview') };
 const svStepper = byId('sv-stepper'), svLead = byId('sv-lead'), svPrev = byId('sv-prev'), svNext = byId('sv-next');
+const wnGl = byId('wn-gl');
 const drawer = { open:false, mode:'list', step:null, back:null };
 const wnRows = [];
 let shownStep = null, idxSaved = 0;
@@ -654,7 +659,7 @@ else {
     svStepper.appendChild(b);
   });
 }
-if (!GL) { glOpen.remove(); byId('wn-gl').closest('p').remove(); views.glossary.remove(); }
+if (!GL) { glOpen.remove(); wnGl.closest('p').remove(); views.glossary.remove(); }
 else {
   const glFind = byId('gl-find'), glList = byId('gl-list'), glNone = byId('gl-none');
   const items = GL.map(g => {
@@ -711,7 +716,7 @@ const CAMS = {
 };
 const FAULT = { name:'Fault', caption:'A fault on the data centre section is fed by the grid and the engine together.',
   flows:{ chp:[1,'engine',1], tie:[.8,'grid',-1], grid:[.9,'grid',-1], site:[.3,'grid',1], dc:[1,'engine',1] }, trip:'idle',
-  status:{ chp:['Feeding the fault','engine'], kiosk:['Fault, DC section','alarm'], dc:['Mining','engine'], tx:['Feeding the fault','grid'], site:['On grid','grid'], trip:['Healthy','trip'] } };
+  status:{ chp:['Feeding the fault','engine'], kiosk:['Fault, DC section','alarm'], dc:['Fault','alarm'], tx:['Feeding the fault','grid'], site:['On grid','grid'], trip:['Healthy','trip'] } };
 const SV = [
   { cam:'kioskSE' }, { cam:'kioskNE' }, { cam:'chpKiosk' }, { cam:'kioskNE' }, { cam:'grid' }, { cam:'kioskSE' },
   { cam:'kioskNE' }, { cam:'kioskTop', extras:['plan'] }, { cam:'home', state:FAULT }, { cam:'chpKiosk', state:2 },
@@ -794,13 +799,33 @@ function addPin(at, nums, text) {
   const t = document.createElement('span'); t.textContent = text; el.appendChild(t);
   labelLayer.appendChild(el); pinEls.push({ el, anchor:P(...at) });
 }
+/* the part of the screen the cards leave the scene: right of the panel from 640 px
+   and below it when it folds to its tabs on a phone, left of the drawer's card from
+   1280 px and above its sheet below that */
+function freeArea(w, h) {
+  const f = { l:8, r:w - 8, t:8, b:h - 8 }, panel = byId('panel');
+  const pr = panel.getBoundingClientRect();
+  if (panel.classList.contains('compact')) f.t = pr.bottom + 8;
+  else if (w >= 640) f.l = pr.right + 8;
+  if (!wnCard.hidden) {
+    const r = wnCard.getBoundingClientRect();
+    if (w >= 1280) f.r = r.left - 8; else f.b = r.top - 8;
+  }
+  return f;
+}
 /* place the pins over their anchors: slid sideways out from under the panel or the
    drawer (the leader stays on the anchor), then lifted clear of any asset label or
-   pin placed before them (lowest on screen first), with the leader grown to match */
+   pin placed before them (lowest on screen first), with the leader grown to match.
+   They stay on screen and clear of the folded panel: a pin with no room above its
+   anchor hangs below it */
 const placed = [], cards = [];
 function placePins(w, h) {
   placed.length = 0; cards.length = 0;
-  for (const id of ['panel', 'wn']) { const e = byId(id); if (e && !e.hidden) cards.push(e.getBoundingClientRect()); }
+  const panel = byId('panel'), compact = panel.classList.contains('compact');
+  if (!compact) cards.push(panel.getBoundingClientRect());
+  if (!wnCard.hidden) cards.push(wnCard.getBoundingClientRect());
+  const minTop = compact ? panel.getBoundingClientRect().bottom + 6 : 6;
+  const maxBot = (!wnCard.hidden && w < 1280 ? wnCard.getBoundingClientRect().top : h) - 6;
   for (const L of Object.values(labelEls)) {
     if (L.el.hidden) continue;
     const r = L.el.getBoundingClientRect(); placed.push({ l:r.left, r:r.right, t:r.top, b:r.bottom });
@@ -808,29 +833,52 @@ function placePins(w, h) {
   const todo = [];
   for (const pin of pinEls) {
     vp.copy(pin.anchor).project(camera);
-    const vis = vp.z < 1 && vp.x > -1.2 && vp.x < 1.2 && vp.y > -1.2 && vp.y < 1.2;
+    const vis = vp.z < 1 && vp.x > -1 && vp.x < 1 && vp.y > -1 && vp.y < 1;
     pin.el.hidden = !vis;
     if (vis) todo.push({ pin, x:(vp.x * .5 + .5) * w, y:(-vp.y * .5 + .5) * h, pw:pin.el.offsetWidth, ph:pin.el.offsetHeight });
   }
   todo.sort((a, b) => b.y - a.y);
   for (const t of todo) {
+    const xMin = 8 + t.pw / 2, xMax = w - 8 - t.pw / 2;
     let lift = 0, cx = t.x;
     for (const c of cards) {
       const top = t.y - 20 - t.ph, bot = t.y - 20;
-      if (cx - t.pw / 2 < c.right + 6 && cx + t.pw / 2 > c.left - 6 && top < c.bottom && bot > c.top)
-        cx = (c.left + c.right) / 2 < w / 2 ? c.right + 8 + t.pw / 2 : c.left - 8 - t.pw / 2;
+      if (!(cx - t.pw / 2 < c.right + 6 && cx + t.pw / 2 > c.left - 6 && top < c.bottom && bot > c.top)) continue;
+      const right = c.right + 8 + t.pw / 2, left = c.left - 8 - t.pw / 2;
+      const first = (c.left + c.right) / 2 < w / 2 ? right : left, other = first === right ? left : right;
+      /* a card as wide as the screen leaves no side to go to */
+      if (first >= xMin && first <= xMax) cx = first; else if (other >= xMin && other <= xMax) cx = other;
     }
-    t.x0 = t.x; t.x = cx;
+    t.x0 = t.x; t.x = Math.min(xMax, Math.max(xMin, cx));
+    const l = t.x - t.pw / 2, r = t.x + t.pw / 2;
+    const hitAt = (top, bot) => placed.find(o => l < o.r + 4 && r > o.l - 4 && top < o.b + 4 && bot > o.t - 4);
     for (let k = 0; k < 12; k++) {
-      const box = { l:t.x - t.pw / 2, r:t.x + t.pw / 2, b:t.y - 20 - lift, t:t.y - 20 - lift - t.ph };
-      const hit = placed.find(o => box.l < o.r + 4 && box.r > o.l - 4 && box.t < o.b + 4 && box.b > o.t - 4);
+      const hit = hitAt(t.y - 20 - lift - t.ph, t.y - 20 - lift);
       if (!hit) break;
       lift = t.y - 20 - (hit.t - 4);
     }
-    placed.push({ l:t.x - t.pw / 2, r:t.x + t.pw / 2, b:t.y - 20 - lift, t:t.y - 20 - lift - t.ph });
+    const room = t.y - 20 - t.ph - minTop;
+    let below = false;
+    if (lift > room) {
+      /* no room above (off the top, or under the folded panel): hang it below the
+         anchor, dropped clear in the same way, or failing that keep it on screen
+         and overlap a label */
+      let drop = 0;
+      for (let k = 0; k < 12; k++) {
+        const hit = hitAt(t.y + 20 + drop, t.y + 20 + drop + t.ph);
+        if (!hit) break;
+        drop = hit.b + 4 - (t.y + 20);
+      }
+      if (t.y + 20 + drop + t.ph <= maxBot) { below = true; lift = drop; }
+      else if (room >= 0) lift = room;
+      else { below = true; lift = 0; }
+    }
+    t.pin.el.classList.toggle('below', below);
+    const top = below ? t.y + 20 + lift : t.y - 20 - lift - t.ph;
+    placed.push({ l, r, t:top, b:top + t.ph });
     t.pin.el.style.setProperty('--lead', (20 + lift) + 'px');
     t.pin.el.style.setProperty('--dx', (t.x - t.x0) + 'px');
-    t.pin.el.style.transform = `translate(${t.x}px, ${t.y - 20 - lift}px) translate(-50%, -100%)`;
+    t.pin.el.style.transform = `translate(${t.x}px, ${top}px) translate(-50%, 0)`;
   }
 }
 /* show step i in the scene (or none, with null) */
@@ -863,8 +911,53 @@ function applyStep(i) {
   SX[i].needed.forEach((n, j) => n.marks.forEach(m => { if (!MARKS[m]) return; if (!at.has(m)) at.set(m, []); at.get(m).push(j + 1); }));
   for (const [m, nums] of at) addPin(MARKS[m].at, nums, MARK_NAMES[m] || m);
   buildExtras(i, [...at.keys()]);
-  const c = CAMS[spec.cam || 'home'];
-  flyTo(P(...c.pos), P(...c.tgt));
+  flyToStep(i);
+}
+/* fly to step i's camera: pulled back on a phone, and below 1280 px, where the
+   drawer is a sheet, pulled back or slid across until every pinned part shows in
+   the space the cards leave (from 640 to 900 px that slides it out from under the
+   panel, which the scene is not offset for), with room above it for the pins that
+   stack there */
+function flyToStep(i) {
+  const c = CAMS[(SV[i] || {}).cam || 'home'];
+  let pos = P(...c.pos), tgt = P(...c.tgt);
+  const w = window.innerWidth, h = window.innerHeight;
+  if (w < 640) pos = tgt.clone().add(pos.clone().sub(tgt).multiplyScalar(1.5));
+  const anchors = SX[i].needed.flatMap(n => n.marks).filter(m => MARKS[m]).map(m => P(...MARKS[m].at));
+  if (w < 1280 && canvas.clientWidth && anchors.length) {
+    const f = freeArea(w, h), cam = camera.clone(), v = new THREE.Vector3();
+    cam.aspect = w / h;
+    if (viewTo.x || viewTo.y) cam.setViewOffset(w, h, viewTo.x, viewTo.y, w, h); else cam.clearViewOffset();
+    /* how far the anchors fall outside the free area, leaving room above each for its
+       pin and for the pins of the anchors below it, which stack up over it */
+    const over = (p, t) => {
+      cam.position.copy(p); cam.lookAt(t); cam.updateMatrixWorld(); cam.updateProjectionMatrix();
+      const at = a => { v.copy(a).project(cam); return [(v.x * .5 + .5) * w, (-v.y * .5 + .5) * h]; };
+      const xy = anchors.map(at);
+      let o = 0;
+      for (const [x, y] of xy) {
+        const stack = xy.filter(([x2, y2]) => Math.abs(x2 - x) < 160 && y2 >= y - 30).length;
+        o += Math.max(0, f.l + 24 - x) + Math.max(0, x - f.r + 24) + Math.max(0, f.t + 26 + 30 * stack - y) + Math.max(0, y - f.b + 8);
+      }
+      return o;
+    };
+    /* each pass takes whichever move helps most: back a little, or a slide up, down,
+       left or right; it stops when none helps */
+    let o = over(pos, tgt), back = 0;
+    for (let k = 0; k < 12 && o > 0; k++) {
+      cam.position.copy(pos); cam.lookAt(tgt);
+      const up = new THREE.Vector3(0, 1, 0).applyQuaternion(cam.quaternion), side = new THREE.Vector3(1, 0, 0).applyQuaternion(cam.quaternion);
+      const d = pos.distanceTo(tgt) * 0.06, moves = [];
+      if (back < 6) moves.push([tgt.clone().add(pos.clone().sub(tgt).multiplyScalar(1.15)), tgt, 1]);
+      for (const [dir, s] of [[up, d], [up, -d], [side, d], [side, -d]])
+        moves.push([pos.clone().addScaledVector(dir, s), tgt.clone().addScaledVector(dir, s), 0]);
+      let best = null;
+      for (const m of moves) { const om = over(m[0], m[1]); if (om < o) { o = om; best = m; } }
+      if (!best) break;
+      [pos, tgt] = best; back += best[2];
+    }
+  }
+  flyTo(pos, tgt);
 }
 function fillStep(i) {
   const st = W.steps[i], sx = SX[i];
@@ -894,8 +987,8 @@ function layoutSteps() {
   if (W) { wnOpen.hidden = tab !== 'ours'; wnOpen.setAttribute('aria-expanded', show && mode !== 'glossary' ? 'true' : 'false'); }
   if (GL) glOpen.setAttribute('aria-expanded', show && mode === 'glossary' ? 'true' : 'false');
   byId('panel').classList.toggle('compact', show && window.innerWidth < 640);
-  applyStep(show && mode === 'step' && SX ? drawer.step : null);
   frameView();
+  applyStep(show && mode === 'step' && SX ? drawer.step : null);
 }
 function openStep(i) { Object.assign(drawer, { open:true, mode:'step', step:i }); wnScroll.scrollTop = 0; layoutSteps(); }
 function closeDrawer() {
@@ -914,7 +1007,7 @@ if (GL) {
     byId('gl-find').focus({ preventScroll:true }); notify();
   };
   glOpen.addEventListener('click', () => { if (drawerShown() && drawer.mode === 'glossary') closeDrawer(); else showGlossary(drawerShown() ? drawer.mode : null); });
-  byId('wn-gl').addEventListener('click', () => showGlossary('list'));
+  wnGl.addEventListener('click', () => showGlossary('list'));
 }
 wnClose.addEventListener('click', closeDrawer);
 wnBack.addEventListener('click', () => {
@@ -958,8 +1051,8 @@ function tick() {
   /* frame the camera from the size the view is first shown at (it may have
      started up in a hidden pane, at no size at all) */
   if (!homed) {
-    homed = true; goHome();
-    if (flight.t < 1) { flight.from.pos.copy(camera.position); flight.from.tgt.copy(controls.target); }
+    homed = true; goHome(); flight.t = 1;
+    if (shownStep !== null) flyToStep(shownStep);
   }
   const dt = Math.min(clock.getDelta(), 0.1);
 

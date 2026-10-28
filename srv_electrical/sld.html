@@ -240,7 +240,7 @@ svg [data-dim]{opacity:.2;transition:opacity .25s}
   <section class="card" id="dia" aria-label="Diagram">
     <div class="sv-head" id="sv-head" hidden>
       <div class="sv-top">
-        <span class="sv-kicker" id="sv-kicker"></span>
+        <span class="sv-kicker" id="sv-kicker" aria-live="polite"></span>
         <div class="sv-nav">
           <button type="button" class="sv-btn" id="sv-prev"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3.5L5.5 8l4.5 4.5"/></svg>Previous</button>
           <button type="button" class="sv-btn" id="sv-next">Next<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5L10.5 8 6 12.5"/></svg></button>
@@ -576,7 +576,10 @@ svg [data-dim]{opacity:.2;transition:opacity .25s}
     if (!TABS[t]) return;
     if (t !== tab) setTab(t, true);
     idx = Math.max(0, Math.min(TABS[t].states.length - 1, i | 0));
-    if (t === 'ours' && SX && Number.isInteger(step) && step >= 0 && step < SX.length) { apply(); openStep(step, { scroll:true, instant:true }); }
+    if (t === 'ours' && SX && Number.isInteger(step) && step >= 0 && step < SX.length) {
+      if (step === active) return;     /* already open: keep the reader's place */
+      apply(); openStep(step, { scroll:true, instant:true });
+    }
     else { closeStep(); apply(); }
   } };
   function setTab(k, fromHash) {
@@ -852,6 +855,7 @@ svg [data-dim]{opacity:.2;transition:opacity .25s}
       const was = closeStep(); notify();
       const back = !wnBody.hidden && wnRows[was] ? wnRows[was] : wnJump;
       back.focus({ preventScroll: true });
+      back.scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
     });
     dia.addEventListener('keydown', e => {
       if (active === null || e.altKey || e.ctrlKey || e.metaKey) return;
