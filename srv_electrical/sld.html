@@ -90,9 +90,43 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .chip-engine .chipbg{fill:var(--engine-bg)} .chip-engine .chiptx{fill:var(--engine-fg)}
 .chip-grid .chipbg{fill:var(--grid-bg)} .chip-grid .chiptx{fill:var(--grid-fg)}
 .chip-alarm .chipbg{fill:var(--alarm-bg)} .chip-alarm .chiptx{fill:var(--alarm-fg)}
+/* what we need, step by step (What we need tab only): a card under the diagram,
+   collapsed to its call to action until opened, and a button by the summary
+   that opens it and takes the reader there */
+.wn-jump{align-self:flex-start;display:inline-flex;align-items:center;gap:8px;font:600 13.5px/1.2 var(--font);
+  border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:999px;padding:7px 14px;cursor:pointer}
+.wn-jump:hover{background:var(--tab-bg)}
+.wn-jump svg,.wn-toggle svg{width:16px;height:16px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.wn{gap:0}
+.wn-head{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px}
+.wn-title{font:600 17px/1.3 var(--font);margin:0}
+.wn-sub{margin:2px 0 0;font-size:13.5px;color:var(--muted)}
+.wn-toggle{display:inline-flex;align-items:center;gap:8px;font:600 13.5px/1.2 var(--font);border:1px solid var(--accent);
+  background:var(--accent);color:var(--accent-fg);border-radius:999px;padding:8px 14px;cursor:pointer}
+.wn-toggle:hover{filter:brightness(1.1)}
+.wn-toggle[aria-expanded="true"]{background:transparent;color:var(--accent)}
+.wn-toggle svg{transition:transform .2s}
+.wn-toggle[aria-expanded="true"] svg{transform:rotate(180deg)}
+.wn-toggle .hide,.wn-toggle[aria-expanded="true"] .show{display:none}
+.wn-toggle[aria-expanded="true"] .hide{display:inline}
+.wn-body{margin-top:14px}
+.wn-body[hidden]{display:none}
+.wn-cols{display:grid;grid-template-columns:1fr;column-gap:32px}
+@media (min-width:720px){.wn-cols{grid-template-columns:1fr 1fr}}
+.wn-list{list-style:none;margin:0;padding:0}
+.wn-list li{display:grid;grid-template-columns:1.7em 1fr;gap:10px;padding:11px 0;border-top:1px solid var(--line)}
+.wn-n{font-weight:600;color:var(--accent);text-align:right;font-variant-numeric:tabular-nums}
+.wn-lead{display:block;font-weight:600}
+.wn-detail{color:var(--muted);font-size:14px}
+.wn-owner{display:inline-block;margin-left:6px;font:500 11.5px/1.6 var(--mono);padding:0 8px;border-radius:999px;
+  background:var(--off-bg);color:var(--off-fg);white-space:nowrap;vertical-align:1px}
+.wn-unchanged{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted);text-wrap:pretty}
+.wn-confirm-h{margin:16px 0 6px;font:600 11.5px/1.2 var(--font);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.wn-confirm{margin:0;padding-left:1.1em;font-size:13.5px;color:var(--muted)}
+.wn-confirm li{margin:2px 0}
 [data-tab="lee"] .ours-only{display:none}
 [data-tab="ours"] .lee-only{display:none}
-@media (prefers-reduced-motion: reduce){.flow.on,.sig.fire{animation:none}}
+@media (prefers-reduced-motion: reduce){.flow.on,.sig.fire{animation:none}.wn-toggle svg{transition:none}}
 @media (max-width:560px){h1{font-size:22px}.card{padding:14px}
   /* "What Lee designed" stays on one line down to the narrowest phones */
   .tabs button{padding:9px 8px;white-space:nowrap}}
@@ -112,6 +146,11 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     </div>
   </header>
   <p class="summary" id="summary"></p>
+  <button type="button" class="wn-jump ours-only" id="wn-jump" aria-controls="wn-body">
+    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 4h7.5M6 8h7.5M6 12h7.5M2.5 4h.01M2.5 8h.01M2.5 12h.01"/></svg>
+    <span id="wn-jump-label">Step-by-step</span>
+    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M4 9l4 4 4-4"/></svg>
+  </button>
 
   <section class="card" aria-label="Diagram">
     <div class="controls">
@@ -211,7 +250,31 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
       <span class="ours-only"><svg width="22" height="8" aria-hidden="true"><line x1="1" y1="4" x2="21" y2="4" stroke="var(--trip)" stroke-width="1.6" stroke-dasharray="5 4"/></svg>Trip signal</span>
     </div>
   </section>
+
+  <section class="card wn ours-only" id="wn" aria-labelledby="wn-title">
+    <div class="wn-head">
+      <div>
+        <h2 class="wn-title" id="wn-title"></h2>
+        <p class="wn-sub" id="wn-sub"></p>
+      </div>
+      <button type="button" class="wn-toggle" id="wn-toggle" aria-expanded="false" aria-controls="wn-body">
+        <span class="show">Show the steps</span><span class="hide">Hide the steps</span>
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 6l4 4 4-4"/></svg>
+      </button>
+    </div>
+    <div class="wn-body" id="wn-body" hidden>
+      <div class="wn-cols">
+        <ol class="wn-list" role="list"></ol>
+        <ol class="wn-list" role="list"></ol>
+      </div>
+      <p class="wn-unchanged" id="wn-unchanged"></p>
+      <h3 class="wn-confirm-h" id="wn-confirm-h"></h3>
+      <ul class="wn-confirm" id="wn-confirm"></ul>
+    </div>
+  </section>
 </main>
+
+<script>__WHAT_WE_NEED__</script>
 
 <script>
 (() => {
@@ -280,7 +343,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     ours: {
       hash:'what-we-need',
       summary:"Remove the interlock: both ACBs stay closed so engine, site, grid and data centre share one busbar. Turndown happens in software at the miners; a hardwired trip drops the racks if the engine stops.",
-      note:"<b>Changes to LF42344.</b> Remove the interlock. Undervoltage-release coils, motor operators and status contacts on the two 400 A rack MCCBs. Trip relay fed by the 2G generator breaker and our controller's watchdog. CTs on the transformer incomer for a Modbus boundary meter, an MID meter on the data centre feed.",
+      note:"The full change list is set out step by step below.",
       states:[
         { name:'Normal running', caption:'Site loads take what they need, the miners take the rest, and a small margin exports. Every breaker stays closed.',
           brk:{}, buses:{ exist:'engine', newb:'engine', dcb:'engine' },
@@ -364,6 +427,38 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     renderSteps(); apply();
     if (!fromHash) { try { history.replaceState(null, '', '#' + TABS[k].hash); } catch (e) {} }
   }
+  /* what we need, step by step, from WHAT_WE_NEED (what_we_need.js, inlined by the
+     app): steps 1-6 and 7-11 in two columns on wide screens, collapsed until opened */
+  const W = WHAT_WE_NEED;
+  const wnToggle = document.getElementById('wn-toggle'), wnBody = document.getElementById('wn-body');
+  const wnJump = document.getElementById('wn-jump'), wnCard = document.getElementById('wn');
+  document.getElementById('wn-title').textContent = W.title;
+  document.getElementById('wn-sub').textContent = W.steps.length + ' steps on quote LF42344, and ' + W.confirm.length + ' things we confirm before ordering';
+  document.getElementById('wn-jump-label').textContent = 'Step-by-step (' + W.steps.length + ')';
+  const wnLists = wnBody.querySelectorAll('.wn-list'), half = Math.ceil(W.steps.length / 2);
+  wnLists[1].start = half + 1;
+  W.steps.forEach((st, i) => {
+    const li = document.createElement('li');
+    const n = document.createElement('span'); n.className = 'wn-n'; n.textContent = i + 1;
+    const body = document.createElement('div');
+    const lead = document.createElement('b'); lead.className = 'wn-lead'; lead.textContent = st.lead;
+    const detail = document.createElement('span'); detail.className = 'wn-detail'; detail.textContent = st.detail;
+    const owner = document.createElement('span'); owner.className = 'wn-owner'; owner.textContent = st.owner;
+    body.append(lead, detail, owner); li.append(n, body);
+    wnLists[i < half ? 0 : 1].appendChild(li);
+  });
+  document.getElementById('wn-unchanged').textContent = W.unchanged;
+  document.getElementById('wn-confirm-h').textContent = W.confirmTitle;
+  const wnConfirm = document.getElementById('wn-confirm');
+  for (const c of W.confirm) { const li = document.createElement('li'); li.textContent = c; wnConfirm.appendChild(li); }
+  function setSteps(open) { wnToggle.setAttribute('aria-expanded', open ? 'true' : 'false'); wnBody.hidden = !open; }
+  wnToggle.addEventListener('click', () => setSteps(wnBody.hidden));
+  wnJump.addEventListener('click', () => {
+    setSteps(true);
+    wnCard.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+    wnToggle.focus({ preventScroll: true });
+  });
+
   tabBtn.lee.addEventListener('click', () => { setTab('lee'); notify(); });
   tabBtn.ours.addEventListener('click', () => { setTab('ours'); notify(); });
   function fromHash() { setTab(location.hash.slice(1) === TABS.ours.hash ? 'ours' : 'lee', true); }

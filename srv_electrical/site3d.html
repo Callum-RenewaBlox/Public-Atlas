@@ -74,6 +74,40 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   .lbl{font-size:11.5px;padding:3px 5px 3px 9px}
   .chip{font-size:10.5px}
 }
+/* what we need, step by step (What we need tab only): closed until the call to
+   action in the panel opens it, then a card pinned top right on desktop and a
+   bottom sheet below 900 px, scrolling inside itself either way */
+.wn-open{display:flex;align-items:center;gap:8px;width:100%;font:600 13px/1.2 var(--font);text-align:left;
+  border:1px solid var(--accent);background:var(--accent);color:var(--accent-fg);border-radius:8px;padding:8px 12px;cursor:pointer}
+.wn-open:hover{filter:brightness(1.1)}
+.wn-open[aria-expanded="true"]{background:transparent;color:var(--accent)}
+.wn-open[hidden]{display:none}
+.wn-open svg,.wn-close svg{width:16px;height:16px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.wn-open .go{margin-left:auto}
+#wn{position:fixed;z-index:2;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 8px 28px rgba(20,30,40,.18)}
+#wn[hidden]{display:none}
+@media (min-width:900px){#wn{top:calc(16px + env(safe-area-inset-top,0px));right:calc(16px + env(safe-area-inset-right,0px));width:360px;
+  max-height:calc(100% - 32px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))}}
+@media (max-width:899px){#wn{left:calc(16px + env(safe-area-inset-left,0px));right:calc(16px + env(safe-area-inset-right,0px));
+  bottom:calc(16px + env(safe-area-inset-bottom,0px));max-height:55%}}
+.wn-head{display:flex;align-items:center;gap:10px;padding:10px 10px 10px 16px;border-bottom:1px solid var(--line)}
+.wn-head h2{flex:1;margin:0;font:600 15px/1.3 var(--font)}
+.wn-close{flex:0 0 auto;display:grid;place-items:center;width:32px;height:32px;border:1px solid var(--line);border-radius:8px;
+  background:transparent;color:var(--fg);cursor:pointer}
+.wn-scroll{overflow:auto;overscroll-behavior:contain;padding:2px 16px 14px}
+.wn-list{list-style:none;margin:0;padding:0}
+.wn-list li{display:grid;grid-template-columns:1.6em 1fr;gap:8px;padding:9px 0;border-top:1px solid var(--line)}
+.wn-list li:first-child{border-top:0}
+.wn-n{font-weight:600;color:var(--accent);text-align:right;font-variant-numeric:tabular-nums}
+.wn-lead{display:block;font-weight:600}
+.wn-detail{font-size:13px;color:var(--muted)}
+.wn-owner{display:inline-block;margin-left:6px;font:500 10.5px/1.6 var(--mono);padding:0 7px;border-radius:999px;
+  background:var(--tab-bg);color:var(--muted);white-space:nowrap;vertical-align:1px}
+.wn-unchanged{margin:10px 0 0;padding-top:10px;border-top:1px solid var(--line);font-size:12.5px;color:var(--muted);text-wrap:pretty}
+.wn-confirm-h{margin:14px 0 6px;font:600 11px/1.2 var(--font);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+.wn-confirm{margin:0;padding-left:1.1em;font-size:12.5px;color:var(--muted)}
+.wn-confirm li{margin:2px 0}
 /* "What Lee designed" stays on one line on the narrowest phones */
 @media (max-width:360px){.tabs button{white-space:nowrap}}
 /* in the SRV Electrical app the brand bar names the site and topic from 901 px up */
@@ -90,6 +124,11 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     <button role="tab" id="tab-ours" aria-selected="false" aria-controls="panel">What we need</button>
   </div>
   <p class="summary" id="summary"></p>
+  <button type="button" class="wn-open" id="wn-open" aria-expanded="false" aria-controls="wn" hidden>
+    <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 4h7.5M6 8h7.5M6 12h7.5M2.5 4h.01M2.5 8h.01M2.5 12h.01"/></svg>
+    <span id="wn-open-label">Step-by-step</span>
+    <svg class="go" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5L10.5 8 6 12.5"/></svg>
+  </button>
   <div class="steps" id="steps" role="group" aria-label="Operating state"></div>
   <p class="caption" id="caption" aria-live="polite"></p>
   <div class="legend">
@@ -102,8 +141,23 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     <span class="hint">Pick a state · drag to orbit · scroll to zoom</span>
   </div>
 </section>
+<section id="wn" aria-labelledby="wn-title" hidden>
+  <div class="wn-head">
+    <h2 id="wn-title"></h2>
+    <button type="button" class="wn-close" id="wn-close" aria-label="Close the step list">
+      <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+    </button>
+  </div>
+  <div class="wn-scroll" tabindex="0">
+    <ol class="wn-list" id="wn-list" role="list"></ol>
+    <p class="wn-unchanged" id="wn-unchanged"></p>
+    <h3 class="wn-confirm-h" id="wn-confirm-h"></h3>
+    <ul class="wn-confirm" id="wn-confirm"></ul>
+  </div>
+</section>
 <div id="msg">Loading the site model…</div>
 
+<script>__WHAT_WE_NEED__</script>
 <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.169.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.169.0/examples/jsm/"}}</script>
 <script type="module">
 import * as THREE from 'three';
@@ -363,6 +417,65 @@ function buildNewWorks() {
   post.position.copy(P(5.6, -8.4, 0.25)); post.castShadow = true; scene.add(post);
 }
 
+/* ---------- what we need, step by step ---------- */
+/* WHAT_WE_NEED comes from what_we_need.js, inlined by the app. The list starts
+   closed; the reader's choice to open it holds while they look at Lee's tab,
+   where the list and its button are hidden */
+const W = WHAT_WE_NEED;
+const wnCard = document.getElementById('wn'), wnOpen = document.getElementById('wn-open'), wnClose = document.getElementById('wn-close');
+document.getElementById('wn-title').textContent = W.title;
+document.getElementById('wn-open-label').textContent = 'Step-by-step (' + W.steps.length + ')';
+W.steps.forEach((st, i) => {
+  const li = document.createElement('li');
+  const n = document.createElement('span'); n.className = 'wn-n'; n.textContent = i + 1;
+  const body = document.createElement('div');
+  const lead = document.createElement('b'); lead.className = 'wn-lead'; lead.textContent = st.lead;
+  const detail = document.createElement('span'); detail.className = 'wn-detail'; detail.textContent = st.detail;
+  const owner = document.createElement('span'); owner.className = 'wn-owner'; owner.textContent = st.owner;
+  body.append(lead, detail, owner); li.append(n, body);
+  document.getElementById('wn-list').appendChild(li);
+});
+document.getElementById('wn-unchanged').textContent = W.unchanged;
+document.getElementById('wn-confirm-h').textContent = W.confirmTitle;
+for (const c of W.confirm) { const li = document.createElement('li'); li.textContent = c; document.getElementById('wn-confirm').appendChild(li); }
+let wnWanted = false;
+function layoutSteps() {
+  const show = wnWanted && tab === 'ours';
+  wnCard.hidden = !show;
+  wnOpen.hidden = tab !== 'ours';
+  wnOpen.setAttribute('aria-expanded', show ? 'true' : 'false');
+  frameView();
+}
+function closeSteps() { const was = !wnCard.hidden; wnWanted = false; layoutSteps(); if (was) wnOpen.focus(); }
+wnOpen.addEventListener('click', () => { if (wnWanted) closeSteps(); else { wnWanted = true; layoutSteps(); wnClose.focus(); } });
+wnClose.addEventListener('click', closeSteps);
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !wnCard.hidden) { e.preventDefault(); closeSteps(); } });
+
+/* the scene centres in the space the panel leaves, and on desktop, with the list
+   open, in the gap between the two cards, eased there in the frame loop */
+const view = { x:0, y:0, zoom:1 }, viewTo = { x:0, y:0, zoom:1 };
+function frameView(now) {
+  const w = window.innerWidth, h = window.innerHeight, panel = document.getElementById('panel');
+  viewTo.x = 0; viewTo.y = 0; viewTo.zoom = 1;
+  if (w >= 900) {
+    viewTo.x = -(panel.offsetWidth + 16) / 2;
+    if (!wnCard.hidden) {
+      viewTo.x += (wnCard.offsetWidth + 16) / 2;
+      /* pull back until the asset labels fit the gap (they span about 0.9 of the height) */
+      const gap = w - panel.offsetWidth - wnCard.offsetWidth - 64;
+      viewTo.zoom = Math.max(0.55, Math.min(1, gap / (0.9 * h)));
+    }
+  } else if (w < 640) viewTo.y = -(panel.offsetHeight + 16) / 2;
+  if (now || reduceMotion) Object.assign(view, viewTo);
+  applyView();
+}
+function applyView() {
+  const w = window.innerWidth, h = window.innerHeight;
+  if (view.x || view.y) camera.setViewOffset(w, h, view.x, view.y, w, h); else camera.clearViewOffset();
+  camera.zoom = view.zoom;
+  camera.updateProjectionMatrix();
+}
+
 /* ---------- state machine ---------- */
 let tab = 'lee', idx = 0;
 const stepsEl = document.getElementById('steps'), captionEl = document.getElementById('caption');
@@ -391,6 +504,7 @@ function setState(i) {
   trip.mesh.visible = tab === 'ours';
   trip.mode = s.trip || 'idle';
   document.getElementById('lg-trip').hidden = tab !== 'ours';
+  layoutSteps();
   for (const [k, L] of Object.entries(labelEls)) {
     const st = s.status[k];
     L.hidden = (L.oursOnly && tab !== 'ours') || !st;
@@ -424,11 +538,7 @@ function resize() {
   const w = window.innerWidth, h = window.innerHeight;
   renderer.setSize(w, h, false); camera.aspect = w / h;
   camera.fov = w < 640 ? 50 : 38;
-  const panel = document.getElementById('panel');
-  if (w >= 900) camera.setViewOffset(w, h, -(panel.offsetWidth + 16) / 2, 0, w, h);
-  else if (w < 640) camera.setViewOffset(w, h, 0, -(panel.offsetHeight + 16) / 2, w, h);
-  else camera.clearViewOffset();
-  camera.updateProjectionMatrix();
+  frameView(true);
 }
 window.addEventListener('resize', resize); resize();
 
@@ -477,6 +587,15 @@ function tick() {
     trip.tex.offset.x -= dt * (reduceMotion ? 0.3 : (fire ? 3.2 : 0.6));
     trip.mat.color.copy(fire ? COL.alarm : COL.trip);
     trip.mat.opacity = fire ? 0.75 + 0.25 * Math.sin(clock.elapsedTime * 10) : 0.9;
+  }
+
+  if (view.x !== viewTo.x || view.y !== viewTo.y || view.zoom !== viewTo.zoom) {
+    const k = Math.min(1, dt * 7);
+    for (const key of ['x', 'y', 'zoom']) {
+      view[key] += (viewTo[key] - view[key]) * k;
+      if (Math.abs(viewTo[key] - view[key]) < (key === 'zoom' ? 1e-3 : 0.5)) view[key] = viewTo[key];
+    }
+    applyView();
   }
 
   controls.update();
