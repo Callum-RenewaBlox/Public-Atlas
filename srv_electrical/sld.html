@@ -118,8 +118,8 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .wn-n{font-weight:600;color:var(--accent);text-align:right;font-variant-numeric:tabular-nums}
 .wn-lead{display:block;font-weight:600}
 .wn-detail{color:var(--muted);font-size:14px}
-.wn-owner{display:inline-block;margin-left:6px;font:500 11.5px/1.6 var(--mono);padding:0 8px;border-radius:999px;
-  background:var(--off-bg);color:var(--off-fg);white-space:nowrap;vertical-align:1px}
+.wn-owner{display:inline-block;margin-left:6px;font:500 11.5px/1.6 var(--mono);padding:0 7px;border-radius:999px;
+  border:1px solid var(--line);background:var(--off-bg);color:var(--off-fg);white-space:nowrap;vertical-align:1px}
 .wn-unchanged{margin:12px 0 0;padding-top:12px;border-top:1px solid var(--line);font-size:13.5px;color:var(--muted);text-wrap:pretty}
 .wn-confirm-h{margin:16px 0 6px;font:600 11.5px/1.2 var(--font);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
 .wn-confirm{margin:0;padding-left:1.1em;font-size:13.5px;color:var(--muted)}
@@ -274,7 +274,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
   </section>
 </main>
 
-<script>__WHAT_WE_NEED__</script>
+<script>/*__WHAT_WE_NEED__*/</script>
 
 <script>
 (() => {
@@ -428,10 +428,13 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     if (!fromHash) { try { history.replaceState(null, '', '#' + TABS[k].hash); } catch (e) {} }
   }
   /* what we need, step by step, from WHAT_WE_NEED (what_we_need.js, inlined by the
-     app): steps 1-6 and 7-11 in two columns on wide screens, collapsed until opened */
-  const W = WHAT_WE_NEED;
+     app; opened on its own, the page goes without it): steps 1-6 and 7-11 in two
+     columns on wide screens, collapsed until opened */
+  const W = typeof WHAT_WE_NEED === 'object' ? WHAT_WE_NEED : null;
   const wnToggle = document.getElementById('wn-toggle'), wnBody = document.getElementById('wn-body');
   const wnJump = document.getElementById('wn-jump'), wnCard = document.getElementById('wn');
+  if (!W) { wnCard.remove(); wnJump.remove(); }
+  else {
   document.getElementById('wn-title').textContent = W.title;
   document.getElementById('wn-sub').textContent = W.steps.length + ' steps on quote LF42344, and ' + W.confirm.length + ' things we confirm before ordering';
   document.getElementById('wn-jump-label').textContent = 'Step-by-step (' + W.steps.length + ')';
@@ -458,6 +461,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
     wnCard.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
     wnToggle.focus({ preventScroll: true });
   });
+  }
 
   tabBtn.lee.addEventListener('click', () => { setTab('lee'); notify(); });
   tabBtn.ours.addEventListener('click', () => { setTab('ours'); notify(); });

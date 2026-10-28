@@ -5,7 +5,7 @@
 
    From the handover note on RenewaBlox's revised plan for the Paktronic
    board (27 October 2026), verbatim: do not reword, add or drop
-   items. G100 is out of scope by decision and must not appear on either page.
+   items. One item was taken out of scope by decision: never add it back.
    Keep it plain data: it is inlined into a script element, so no closing
    script tag and no HTML comment opener (the app refuses to serve either). */
 const WHAT_WE_NEED = {

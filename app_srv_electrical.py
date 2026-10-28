@@ -25,8 +25,8 @@ need, step by step" (``srv_electrical/what_we_need.js``, one copy inlined into
 both pages): eleven numbered steps with their owners, what stays as quoted,
 and what we confirm before ordering. It starts collapsed behind a call to
 action, a "Step-by-step (11)" button: on the SLD it opens a card under the
-diagram, on the site view a card pinned top right (a bottom sheet below
-900 px), with the scene re-centred between the two cards.
+diagram, on the site view a card pinned top right from 1280 px, with the
+scene re-centred between the two cards (a bottom sheet below that).
 
 The bar and the two frames are ``srv_electrical/shell.html``; this script
 fills it at serve time with the two pages, so the sources in
@@ -124,8 +124,8 @@ if params.get("state") in ("1", "2", "3"):
 steps = (SRC / "what_we_need.js").read_text(encoding="utf-8")
 if re.search(r"</script|<!--", steps, re.IGNORECASE):
     raise RuntimeError("what_we_need.js must not contain </script or <!--")
-sld = fill((SRC / "sld.html").read_text(encoding="utf-8"), "__WHAT_WE_NEED__", steps)
-site = fill((SRC / "site3d.html").read_text(encoding="utf-8"), "__WHAT_WE_NEED__", steps)
+sld = fill((SRC / "sld.html").read_text(encoding="utf-8"), "/*__WHAT_WE_NEED__*/", steps)
+site = fill((SRC / "site3d.html").read_text(encoding="utf-8"), "/*__WHAT_WE_NEED__*/", steps)
 html = (SRC / "shell.html").read_text(encoding="utf-8")
 html = fill(html, "__LV_QUERY__", json.dumps(query))
 html = fill(html, "__SLD_JSON__", script_json(sld))
