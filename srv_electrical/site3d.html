@@ -151,7 +151,7 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .pin{position:absolute;left:0;top:0;display:flex;align-items:center;gap:4px;white-space:nowrap;background:var(--label-bg);color:var(--label-fg);
   border:1.5px solid #ca8a04;border-radius:999px;padding:3px 9px 3px 3px;font:600 12px/1.2 var(--font);
   box-shadow:0 2px 6px rgba(20,30,40,.25);will-change:transform}
-.pin::after{content:"";position:absolute;left:50%;top:100%;width:2px;height:var(--lead,20px);margin-left:-1px;background:#ca8a04}
+.pin::after{content:"";position:absolute;left:calc(50% - var(--dx,0px));top:100%;width:2px;height:var(--lead,20px);margin-left:-1px;background:#ca8a04}
 .pin[hidden]{display:none!important}
 .lbl.dim{opacity:.4}
 /* on a phone with a step sheet open, the panel folds to its tabs to give the scene room */
@@ -694,8 +694,8 @@ const MARKS = {
   'ethernet':       { at:[-3.95,2.3,1.6],  lit:['newboard'] },
   'ups':            { at:[-3.95,2.3,0.95], lit:['newboard'] },
   'local-remote':   { at:[-4.6,2.3,2.25],  lit:['newboard'] },
-  'sld':            { at:[-5.4,1.43,3.3],  lit:['kiosk'] },
-  'kiosk-plan':     { at:[-6.25,2.6,0.25], lit:['kiosk'] },
+  'sld':            { at:[-5.4,1.43,3.3],  lit:['newboard','oldboard'] },
+  'kiosk-plan':     { at:[-6.25,2.6,0.25], lit:[] },
   'fault':          { at:[-4.62,1.85,2.75],lit:['tx','chp','c-grid','c-chp','newboard'] },
 };
 /* each step's scene: where the camera goes, the state it is shown in (one of What
@@ -768,7 +768,7 @@ function buildExtras(i, marks) {
     }
   }
   if ((SV[i].extras || []).includes('plan')) {
-    const swing = new THREE.MeshBasicMaterial({ color:HL, transparent:true, opacity:.35, side:THREE.DoubleSide, depthWrite:false, toneMapped:false });
+    const swing = new THREE.MeshBasicMaterial({ color:HL, transparent:true, opacity:.55, side:THREE.DoubleSide, depthWrite:false, toneMapped:false });
     const sector = (hx, hy, r, south) => {
       const g = new THREE.Mesh(new THREE.RingGeometry(0.001, r, 24, 1, south ? -Math.PI / 2 : 0, Math.PI / 2), swing);
       g.rotation.x = -Math.PI / 2; g.position.copy(P(hx, hy, 0.17)); stepGroup.add(g);
@@ -794,11 +794,13 @@ function addPin(at, nums, text) {
   const t = document.createElement('span'); t.textContent = text; el.appendChild(t);
   labelLayer.appendChild(el); pinEls.push({ el, anchor:P(...at) });
 }
-/* place the pins over their anchors, lifting any that would cover an asset label or
-   a pin placed before it (lowest on screen first), with the leader grown to match */
-const placed = [];
+/* place the pins over their anchors: slid sideways out from under the panel or the
+   drawer (the leader stays on the anchor), then lifted clear of any asset label or
+   pin placed before them (lowest on screen first), with the leader grown to match */
+const placed = [], cards = [];
 function placePins(w, h) {
-  placed.length = 0;
+  placed.length = 0; cards.length = 0;
+  for (const id of ['panel', 'wn']) { const e = byId(id); if (e && !e.hidden) cards.push(e.getBoundingClientRect()); }
   for (const L of Object.values(labelEls)) {
     if (L.el.hidden) continue;
     const r = L.el.getBoundingClientRect(); placed.push({ l:r.left, r:r.right, t:r.top, b:r.bottom });
@@ -812,7 +814,13 @@ function placePins(w, h) {
   }
   todo.sort((a, b) => b.y - a.y);
   for (const t of todo) {
-    let lift = 0;
+    let lift = 0, cx = t.x;
+    for (const c of cards) {
+      const top = t.y - 20 - t.ph, bot = t.y - 20;
+      if (cx - t.pw / 2 < c.right + 6 && cx + t.pw / 2 > c.left - 6 && top < c.bottom && bot > c.top)
+        cx = (c.left + c.right) / 2 < w / 2 ? c.right + 8 + t.pw / 2 : c.left - 8 - t.pw / 2;
+    }
+    t.x0 = t.x; t.x = cx;
     for (let k = 0; k < 12; k++) {
       const box = { l:t.x - t.pw / 2, r:t.x + t.pw / 2, b:t.y - 20 - lift, t:t.y - 20 - lift - t.ph };
       const hit = placed.find(o => box.l < o.r + 4 && box.r > o.l - 4 && box.t < o.b + 4 && box.b > o.t - 4);
@@ -821,6 +829,7 @@ function placePins(w, h) {
     }
     placed.push({ l:t.x - t.pw / 2, r:t.x + t.pw / 2, b:t.y - 20 - lift, t:t.y - 20 - lift - t.ph });
     t.pin.el.style.setProperty('--lead', (20 + lift) + 'px');
+    t.pin.el.style.setProperty('--dx', (t.x - t.x0) + 'px');
     t.pin.el.style.transform = `translate(${t.x}px, ${t.y - 20 - lift}px) translate(-50%, -100%)`;
   }
 }
