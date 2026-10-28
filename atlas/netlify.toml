@@ -14,11 +14,11 @@
 #
 # Every build and deploy costs Netlify credits, so the ignore command skips a push that changes none of the site's
 # inputs (inputs.txt: this folder and the pages it reads from the root of the repository; the build fails if it
-# reads a file the list doesn't cover). After the build, the sign-in's tests run (tests/gates.test.mjs); a gate
-# that fails them is never deployed.
+# reads a file the list doesn't cover). After the build, the sign-in's tests run (tests/gates.test.mjs), and the KLD
+# twin signer's (tests/kld_twin_assets.test.mjs); a gate or signer that fails them is never deployed.
 
 [build]
-  command = "python3 build.py && node tests/gates.test.mjs"
+  command = "python3 build.py && node tests/gates.test.mjs && node tests/kld_twin_assets.test.mjs"
   publish = "site"
   ignore = "bash ../tools/netlify-ignore.sh atlas/inputs.txt"
 

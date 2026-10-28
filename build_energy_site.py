@@ -12,7 +12,6 @@ logic, no secrets. Each is a real address on RenewaBlox's own domain:
     /generators/                        Generator Demo landing
     /generators/peaker-plant/           Peaker Plant model
     /generators/run-of-river-hydro/     Run-of-River Hydro model
-    /generators/kinlochdamph-twin/      Kinlochdamph powerhouse twin (splat + X-ray data centre)
     /generators/thanks/                 after the PPA check, if it was sent without its script
     /privacy/                           the privacy notice (energy_privacy.html)
 
@@ -110,14 +109,6 @@ PACKS = {
 }
 
 BAR_H = 46
-
-# Digital twins: standalone viewer pages with an asset folder of their own, copied as they are (no pack bar;
-# each page carries its own RenewaBlox strip). The splat and the GLBs are never committed (.gitignore): the page
-# fetches them from the URLs it names (see the TODO in kld_twin.html), and a local build copies the asset folder
-# only when it is there (a build from git has none).
-TWINS = {
-    "generators/kinlochdamph-twin": {"page": "kld_twin.html", "assets": "kld_twin"},
-}
 
 # The apps' pack bar, as a page of its own: the bar on top, the model framed below it.
 FRAME_CSS = f"""
@@ -277,10 +268,6 @@ def main():
         for key, view in pack["views"].items():
             write(OUT / pack_key / view["slug"] / "index.html", frame_page(pack_key, pack, key))
             write(OUT / pack_key / view["slug"] / "model.html", model_page(view))
-    for route, twin in TWINS.items():
-        write(OUT / route / "index.html", (HERE / twin["page"]).read_text(encoding="utf-8"))
-        if (HERE / twin["assets"]).is_dir():
-            shutil.copytree(HERE / twin["assets"], OUT / route / twin["assets"])
     for f in ASSETS.iterdir():
         shutil.copy(f, OUT / f.name)
     pages = sorted(p.relative_to(OUT).as_posix() for p in OUT.rglob("*") if p.is_file())

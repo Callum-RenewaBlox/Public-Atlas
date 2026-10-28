@@ -14,6 +14,7 @@ bryn_atlas_3d_badge.html
 bryn_3d_sim.html
 kld_hydro_chrome.html
 kld_interactive.html
+kld_twin.html
 ihn_atlas.html
 ihn_heat_chrome.html
 heat_network_3d.html

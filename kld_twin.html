@@ -84,11 +84,14 @@
   @media (max-width: 520px) { #notes { display: none; } h1 { font-size: 15px; } #strip .cap { display: none; } .sub { display: none; } }
   @media (max-height: 560px) { #notes { display: none; } }
   @media (prefers-reduced-motion: reduce) { #bar i { transition: none; } }
+  #strip .back { color: #fff; text-decoration: none; font-size: 12.5px; font-weight: 600; padding: 4px 10px; margin-right: 12px;
+                 border: 1px solid rgba(255,255,255,.35); border-radius: 999px; white-space: nowrap; }
+  #strip .back:hover, #strip .back:focus-visible { background: rgba(255,255,255,.12); outline: none; }
 </style>
 </head>
 <body>
 
-<div id="strip"><div class="logo">Renewa<b>Blox</b></div><div class="cap">Kinlochdamph powerhouse digital twin: the site as captured, with the proposed data centre inside</div></div>
+<div id="strip"><a class="back" href="/clients/kld/" title="Back to the KLD Atlas">&larr; Atlas</a><div class="logo">Renewa<b>Blox</b></div><div class="cap">Kinlochdamph powerhouse digital twin: the site as captured, with the proposed data centre inside</div></div>
 <div id="stage"></div>
 <div id="labels"></div>
 
@@ -114,7 +117,7 @@
 </div>
 
 <div id="notes"><div class="card"><b>Site capture, June 2026.</b> Drag to orbit, scroll or pinch to zoom, right-drag or two-finger drag to pan.
-  <span class="xr" id="xrnote">Data-centre layout: position from the 2018 drawings and the site tape-out, about ±0.5 m; rack height under confirmation.</span></div></div>
+  <span class="xr" id="xrnote">Data-centre layout as taped out on site; positions about ±0.2 m; rack height under confirmation.</span></div></div>
 
 <div id="foot">Kinlochdamph powerhouse · captured 8 June 2026 · RenewaBlox</div>
 
@@ -134,13 +137,11 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import { SplatMesh, SparkRenderer } from '@sparkjsdev/spark';
 
-// ---- assets (separate files next to the page, fetched at load)
-// The splat and the two GLBs are NOT committed to the Atlas repo (no splats or model files in git).
-// TODO(hosting): set window.KLD_SPLAT_URL, window.KLD_KIT_URL and window.KLD_HALL_URL (or replace the defaults below)
-//                with the hosted asset URLs once the three files are uploaded (no Atlas Supabase project exists yet).
-const SPLAT_URL = window.KLD_SPLAT_URL || 'kld_twin/kld_web.sog';
+// ---- assets: the splat and the two GLBs sit in a private Supabase bucket, never in this repository. On the Atlas the
+// page asks /clients/kld/twin-assets, behind the sign-in, for short-lived signed URLs before it loads anything; no URL,
+// token or key is written into the page. window.KLD_SPLAT_URL / KLD_KIT_URL / KLD_HALL_URL override them for local tests.
+const ASSETS = '/clients/kld/twin-assets';
 const SPLAT_BYTES = 11618440;                                   // for the progress bar only
-const KIT_URL = window.KLD_KIT_URL || 'kld_twin/kld_dc_kit.glb', HALL_URL = window.KLD_HALL_URL || 'kld_twin/kld_hall.glb';
 const KIT_BYTES = 764824, HALL_BYTES = 794620;     // for the progress bar only
 
 // ---- frames. The splat is ENU metres, Z up (x east, y north). The GLBs are the same frame in glTF Y-up:
@@ -218,18 +219,37 @@ const prog = { splat: 0, kit: 0, hall: 0 }, total = SPLAT_BYTES + KIT_BYTES + HA
 function progress(k, loaded, known) { if (load.classList.contains('err')) return; prog[k] = Math.min(known, loaded); const done = prog.splat + prog.kit + prog.hall;
   bar.style.width = Math.max(2, Math.round(100 * done / total)) + '%'; msg.textContent = `Fetching ${(done / 1e6).toFixed(1)} of ${(total / 1e6).toFixed(1)} MB…`; }
 function fail(what, err) {
+  if (load.classList.contains('err')) return;   // the first failure is the one to report
   console.warn('kld_twin: ' + what, err);
   load.hidden = false; load.classList.add('err'); document.getElementById('loadhead').textContent = 'Could not load';
   msg.textContent = `${what} (${(err && err.message) || err}). Check the connection and reload; if it persists, the asset is missing from the server.`;
   document.getElementById('bar').style.display = 'none';
 }
 
+async function assetUrls() {
+  if (window.KLD_SPLAT_URL || window.KLD_KIT_URL || window.KLD_HALL_URL) {
+    return { splat: window.KLD_SPLAT_URL || 'kld_twin/kld_web.sog', kit: window.KLD_KIT_URL || 'kld_twin/kld_dc_kit.glb',
+             hall: window.KLD_HALL_URL || 'kld_twin/kld_hall.glb' };
+  }
+  const r = await fetch(ASSETS, { credentials: 'same-origin', cache: 'no-store', headers: { accept: 'application/json' } });
+  if (r.status === 401) throw new Error('your sign-in needs renewing: open the page again');
+  if (r.status === 403) throw new Error('this account can’t open the KLD twin');
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  const j = await r.json();
+  if (!j.splat || !j.kit || !j.hall) throw new Error('incomplete answer');
+  return j;
+}
+let URLS = null;
+try { URLS = await assetUrls(); } catch (e) { fail('The twin’s files could not be opened', e); }
+const SPLAT_URL = URLS ? URLS.splat : '', KIT_URL = URLS ? URLS.kit : '', HALL_URL = URLS ? URLS.hall : '';
+
 const gltf = new GLTFLoader();
-const loadGlb = (url, k, bytes) => new Promise((res, rej) => gltf.load(url, res, (e) => progress(k, e.loaded, bytes), (e) => rej(new Error('HTTP ' + (e && e.target && e.target.status || '') + ' ' + url))));
+const loadGlb = (url, k, bytes) => !url ? Promise.reject(new Error('no URL')) : new Promise((res, rej) => gltf.load(url, res, (e) => progress(k, e.loaded, bytes), (e) => rej(new Error('HTTP ' + (e && e.target && e.target.status || '') + ' ' + url))));
 
 // Spark loads .sog/.spz/.ply directly from a URL. The splat is Z-up: -90° about X puts it in the GLBs' Y-up frame.
 let splat = null;
 const loadSplat = new Promise((res, rej) => {
+  if (!SPLAT_URL) { rej(new Error('no URL')); return; }
   try {
     splat = new SplatMesh({ url: SPLAT_URL,
       onProgress: (e) => progress('splat', e.loaded || 0, SPLAT_BYTES),
@@ -256,7 +276,7 @@ try {
       state.racks = { enu: [c.x, -c.z, c.y], size: rackBox.getSize(new THREE.Vector3()).toArray(), top: rackBox.max.y };
       // label above the racks
       const el = document.createElement('div'); el.className = 'lbl';
-      el.innerHTML = '4 × DCX racks · 104 × M63S++ · 748 kW (up to ~1 MW)<small>Position from the 2018 drawings and the site tape-out, about ±0.5 m; rack height under confirmation</small>';
+      el.innerHTML = '4 × DCX racks · 104 × M63S++ · 748 kW (up to ~1 MW)<small>Layout as taped out on site, about ±0.2 m; rack height under confirmation</small>';
       labelObj = new CSS2DObject(el); labelObj.position.set(c.x, rackBox.max.y + 0.35, c.z); labelObj.visible = false; scene.add(labelObj);
       // the "Data centre" preset: just outside the front (SSE) wall, looking at the rack row through it
       const d = 9.5;   // the racks now stand just inside the front wall; the forecourt slope rises outside, so look down from above it

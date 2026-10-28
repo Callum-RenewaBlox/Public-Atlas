@@ -10,7 +10,7 @@ a regenerated source that loses it fails the build instead of shipping a page th
     /clients/srv/             SRV Atlas (?view=3d the 3D Dispatch Sim, ?view=siting the 3D Compute Kiosk)
     /clients/srv-contractor/  SRV Contractor Atlas, the electrical survey for the LV connection RFQ
     /clients/bry/             Bryn Atlas, code BRY (?view=3d the 3D Site Model, ?view=compute the Compute Render)
-    /clients/kld/             KLD Atlas (?view=3d the 3D Revenue Sim)
+    /clients/kld/             KLD Atlas (?view=3d the 3D Revenue Sim, ?view=twin the 3D Site Twin)
     /clients/ihn/             IHN Atlas (?view=3d Heat Network 3D)
     /clients/reabold/west-newton/, /clients/reabold/reservoirs/   Reabold's two maps
     /clients/citygate/        Citygate Church's electricity portrait
@@ -106,7 +106,9 @@ CLIENT_MAPS = {
                         "side": "right", "anchor": [-37, 4]}]},
     "kld": {"title": "KLD Atlas — Kinlochdamph", "kick": "999 kW run-of-river hydro · KLD Atlas",
             "place": "Kinlochdamph hydro scheme, Loch Damh, Wester Ross", "at": [57.46160, -5.55778], "zoom": 17,
-            "badges": [{"at": [57.46160, -5.55778], "label": "3D Revenue Sim", "short": "3D Sim", "view": "3d"}]},
+            "badges": [{"at": [57.46160, -5.55778], "label": "3D Revenue Sim", "short": "3D Sim", "view": "3d"},
+                       {"at": [57.46160, -5.55778], "label": "3D Site Twin", "short": "Twin", "view": "twin",
+                        "side": "right", "anchor": [-37, 4]}]},
 }
 
 
@@ -238,6 +240,11 @@ def client_pages():
                 "kld_interactive.html")
     page = once(page, "  #stage{background:#0d1b23}", "  #stage{background:#0d1b23}\n  html{overflow:hidden}", "kld_hydro_chrome.html")
     out["clients/kld/3d.html"] = noindex(top_level_nav(page, "kld_hydro_chrome.html"), "kld_interactive.html")
+    # The site twin (?view=twin): the Gaussian-splat capture of the powerhouse with the proposed data centre in X-ray. It
+    # is written for the Atlas, with its own "Atlas" link, and fetches its files through /clients/kld/twin-assets
+    # (netlify/edge-functions/kld-twin-assets.js), which signs short-lived URLs for a session that may open KLD.
+    page = once(source("kld_twin.html"), "<title>Kinlochdamph twin</title>", "<title>KLD Atlas — 3D Site Twin</title>", "kld_twin.html")
+    out["clients/kld/twin.html"] = noindex(page, "kld_twin.html")
 
     # IHN: the heat network. Its opening page keeps its own scene (ihn_atlas below); the 3D view is the shared Heat
     # Network 3D with the IHN chrome spliced in.
@@ -284,7 +291,7 @@ CLIENT_PAGES = {
     "/clients/srv-contractor/": {"client": "srv-contractor", "title": "SRV Contractor Atlas — electrical site survey", "list": True},
     "/clients/bry/": {"client": "bry", "title": "Bryn Atlas — Bryn Power AD plant", "list": True,
                       "views": {"3d": "bryn_3d_sim.html", "compute": "compute.html"}},
-    "/clients/kld/": {"client": "kld", "title": "KLD Atlas — Kinlochdamph", "list": True, "views": {"3d": "3d.html"}},
+    "/clients/kld/": {"client": "kld", "title": "KLD Atlas — Kinlochdamph", "list": True, "views": {"3d": "3d.html", "twin": "twin.html"}},
     "/clients/ihn/": {"client": "ihn", "title": "IHN Atlas — Islington heat network", "list": True, "views": {"3d": "3d.html"}},
     "/clients/reabold/west-newton/": {"client": "reabold", "title": "West Newton infrastructure map", "list": True},
     "/clients/reabold/reservoirs/": {"client": "reabold", "title": "UKCS reservoir atlas (prototype)", "list": True},
@@ -331,6 +338,13 @@ CLIENT_CSP = {
     "/clients/kld/3d.html": ("default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; "
                              f"img-src 'self' data: https://server.arcgisonline.com {_OSM}; font-src 'self'; connect-src 'self'; "
                              "media-src 'self'; worker-src 'self'; " + _END),
+    # the site twin: three.js from jsDelivr and Spark from sparkjs.dev (which compiles WebAssembly and runs workers), IBM Plex
+    # from Google Fonts, and its three files from the private bucket by the URLs /clients/kld/twin-assets signs
+    "/clients/kld/twin.html": ("default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net "
+                               "https://sparkjs.dev; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+                               "img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; "
+                               "connect-src 'self' blob: data: https://mojwqeqgwyldbghlzgbq.supabase.co https://cdn.jsdelivr.net "
+                               "https://sparkjs.dev; media-src 'none'; worker-src 'self' blob:; frame-src 'none'; " + _END),
     "/clients/ihn/": "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; " + _END,
     "/clients/reabold/west-newton/": ("default-src 'none'; script-src 'unsafe-inline' https://cdnjs.cloudflare.com; "
                                       "style-src 'unsafe-inline' https://cdnjs.cloudflare.com; "
