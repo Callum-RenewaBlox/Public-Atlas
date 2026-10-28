@@ -704,14 +704,14 @@ const MARKS = {
 const CAMS = {
   kioskSE:  { pos:[1.5,-6.5,7.5], tgt:[-5.2,1.4,1.0] },
   kioskNE:  { pos:[2.5,4.5,6.5],  tgt:[-5.2,1.9,1.2] },
-  kioskTop: { pos:[-5.4,0.6,11.5],tgt:[-5.4,1.43,0.2] },
-  chpKiosk: { pos:[5,-15,11],     tgt:[-5.2,-3.5,1.0] },
-  grid:     { pos:[8,-5,17],      tgt:[-7.4,10,0.5] },
+  kioskTop: { pos:[-5.4,0.2,15],  tgt:[-5.4,1.43,0.2] },
+  chpKiosk: { pos:[7,-14,13],     tgt:[-5.2,-1.0,1.0] },
+  grid:     { pos:[-11,-9,11],    tgt:[-7.6,9,0.5] },
   home:     { pos:[7,-31,29],     tgt:[-2.8,2.5,0.5] },
 };
 const FAULT = { name:'Fault', caption:'A fault on the data centre section is fed by the grid and the engine together.',
   flows:{ chp:[1,'engine',1], tie:[.8,'grid',-1], grid:[.9,'grid',-1], site:[.3,'grid',1], dc:[1,'engine',1] }, trip:'idle',
-  status:{ chp:['Feeding the fault','engine'], kiosk:['Fault, data centre section','alarm'], dc:['Mining','engine'], tx:['Feeding the fault','grid'], site:['On grid','grid'], trip:['Healthy','trip'] } };
+  status:{ chp:['Feeding the fault','engine'], kiosk:['Fault, DC section','alarm'], dc:['Mining','engine'], tx:['Feeding the fault','grid'], site:['On grid','grid'], trip:['Healthy','trip'] } };
 const SV = [
   { cam:'kioskSE' }, { cam:'kioskNE' }, { cam:'chpKiosk' }, { cam:'kioskNE' }, { cam:'grid' }, { cam:'kioskSE' },
   { cam:'kioskNE' }, { cam:'kioskTop', extras:['plan'] }, { cam:'home', state:FAULT }, { cam:'chpKiosk', state:2 },
