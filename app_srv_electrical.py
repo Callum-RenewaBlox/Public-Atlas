@@ -20,6 +20,13 @@ or the data centre, never both) and **What we need** (the interlock removed,
 the miners turned down in software, and a hardwired trip that drops the racks
 if the engine stops), and each sub-tab steps through three operating states.
 The design and state picked in one view carry over when the other is opened.
+On What we need, each view also carries the change list for LF42344, "What we
+need, step by step" (``srv_electrical/what_we_need.js``, one copy inlined into
+both pages): eleven numbered steps with their owners, what stays as quoted,
+and what we confirm before ordering. It starts collapsed behind a call to
+action, a "Step-by-step (11)" button: on the SLD it opens a card under the
+diagram, on the site view a card pinned top right from 1280 px, with the
+scene re-centred between the two cards (a bottom sheet below that).
 
 The bar and the two frames are ``srv_electrical/shell.html``; this script
 fills it at serve time with the two pages, so the sources in
@@ -35,6 +42,7 @@ three.js and the fonts load from CDNs. No database, no secrets.
 Run locally:  streamlit run app_srv_electrical.py
 """
 import json
+import re
 from pathlib import Path
 
 import streamlit as st
@@ -111,8 +119,13 @@ if params.get("state") in ("1", "2", "3"):
 # Read fresh from the main script each run (Streamlit re-runs this script but
 # can keep imported modules cached, so reading here keeps the pages current
 # after every redeploy).
-sld = (SRC / "sld.html").read_text(encoding="utf-8")
-site = (SRC / "site3d.html").read_text(encoding="utf-8")
+# The step list on the What we need tabs: one copy for both pages, inlined as
+# the data script each page keeps for it. It must not end that script early.
+steps = (SRC / "what_we_need.js").read_text(encoding="utf-8")
+if re.search(r"</script|<!--", steps, re.IGNORECASE):
+    raise RuntimeError("what_we_need.js must not contain </script or <!--")
+sld = fill((SRC / "sld.html").read_text(encoding="utf-8"), "/*__WHAT_WE_NEED__*/", steps)
+site = fill((SRC / "site3d.html").read_text(encoding="utf-8"), "/*__WHAT_WE_NEED__*/", steps)
 html = (SRC / "shell.html").read_text(encoding="utf-8")
 html = fill(html, "__LV_QUERY__", json.dumps(query))
 html = fill(html, "__SLD_JSON__", script_json(sld))
