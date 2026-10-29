@@ -62,12 +62,6 @@ header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2.5
 .ptabs button svg{width:14px;height:14px;display:block;flex:0 0 auto}
 .ptabs button:hover{color:var(--brand);background:rgba(255,255,255,.7)}
 .ptabs button[aria-selected="true"]{background:var(--brand);color:#fff;box-shadow:0 1px 2px rgba(9,26,35,.18),0 3px 10px rgba(18,71,94,.28)}
-/* chips that do not fit wrap onto a hidden second row, so none is ever cut in half */
-.chips{display:flex;flex-wrap:wrap;justify-content:flex-end;align-content:flex-start;gap:6px;flex:0 1 auto;overflow:hidden;max-height:26px;min-width:0}
-.chip{flex:0 0 auto;background:var(--tint);color:var(--brand);border:1px solid var(--line);border-radius:var(--r-pill);padding:3.5px 11px;
-  font-size:10.8px;font-weight:650;letter-spacing:.01em;white-space:nowrap}
-.chip.blox{background:#e9f6f1;border-color:#c9e6db;color:#0b7a5c}
-@media (max-width:1499px){ .chips{display:none} }
 @media (max-width:860px){
   header{flex-wrap:wrap;row-gap:9px;padding:9px 12px 10px;gap:10px}
   .logo img{height:16px}
@@ -204,7 +198,6 @@ body.moved .hint{opacity:0!important}
 /* ------------------------------------------------------------ flythrough -- */
 .vidcard{background:#0d1b23;border-radius:var(--r-l);overflow:hidden;box-shadow:var(--sh-2)}
 video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspect-ratio:16/9;background:#0d1b23}
-.vidmeta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
 
 /* ---------------------------------------------------------------- stills -- */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
@@ -290,9 +283,6 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
     <button type="button" role="tab" id="t-model" data-tab="model" aria-selected="true" aria-controls="p-model"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.8l5.6 3.1v6.2L8 14.2l-5.6-3.1V4.9z"/><path d="M2.4 4.9L8 8l5.6-3.1M8 8v6.2"/></svg>Model</button>
     <button type="button" role="tab" id="t-media" data-tab="media" aria-selected="false" aria-controls="p-media" tabindex="-1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.8" y="3.2" width="12.4" height="9.6" rx="1.6"/><path d="M6.6 6v4l3.6-2z"/></svg>Flythrough &amp; stills</button>
   </nav>
-  <div class="chips" aria-label="The installation in three figures">
-    <span class="chip" title="A Winchain 20 ft high-cube hydro-cooling container">20 ft hydro container</span><span class="chip" title="Three racks of 20 slots along the north-east wall">3 racks × 20 slots</span><span class="chip blox" title="The LV cable from the BLOX pad to the CHP, route indicative">≈ 10 m to the CHP</span>
-  </div>
 </header>
 
 <main id="stage">
@@ -312,7 +302,7 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
       <button type="button" class="tg" id="b-xray" aria-pressed="false" title="Make the container's walls, roof and doors see-through, to see the racks and the CDU from any side"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.8" y="4.2" width="12.4" height="8.4" rx="1" stroke-dasharray="2.1 1.7"/><path d="M5 7h6M5 9.6h6"/></svg><span>X-ray</span></button>
       <button type="button" class="tg" id="b-doors" aria-pressed="false" title="Open the services-end door and the cargo doors"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 14.2V1.8h6.4v12.4"/><path d="M9.8 1.8l3 1.4v12.2l-3-1.2"/></svg><span>Doors open</span></button>
       <button type="button" class="tg" id="b-fans" aria-pressed="true" title="Turn the dry cooler's six fans"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 8c0-3 1.2-4.6 2.8-4.6S13 5 11.8 6.4 8 8 8 8zM8 8c2.6 1.5 3.4 3.3 2.6 4.7S8 13.6 7.4 12 8 8 8 8zM8 8c-2.6 1.5-4.6 1.3-5.4-.1S3.3 5 5 5.6 8 8 8 8z"/><circle cx="8" cy="8" r="1" fill="currentColor"/></svg><span>Fans</span></button>
-      <button type="button" class="tg" id="b-labels" aria-pressed="true" title="Show or hide the labels"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 14.4s4.6-4.2 4.6-7.6A4.6 4.6 0 0 0 3.4 6.8c0 3.4 4.6 7.6 4.6 7.6z"/><circle cx="8" cy="6.8" r="1.6"/></svg><span>Labels</span></button>
+      <button type="button" class="tg" id="b-labels" aria-pressed="false" title="Show or hide the labels"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 14.4s4.6-4.2 4.6-7.6A4.6 4.6 0 0 0 3.4 6.8c0 3.4 4.6 7.6 4.6 7.6z"/><circle cx="8" cy="6.8" r="1.6"/></svg><span>Labels</span></button>
       <button type="button" class="tg" id="b-rot" aria-pressed="false" title="Turn the view slowly round the pad; any camera button stops it"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13.4 8A5.4 5.4 0 1 1 11.8 4.2"/><path d="M13.6 2.2v3h-3"/></svg><span>Turn slowly</span></button>
     </nav>
     <div id="gl" aria-label="3D model of the BLOX container with its roof dry cooler on the pad at the CHP of the Wildmore Renewables AD plant" role="img"></div>
@@ -325,7 +315,7 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
       <p id="cap-p"></p>
       <button type="button" id="capmore">More</button>
     </div>
-    <div class="hint"><span class="f">Drag to orbit · scroll or pinch to zoom · right-drag or two fingers to pan · click a label to go to it</span><span class="s">Drag to orbit · pinch to zoom · tap a label</span></div>
+    <div class="hint"><span class="f">Drag to orbit · scroll or pinch to zoom · right-drag or two fingers to pan · Labels names the parts</span><span class="s">Drag to orbit · pinch to zoom · Labels names the parts</span></div>
   </section>
 
   <!-- ============================================== flythrough & stills -->
@@ -339,7 +329,6 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
           This browser cannot play the video. <a href="assets/wildmore_flythrough_720p.mp4">Download the MP4</a>.
         </video>
       </div>
-      <div class="vidmeta"><span class="chip">48 s</span><span class="chip">720p · H.264</span><span class="chip">Concept, November 2026</span><span class="chip">Site from EA LiDAR and OS data</span></div>
 
       <h2 id="stills" class="sec">Stills</h2>
       <p class="sub">Rendered views of the model. Click one to see it full size; the arrow keys step through them.</p>
@@ -527,7 +516,7 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
   // the door pivots, with the way each opens (glTF y, as Blender's z) and how far
   const DOORS = { blox_door_pivot0: [1, 150], blox_door_pivot1: [-1, 150], blox_pdoor_pivot: [-1, 160] };
 
-  let view = 'overview', xray = false, fansOn = true, labelsOn = true, doorOpen = 0, doorTarget = 0, loaded = false;
+  let view = 'overview', xray = false, fansOn = true, labelsOn = false, doorOpen = 0, doorTarget = 0, loaded = false;
   let renderer = null, labelR = null, scene = null, camera = null, controls = null, tween = null, raf = 0, clock = null;
   const xrayMeshes = [], fans = [], doors = [], labelObjs = [];
   let xrayMat = null, B = null, THREE = null, lastMove = 0, pmrem = null;
