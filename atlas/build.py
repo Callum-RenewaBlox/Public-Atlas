@@ -11,7 +11,8 @@
                   (bln/index.html), and /clients/bln/3d/, the 3D render the badge opens (bln/3d/index.html);
                   its old public address, /bln/, now redirects there (_redirects). Bryn's Compute Render,
                   /clients/bry/?view=compute, is bry/compute.html with its model, flythrough and stills in
-                  bry/assets/, copied into the same folder as the Bryn pages pages.py builds
+                  bry/assets/, copied into the same folder as the Bryn pages pages.py builds; WLD's Compute
+                  Render, /clients/wld/?view=compute, is wld/compute.html with wld/assets/, beside the WLD map
     /investors/demo/, /investors/australia/, /investors/portal/, /models/   the investor packs and the
                   standalone peakers (pages.py), with the Investor Atlas at /investors/portal/atlas/
                   (Eunice-Platform's investor_atlas_v3.html, a copy in vendor/). The portal is not gated here:
@@ -70,7 +71,7 @@ import site_inputs  # the list of what the site is built from (inputs.txt), chec
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "site"
 ROOT = HERE / "root"
-CLIENTS = ["bln", "bry"]
+CLIENTS = ["bln", "bry", "wld"]
 ON_NETLIFY = os.environ.get("NETLIFY") == "true"
 
 # The words that would name or place a client's site (the site, the places around it, the firms on

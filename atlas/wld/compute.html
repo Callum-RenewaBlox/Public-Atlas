@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>WLD Atlas — Compute Render</title>
+<meta name="description" content="Wildmore Compute Render: the BLOX Bitcoin mining data centre on its pad at the CHP of the Wildmore Renewables AD plant. Interactive 3D model, flythrough and stills, and what is measured against what is assumed."/>
+<meta name="robots" content="noindex, nofollow"/>
+<meta name="theme-color" content="#12475e"/>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%2312475e'/%3E%3Cpath%20d='M17.8%204.5L9%2017.6h5.6l-1.3%209.9L23%2014.1h-6.2z'%20fill='%23fff'/%3E%3C/svg%3E"/>
+<!-- The page is served at /clients/wld/?view=compute (the sign-in serves this file there) and, locally, as
+     /clients/wld/compute.html: both are in the folder its files sit in, so every address below is assets/… -->
+<link rel="preload" href="assets/wildmore_site_web.glb" as="fetch" crossorigin="anonymous"/>
+<style>
+/* ===================================================================
+   RenewaBlox design system — Wildmore Compute Render
+   The same house bar, tabs, rail, caption and glass panels as BLN 3D
+   and BRY's Compute Render, so the atlas and its renders read as one
+   product; the scene itself is three.js (assets/three-0.170.0.min.js).
+   =================================================================== */
+@font-face{font-family:"Inter";font-style:normal;font-display:swap;font-weight:100 900;src:url(assets/inter.woff2) format("woff2")}
+:root{
+  --brand:#12475e; --accent:#1f5f7f; --accent-l:#3a89ae;
+  --ink:#0d1b23; --ink-2:#33454f; --muted:#5a6a73; --muted-2:#93a2aa;
+  --surface:#ffffff; --tint:#f4f8fa; --tint-2:#eaf1f5; --line:#dfe8ed; --line-2:#edf3f6;
+  --glass:rgba(251,253,254,.94);
+  --teal:#0f9d77; --site:#2e9e4f; --amber:#b7791f; --amber-soft:#fbf1df; --slate:#7d8d96;
+  --cold:#2f7fd6; --hot:#e0711f;
+  --sh-1:0 1px 2px rgba(9,26,35,.09), 0 4px 14px rgba(9,26,35,.12);
+  --sh-2:0 2px 6px rgba(9,26,35,.12), 0 14px 44px rgba(9,26,35,.22);
+  --font:"Inter","Inter var",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --ease:cubic-bezier(.2,.8,.3,1);
+  --r-s:8px; --r-m:12px; --r-l:16px; --r-pill:999px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden}
+body{display:flex;flex-direction:column;height:100dvh;font-family:var(--font);color:var(--ink-2);background:var(--tint);
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
+*:focus{outline:none}
+*:focus-visible{outline:2px solid var(--accent-l);outline-offset:2px}
+::selection{background:rgba(31,95,127,.22)}
+button{font-family:inherit}
+[hidden]{display:none!important}
+
+/* ================================================================ header == */
+header{position:relative;flex:0 0 auto;z-index:5;padding:11px 20px;background:linear-gradient(180deg,#fff,#f8fbfc);
+  border-bottom:1px solid var(--line);display:flex;align-items:center;gap:15px;flex-wrap:nowrap}
+header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2.5px;background:linear-gradient(90deg,var(--brand),var(--accent-l) 48%,var(--teal))}
+#backatlas{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--tint);color:var(--accent);
+  font:650 11.3px var(--font);padding:7px 12px 7px 10px;border-radius:var(--r-pill);text-decoration:none;transition:background .15s,border-color .15s,color .15s}
+#backatlas:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+#backatlas svg{width:12px;height:12px;display:block}
+.logo{flex:0 0 auto}
+.logo img{height:21px;width:auto;display:block}
+.divider{flex:0 0 auto;width:1px;height:30px;background:var(--line)}
+.title{flex:1 1 auto;min-width:0}
+.title h1{margin:0;font-size:14.5px;font-weight:700;letter-spacing:-.005em;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.title p{margin:2px 0 0;font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ptabs{flex:0 0 auto;display:flex;gap:3px;padding:3px;background:var(--tint-2);border:1px solid var(--line);border-radius:13px}
+.ptabs button{border:0;background:transparent;font:650 12.2px var(--font);color:var(--muted);padding:6px 14px;border-radius:10px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:7px;white-space:nowrap;transition:background .16s,color .16s,box-shadow .16s}
+.ptabs button svg{width:14px;height:14px;display:block;flex:0 0 auto}
+.ptabs button:hover{color:var(--brand);background:rgba(255,255,255,.7)}
+.ptabs button[aria-selected="true"]{background:var(--brand);color:#fff;box-shadow:0 1px 2px rgba(9,26,35,.18),0 3px 10px rgba(18,71,94,.28)}
+/* chips that do not fit wrap onto a hidden second row, so none is ever cut in half */
+.chips{display:flex;flex-wrap:wrap;justify-content:flex-end;align-content:flex-start;gap:6px;flex:0 1 auto;overflow:hidden;max-height:26px;min-width:0}
+.chip{flex:0 0 auto;background:var(--tint);color:var(--brand);border:1px solid var(--line);border-radius:var(--r-pill);padding:3.5px 11px;
+  font-size:10.8px;font-weight:650;letter-spacing:.01em;white-space:nowrap}
+.chip.blox{background:#e9f6f1;border-color:#c9e6db;color:#0b7a5c}
+@media (max-width:1499px){ .chips{display:none} }
+@media (max-width:860px){
+  header{flex-wrap:wrap;row-gap:9px;padding:9px 12px 10px;gap:10px}
+  .logo img{height:16px}
+  .divider{height:24px}
+  .title h1{font-size:13px}
+  .title p{display:none}
+  .ptabs{order:5;margin-left:0;flex:1 1 100%;overflow-x:auto;scrollbar-width:none}
+  .ptabs::-webkit-scrollbar{display:none}
+  .ptabs button{flex:1 0 auto;justify-content:center;padding:6px 11px;font-size:12px}
+}
+@media (min-width:861px) and (max-width:1140px){ .logo,.divider{display:none} .ptabs button svg{display:none} }
+@media (max-width:520px){ .logo,.divider{display:none} }
+@media (max-width:480px){ .ptabs button svg{display:none} }
+@media (max-width:400px){ .ptabs button{padding:6px 7px;font-size:11.5px} #backatlas span{display:none} #backatlas{padding:7px 9px} }
+/* a phone on its side: one header row, so the model keeps the height */
+@media (max-height:500px) and (orientation:landscape){
+  header{flex-wrap:nowrap;padding:6px 12px} .title,.logo,.divider{display:none} .ptabs{order:0;flex:0 1 auto;margin-left:auto}
+}
+
+/* ================================================================= stage == */
+#stage{position:relative;flex:1 1 auto;min-height:0}
+.view{position:absolute;inset:0}
+.page{overflow:auto;background:var(--tint);-webkit-overflow-scrolling:touch}
+.wrap{max-width:1180px;margin:0 auto;padding:26px 24px 48px}
+.page h2,#as-sheet h2{margin:0;font-size:20px;letter-spacing:-.01em;color:var(--ink)}
+.page .sub,#as-sheet .sub{margin:6px 0 18px;color:var(--muted);font-size:13.5px;line-height:1.55;max-width:760px}
+@media (max-width:620px){ .wrap{padding:18px 14px 40px} .page h2,#as-sheet h2{font-size:18px} }
+
+/* ------------------------------------------------------------------ model -- */
+/* the scene fills the model tab; the sky is the scene's own colour, this gradient shows until it has drawn */
+#gl{position:absolute;inset:0;overflow:hidden;background:radial-gradient(130% 90% at 50% 18%,#fbfdfe 0%,#e9f0f4 52%,#d3e0e7 100%)}
+#gl canvas{display:block;width:100%;height:100%;touch-action:none}
+/* the labels: a layer the renderer places each pill in; it takes no clicks itself */
+#labels{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:2}
+#labels *{pointer-events:none}
+.lab{position:absolute;width:0;height:0}
+#labels .lbl{pointer-events:auto}
+.lbl{position:absolute;left:0;bottom:0;transform:translate(-50%,-20px);cursor:pointer;white-space:nowrap;text-align:left;touch-action:none;
+  font:650 12px/1.2 var(--font);color:var(--brand);background:var(--glass);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  border:1px solid var(--line);padding:6px 11px;border-radius:var(--r-pill);box-shadow:var(--sh-1);transition:box-shadow .15s,border-color .15s}
+.lbl::after{content:"";position:absolute;left:50%;top:100%;width:2px;height:20px;margin-left:-1px;background:var(--glass);box-shadow:0 0 0 1px var(--line)}
+.lbl small{display:block;font-weight:500;color:var(--muted);font-size:10.5px;margin-top:2px}
+.lbl.int{border-color:#bfe3d6}
+.lbl.int::after{box-shadow:0 0 0 1px #bfe3d6}
+.lbl:hover,.lbl:focus-visible{border-color:var(--accent-l);box-shadow:var(--sh-2)}
+/* the labels of the chosen view lead; the others stand back (flat, in the muted ink, without their second line) until pointed at */
+.lab.dim .lbl{color:var(--muted);font-weight:600;border-color:var(--line-2);box-shadow:none}
+.lab.dim .lbl small{display:none}
+.lab.dim .lbl:hover,.lab.dim .lbl:focus-visible{color:var(--brand);border-color:var(--accent-l);box-shadow:var(--sh-2)}
+@media (max-width:860px){ .lbl{font-size:11px;padding:5px 9px} .lbl small{display:none} }
+
+#loading{position:absolute;inset:0;z-index:9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  background:linear-gradient(180deg,#f8fafb,#e4ecf1);font-size:12px;color:var(--muted);font-weight:600;transition:opacity .6s;text-align:center;padding:24px}
+#loading.hide{opacity:0;pointer-events:none}
+#loading::before{content:"";width:34px;height:34px;border-radius:50%;border:2.5px solid rgba(31,95,127,.18);border-top-color:var(--accent);animation:spin .85s linear infinite}
+#loading.failed::before{display:none}
+#loading .bar{width:180px;height:3px;border-radius:3px;background:rgba(31,95,127,.14);overflow:hidden}
+#loading .bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+#loading.failed .bar{display:none}
+#loading a{color:var(--accent);font-weight:700}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.panel{position:absolute;z-index:6;background:var(--glass);-webkit-backdrop-filter:blur(14px) saturate(1.7);backdrop-filter:blur(14px) saturate(1.7);
+  border-radius:var(--r-l);box-shadow:var(--sh-1)}
+/* one arrival, together, once the model is on screen */
+.panel,.hint,#labels{opacity:0;transform:translateY(6px);transition:opacity .7s ease,transform .7s var(--ease)}
+body.ready .panel,body.ready .hint,body.ready #labels{opacity:1;transform:none}
+
+/* the camera and model rail, down the left */
+#rail{left:16px;top:16px;width:198px;padding:8px;display:flex;flex-direction:column;gap:2px;max-height:calc(100% - 32px);overflow:auto;scrollbar-width:thin}
+.rail-h{font-size:9.6px;font-weight:750;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);padding:7px 9px 4px}
+.sep{height:1px;background:var(--line);margin:6px 4px}
+#rail button{display:flex;align-items:center;gap:9px;width:100%;border:0;background:transparent;border-radius:10px;padding:7.5px 9px;
+  font:620 12.4px var(--font);color:var(--ink-2);cursor:pointer;text-align:left;transition:background .14s,color .14s}
+#rail button:hover{background:var(--tint-2);color:var(--brand)}
+#rail button .ic{width:16px;height:16px;flex:0 0 auto;color:var(--accent)}
+#rail button[aria-current="true"]{background:var(--brand);color:#fff}
+#rail button[aria-current="true"] .ic{color:#fff}
+/* toggles: a small switch on the right. The knob is the last flex item, so it reaches back over the
+   button's 9px gap and the 24px track to sit 2px inside the track's left end */
+#rail button.tg::after{content:"";margin-left:auto;flex:0 0 auto;width:24px;height:14px;border-radius:9px;background:var(--slate);
+  box-shadow:inset 0 0 0 1px rgba(9,26,35,.06);transition:background .16s}
+#rail button.tg::before{content:"";order:3;position:relative;margin-left:-31px;margin-right:12px;width:10px;height:10px;border-radius:50%;background:#fff;
+  box-shadow:0 1px 2px rgba(9,26,35,.3);transition:transform .16s var(--ease);flex:0 0 auto}
+#rail button.tg{position:relative}
+#rail button.tg::after{order:2}
+#rail button.tg[aria-pressed="true"]::after{background:var(--teal)}
+#rail button.tg[aria-pressed="true"]::before{transform:translateX(10px)}
+
+/* the caption that follows the view, top right */
+#caption{right:16px;top:16px;width:min(330px,calc(100% - 246px));padding:13px 15px 13px}
+#caption .k{font-size:9.6px;font-weight:750;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+#caption h2{margin:4px 0 0;font-size:15px;line-height:1.3;color:var(--ink);letter-spacing:-.005em}
+#caption p{margin:6px 0 0;font-size:12px;line-height:1.55;color:var(--ink-2)}
+#legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:9px;font-size:11px;font-weight:600;color:var(--ink-2)}
+#legend span{display:inline-flex;align-items:center;gap:6px}
+#legend i{width:18px;height:4px;border-radius:2px;display:block}
+#capmore{display:none}
+
+.hint{position:absolute;z-index:5;left:50%;bottom:14px;translate:-50% 0;font-size:11px;font-weight:600;color:var(--muted);
+  background:rgba(251,253,254,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);padding:5px 12px;border-radius:var(--r-pill);
+  box-shadow:0 1px 3px rgba(9,26,35,.1);white-space:nowrap;pointer-events:none}
+body.moved .hint{opacity:0!important}
+.hint .s{display:none}
+
+@media (max-width:860px){
+  #rail{left:10px;right:10px;top:auto;bottom:10px;width:auto;flex-direction:row;align-items:center;overflow-x:auto;overflow-y:hidden;padding:6px;gap:4px;
+    scrollbar-width:none;border-radius:14px}
+  #rail::-webkit-scrollbar{display:none}
+  .rail-h{display:none}
+  .sep{width:1px;height:26px;margin:0 2px;flex:0 0 auto}
+  #rail button{width:auto;flex:0 0 auto;padding:7px 10px;font-size:12px;white-space:nowrap}
+  #caption{left:10px;right:10px;top:10px;width:auto;padding:10px 12px}
+  #caption h2{font-size:13.5px}
+  #caption p{font-size:11.5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  #caption.more p{-webkit-line-clamp:unset;display:block}
+  #capmore{display:inline;border:0;background:none;padding:0;margin-top:4px;font:700 11px var(--font);color:var(--accent);cursor:pointer}
+  /* the hint keeps to the left of the row it shares with the Assumptions button */
+  .hint{bottom:66px;left:10px;translate:none;max-width:calc(100% - 152px);white-space:normal;font-size:10.5px;line-height:1.35}
+  .hint .f{display:none} .hint .s{display:inline}
+  /* the strip scrolls sideways: fade whichever edge has more beyond it */
+  #rail.more-r{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent)}
+  #rail.more-l{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px);mask-image:linear-gradient(90deg,transparent,#000 40px)}
+  #rail.more-l.more-r{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent)}
+}
+/* ...and on its side, the caption shrinks to its heading in the corner */
+@media (max-height:500px) and (orientation:landscape){
+  /* the film keeps its height, with a gutter at the right for the Assumptions button */
+  .vidcard{max-width:calc(100% - 150px)} .vidcard video{max-height:calc(100dvh - 120px)}
+  #caption{width:min(330px,45%);left:auto} #caption p,#capmore,#legend{display:none} .hint{display:none}
+  #caption.note p{display:block}
+}
+
+/* ------------------------------------------------------------ flythrough -- */
+.vidcard{background:#0d1b23;border-radius:var(--r-l);overflow:hidden;box-shadow:var(--sh-2)}
+video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspect-ratio:16/9;background:#0d1b23}
+.vidmeta{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+
+/* ---------------------------------------------------------------- stills -- */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+/* a button centres its content, so each card is a column that starts at the top */
+.still{margin:0;padding:0;border:0;text-align:left;cursor:zoom-in;background:var(--surface);border-radius:var(--r-l);overflow:hidden;
+  box-shadow:var(--sh-1);font:inherit;color:inherit;transition:transform .18s var(--ease),box-shadow .18s;
+  display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch}
+.still:hover{transform:translateY(-2px);box-shadow:var(--sh-2)}
+.still img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:var(--tint-2)}
+.still span{display:block;padding:11px 14px 13px;font-size:12.5px;line-height:1.5;color:var(--muted)}
+.still span b{display:block;color:var(--ink);font-size:13.5px;font-weight:700;margin-bottom:1px}
+#lb{position:fixed;inset:0;z-index:50;background:rgba(9,20,26,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;padding:56px 64px 22px}
+#lb img{max-width:100%;max-height:calc(100% - 60px);border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.5);object-fit:contain}
+#lb .cap{color:#cfdbe2;font-size:13px;line-height:1.5;text-align:center;max-width:760px}
+#lb .cap b{display:block;color:#fff;margin-bottom:2px}
+#lb button{position:absolute;border:0;cursor:pointer;color:#fff;background:rgba(255,255,255,.12);border-radius:var(--r-pill);font:650 13px var(--font);
+  transition:background .15s}
+#lb button:hover{background:rgba(255,255,255,.24)}
+#lb .x{top:14px;right:16px;padding:8px 14px}
+#lb .pv,#lb .nx{top:50%;translate:0 -50%;width:42px;height:42px;font-size:18px}
+#lb .pv{left:12px} #lb .nx{right:12px}
+@media (max-width:620px){ #lb{padding:56px 10px 18px} #lb .pv,#lb .nx{top:auto;bottom:16px;translate:none} }
+
+/* ----------------------------------------------------------------- facts -- */
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.card{background:var(--surface);border-radius:var(--r-l);box-shadow:var(--sh-1);padding:18px 20px;border-top:3px solid var(--site)}
+.card.scaled{border-top-color:var(--accent-l)}
+.card.est{border-top-color:var(--amber)}
+.card h3{margin:0 0 4px;font-size:15px;color:var(--ink)}
+.card .src{margin:0 0 10px;font-size:12px;color:var(--muted)}
+.card ul{margin:0;padding-left:18px;color:var(--ink-2);font-size:13px;line-height:1.55}
+.card li{margin:7px 0}
+.card li b{color:var(--ink);font-weight:650}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:16px}
+.kpi{background:var(--surface);border-radius:var(--r-m);box-shadow:var(--sh-1);padding:14px 16px}
+.kpi .v{font-size:24px;font-weight:750;color:var(--brand);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.kpi .k{font-size:12px;color:var(--muted);margin-top:2px}
+.foot{margin-top:22px;font-size:11.5px;color:var(--muted);line-height:1.6}
+.page h2.sec{margin-top:38px}
+/* a page scrolls clear of the Assumptions button in the corner */
+.page .wrap{padding-bottom:84px}
+
+/* ----------------------------------------------------------- assumptions -- */
+/* the button in the bottom corner, clear of the control strip on a phone */
+#as-open{position:fixed;z-index:10;right:16px;bottom:16px;display:inline-flex;align-items:center;gap:7px;
+  border:1px solid var(--line);background:var(--glass);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:var(--brand);
+  font:650 12px var(--font);padding:7px 13px 7px 11px;border-radius:var(--r-pill);box-shadow:var(--sh-1);cursor:pointer;
+  transition:background .15s,color .15s,border-color .15s}
+#as-open:hover{background:var(--brand);border-color:var(--brand);color:#fff}
+#as-open svg{width:14px;height:14px;display:block;flex:0 0 auto}
+@media (max-width:860px){ .tab-model #as-open{right:10px;bottom:66px} }
+/* the sheet, over a dimmed page; it scrolls on its own */
+#as-sheet{position:fixed;inset:0;z-index:40;background:rgba(9,20,26,.5);display:flex;align-items:flex-start;justify-content:center;
+  padding:24px 16px;overflow:auto;overscroll-behavior:contain}
+#as-sheet .sheet{position:relative;width:100%;max-width:1180px;margin:auto 0;background:var(--tint);border-radius:var(--r-l);box-shadow:var(--sh-2)}
+/* Close stays in view as the sheet scrolls (a touch screen has no Escape) */
+#as-x{position:sticky;top:12px;float:right;margin:14px 14px 0 0;z-index:2;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);cursor:pointer;
+  font:650 12px var(--font);padding:7px 12px;border-radius:var(--r-pill);transition:background .15s,color .15s}
+#as-x:hover{background:var(--brand);color:#fff}
+#as-sheet .wrap{padding-top:22px}
+#as-sheet h2{padding-right:96px}
+@media (max-width:620px){ #as-sheet{padding:10px} #as-sheet h2{padding-right:84px} }
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
+</style>
+</head>
+<body class="tab-model">
+<header>
+  <a id="backatlas" href="/clients/wld/" title="Back to the WLD Atlas">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.6L4.6 8 10 13.4"/></svg>
+    <span>Atlas</span>
+  </a>
+  <div class="logo"><img alt="RenewaBlox" src="assets/renewablox-wordmark.png"/></div>
+  <div class="divider"></div>
+  <div class="title">
+    <h1>Compute Render: the BLOX at the CHP</h1>
+    <p>BLOX Bitcoin mining data centre · Wildmore Renewables AD · concept, November 2026</p>
+  </div>
+  <nav class="ptabs" id="ptabs" role="tablist" aria-label="What the page shows">
+    <button type="button" role="tab" id="t-model" data-tab="model" aria-selected="true" aria-controls="p-model"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.8l5.6 3.1v6.2L8 14.2l-5.6-3.1V4.9z"/><path d="M2.4 4.9L8 8l5.6-3.1M8 8v6.2"/></svg>Model</button>
+    <button type="button" role="tab" id="t-media" data-tab="media" aria-selected="false" aria-controls="p-media" tabindex="-1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.8" y="3.2" width="12.4" height="9.6" rx="1.6"/><path d="M6.6 6v4l3.6-2z"/></svg>Flythrough &amp; stills</button>
+  </nav>
+  <div class="chips" aria-label="The installation in three figures">
+    <span class="chip" title="A Winchain 20 ft high-cube hydro-cooling container">20 ft hydro container</span><span class="chip" title="Three racks of 20 slots along the north-east wall">3 racks × 20 slots</span><span class="chip blox" title="The LV cable from the BLOX pad to the CHP, route indicative">≈ 10 m to the CHP</span>
+  </div>
+</header>
+
+<main id="stage">
+  <!-- ============================================================ model -->
+  <section class="view" id="p-model" role="tabpanel" aria-labelledby="t-model">
+    <nav class="panel" id="rail" aria-label="Camera and model" inert>
+      <div class="rail-h">Camera</div>
+      <button type="button" data-v="overview" aria-current="true" title="The plant and the BLOX from the south-south-east, over the yard (click again to reset the view)"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.8 11.4l6.2-3.4 6.2 3.4"/><path d="M1.8 11.4V5.2L8 1.8l6.2 3.4v6.2"/><path d="M8 8V1.8"/></svg><span>Overview</span></button>
+      <button type="button" data-v="container" title="The BLOX container from the south, by its services end"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.8" y="4.2" width="12.4" height="8.4" rx="1"/><path d="M8 4.2v8.4M4.6 7h1.2M10.2 7h1.2"/></svg><span>Container</span></button>
+      <button type="button" data-v="cooler" title="The dry cooler on the container roof, and the flow and return up to it"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6"/><path d="M8 8c0-2.2.9-3.6 2.4-3.6M8 8c1.9 1.1 2.7 2.6 1.9 3.9M8 8c-1.9 1.1-3.6 1-4.3-.3"/><circle cx="8" cy="8" r=".9" fill="currentColor"/></svg><span>Dry cooler</span></button>
+      <button type="button" data-v="power" title="The supply: the CHP, the cable route and the LV pillar"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 1.8L3.6 9h3.8l-1 5.2L12.4 7H8.6z"/></svg><span>Power</span></button>
+      <button type="button" data-v="inside" title="Inside the container: the walls see-through and the doors open"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.6 8s2.4-4.4 6.4-4.4S14.4 8 14.4 8s-2.4 4.4-6.4 4.4S1.6 8 1.6 8z"/><circle cx="8" cy="8" r="2"/></svg><span>Inside</span></button>
+      <button type="button" data-v="plant" title="The AD plant: the tanks, the clamps and the CHP"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.2 13.6V7.2a5.8 5.8 0 0 1 11.6 0v6.4"/><path d="M2.2 13.6h11.6M2.2 9.6h11.6"/></svg><span>Plant</span></button>
+      <button type="button" data-v="poultry" title="The neighbouring poultry sheds, about 300 m north-east"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.6 12.8V8.4L5 6l3.4 2.4v4.4"/><path d="M8.4 12.8V8.4L11.8 6l2.6 2.4v4.4"/><path d="M1.2 12.8h13.6"/></svg><span>Poultry</span></button>
+      <div class="sep"></div>
+      <div class="rail-h">Show</div>
+      <button type="button" class="tg" id="b-xray" aria-pressed="false" title="Make the container's walls, roof and doors see-through, to see the racks and the CDU from any side"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.8" y="4.2" width="12.4" height="8.4" rx="1" stroke-dasharray="2.1 1.7"/><path d="M5 7h6M5 9.6h6"/></svg><span>X-ray</span></button>
+      <button type="button" class="tg" id="b-doors" aria-pressed="false" title="Open the services-end door and the cargo doors"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 14.2V1.8h6.4v12.4"/><path d="M9.8 1.8l3 1.4v12.2l-3-1.2"/></svg><span>Doors open</span></button>
+      <button type="button" class="tg" id="b-fans" aria-pressed="true" title="Turn the dry cooler's six fans"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 8c0-3 1.2-4.6 2.8-4.6S13 5 11.8 6.4 8 8 8 8zM8 8c2.6 1.5 3.4 3.3 2.6 4.7S8 13.6 7.4 12 8 8 8 8zM8 8c-2.6 1.5-4.6 1.3-5.4-.1S3.3 5 5 5.6 8 8 8 8z"/><circle cx="8" cy="8" r="1" fill="currentColor"/></svg><span>Fans</span></button>
+      <button type="button" class="tg" id="b-labels" aria-pressed="true" title="Show or hide the labels"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 14.4s4.6-4.2 4.6-7.6A4.6 4.6 0 0 0 3.4 6.8c0 3.4 4.6 7.6 4.6 7.6z"/><circle cx="8" cy="6.8" r="1.6"/></svg><span>Labels</span></button>
+      <button type="button" class="tg" id="b-rot" aria-pressed="false" title="Turn the view slowly round the pad; any camera button stops it"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13.4 8A5.4 5.4 0 1 1 11.8 4.2"/><path d="M13.6 2.2v3h-3"/></svg><span>Turn slowly</span></button>
+    </nav>
+    <div id="gl" aria-label="3D model of the BLOX container with its roof dry cooler on the pad at the CHP of the Wildmore Renewables AD plant" role="img"></div>
+    <div id="labels"></div>
+    <div id="loading" role="status"><span id="loadmsg">Loading the site</span><div class="bar"><i id="loadbar"></i></div></div>
+
+    <div class="panel" id="caption" aria-live="polite" inert>
+      <div class="k" id="cap-k">Camera · Overview</div>
+      <h2 id="cap-h">The BLOX at the CHP</h2>
+      <p id="cap-p"></p>
+      <button type="button" id="capmore">More</button>
+    </div>
+    <div class="hint"><span class="f">Drag to orbit · scroll or pinch to zoom · right-drag or two fingers to pan · click a label to go to it</span><span class="s">Drag to orbit · pinch to zoom · tap a label</span></div>
+  </section>
+
+  <!-- ============================================== flythrough & stills -->
+  <section class="view page" id="p-media" role="tabpanel" aria-labelledby="t-media" tabindex="0" hidden>
+    <div class="wrap">
+      <h2>Flythrough</h2>
+      <p class="sub">48 seconds: in over the fen from the south, with the plant and the poultry sheds ahead, down over the yard past the tanks and the CHP, along the BLOX container to its services end as the personnel door swings open, over the gate and in through the doorway to the rack aisle.</p>
+      <div class="vidcard">
+        <video id="fly" controls preload="none" playsinline poster="assets/flythrough_poster.jpg">
+          <source src="assets/wildmore_flythrough_720p.mp4" type="video/mp4"/>
+          This browser cannot play the video. <a href="assets/wildmore_flythrough_720p.mp4">Download the MP4</a>.
+        </video>
+      </div>
+      <div class="vidmeta"><span class="chip">48 s</span><span class="chip">720p · H.264</span><span class="chip">Concept, November 2026</span><span class="chip">Site from EA LiDAR and OS data</span></div>
+
+      <h2 id="stills" class="sec">Stills</h2>
+      <p class="sub">Rendered views of the model. Click one to see it full size; the arrow keys step through them.</p>
+      <div class="grid" id="gallery">
+        <button type="button" class="still" data-full="assets/hero.jpg"><img src="assets/hero_thumb.jpg" alt="The BLOX container on its fenced pad, its dry cooler on the roof" loading="lazy"/><span><b>The BLOX at the CHP</b>From the south: the Winchain 20 ft container on its fenced pad with the ExaDC410 dry cooler on its roof frame, the red flow and blue return rising to it, the services end with its door, and the LV pillar beside it</span></button>
+        <button type="button" class="still" data-full="assets/cable.jpg"><img src="assets/cable_thumb.jpg" alt="The cable route from the BLOX pad to the CHP, from above" loading="lazy"/><span><b>The connection to the CHP</b>From above the yard: the LV cable leaves the pad through a draw pit by the pillar and runs about 10 m in a reinstated trench, past its marker posts, to a cable entry on the CHP enclosure. The route is indicative</span></button>
+        <button type="button" class="still" data-full="assets/interior.jpg"><img src="assets/interior_thumb.jpg" alt="Inside the container, the three racks along the aisle" loading="lazy"/><span><b>Inside the container</b>From the services-end door: the three racks of 20 hydro-cooled miners along the north-east wall, their hoses and manifolds, the DN80 headers above, and the pump and CDU panel at the near end</span></button>
+        <button type="button" class="still" data-full="assets/aerial.jpg"><img src="assets/aerial_thumb.jpg" alt="Aerial view of the plant with the BLOX by the CHP" loading="lazy"/><span><b>Aerial</b>The plant from the south-south-east: the BLOX on its pad by the CHP, the storage tank and the digester inside their bund, the hydrolysis tanks and the walled silage clamps, with the poultry sheds beyond</span></button>
+        <button type="button" class="still" data-full="assets/poultry.jpg"><img src="assets/poultry_thumb.jpg" alt="The poultry sheds, with the plant on the horizon" loading="lazy"/><span><b>The poultry neighbour</b>The eight poultry sheds, 270 to 370 m north-east of the BLOX, from the south-east, with the plant&rsquo;s domes on the horizon to the left</span></button>
+        <button type="button" class="still" data-full="assets/dusk.jpg"><img src="assets/dusk_thumb.jpg" alt="The BLOX at dusk, its door open and its glow lines lit" loading="lazy"/><span><b>At dusk</b>Just after sunset: the services-end door open on the lit interior, the warm bulkhead light over it and the cyan glow lines along the container and round the cooler</span></button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- the assumptions: a sheet over whichever tab is open, from the button in the bottom corner -->
+<button type="button" id="as-open" aria-haspopup="dialog" aria-controls="as-sheet"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2.4h7.2L13 5.2v8.4H3z"/><path d="M5.4 8.2l1.6 1.6 3-3.2"/></svg>Assumptions</button>
+<div id="as-sheet" role="dialog" aria-modal="true" aria-labelledby="as-h" hidden>
+  <div class="sheet">
+    <button type="button" id="as-x" aria-label="Close the assumptions">Close ✕</button>
+    <div class="wrap">
+      <h2 id="as-h">What is measured, and what is assumed</h2>
+      <p class="sub">So the engineering review knows what to trust. The site comes from government open data: the ground, the heights and the tank sizes from the Environment Agency&rsquo;s LiDAR, the buildings and roads from Ordnance Survey, the fields from the Crop Map of England. The BLOX kit comes from documents. Where the BLOX goes on the site, and how it connects, are assumptions, and the model says so here.</p>
+      <div class="cols">
+        <div class="card">
+          <h3>Measured from open data</h3>
+          <p class="src">Environment Agency LiDAR (survey of 10–22 November 2020, 1 m), OS OpenMap Local and the RPA Crop Map of England 2024</p>
+          <ul>
+            <li><b>Ground</b>: the 1 m LiDAR terrain; the pad ground is 2.5 m above sea level (ODN) and varies by −0.09 to +0.25 m across the pad, so the model levels it under the slab</li>
+            <li><b>Storage tank</b>: about 29 m across, its dome top 12.8 m (planning gave 32 m and 13 m; the model follows the LiDAR)</li>
+            <li><b>Digester</b>: about 21 m across, its top 12.1 m; the two hydrolysis tanks about 9 m across, flat tops at 5.7–6.4 m</li>
+            <li><b>CHP enclosure</b>: 11.5 × 5.6 m on a bearing of 128°, its roof plant up to 6.3 m</li>
+            <li><b>Silage clamps</b>: a 54 × 50 m walled block, heaps about 3.2 m high; the pump room 12 × 11 m between the tanks</li>
+            <li><b>Containment bund</b>: an earth bank about 0.8 m high round the tank compound</li>
+            <li><b>Poultry sheds</b>: eight, 92.7 × 21 m, eaves 3.45 m, ridge 6.0 m, their centres 270–370 m north-east</li>
+            <li><b>Trees and hedges</b>: 1,017 crowns and the hedgerows from the vegetation model; the tree belt starts 4.9 m off the pad&rsquo;s south-west edge</li>
+          </ul>
+        </div>
+        <div class="card scaled">
+          <h3>From documents</h3>
+          <p class="src">The Winchain quotation GH000213L and RenewaBlox&rsquo;s model of the same kit, and the planning report for the plant</p>
+          <ul>
+            <li><b>Container</b>: a Winchain 20 ft high-cube hydro-cooling container, 6.058 × 2.438 × 2.896 m external</li>
+            <li><b>Racks</b>: three, 800 × 700 × 2,000 mm, 20 slots each, with a smart PDU, a switch and a manifold pair each</li>
+            <li><b>Dry cooler</b>: a Winchain ExaDC410, 3.64 × 2.306 × 2.50 m, six fans, on a 0.45 m steel frame on the container roof; DN80 flow and return</li>
+            <li><b>Services</b>: the pump line and CDU panel at the services end, fire and leak detection, CCTV and lighting</li>
+            <li><b>Silage clamps</b>: three bays with walls up to 4.5 m (planning)</li>
+          </ul>
+        </div>
+        <div class="card est">
+          <h3>Assumed: please check</h3>
+          <p class="src">Each is one setting in the model, so a measurement or a decision replaces it directly</p>
+          <ul>
+            <li><b>Position</b>: the pad on the grass verge north-west of the CHP, its long axis on 135°/315°, chosen by eye and not measured</li>
+            <li><b>Pad</b>: 10 × 7 m concrete, 0.15 m thick, with a 2 m mesh fence and a double gate on the side facing the CHP</li>
+            <li><b>Interior layout</b>: the racks along the north-east wall facing a 1.2 m aisle, the services end towards the CHP, free floor at the north-west end for more racks; the pump, vessels and panel positions</li>
+            <li><b>Cable</b>: from the LV pillar through a draw pit, out of the pad and about 10 m in all in a trench to a cable entry on the CHP enclosure; the route and the entry point are indicative</li>
+            <li><b>Branding</b>: the RenewaBlox livery, the wordmark and the &ldquo;BLOX.&rdquo; marks, including the fascia round the cooler&rsquo;s fan deck</li>
+            <li><b>Plant details</b>: the CHP enclosure&rsquo;s louvres, doors and roof kit, the flare (not seen in the data), the colours, the October look of each field (from its Crop Map crop), the solar roof&rsquo;s shed, and the widths of the roads and tracks</li>
+          </ul>
+        </div>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><div class="v">6.06 m</div><div class="k">the 20 ft container</div></div>
+        <div class="kpi"><div class="v">3 × 20</div><div class="k">rack slots</div></div>
+        <div class="kpi"><div class="v">5.9 m</div><div class="k">pad to the top of the cooler</div></div>
+        <div class="kpi"><div class="v">10 × 7 m</div><div class="k">the fenced pad</div></div>
+        <div class="kpi"><div class="v">≈ 10 m</div><div class="k">cable to the CHP, indicative</div></div>
+      </div>
+      <p class="foot">RenewaBlox · Wildmore concept visualisation, November 2026: the BLOX Bitcoin mining data centre at the CHP. Built in Blender in true north from government open data, with the sun at its true bearing; the stills are path-traced in Cycles and the flythrough rendered in Blender&rsquo;s real-time engine, EEVEE. In the browser the finishes show as flat colours. Not a survey, and not for construction. Contains OS data © Crown copyright and database right 2026. © Environment Agency copyright and/or database right 2022. All rights reserved. © Rural Payments Agency, Crop Map of England (CROME) 2024. Open Government Licence v3.0.</p>
+    </div>
+  </div>
+</div>
+
+<div id="lb" role="dialog" aria-modal="true" aria-label="Still" hidden>
+  <button type="button" class="x" id="lb-x">Close ✕</button>
+  <button type="button" class="pv" id="lb-pv" aria-label="Previous still">‹</button>
+  <img id="lb-img" alt=""/>
+  <div class="cap" id="lb-cap"></div>
+  <button type="button" class="nx" id="lb-nx" aria-label="Next still">›</button>
+</div>
+
+<script src="assets/three-0.170.0.min.js"></script>
+<script>
+(function(){
+  const $ = (id) => document.getElementById(id);
+  const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ------------------------------------------------------------ the tabs */
+  const TABS = ['model', 'media'];
+  const ALIAS = { flythrough: 'media', stills: 'media' };
+  const tabBtns = [...document.querySelectorAll('#ptabs [role=tab]')];
+  let tab = 'model';
+  function setTab(t, focus){
+    t = ALIAS[t] || t;
+    if (!TABS.includes(t)) t = 'model';
+    tab = t;
+    tabBtns.forEach((b) => {
+      const on = b.dataset.tab === t;
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+      b.tabIndex = on ? 0 : -1;
+      if (on && focus) b.focus();
+    });
+    TABS.forEach((k) => { $('p-' + k).hidden = k !== t; });
+    document.body.className = document.body.className.replace(/\btab-\w+/, '') + ' tab-' + t;
+    if (t !== 'media') $('fly').pause();
+    // the model's panels were measured while hidden: measure them again now they show; and the scene only draws while it shows
+    if (t === 'model') { clampCaption(); railEdges(); }
+    run();
+    // the address remembers the tab (in the hash, replacing any ?tab=), without a history step per click
+    const u = new URL(location.href);
+    u.searchParams.delete('tab');
+    u.hash = t === 'model' ? '' : t;
+    history.replaceState(null, '', u);
+  }
+  tabBtns.forEach((b, i) => {
+    b.addEventListener('click', () => setTab(b.dataset.tab));
+    b.addEventListener('keydown', (e) => {
+      const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+      if (d) { e.preventDefault(); setTab(tabBtns[(i + d + tabBtns.length) % tabBtns.length].dataset.tab, true); }
+    });
+  });
+
+  /* ------------------------------------------------------------ the atlas */
+  // "Atlas" goes back in history only when the visitor came from the WLD map itself, so the map keeps its view
+  $('backatlas').addEventListener('click', (e) => {
+    let r = null;
+    try { r = document.referrer ? new URL(document.referrer) : null; } catch (err) { r = null; }
+    if (r && r.origin === location.origin && r.pathname === location.pathname && !r.searchParams.has('view') && history.length > 1) {
+      e.preventDefault(); history.back();
+    }
+  });
+
+  /* --------------------------------------------------------- the scene */
+  // The three.js scene of the site: the model is a GLB fetched from beside the page; the container's walls, roof and
+  // doors go see-through for X-ray, the doors and the cooler's fans are pivots that turn, and the labels are pills the
+  // CSS2DRenderer places over the parts they name. Positions are in the model's Blender frame (true east, true north,
+  // Z up, metres from the pad centre at its ground level) and turned into glTF's (x, z, -y) by B(); the BLOX's own
+  // parts are given in its frame (+X along the container to the services end, on a bearing of 135°) by BL().
+  const L = window.RBX3D || null;
+  const BL = (x, y, z) => [0.70711 * (x + y), 0.70711 * (y - x), z];
+  const VIEWS = {
+    overview: { pos: [30, -70, 42], tgt: [12, 14, 2], tgtNarrow: [8, 2, 2],   // a phone held upright aims nearer the BLOX
+      k: 'Overview', h: 'The BLOX at the CHP',
+      p: 'The plant from the south-south-east, over the yard: the BLOX on its fenced pad by the CHP, the storage tank and the digester inside their bund, the hydrolysis tanks and the walled silage clamps behind. The site is from Environment Agency LiDAR and Ordnance Survey data.' },
+    container: { pos: BL(11.0, -7.2, 1.9), tgt: BL(0.0, 0.4, 2.6),
+      k: 'Container', h: 'The BLOX container',
+      p: 'A Winchain 20 ft high-cube hydro-cooling container, 6.06 × 2.44 × 2.90 m, on two concrete strips on a 10 × 7 m fenced pad. Its services end, with the personnel door, faces the CHP; the cargo doors are at the far end, with free floor inside them for more racks.' },
+    cooler: { pos: BL(8.5, -6.8, 8.6), tgt: BL(0.0, 0.0, 5.0),
+      k: 'Dry cooler', h: 'The dry cooler, on the roof',
+      p: 'A Winchain ExaDC410, 3.64 × 2.31 × 2.50 m with six fans, on a 0.45 m steel frame on twist-lock plates over the container\'s corner castings. The insulated DN80 flow (red) and return (blue) rise from the roof ports at the services end to its headers.' },
+    power: { pos: [2, -21, 13], tgt: [9.5, -3.6, 0.8],
+      k: 'Power', h: 'The connection to the CHP',
+      p: 'From the CHP, a cable of about 10 m in a reinstated trench, past its marker posts, through a draw pit inside the fence to the LV pillar at the services end, and on to the isolator on the end wall. The route and the cable entry on the CHP enclosure are indicative.' },
+    inside: { pos: BL(1.2, -6.6, 2.6), tgt: BL(0.4, 0.6, 1.4), xray: true, doors: true,
+      k: 'Inside', h: 'Inside the container',
+      p: 'The walls go see-through and the doors open: three racks of 20 slots along the north-east wall, each with its hydro-cooled miners, hoses, manifold pair, PDU and switch; the DN80 headers above them; the pump line, vessels and CDU panel at the services end; and the free floor at the far end, marked out for more racks.' },
+    plant: { pos: [-32, -40, 34], tgt: [32, 34, 4],
+      k: 'Plant', h: 'The AD plant',
+      p: 'The plant as the LiDAR saw it in November 2020: the storage tank (about 29 m across) and the digester (about 21 m) with their membrane domes inside the bund, the two hydrolysis tanks and the pump room between them, the three walled silage clamps, and the CHP enclosure with its roof plant.' },
+    poultry: { pos: [430, 10, 55], tgt: [240, 170, 0],
+      k: 'Poultry', h: 'The poultry neighbour',
+      p: 'Eight poultry sheds, 92.7 × 21 m each, 270 to 370 m north-east of the BLOX (the plant is off to the west of this view). The heights are the LiDAR\'s; the gable fans and doors are indicative.' },
+  };
+  const LABELS = [  // title, subtitle, Blender xyz, the view it belongs to, interior only, show within (m)
+    ['BLOX Bitcoin mining data centre', 'Winchain 20 ft high-cube · 3 racks', BL(-1.6, 0, 3.4), 'container', false, 500],
+    ['Dry cooler', 'ExaDC410 · 6 fans · on the roof', BL(0.6, 0, 6.3), 'cooler', false, 45],
+    ['Flow / return', 'DN80, insulated', BL(2.65, 0.1, 4.1), 'cooler', false, 18],
+    ['LV pillar', 'At the services end', BL(3.62, 2.22, 1.75), 'power', false, 30],
+    ['Isolator', 'On the end wall', BL(3.30, 0.80, 1.95), 'power', false, 14],
+    ['Cable to the CHP', '≈ 10 m · route indicative', [9.0, -3.7, 0.3], 'power', false, 70],
+    ['CHP', 'Acoustic enclosure', [17.9, -6.5, 4.9], 'power', false, 500],
+    ['Racks', '3 × 20 slots, hydro-cooled', BL(0.95, 0.68, 2.0), 'inside', true, 16],
+    ['CDU', 'Pump, vessels and panel', BL(2.05, -0.80, 1.7), 'inside', true, 14],
+    ['DN80 headers', 'Supply and return over the racks', BL(0.2, 0.70, 2.55), 'inside', true, 14],
+    ['Storage tank', '≈ 29 m across', [35.5, 16.6, 13.3], 'plant', false, 600],
+    ['Digester', '≈ 21 m across', [55.1, 37.0, 12.8], 'plant', false, 600],
+    ['Hydrolysis tanks', 'Two, ≈ 9 m across', [34.0, 42.8, 7.0], 'plant', false, 112],
+    ['Silage clamps', 'Three walled bays', [-2.4, 76.7, 5.0], 'plant', false, 600],
+    ['Poultry sheds', 'Eight, 270–370 m north-east', [255, 190, 7.5], 'poultry', false, 1600],
+  ];
+  // what goes see-through for X-ray, and what is only inside (its label shows once the inside can be seen)
+  const XRAY = /^(blox_wall_|blox_roof|blox_door\d|blox_pdoor_leaf|blox_services_end|blox_wordmark_|blox_tagline|blox_side_glow_|blox_intake_louvre|int_liner_|int_ceiling|int_intake_grille)/;
+  const INTERIOR = /^(rack_|cdu_|int_)/;
+  // the door pivots, with the way each opens (glTF y, as Blender's z) and how far
+  const DOORS = { blox_door_pivot0: [1, 150], blox_door_pivot1: [-1, 150], blox_pdoor_pivot: [-1, 160] };
+
+  let view = 'overview', xray = false, fansOn = true, labelsOn = true, doorOpen = 0, doorTarget = 0, loaded = false;
+  let renderer = null, labelR = null, scene = null, camera = null, controls = null, tween = null, raf = 0, clock = null;
+  const xrayMeshes = [], fans = [], doors = [], labelObjs = [];
+  let xrayMat = null, B = null, THREE = null, lastMove = 0, pmrem = null;
+
+  // a view's aim, or its narrower one on a stage held upright
+  function aim(v){ return (v.tgtNarrow && camera && camera.aspect < 0.8) ? v.tgtNarrow : v.tgt; }
+  function pressed(id, on){ $(id).setAttribute('aria-pressed', on ? 'true' : 'false'); }
+  function failed(msg, retry){
+    const l = $('loading'); l.classList.remove('hide'); l.classList.add('failed');
+    $('loadmsg').innerHTML = msg + (retry ? ' <a href="#retry">Try again</a>, or see the' : ' The') + ' <a href="#media">flythrough and stills</a>, which show the same model.';
+    l.querySelectorAll('a').forEach((a) => a.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (a.getAttribute('href') === '#retry') { l.classList.remove('failed'); $('loadmsg').textContent = 'Loading the site'; bar(0); load(); }
+      else setTab(a.getAttribute('href').slice(1));
+    }));
+  }
+  function bar(f){ $('loadbar').style.width = Math.round(Math.max(0, Math.min(1, f)) * 100) + '%'; }
+
+  function start(){
+    if (location.protocol === 'file:') { failed('Opened from a folder, the browser will not load the 3D model; serve the folder over http(s).'); return; }
+    if (!L || !L.THREE) { failed('The 3D viewer did not load.'); return; }
+    THREE = L.THREE;
+    const probe = document.createElement('canvas');
+    if (!(probe.getContext('webgl2') || probe.getContext('webgl'))) { failed('This browser cannot show 3D (WebGL is off).'); return; }
+    B = (x, y, z) => new THREE.Vector3(x, z, -y);   // Blender (x, y, z) -> glTF (x, z, -y)
+    const gl = $('gl');
+    try {
+      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    } catch (e) { failed('This browser cannot show 3D (WebGL is off).'); return; }
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(gl.clientWidth, gl.clientHeight);
+    renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.15;
+    gl.appendChild(renderer.domElement);
+    labelR = new L.CSS2DRenderer({ element: $('labels') });
+    labelR.setSize(gl.clientWidth, gl.clientHeight);
+
+    scene = new THREE.Scene();
+    const skyCol = new THREE.Color(0xc9dcec);
+    scene.background = skyCol; scene.fog = new THREE.Fog(skyCol, 260, 1200);
+    camera = new THREE.PerspectiveCamera(42, gl.clientWidth / Math.max(1, gl.clientHeight), 0.1, 3000);
+    controls = new L.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true; controls.dampingFactor = 0.08; controls.maxPolarAngle = Math.PI * 0.495;
+    controls.minDistance = 1.2; controls.maxDistance = 700; controls.autoRotateSpeed = 0.7;
+    controls.target.copy(B(...aim(VIEWS.overview))); camera.position.copy(B(...VIEWS.overview.pos));
+    // a drag or a pinch: the hint has done its job, and a turn in progress is the visitor's now
+    controls.addEventListener('start', () => { document.body.classList.add('moved'); tween = null; lastMove = performance.now(); run(); });
+    controls.addEventListener('change', () => { lastMove = performance.now(); run(); });
+
+    pmrem = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmrem.fromScene(new L.RoomEnvironment(), 0.04).texture;
+    // a context lost to the system (a phone switching apps) comes back empty: its lighting is made again and the scene redrawn
+    renderer.domElement.addEventListener('webglcontextrestored', () => { scene.environment = pmrem.fromScene(new L.RoomEnvironment(), 0.04).texture; if (loaded) draw(); });
+    scene.add(new THREE.HemisphereLight(0xcfe2f3, 0x7a7a5e, 0.9));
+    const sun = new THREE.DirectionalLight(0xfff1d6, 2.6);
+    // the sun at its true bearing for the renders: 140°, 22° up (late-October mid-morning)
+    sun.position.copy(B(0.596, -0.710, 0.375).multiplyScalar(160)); sun.target.position.copy(B(22, 18, 0)); sun.position.add(sun.target.position);
+    sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); sun.shadow.bias = -0.0006; sun.shadow.normalBias = 0.04;
+    const sc = sun.shadow.camera; sc.near = 20; sc.far = 400; sc.left = -95; sc.right = 95; sc.top = 95; sc.bottom = -95;
+    scene.add(sun); scene.add(sun.target);
+    // the fen beyond the model's ground patch: flat arable land
+    const far = new THREE.Mesh(new THREE.PlaneGeometry(6000, 6000), new THREE.MeshStandardMaterial({ color: 0x6e6648, roughness: 1 }));
+    far.rotation.x = -Math.PI / 2; far.position.y = -0.6; far.receiveShadow = true; scene.add(far);
+    xrayMat = new THREE.MeshPhysicalMaterial({ color: 0x9fd4c4, transparent: true, opacity: 0.2, roughness: 0.12, metalness: 0.0, depthWrite: false, side: THREE.DoubleSide, envMapIntensity: 0.8 });
+    clock = new THREE.Clock();
+
+    new ResizeObserver(() => {
+      const w = gl.clientWidth, h = gl.clientHeight;
+      if (!w || !h) return;
+      camera.aspect = w / h; camera.updateProjectionMatrix(); renderer.setSize(w, h); labelR.setSize(w, h);
+      if (!raf && loaded) draw();
+    }).observe(gl);
+
+    load();
+  }
+
+  // The model, fetched with its progress on the bar (the preload in the head has usually already brought it);
+  // a model that failed to arrive is asked for again under a new address, so a retry is a fresh request.
+  let tries = 0;
+  async function load(){
+    try {
+      const res = await fetch('assets/wildmore_site_web.glb' + (tries ? '?retry=' + tries : ''), { credentials: 'same-origin' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const total = +res.headers.get('content-length') || 0;
+      const chunks = []; let got = 0;
+      const reader = res.body.getReader();
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value); got += value.length;
+        if (total) bar(0.85 * got / total);
+      }
+      const buf = new Uint8Array(got); let o = 0;
+      for (const c of chunks) { buf.set(c, o); o += c.length; }
+      bar(0.9); $('loadmsg').textContent = 'Building the scene';
+      new L.GLTFLoader().parse(buf.buffer, '', build, (err) => { tries++; failed('The 3D model could not be read.', true); });
+    } catch (e) {
+      tries++;
+      failed('The 3D model could not be loaded here.', true);
+    }
+  }
+
+  // The GLB holds one mesh per part (two thousand of them, the trees and hedges sharing a few meshes): parts that
+  // share a material and a role are merged
+  // into one mesh each, so the scene draws in a few dozen calls, while the door and fan pivots keep their
+  // hierarchy so that they can turn.
+  function build(gltf){
+    const root = gltf.scene; root.updateMatrixWorld(true);
+    const groups = new Map(), keep = [];
+    root.traverse((o) => {
+      if (!o.isMesh) return;
+      o.material.envMapIntensity = 0.7;
+      if (o.material.transparent) o.material.depthWrite = false;
+      let p = o.parent, dyn = null;
+      while (p && p !== root) { if (/^(blox_door_pivot|blox_pdoor_pivot|fan_pivot_)/.test(p.name)) dyn = p; p = p.parent; }
+      const name = o.name.replace(/\.\d+$/, '');
+      if (dyn) { keep.push({ o, dyn, name }); return; }
+      const cls = XRAY.test(name) ? 'X' : (INTERIOR.test(name) ? 'I' : 'S');
+      const hasCol = !!o.geometry.attributes.color;
+      const key = o.material.uuid + '|' + Object.keys(o.geometry.attributes).sort().join(',') + '|' + cls;
+      if (!groups.has(key)) groups.set(key, { mat: o.material, geos: [], cls, hasCol });
+      const g = o.geometry.clone(); g.applyMatrix4(o.matrixWorld); groups.get(key).geos.push(g);
+    });
+    const world = new THREE.Group();
+    for (const g of groups.values()) {
+      let geo;
+      try { geo = g.geos.length > 1 ? L.mergeGeometries(g.geos, false) : g.geos[0]; } catch (e) { geo = g.geos[0]; }
+      if (!geo) continue;
+      if (g.hasCol) { g.mat.vertexColors = true; g.mat.color.set(0xffffff); g.mat.roughness = 1.0; }
+      const m = new THREE.Mesh(geo, g.mat); m.castShadow = g.cls !== 'X'; m.receiveShadow = true;
+      if (g.cls === 'X') { m.userData.orig = g.mat; xrayMeshes.push(m); }
+      world.add(m);
+    }
+    // the dynamic parts: each pivot re-parented into the world group with its place kept
+    const pivots = new Set(keep.map((k) => k.dyn));
+    for (const piv of pivots) {
+      const parentM = piv.parent.matrixWorld.clone();
+      piv.removeFromParent(); piv.applyMatrix4(parentM); world.add(piv);
+      // the BLOX turns 45° on the site: a door's swing is added to the yaw its pivot carries from the BLOX
+      const d = DOORS[piv.name.replace(/\.\d+$/, '')];
+      if (/^fan_pivot_/.test(piv.name)) fans.push(piv); else if (d) doors.push({ piv, y0: piv.rotation.y, sign: d[0], deg: d[1] });
+      piv.traverse((c) => {
+        if (!c.isMesh) return;
+        c.castShadow = true; c.receiveShadow = true;
+        const nm = c.name.replace(/\.\d+$/, '');
+        if (XRAY.test(nm)) { c.userData.orig = c.material; xrayMeshes.push(c); }
+      });
+    }
+    scene.add(world);
+    buildLabels();
+    loaded = true;
+    bar(1);
+    draw();
+    setTimeout(() => {
+      $('loading').classList.add('hide');
+      document.body.classList.add('ready');
+      $('rail').removeAttribute('inert'); $('caption').removeAttribute('inert');
+      clampCaption(); railEdges();
+    }, 150);
+    run();
+  }
+
+  /* ----------------------------------------------------------- labels */
+  function buildLabels(){
+    for (const [title, sub, p, v, interior, near] of LABELS) {
+      const wrap = document.createElement('div'); wrap.className = 'lab';
+      const el = document.createElement('button'); el.className = 'lbl' + (interior ? ' int' : ''); el.type = 'button';
+      el.innerHTML = title + (sub ? '<small>' + sub + '</small>' : '');
+      el.title = 'Go to: ' + title;
+      el.addEventListener('click', () => flyTo(B(...p)));
+      wrap.appendChild(el);
+      const o = new L.CSS2DObject(wrap); o.position.copy(B(...p)); o.userData.interior = interior; o.userData.near = near; o.userData.view = v;
+      scene.add(o); labelObjs.push(o);
+    }
+    updateLabels();
+    // a finger or a mouse that lands on a pill and moves is a drag of the scene, not a click: hand it to the canvas
+    let pd = null;
+    $('labels').addEventListener('pointerdown', (e) => { pd = e; });
+    $('labels').addEventListener('pointermove', (e) => {
+      if (!pd || Math.hypot(e.clientX - pd.clientX, e.clientY - pd.clientY) < 6) return;
+      renderer.domElement.dispatchEvent(new PointerEvent('pointerdown', pd)); pd = null;
+    });
+    $('labels').addEventListener('pointerup', () => { pd = null; });
+    $('labels').addEventListener('pointercancel', () => { pd = null; });
+  }
+  function updateLabels(){
+    const v = new THREE.Vector3();
+    // the labels are never hidden behind anything, so near the BLOX the plant's and the neighbours' would land on the container
+    const close = camera.position.distanceTo(B(0, 0, 0)) < 30;
+    for (const o of labelObjs) {
+      o.visible = labelsOn && (!o.userData.interior || xray || doorOpen > 0.5) && camera.position.distanceTo(o.position) < o.userData.near
+        && !(close && (o.userData.view === 'plant' || o.userData.view === 'poultry'));
+      o.element.classList.toggle('dim', view !== 'overview' && o.userData.view !== view);
+      // a label off the edge of the frame is clipped, not hidden: it leaves the Tab order
+      v.copy(o.position).project(camera);
+      o.element.firstElementChild.tabIndex = (o.visible && Math.abs(v.x) <= 1 && Math.abs(v.y) <= 1 && v.z < 1) ? 0 : -1;
+    }
+    queueCover();
+  }
+  // ...as does one the rail or the caption covers, checked once the picture has settled
+  let coverT = 0;
+  function queueCover(){ clearTimeout(coverT); coverT = setTimeout(coverCheck, 200); }
+  function coverCheck(){
+    const panels = ['rail', 'caption'].map((id) => $(id).getBoundingClientRect()).filter((r) => r.width);
+    for (const o of labelObjs) {
+      const b = o.element.firstElementChild;
+      if (b.tabIndex < 0) continue;
+      const r = b.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      if (panels.some((p) => cx >= p.left && cx <= p.right && cy >= p.top && cy <= p.bottom)) b.tabIndex = -1;
+    }
+  }
+
+  /* ------------------------------------------------------------ views */
+  function animateCamera(pos, tgt){
+    if (REDUCED) { camera.position.copy(pos); controls.target.copy(tgt); draw(); return; }
+    tween = { p0: camera.position.clone(), t0: controls.target.clone(), p1: pos, t1: tgt, start: performance.now() };
+    run();
+  }
+  // to a label: the camera keeps its direction and comes in to within 14 m of the part
+  function flyTo(target){
+    const off = new THREE.Vector3().subVectors(camera.position, controls.target);
+    off.setLength(Math.min(off.length(), 14));
+    animateCamera(target.clone().add(off), target);
+  }
+  function setView(name){
+    const v = VIEWS[name]; if (!v || !loaded) return;
+    view = name;
+    if (controls.autoRotate) { controls.autoRotate = false; pressed('b-rot', false); }
+    document.querySelectorAll('#rail [data-v]').forEach((b) => b.setAttribute('aria-current', b.dataset.v === name ? 'true' : 'false'));
+    $('cap-k').textContent = 'Camera · ' + v.k; $('cap-h').textContent = v.h; $('cap-p').textContent = v.p;
+    $('caption').classList.remove('more');
+    clampCaption();
+    setXray(!!v.xray); setDoors(!!v.doors);
+    animateCamera(B(...v.pos), B(...aim(v)));
+  }
+  document.querySelectorAll('#rail [data-v]').forEach((b) => b.addEventListener('click', () => setView(b.dataset.v)));
+  $('cap-p').textContent = VIEWS.overview.p;
+
+  /* ---------------------------------------------------------- toggles */
+  function setXray(on){
+    xray = on; pressed('b-xray', on);
+    for (const m of xrayMeshes) { m.material = on ? xrayMat : m.userData.orig; m.renderOrder = on ? 10 : 0; m.castShadow = !on; }
+    updateLabels(); draw();
+  }
+  function setDoors(on){
+    doorTarget = on ? 1 : 0; pressed('b-doors', on);
+    if (REDUCED) { doorOpen = doorTarget; placeDoors(); draw(); } else run();
+  }
+  function placeDoors(){
+    for (const d of doors) d.piv.rotation.y = d.y0 + d.sign * THREE.MathUtils.degToRad(d.deg) * (1 - Math.pow(1 - doorOpen, 2));
+  }
+  $('b-xray').addEventListener('click', () => { if (loaded) setXray(!xray); });
+  $('b-doors').addEventListener('click', () => {
+    if (!loaded) return;
+    const open = doorTarget < 0.5;
+    // from the far views, come to the container first
+    if (open && !['container', 'inside'].includes(view)) flyTo(B(...BL(0, 0, 1.6)));
+    setDoors(open);
+  });
+  $('b-fans').addEventListener('click', () => { fansOn = !fansOn; pressed('b-fans', fansOn); run(); });
+  $('b-labels').addEventListener('click', () => { labelsOn = !labelsOn; pressed('b-labels', labelsOn); if (loaded) { updateLabels(); draw(); } });
+  $('b-rot').addEventListener('click', () => { if (!loaded) return; controls.autoRotate = !controls.autoRotate; pressed('b-rot', controls.autoRotate); run(); });
+
+  /* ------------------------------------------------------------- loop */
+  // One frame; and the loop, which runs only while the model tab shows, the page is visible and something moves
+  // (a camera flight, the doors, the fans, a slow turn or the controls' damping), so a still scene costs nothing.
+  function draw(dt){
+    if (!loaded) return;
+    updateLabels();
+    controls.update(dt == null ? null : dt);
+    renderer.render(scene, camera); labelR.render(scene, camera);
+  }
+  function moving(){
+    return !!tween || doorOpen !== doorTarget || (fansOn && !REDUCED) || controls.autoRotate || performance.now() - lastMove < 1500;
+  }
+  function frame(now){
+    raf = 0;
+    const dt = Math.min(clock.getDelta(), 0.05);
+    if (tween) {
+      const tt = Math.min(1, (now - tween.start) / 1100), e = tt < 0.5 ? 2 * tt * tt : 1 - Math.pow(-2 * tt + 2, 2) / 2;
+      camera.position.lerpVectors(tween.p0, tween.p1, e); controls.target.lerpVectors(tween.t0, tween.t1, e);
+      if (tt >= 1) tween = null;
+    }
+    if (!REDUCED) {
+      if (doorOpen < doorTarget) doorOpen = Math.min(doorTarget, doorOpen + dt / 1.4);
+      else if (doorOpen > doorTarget) doorOpen = Math.max(doorTarget, doorOpen - dt / 1.4);
+    }
+    placeDoors();
+    if (fansOn && !REDUCED) for (const f of fans) f.rotation.y += dt * 2 * Math.PI * 300 / 60;
+    draw(dt);
+    run();
+  }
+  function run(){
+    const want = loaded && tab === 'model' && !document.hidden && moving();
+    if (want && !raf) { clock.getDelta(); raf = requestAnimationFrame(frame); }
+    else if (!want && raf) { cancelAnimationFrame(raf); raf = 0; }
+  }
+  document.addEventListener('visibilitychange', () => { run(); if (!document.hidden && loaded && !raf) draw(); });
+
+  /* ------------------------------------------------- caption and rail */
+  // on a phone the caption shows two lines; "More" appears only when there is more to show
+  function clampCaption(){
+    const p = $('cap-p'), more = $('caption').classList.contains('more');
+    $('capmore').hidden = !more && p.scrollHeight <= p.clientHeight + 1;
+    $('capmore').textContent = more ? 'Less' : 'More';
+  }
+  $('capmore').addEventListener('click', () => { $('caption').classList.toggle('more'); clampCaption(); });
+  // the strip of controls along a phone's bottom edge scrolls: fade the edge that has more beyond it
+  function railEdges(){
+    const r = $('rail'), wide = r.scrollWidth > r.clientWidth + 1;
+    r.classList.toggle('more-l', wide && r.scrollLeft > 1);
+    r.classList.toggle('more-r', wide && r.scrollLeft + r.clientWidth < r.scrollWidth - 1);
+  }
+  $('rail').addEventListener('scroll', railEdges, { passive: true });
+  addEventListener('resize', () => { clampCaption(); railEdges(); });
+  if (document.fonts) document.fonts.ready.then(() => { clampCaption(); railEdges(); });
+
+  /* --------------------------------------------------------- lightbox */
+  const stills = [...document.querySelectorAll('#gallery .still')];
+  let at = 0, opener = null;
+  function openLb(i){
+    at = (i + stills.length) % stills.length;
+    const s = stills[at];
+    $('lb-img').src = s.dataset.full; $('lb-img').alt = s.querySelector('img').alt;
+    $('lb-cap').innerHTML = s.querySelector('span').innerHTML;
+    if ($('lb').hidden) { opener = document.activeElement; $('lb').hidden = false; $('lb-x').focus(); }
+  }
+  function closeLb(){ $('lb').hidden = true; $('lb-img').removeAttribute('src'); if (opener) opener.focus(); }
+  stills.forEach((s, i) => s.addEventListener('click', () => openLb(i)));
+  $('lb-x').addEventListener('click', closeLb);
+  $('lb-pv').addEventListener('click', () => openLb(at - 1));
+  $('lb-nx').addEventListener('click', () => openLb(at + 1));
+  $('lb').addEventListener('click', (e) => { if (e.target === $('lb')) closeLb(); });
+  document.addEventListener('keydown', (e) => {
+    if ($('lb').hidden) return;
+    if (e.key === 'Escape') closeLb();
+    else if (e.key === 'ArrowLeft') openLb(at - 1);
+    else if (e.key === 'ArrowRight') openLb(at + 1);
+    else if (e.key === 'Tab') {   // keep focus inside the dialog
+      const f = [$('lb-x'), $('lb-pv'), $('lb-nx')], i = f.indexOf(document.activeElement);
+      e.preventDefault(); f[(i + (e.shiftKey ? -1 : 1) + f.length) % f.length].focus();
+    }
+  });
+
+  /* ------------------------------------------------------ assumptions */
+  // What is measured and what is assumed, as a sheet over whichever tab is open, from the button in the bottom
+  // corner. The close button, Escape or a click outside the sheet closes it, and focus goes back where it was.
+  let asFrom = null;
+  function openAs(){
+    if (!$('as-sheet').hidden) return;
+    asFrom = document.activeElement;
+    $('as-sheet').hidden = false; $('as-open').setAttribute('aria-expanded', 'true');
+    $('as-sheet').scrollTop = 0;
+    $('as-x').focus();
+    const u = new URL(location.href); u.searchParams.delete('tab'); u.hash = 'assumptions'; history.replaceState(null, '', u);
+  }
+  function closeAs(){
+    $('as-sheet').hidden = true; $('as-open').setAttribute('aria-expanded', 'false');
+    const u = new URL(location.href); u.hash = tab === 'model' ? '' : tab; history.replaceState(null, '', u);
+    if (asFrom && asFrom.focus) asFrom.focus();
+  }
+  $('as-open').setAttribute('aria-expanded', 'false');
+  $('as-open').addEventListener('click', openAs);
+  $('as-x').addEventListener('click', closeAs);
+  $('as-sheet').addEventListener('click', (e) => { if (e.target === $('as-sheet')) closeAs(); });
+  document.addEventListener('keydown', (e) => {
+    if ($('as-sheet').hidden) return;
+    if (e.key === 'Escape') { e.preventDefault(); closeAs(); }
+    else if (e.key === 'Tab') { e.preventDefault(); $('as-x').focus(); }   // the close button is the sheet's one control
+  });
+
+  // last, once everything above exists: the scene, and the tab the address asks for (?tab= and the #hash)
+  start();
+  const want = (new URLSearchParams(location.search).get('tab')) || location.hash.slice(1);
+  setTab(want);
+  if (want === 'facts' || want === 'assumptions') openAs();
+  else if (want === 'stills') $('stills').scrollIntoView();
+})();
+</script>
+</body>
+</html>
