@@ -447,6 +447,12 @@ copies:
     python atlas/build.py --sync     # copies each from its repository's main branch into atlas/vendor/
     python atlas/build.py            # then look at what changed, and commit the copies
 
+The Market and Investor Atlas copies carry the Moray TAM corrections of 29 Oct
+2026 (Glenfiddich, Wester Alves, Speyside, Rothes CoRDe), built on
+Eunice-Platform's branch `atlas/moray-cluster-corrections` (0811a54) and not yet
+on its `main`: a sync before they land there would bring the old rows back, so
+check that they have, or don't sync those two.
+
 **The two maps** (`MAPS` in the build). The Market Atlas used to be framed from
 `renewablox-client-atlas-v3.streamlit.app` and the Investor Atlas from
 `renewablox-investor-atlas-v3.streamlit.app`, whose wrappers read `?view=`,
