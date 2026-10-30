@@ -7,11 +7,11 @@ place at build time with the same splices, plus the few patches a page needs to 
 rather than inside Streamlit's frame. Every patch names an exact string that must occur once, so
 a regenerated source that loses it fails the build instead of shipping a page that half works.
 
-    /clients/srv/             SRV Atlas (?view=3d the 3D Dispatch Sim, ?view=siting the 3D Compute Kiosk)
+    /clients/srv/             SRV Atlas (?view=3d BLOX Dispatch, ?view=siting BLOX 3D)
     /clients/srv-contractor/  SRV Contractor Atlas, the electrical survey for the LV connection RFQ
-    /clients/bry/             Bryn Atlas, code BRY (?view=3d the 3D Site Model, ?view=compute the Compute Render)
-    /clients/kld/             KLD Atlas (?view=3d the 3D Revenue Sim)
-    /clients/ihn/             IHN Atlas (?view=3d Heat Network 3D)
+    /clients/bry/             Bryn Atlas, code BRY (?view=3d BLOX Dispatch, ?view=compute BLOX 3D)
+    /clients/kld/             KLD Atlas (?view=3d BLOX Dispatch)
+    /clients/ihn/             IHN Atlas (?view=3d BLOX Dispatch)
     /clients/reabold/west-newton/, /clients/reabold/reservoirs/   Reabold's two maps
     /clients/citygate/        Citygate Church's electricity portrait
     /team/keith-huntly/, /team/moray/   the team's decision pages for the Moray primaries
@@ -101,15 +101,15 @@ CLIENT_MAP = HERE / "client_map"
 CLIENT_MAPS = {
     "srv": {"title": "SRV Atlas — Scrivelsby", "kick": "Proposed compute load bank · SRV Atlas",
             "place": "Home Farm AD site, Scrivelsby, Horncastle LN9 6JB", "at": [53.17680, -0.11020], "zoom": 18.5,
-            "badges": [{"at": [53.176703, -0.110826], "label": "3D Dispatch Sim", "short": "3D Sim", "view": "3d"},
-                       {"at": [53.176878, -0.110333], "label": "3D Compute Kiosk", "short": "Kiosk", "view": "siting",
+            "badges": [{"at": [53.176703, -0.110826], "label": "BLOX Dispatch", "short": "Dispatch", "view": "3d"},
+                       {"at": [53.176878, -0.110333], "label": "BLOX 3D", "short": "3D", "view": "siting",
                         "side": "right", "anchor": [-37, 4]}]},
     "kld": {"title": "KLD Atlas — Kinlochdamph", "kick": "999 kW run-of-river hydro · KLD Atlas",
             "place": "Kinlochdamph hydro scheme, Loch Damh, Wester Ross", "at": [57.46160, -5.55778], "zoom": 17,
-            "badges": [{"at": [57.46160, -5.55778], "label": "3D Revenue Sim", "short": "3D Sim", "view": "3d"}]},
+            "badges": [{"at": [57.46160, -5.55778], "label": "BLOX Dispatch", "short": "Dispatch", "view": "3d"}]},
     "wld": {"title": "WLD Atlas — Wildmore Renewables AD", "kick": "BLOX Bitcoin mining data centre · WLD Atlas",
             "place": "Wildmore Renewables AD plant, Langrick, Boston PE22 7AN", "at": [53.02642, -0.11930], "zoom": 18,
-            "badges": [{"at": [53.0262396, -0.1195814], "label": "3D Compute Render", "short": "3D Render", "view": "compute"},
+            "badges": [{"at": [53.0262396, -0.1195814], "label": "BLOX 3D", "short": "3D", "view": "compute"},
                        {"at": [53.0260743, -0.1189871], "label": "BLOX Dispatch", "short": "Dispatch", "view": "dispatch", "side": "right"}]},
 }
 
@@ -187,7 +187,15 @@ def ihn_atlas(page):
     page = once(page, '<button class="chip" type="button" id="btn-layers">Layers</button>',
                 '<button class="chip" type="button" id="btn-layers">Layers</button>'
                 '<button class="chip" type="button" id="btn-about">How it works</button>', what)
-    return once(page, "<span>half-hourly dispatch model of this plant room</span>", "", what)
+    page = once(page, "<span>half-hourly dispatch model of this plant room</span>", "", what)
+    # the badge names the model as every client atlas does, BLOX Dispatch, and so does How it works
+    for old, new in (('aria-label="Open Heat Network 3D, the dispatch model"', 'aria-label="Open BLOX Dispatch, the dispatch model"'),
+                     ("<b>Heat Network 3D</b>", "<b>BLOX Dispatch</b>"),
+                     ("<b>See it running in Heat Network 3D</b>", "<b>See it running in BLOX Dispatch</b>"),
+                     ("the half-hourly dispatch model, Heat Network 3D, opens from the BLOX badge",
+                      "the half-hourly dispatch model, BLOX Dispatch, opens from the BLOX badge")):
+        page = once(page, old, new, what)
+    return page
 
 
 def client_pages():
@@ -198,10 +206,10 @@ def client_pages():
     # own (client 'srv-contractor'), so a contractor never sees the client's views.
     out["clients/srv/index.html"] = client_map("srv")
     page = once(source("srv_3d_sim.html"), "<title>SRV 3D Sim - Scrivelsby Peaker</title>",
-                "<title>SRV Atlas — 3D Dispatch Sim</title>", "srv_3d_sim.html")
+                "<title>SRV Atlas — BLOX Dispatch</title>", "srv_3d_sim.html")
     out["clients/srv/3d.html"] = top_level_nav(page, "srv_3d_sim.html")
     page = once(source("srv_siting_3d.html"), "<title>SRV Compute Kiosk - Scrivelsby Home Farm</title>",
-                "<title>SRV Atlas — 3D Compute Kiosk</title>", "srv_siting_3d.html")
+                "<title>SRV Atlas — BLOX 3D</title>", "srv_siting_3d.html")
     out["clients/srv/siting.html"] = top_level_nav(page, "srv_siting_3d.html")
     page = once(source("srv_contractor.html"),
                 "<title>RenewaBlox — Scrivelsby Atlas · Home Farm AD site (LN9 6JB) · Electrical Site Survey</title>",
@@ -215,12 +223,19 @@ def client_pages():
     badge = once(source("bryn_atlas_3d_badge.html"),
                  'var STANDALONE_3D = "bryn_3d_sim.html", STANDALONE_COMPUTE = "bryn_compute_3d.html";',
                  'var STANDALONE_3D = "?view=3d", STANDALONE_COMPUTE = "?view=compute";', "bryn_atlas_3d_badge.html")
+    # its badges and the popups' links name the views as every client atlas does: BLOX Dispatch (the 3D site model, with
+    # its dispatch desk) and BLOX 3D (the Compute Render)
+    for old, new in (("'3D Site Model', '3D Model', 'Open the 3D site model'", "'BLOX Dispatch', 'Dispatch', 'Open BLOX Dispatch'"),
+                     ("'Compute Render', 'Compute', 'Open the compute render'", "'BLOX 3D', '3D', 'Open BLOX 3D'"),
+                     ("row('See it in the 3D site model'", "row('See it in BLOX Dispatch'"),
+                     ("row('Open the compute render'", "row('Open BLOX 3D'")):
+        badge = once(badge, old, new, "bryn_atlas_3d_badge.html")
     page = splice(source("bryn_atlas.html"), badge, "bryn_atlas.html")
     page = once(page, "<title>RenewaBlox — Bryn Atlas · Bryn Power AD plant, Gelligaer (CF82 8FY) · Proposed data centre</title>",
                 "<title>Bryn Atlas — Bryn Power AD plant</title>", "bryn_atlas.html")
     out["clients/bry/index.html"] = noindex(page, "bryn_atlas.html")
     page = once(source("bryn_3d_sim.html"), "<title>Bryn 3D - surplus power to compute</title>",
-                "<title>Bryn Atlas — 3D Site Model</title>", "bryn_3d_sim.html")
+                "<title>Bryn Atlas — BLOX Dispatch</title>", "bryn_3d_sim.html")
     page = once(page, 'window.__ATLAS_PAGE = "bryn_atlas.html";', 'window.__ATLAS_PAGE = "/clients/bry/";', "bryn_3d_sim.html")
     page = once(page, 'Oi.get("view")||"overview"',
                 '(/^(top|overview|blox|chp|tanks|solar|plant)$/.test(Oi.get("view"))?Oi.get("view"):"overview")', "bryn_3d_sim.html")
@@ -238,12 +253,12 @@ def client_pages():
     # spliced in, and the root clip Streamlit's frame gave it, without which a phone pans sideways.
     out["clients/kld/index.html"] = client_map("kld")
     page = splice(source("kld_interactive.html"), source("kld_hydro_chrome.html"), "kld_interactive.html")
-    page = once(page, "<title>RenewaBlox — Kinlochdamph Living Site Model</title>", "<title>KLD Atlas — 3D Revenue Sim</title>",
+    page = once(page, "<title>RenewaBlox — Kinlochdamph Living Site Model</title>", "<title>KLD Atlas — BLOX Dispatch</title>",
                 "kld_interactive.html")
     page = once(page, "  #stage{background:#0d1b23}", "  #stage{background:#0d1b23}\n  html{overflow:hidden}", "kld_hydro_chrome.html")
     out["clients/kld/3d.html"] = noindex(top_level_nav(page, "kld_hydro_chrome.html"), "kld_interactive.html")
 
-    # WLD: Wildmore Renewables AD. The map's badges open the Compute Render (?view=compute) and BLOX Dispatch
+    # WLD: Wildmore Renewables AD. The map's badges open BLOX 3D, the Compute Render (?view=compute), and BLOX Dispatch
     # (?view=dispatch), both written for the Atlas: wld/compute.html and wld/dispatch.html, with their files in wld/assets/,
     # which build.py copies into the same folder (CLIENTS), so they need no patch here.
     out["clients/wld/index.html"] = client_map("wld")
@@ -253,7 +268,7 @@ def client_pages():
     out["clients/ihn/index.html"] = noindex(top_level_nav(ihn_atlas(source("ihn_atlas.html")), "ihn_atlas.html"), "ihn_atlas.html")
     chrome = top_level_nav(source("ihn_heat_chrome.html"), "ihn_heat_chrome.html")
     page = splice(source("heat_network_3d.html"), chrome, "heat_network_3d.html")
-    page = once(page, "<title>RenewaBlox — Heat Network 3D</title>", "<title>IHN Atlas — Heat Network 3D</title>", "heat_network_3d.html")
+    page = once(page, "<title>RenewaBlox — Heat Network 3D</title>", "<title>IHN Atlas — BLOX Dispatch</title>", "heat_network_3d.html")
     out["clients/ihn/3d.html"] = noindex(page, "heat_network_3d.html")
 
     # Reabold: the wrappers' captions move into the maps' own panels, and the reservoir map takes the wrapper's title.

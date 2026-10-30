@@ -186,7 +186,7 @@ TEAM = HERE / "team"
 GATED_PAGES = {
     "/team/outreach/": {"client": "*", "title": "Outreach strategy (RenewaBlox × tem)", "list": True},
     "/clients/bln/": {"client": "bln", "title": "BLN Atlas", "list": True},
-    "/clients/bln/3d/": {"client": "bln", "title": "BLN 3D model", "list": True},
+    "/clients/bln/3d/": {"client": "bln", "title": "BLN Atlas — BLOX 3D", "list": True},
 }
 # folder -> Content-Security-Policy for every file in it (the longest folder holding a path wins)
 EDGE_CSP = {

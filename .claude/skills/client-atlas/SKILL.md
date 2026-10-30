@@ -22,8 +22,12 @@ site's entry in `CLIENT_MAPS` in `atlas/pages.py` and served by `client_map("<co
   SRV Atlas", "999 kW run-of-river hydro · KLD Atlas"); `place` is "<site>, <place>[, <postcode>]".
 - The site on Esri satellite imagery, opening on the site itself (SRV: zoom 18.5 on the yard; KLD: 17 on the
   powerhouse). Prefer a whole zoom: in-between zooms leave hairline seams between imagery tiles.
-- One BLOX badge per view, its pill at full length ("3D Dispatch Sim", "3D Revenue Sim"; `short` for phones). Put
-  the chip on, or just beside, the thing the view is about. Use `side: "right"` or `anchor` only to keep two
+- One BLOX badge per view, named by what the view is, the same on every site: **BLOX Dispatch** for the dispatch
+  model (a 3D sim with a dispatch or revenue simulation: SRV's, KLD's, IHN's Heat Network 3D, BRY's 3D site model,
+  WLD's), `short` "Dispatch"; **BLOX 3D** for a 3D render (a compute render, a siting render, BLN 3D), `short` "3D"
+  (the chip already says BLOX). Popups, buttons and aria labels that open a view use the same name ("Open BLOX 3D"),
+  and the view's title is "<CODE> Atlas — BLOX Dispatch" or "— BLOX 3D". Put the chip on, or just beside, the thing
+  the view is about. Use `side: "right"` or `anchor` only to keep two
   badges apart. The build fails unless the badges and the page's views match one for one.
 - Nothing else: no labels, numbered pins, shapes, cable or grid lines, popups, layer switches, legends, briefing
   panels, caveat boxes or extra buttons. Don't cut or patch the source's map to get there; leave it in the repo for
@@ -39,14 +43,14 @@ border-box, so its chip needs `box-sizing:content-box` to come out the same size
 `atlas/pages.py`. The card is the same as any other site's.
 
 **Views.** The model page as it comes from upstream, with only the patches `pages.py` needs: a title of
-"<CODE> Atlas — <view name>", `top_level_nav`, and an "Atlas" control back to the map. Never bake atlas chrome into
+"<CODE> Atlas — <badge name>", `top_level_nav`, and an "Atlas" control back to the map. Never bake atlas chrome into
 a model that's shared with other pages (`kld_interactive.html` and `heat_network_3d.html` serve four surfaces): put
 it in a chrome file the build appends.
 
 **Security policy.** `CLIENT_CSP` in `pages.py`: the site's folder (`/clients/<code>/`) uses `CLIENT_MAP_CSP`, and
 each model file has an entry of its own (`/clients/<code>/3d.html`) with what that model needs.
 
-**Front-page card.** Goes in `atlas/front/clients.html`, mirrored byte for byte into `atlas/root/index.html` between
+**Front-page card.** Goes in `atlas/front/clients.html` (the section headed "BLOX Dispatch – client access"), mirrored byte for byte into `atlas/root/index.html` between
 the client atlas markers. It comes after the existing site cards and before the "This could be your site" card.
 - Named by code only: eyebrow = the technology ("Anaerobic digestion", "Run-of-river hydro"), h3 = the CODE.
 - No name, place, postcode, grid reference, estate, operator, person or supplier anywhere in it, alt text
@@ -130,7 +134,7 @@ the client atlas markers. It comes after the existing site cards and before the 
 
 | Code | Opening map | Front-page card |
 | --- | --- | --- |
-| BLN | its own (`atlas/bln/index.html`): labels, caveat, an extra "3D render" button | yes |
+| BLN | its own (`atlas/bln/index.html`): labels, caveat, an extra "BLOX 3D" button | yes |
 | BRY | its own (`bryn_atlas.html` + badge layer): numbered labels, a teal fan chip, caveat. Its Compute Render (`?view=compute`) is written in this repository, `atlas/bry/compute.html` with `atlas/bry/assets/`, in BLN 3D's shape | yes |
 | SRV | shared | yes |
 | KLD | shared | yes |
