@@ -109,7 +109,8 @@ CLIENT_MAPS = {
             "badges": [{"at": [57.46160, -5.55778], "label": "3D Revenue Sim", "short": "3D Sim", "view": "3d"}]},
     "wld": {"title": "WLD Atlas — Wildmore Renewables AD", "kick": "BLOX Bitcoin mining data centre · WLD Atlas",
             "place": "Wildmore Renewables AD plant, Langrick, Boston PE22 7AN", "at": [53.02642, -0.11930], "zoom": 18,
-            "badges": [{"at": [53.0262396, -0.1195814], "label": "3D Compute Render", "short": "3D Render", "view": "compute"}]},
+            "badges": [{"at": [53.0262396, -0.1195814], "label": "3D Compute Render", "short": "3D Render", "view": "compute"},
+                       {"at": [53.0260743, -0.1189871], "label": "BLOX Dispatch", "short": "Dispatch", "view": "dispatch", "side": "right"}]},
 }
 
 
@@ -242,9 +243,9 @@ def client_pages():
     page = once(page, "  #stage{background:#0d1b23}", "  #stage{background:#0d1b23}\n  html{overflow:hidden}", "kld_hydro_chrome.html")
     out["clients/kld/3d.html"] = noindex(top_level_nav(page, "kld_hydro_chrome.html"), "kld_interactive.html")
 
-    # WLD: Wildmore Renewables AD. The map's badge opens the Compute Render (?view=compute), written for the Atlas:
-    # wld/compute.html, with its model, flythrough and stills in wld/assets/, which build.py copies into the same folder
-    # (CLIENTS), so it needs no patch here.
+    # WLD: Wildmore Renewables AD. The map's badges open the Compute Render (?view=compute) and BLOX Dispatch
+    # (?view=dispatch), both written for the Atlas: wld/compute.html and wld/dispatch.html, with their files in wld/assets/,
+    # which build.py copies into the same folder (CLIENTS), so they need no patch here.
     out["clients/wld/index.html"] = client_map("wld")
 
     # IHN: the heat network. Its opening page keeps its own scene (ihn_atlas below); the 3D view is the shared Heat
@@ -294,7 +295,7 @@ CLIENT_PAGES = {
                       "views": {"3d": "bryn_3d_sim.html", "compute": "compute.html"}},
     "/clients/kld/": {"client": "kld", "title": "KLD Atlas — Kinlochdamph", "list": True, "views": {"3d": "3d.html"}},
     "/clients/ihn/": {"client": "ihn", "title": "IHN Atlas — Islington heat network", "list": True, "views": {"3d": "3d.html"}},
-    "/clients/wld/": {"client": "wld", "title": "WLD Atlas — Wildmore Renewables AD", "list": True, "views": {"compute": "compute.html"}},
+    "/clients/wld/": {"client": "wld", "title": "WLD Atlas — Wildmore Renewables AD", "list": True, "views": {"compute": "compute.html", "dispatch": "dispatch.html"}},
     "/clients/reabold/west-newton/": {"client": "reabold", "title": "West Newton infrastructure map", "list": True},
     "/clients/reabold/reservoirs/": {"client": "reabold", "title": "UKCS reservoir atlas (prototype)", "list": True},
     "/clients/citygate/": {"client": "citygate", "title": "Citygate Church · Electricity Portrait", "list": True},
@@ -346,6 +347,10 @@ CLIENT_CSP = {
     "/clients/wld/compute.html": ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
                                   "img-src 'self' data: blob:; font-src 'self'; connect-src 'self' blob:; media-src 'self'; "
                                   "worker-src 'none'; frame-src 'none'; " + _END),
+    # BLOX Dispatch (?view=dispatch): its script, plates, year of data and font from the folder
+    "/clients/wld/dispatch.html": ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
+                                   "img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'none'; "
+                                   "worker-src 'none'; frame-src 'none'; " + _END),
     "/clients/reabold/west-newton/": ("default-src 'none'; script-src 'unsafe-inline' https://cdnjs.cloudflare.com; "
                                       "style-src 'unsafe-inline' https://cdnjs.cloudflare.com; "
                                       f"img-src data: https://cdnjs.cloudflare.com https://server.arcgisonline.com {_OSM}; " + _END),

@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>WLD Atlas — BLOX Dispatch</title>
+<meta name="description" content="BLOX Dispatch: every half hour of Wildmore's metered 2025, the decision to send the CHP's power to the BLOX or export it, and what that decision earned."/>
+<meta name="robots" content="noindex, nofollow"/>
+<meta name="theme-color" content="#12475e"/>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%2312475e'/%3E%3Cpath%20d='M17.8%204.5L9%2017.6h5.6l-1.3%209.9L23%2014.1h-6.2z'%20fill='%23fff'/%3E%3C/svg%3E"/>
+<!-- The page is served at /clients/wld/?view=dispatch (the sign-in serves this file there) and, locally, as
+     /clients/wld/dispatch.html: both are in the folder its files sit in, so every address below is assets/… -->
+<link rel="preload" href="assets/dispatch_2025.json" as="fetch" crossorigin="anonymous"/>
+<style>
+/* ===================================================================
+   RenewaBlox design system — Wildmore BLOX Dispatch
+   The Compute Render's house bar, tabs and glass panels around a
+   Cycles plate: day, dusk and night plates crossfade with the half
+   hour's daylight, the BLOX and grid layers add over them, and the
+   power flows along routes projected through the plate's camera.
+   =================================================================== */
+@font-face{font-family:"Inter";font-style:normal;font-display:swap;font-weight:100 900;src:url(assets/inter.woff2) format("woff2")}
+:root{
+  --brand:#12475e; --accent:#1f5f7f; --accent-l:#3a89ae;
+  --ink:#0d1b23; --ink-2:#33454f; --muted:#5a6a73; --muted-2:#93a2aa;
+  --surface:#ffffff; --tint:#f4f8fa; --tint-2:#eaf1f5; --line:#dfe8ed; --line-2:#edf3f6;
+  --glass:rgba(251,253,254,.94); --teal:#0f9d77;
+  --compute:#1f97c9; --export:#4a55b0; --off:#0d1b23;
+  --sh-1:0 1px 2px rgba(9,26,35,.09), 0 4px 14px rgba(9,26,35,.12);
+  --sh-2:0 2px 6px rgba(9,26,35,.12), 0 14px 44px rgba(9,26,35,.22);
+  --font:"Inter","Inter var",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --ease:cubic-bezier(.2,.8,.3,1);
+  --r-s:8px; --r-m:12px; --r-l:16px; --r-pill:999px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden}
+body{display:flex;flex-direction:column;height:100dvh;font-family:var(--font);color:var(--ink-2);background:var(--tint);
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
+*:focus{outline:none}
+*:focus-visible{outline:2px solid var(--accent-l);outline-offset:2px}
+button{font-family:inherit}
+[hidden]{display:none!important}
+
+/* ================================================================ header == */
+header{position:relative;flex:0 0 auto;z-index:5;padding:11px 20px;background:linear-gradient(180deg,#fff,#f8fbfc);
+  border-bottom:1px solid var(--line);display:flex;align-items:center;gap:15px;flex-wrap:nowrap}
+header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2.5px;background:linear-gradient(90deg,var(--brand),var(--accent-l) 48%,var(--teal))}
+#backatlas{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--tint);color:var(--accent);
+  font:650 11.3px var(--font);padding:7px 12px 7px 10px;border-radius:var(--r-pill);text-decoration:none;transition:background .15s,border-color .15s,color .15s}
+#backatlas:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+#backatlas svg{width:12px;height:12px;display:block}
+.logo{flex:0 0 auto}
+.logo img{height:21px;width:auto;display:block}
+.divider{flex:0 0 auto;width:1px;height:30px;background:var(--line)}
+.title{flex:1 1 auto;min-width:0}
+.title h1{margin:0;font-size:14.5px;font-weight:700;letter-spacing:-.005em;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.title p{margin:2px 0 0;font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ptabs{flex:0 0 auto;display:flex;gap:3px;padding:3px;background:var(--tint-2);border:1px solid var(--line);border-radius:13px}
+.ptabs button{border:0;background:transparent;font:650 12.2px var(--font);color:var(--muted);padding:6px 14px;border-radius:10px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:7px;white-space:nowrap;transition:background .16s,color .16s,box-shadow .16s}
+.ptabs button svg{width:14px;height:14px;display:block;flex:0 0 auto}
+.ptabs button:hover{color:var(--brand);background:rgba(255,255,255,.7)}
+.ptabs button[aria-selected="true"]{background:var(--brand);color:#fff;box-shadow:0 1px 2px rgba(9,26,35,.18),0 3px 10px rgba(18,71,94,.28)}
+@media (max-width:860px){
+  header{flex-wrap:wrap;row-gap:9px;padding:9px 12px 10px;gap:10px}
+  .logo img{height:16px}
+  .divider{height:24px}
+  .title h1{font-size:13px}
+  .title p{display:none}
+  .ptabs{order:5;margin-left:0;flex:1 1 100%;overflow-x:auto;scrollbar-width:none}
+  .ptabs::-webkit-scrollbar{display:none}
+  .ptabs button{flex:1 0 auto;justify-content:center;padding:6px 11px;font-size:12px}
+}
+@media (min-width:861px) and (max-width:1140px){ .logo,.divider{display:none} .ptabs button svg{display:none} }
+@media (max-width:520px){ .logo,.divider{display:none} }
+@media (max-width:480px){ .ptabs button svg{display:none} }
+@media (max-width:400px){ .ptabs button{padding:6px 7px;font-size:11.5px} #backatlas span{display:none} #backatlas{padding:7px 9px} }
+/* a phone on its side: one header row, so the model keeps the height */
+@media (max-height:500px) and (orientation:landscape){
+  header{flex-wrap:nowrap;padding:6px 12px} .title,.logo,.divider{display:none} .ptabs{order:0;flex:0 1 auto;margin-left:auto}
+}
+.ptabs a{font:650 12.2px var(--font);color:var(--muted);padding:6px 14px;border-radius:10px;text-decoration:none;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.ptabs a svg{width:14px;height:14px;display:block;flex:0 0 auto}
+.ptabs a:hover{color:var(--brand);background:rgba(255,255,255,.7)}
+@media (max-width:860px){ .ptabs a{flex:1 0 auto;justify-content:center;padding:6px 11px;font-size:12px} }
+@media (max-width:480px){ .ptabs a svg{display:none} }
+@media (max-width:400px){ .ptabs a{padding:6px 7px;font-size:11.5px} }
+
+
+/* ================================================================= stage == */
+#stage{position:relative;flex:1 1 auto;min-height:0}
+.view{position:absolute;inset:0}
+.page{overflow:auto;background:var(--tint);-webkit-overflow-scrolling:touch}
+.wrap{max-width:1180px;margin:0 auto;padding:26px 24px 48px}
+.page h2,#as-sheet h2{margin:0;font-size:20px;letter-spacing:-.01em;color:var(--ink)}
+.page .sub,#as-sheet .sub{margin:6px 0 18px;color:var(--muted);font-size:13.5px;line-height:1.55;max-width:760px}
+.page h2.sec{margin-top:34px}
+@media (max-width:620px){ .wrap{padding:18px 14px 40px} .page h2,#as-sheet h2{font-size:18px} }
+
+/* --------------------------------------------------------------- dispatch -- */
+#p-dispatch{display:grid;grid-template-columns:minmax(0,1fr) 322px;grid-template-rows:minmax(0,1fr) auto;gap:10px;padding:10px}
+#plate{grid-column:1;grid-row:1;position:relative;overflow:hidden;isolation:isolate;border-radius:var(--r-l);background:#0d1b23;box-shadow:var(--sh-1);min-height:0}
+#plate img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:38% 62%;display:block;user-select:none;-webkit-user-drag:none}
+#plate img.lay{mix-blend-mode:screen;mix-blend-mode:plus-lighter}
+#flow{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#clock{position:absolute;left:12px;top:12px;z-index:3;background:rgba(9,26,35,.62);color:#fff;border-radius:var(--r-pill);padding:6px 13px;font-size:12.5px;font-weight:650;
+  font-variant-numeric:tabular-nums;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.tag{position:absolute;z-index:2;transform:translate(-50%,calc(-100% - 11px));background:rgba(251,253,254,.92);color:var(--ink);border-radius:9px;padding:4px 9px;font-size:11px;font-weight:650;white-space:nowrap;
+  box-shadow:0 1px 6px rgba(9,26,35,.3);pointer-events:none}
+.tag small{display:block;font-size:9.5px;font-weight:500;color:var(--muted);margin-top:0}
+.tag::after{content:"";position:absolute;left:50%;top:100%;width:1.5px;height:9px;margin-left:-.75px;background:rgba(255,255,255,.8)}
+
+#loading{position:absolute;inset:0;z-index:9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#0d1b23;color:#dfe8ed;font-size:13px;font-weight:600;transition:opacity .5s ease}
+#loading.hide{opacity:0;pointer-events:none}
+#loading::before{content:"";width:34px;height:34px;border-radius:50%;border:2.5px solid rgba(255,255,255,.2);border-top-color:#6fb3d6;animation:spin .85s linear infinite}
+#loading.failed::before{display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+#readout{grid-column:2;grid-row:1/span 2;background:var(--surface);border-radius:var(--r-l);box-shadow:var(--sh-1);padding:15px 16px;overflow:auto;display:flex;flex-direction:column;gap:11px}
+.eyebrow{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+#r-when{margin:2px 0 0;font-size:16.5px;font-weight:720;color:var(--ink);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+#r-sp{font-size:11.5px;color:var(--muted);margin-top:1px;font-variant-numeric:tabular-nums}
+#r-dec{display:flex;align-items:center;gap:9px;border-radius:var(--r-m);padding:10px 12px;color:#fff;font-weight:720;font-size:15px;transition:background .25s}
+#r-dec small{display:block;font-weight:520;font-size:11px;opacity:.9;margin-top:1px}
+.rows{display:grid;gap:5px}
+.row{display:flex;justify-content:space-between;gap:12px;font-size:12.5px;color:var(--muted)}
+.row b{color:var(--ink);font-weight:650;font-variant-numeric:tabular-nums;white-space:nowrap}
+.row.total{border-top:1px solid var(--line);padding-top:6px;color:var(--ink-2)}
+.split .lab{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:3px}
+.split .lab b{color:var(--ink);font-weight:650;font-variant-numeric:tabular-nums}
+.split{display:grid;gap:7px}
+.bar{height:6px;border-radius:3px;background:var(--tint-2);overflow:hidden}
+.bar i{display:block;height:100%;width:0;border-radius:3px;transition:width .2s linear}
+.hr{height:1px;background:var(--line)}
+.btn-as{margin-top:auto;border:1px solid var(--line);background:var(--tint);color:var(--accent);border-radius:var(--r-pill);padding:7px 12px;font:650 11.8px var(--font);cursor:pointer}
+.btn-as:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+
+#dock{grid-column:1;grid-row:2;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);grid-template-rows:auto auto;gap:8px 10px}
+#ctl{grid-column:1/-1;display:flex;align-items:center;gap:10px;background:var(--surface);border-radius:var(--r-m);box-shadow:var(--sh-1);padding:6px 10px}
+#play{flex:0 0 auto;width:34px;height:34px;border:0;border-radius:50%;background:var(--brand);color:#fff;cursor:pointer;display:grid;place-items:center}
+#play:hover{background:var(--accent)}
+#play svg{width:14px;height:14px;display:block}
+.speeds{flex:0 0 auto;display:flex;gap:2px;padding:2px;background:var(--tint-2);border-radius:9px}
+.speeds button{border:0;background:transparent;color:var(--muted);font:650 11px var(--font);padding:5px 9px;border-radius:7px;cursor:pointer;white-space:nowrap}
+.speeds button[aria-pressed="true"]{background:var(--surface);color:var(--brand);box-shadow:0 1px 2px rgba(9,26,35,.14)}
+#scrub{flex:1 1 auto;min-width:60px;accent-color:var(--brand);height:22px;margin:0;cursor:pointer}
+.card{background:var(--surface);border-radius:var(--r-m);box-shadow:var(--sh-1);padding:9px 11px 8px;min-width:0;position:relative}
+.card h3{margin:0;font-size:11.8px;font-weight:680;color:var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:3px 11px;font-size:10.8px;color:var(--muted);margin-top:2px}
+.legend i{display:inline-block;width:11px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-0.5px}
+.legend i.line{height:2.5px;border-radius:1px;vertical-align:2.5px}
+.legend i.dash{height:0;border-top:2px dashed var(--ink-2);background:none!important;border-radius:0;vertical-align:2.5px}
+#daychart{display:block;width:100%;height:112px;margin-top:3px;touch-action:pan-y;cursor:crosshair}
+#heatwrap{position:relative;margin-top:4px}
+#heat{display:block;width:100%;height:96px;border-radius:5px;cursor:crosshair;touch-action:pan-y}
+#months-axis{display:flex;margin-top:3px;font-size:9.8px;color:var(--muted)}
+#months-axis span{flex:1 1 0;min-width:0}
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--ink);color:#fff;font-size:11.5px;line-height:1.45;border-radius:8px;padding:6px 9px;box-shadow:var(--sh-2);max-width:240px;font-variant-numeric:tabular-nums}
+#tip b{font-weight:680}
+
+@media (max-width:1040px){
+  /* one column, with the controls straight under the plate they drive */
+  #p-dispatch{display:flex;flex-direction:column;gap:8px;overflow:auto;-webkit-overflow-scrolling:touch}
+  #plate{order:1;flex:0 0 auto;aspect-ratio:16/9;width:100%}
+  #dock{display:contents}
+  #ctl{order:2;flex:0 0 auto}
+  #readout{order:3;flex:0 0 auto;overflow:visible}
+  .card{order:4;flex:0 0 auto}
+  .btn-as{margin-top:4px}
+}
+@media (max-width:1040px) and (max-height:620px) and (orientation:landscape){
+  #plate{aspect-ratio:auto;height:calc(100dvh - var(--hdr,60px) - 74px);min-height:160px}
+}
+@media (max-width:620px){
+  #p-dispatch{padding:7px}
+  .tag{font-size:9.5px;padding:2px 6px} .tag small{display:none}
+  #clock{left:7px;top:7px;font-size:11px;padding:4px 9px}
+  #ctl{flex-wrap:wrap;gap:6px 8px}
+  #scrub{flex:1 1 100%;order:3}
+}
+
+/* --------------------------------------------------------------- the year -- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:6px}
+.kpi{background:var(--surface);border-radius:var(--r-m);box-shadow:var(--sh-1);padding:14px 16px}
+.kpi .v{font-size:24px;font-weight:750;color:var(--brand);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.kpi .k{font-size:12px;color:var(--muted);margin-top:2px}
+.bigcard{background:var(--surface);border-radius:var(--r-m);box-shadow:var(--sh-1);padding:14px 16px;margin-top:14px;overflow:auto}
+#monthchart{display:block;width:100%;height:250px}
+table{border-collapse:collapse;width:100%;font-size:12.5px;font-variant-numeric:tabular-nums}
+th{font-weight:650;color:var(--muted);text-align:right;padding:6px 9px;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+td{text-align:right;padding:6px 9px;border-bottom:1px solid var(--line-2);color:var(--ink-2);white-space:nowrap}
+tr.tot td{font-weight:700;color:var(--ink);border-top:1.5px solid var(--line);border-bottom:0}
+.foot{margin-top:22px;font-size:11.5px;color:var(--muted);line-height:1.6}
+
+/* ----------------------------------------------------------- assumptions -- */
+/* the button in the bottom corner, clear of the control strip on a phone */
+#as-open{position:fixed;z-index:10;right:16px;bottom:16px;display:inline-flex;align-items:center;gap:7px;
+  border:1px solid var(--line);background:var(--glass);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:var(--brand);
+  font:650 12px var(--font);padding:7px 13px 7px 11px;border-radius:var(--r-pill);box-shadow:var(--sh-1);cursor:pointer;
+  transition:background .15s,color .15s,border-color .15s}
+#as-open:hover{background:var(--brand);border-color:var(--brand);color:#fff}
+#as-open svg{width:14px;height:14px;display:block;flex:0 0 auto}
+@media (max-width:860px){ .tab-model #as-open{right:10px;bottom:66px} }
+/* the sheet, over a dimmed page; it scrolls on its own */
+#as-sheet{position:fixed;inset:0;z-index:40;background:rgba(9,20,26,.5);display:flex;align-items:flex-start;justify-content:center;
+  padding:24px 16px;overflow:auto;overscroll-behavior:contain}
+#as-sheet .sheet{position:relative;width:100%;max-width:1180px;margin:auto 0;background:var(--tint);border-radius:var(--r-l);box-shadow:var(--sh-2)}
+/* Close stays in view as the sheet scrolls (a touch screen has no Escape) */
+#as-x{position:sticky;top:12px;float:right;margin:14px 14px 0 0;z-index:2;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);cursor:pointer;
+  font:650 12px var(--font);padding:7px 12px;border-radius:var(--r-pill);transition:background .15s,color .15s}
+#as-x:hover{background:var(--brand);color:#fff}
+#as-sheet .wrap{padding-top:22px}
+#as-sheet h2{padding-right:96px}
+@media (max-width:620px){ #as-sheet{padding:10px} #as-sheet h2{padding-right:84px} }
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
+
+</style>
+</head>
+<body>
+<header>
+  <a id="backatlas" href="/clients/wld/" title="Back to the WLD Atlas">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.6L4.6 8 10 13.4"/></svg>
+    <span>Atlas</span>
+  </a>
+  <div class="logo"><img alt="RenewaBlox" src="assets/renewablox-wordmark.png"/></div>
+  <div class="divider"></div>
+  <div class="title">
+    <h1>BLOX Dispatch: every half hour of 2025</h1>
+    <p>BLOX Bitcoin mining data centre · Wildmore Renewables AD · concept, November 2026</p>
+  </div>
+  <nav class="ptabs" id="ptabs" aria-label="What the page shows">
+    <div role="tablist" aria-label="Views" style="display:contents">
+    <button type="button" role="tab" id="t-dispatch" data-tab="dispatch" aria-selected="true" aria-controls="p-dispatch"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.8 1.8L3.6 9.2h3.6l-.9 5 5.6-7.6H8.2z"/></svg>Dispatch</button>
+    <button type="button" role="tab" id="t-year" data-tab="year" aria-selected="false" aria-controls="p-year" tabindex="-1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2.4 13.6h11.2M4 13.2V8.4M8 13.2V3M12 13.2V6"/></svg>The year</button>
+    </div>
+    <a id="t-3d" href="compute.html"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.8l5.6 3.1v6.2L8 14.2l-5.6-3.1V4.9z"/><path d="M2.4 4.9L8 8l5.6-3.1M8 8v6.2"/></svg>Explore in 3D</a>
+  </nav>
+</header>
+
+<main id="stage">
+  <section class="view" id="p-dispatch" role="tabpanel" aria-labelledby="t-dispatch">
+    <div id="plate">
+      <img id="b-night" alt=""/><img id="b-dusk" alt=""/><img id="b-day" alt="Wildmore AD plant from the air: the CHP, the BLOX on its pad beside it, the digester tanks and the silage clamps"/>
+      <img class="lay" id="l-day-blox" alt=""/><img class="lay" id="l-dusk-blox" alt=""/><img class="lay" id="l-night-blox" alt=""/>
+      <img class="lay" id="l-day-grid" alt=""/><img class="lay" id="l-dusk-grid" alt=""/><img class="lay" id="l-night-grid" alt=""/>
+      <canvas id="flow" aria-hidden="true"></canvas>
+      <div id="clock"></div>
+      <div id="loading" role="status"><span id="loadmsg">Loading the year</span></div>
+    </div>
+
+    <aside id="readout" aria-label="This half hour">
+      <div>
+        <div class="eyebrow">This half hour</div>
+        <div id="r-when"></div>
+        <div id="r-sp"></div>
+      </div>
+      <div id="r-dec"><div><span id="r-dec-t"></span><small id="r-dec-s"></small></div></div>
+      <div class="rows">
+        <div class="row"><span>Metered export</span><b id="r-kw"></b></div>
+        <div class="row"><span>Market price</span><b id="r-px"></b></div>
+        <div class="row"><span>gDUoS + EET</span><b id="r-add"></b></div>
+        <div class="row"><span>Export value</span><b id="r-v"></b></div>
+        <div class="row"><span>Strike</span><b id="r-strike"></b></div>
+      </div>
+      <div class="split">
+        <div><div class="lab"><span>To the BLOX</span><b id="r-blox"></b></div><div class="bar"><i id="bar-blox" style="background:var(--compute)"></i></div></div>
+        <div><div class="lab"><span>To the grid</span><b id="r-grid"></b></div><div class="bar"><i id="bar-grid" style="background:var(--export)"></i></div></div>
+      </div>
+      <div class="rows">
+        <div class="row"><span>This half hour earned</span><b id="r-earn"></b></div>
+      </div>
+      <div class="hr"></div>
+      <div>
+        <div class="eyebrow">2025 so far</div>
+        <div class="rows" style="margin-top:5px">
+          <div class="row"><span>Hours exporting</span><b id="y-exp"></b></div>
+          <div class="row"><span>Hours computing</span><b id="y-blox"></b></div>
+          <div class="row"><span>Grid earnings</span><b id="y-grid"></b></div>
+          <div class="row"><span>BLOX earnings</span><b id="y-bgbp"></b></div>
+          <div class="row total"><span>Total earnings</span><b id="y-tot"></b></div>
+        </div>
+      </div>
+      <button type="button" class="btn-as" id="as-btn">Assumptions</button>
+    </aside>
+
+    <div id="dock">
+      <div id="ctl">
+        <button type="button" id="play" aria-label="Pause" title="Play or pause (space bar)"><svg viewBox="0 0 16 16" fill="currentColor"><path id="play-i" d="M4 2.5h3v11H4zM9 2.5h3v11H9z"/></svg></button>
+        <div class="speeds" role="group" aria-label="Speed">
+          <button type="button" data-speed="3" aria-pressed="false">Slow</button>
+          <button type="button" data-speed="10" aria-pressed="true">Normal</button>
+          <button type="button" data-speed="96" aria-pressed="false">Fast</button>
+        </div>
+        <input type="range" id="scrub" min="0" max="17519" step="1" value="0" aria-label="The half hour shown, through 2025"/>
+      </div>
+      <div class="card">
+        <h3 id="day-title">The day: export value against the strike</h3>
+        <svg id="daychart" role="img" aria-label="The day's export value and market price against the strike, half hour by half hour"></svg>
+        <div class="legend"><span><i class="line" style="background:var(--export)"></i>Export value</span><span><i class="line" style="background:var(--muted-2)"></i>Market price</span><span><i class="dash"></i>Strike</span></div>
+      </div>
+      <div class="card">
+        <h3>The year: every half hour, by decision</h3>
+        <div id="heatwrap"><canvas id="heat" role="img" aria-label="2025 as a grid of 365 days by 48 half hours, each coloured by its decision; the table on The year tab gives the same year by month"></canvas></div>
+        <div id="months-axis"></div>
+        <div class="legend"><span><i style="background:var(--compute)"></i>Compute</span><span><i style="background:var(--export)"></i>Export</span><span><i style="background:var(--off)"></i>CHP off</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="view page" id="p-year" role="tabpanel" aria-labelledby="t-year" tabindex="0" hidden>
+    <div class="wrap">
+      <h2>2025 at the 8p strike</h2>
+      <p class="sub">Each half hour the whole of the CHP's metered export went one way: to the grid when its export value beat the strike, otherwise to the BLOX. Export above the BLOX's 444 kW went to the grid.</p>
+      <div class="kpis" id="kpis"></div>
+      <h2 class="sec">Month by month</h2>
+      <div class="bigcard">
+        <div class="legend" style="margin:0 0 6px"><span><i style="background:var(--export)"></i>Grid earnings</span><span><i style="background:var(--compute)"></i>BLOX earnings</span></div>
+        <svg id="monthchart" role="img" aria-label="Earnings by month, grid and BLOX stacked; the table below gives the figures"></svg>
+      </div>
+      <div class="bigcard"><table id="mtable"></table></div>
+      <h2 class="sec">Annual uplifts on the energy exported</h2>
+      <p class="sub">These sit on top of the earnings above. They are worked out on the energy the dispatch exports, and they take no part in any half hour's decision.</p>
+      <div class="kpis" id="uplifts"></div>
+      <p class="foot">Concept model, November 2026. Metered export 2025. Market price: Elexon Market Index Data, half-hourly. Contains BMRS data © Elexon Limited copyright and database right 2026. gDUoS: National Grid Electricity Distribution (East Midlands) charging statements 2024/25 and 2025/26. EET: NESO final TNUoS tariffs. Each half hour is decided with hindsight of its own price: an operating record would differ.</p>
+    </div>
+  </section>
+</main>
+
+<div id="tip" hidden></div>
+
+<div id="as-sheet" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="as-title" tabindex="-1">
+    <button type="button" id="as-x" aria-label="Close the assumptions">Close ✕</button>
+    <div class="wrap">
+      <h2 id="as-title">Assumptions</h2>
+      <p class="sub">What the page is built from, so the engineering and commercial reviews know what to trust.</p>
+      <div class="kpis" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr))">
+        <div class="kpi"><b>Measured</b><ul>
+          <li>Wildmore's metered export, all 17,520 half hours of 2025</li>
+          <li>Market price: Elexon Market Index Data, half-hourly. A short-term market index, not a day-ahead auction price</li>
+        </ul></div>
+        <div class="kpi"><b>Published</b><ul>
+          <li>gDUoS: NGED East Midlands, HV generation, 2024/25 and 2025/26, by red, amber and green band</li>
+          <li>EET: NESO's East Midlands tariff, on the three Triad half hours inside 2025</li>
+        </ul></div>
+        <div class="kpi"><b>Set for this model</b><ul>
+          <li>Strike: 8p/kWh, fixed all year. It values every kWh delivered to the BLOX, cooling included, and is not 2025's actual mining revenue</li>
+          <li>The whole output switches each half hour</li>
+          <li>BLOX capacity: 444 kW, servers and cooling; export above that goes to the grid</li>
+        </ul></div>
+        <div class="kpi"><b>Assumed</b><ul>
+          <li>The HV tariff applies to this connection</li>
+          <li>The 11 half hours with no market trades are filled between their neighbours</li>
+          <li>Energy partners uplift of 15% and P442 uplift of £25/MWh: working figures, to be confirmed at tender</li>
+          <li>The transformer's position, the grid cable's route, and the lights in the plates</li>
+          <li>Each half hour is decided with hindsight of its own price</li>
+        </ul></div>
+      </div>
+      <p class="foot">Not modelled: supply contract terms, BSUoS, line losses, supplier fees, DUoS fixed and reactive charges, REGOs and the Capacity Market.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  const COMPUTE = [31, 151, 201], EXPORT = [74, 85, 176], OFF = [13, 27, 35];
+  const POSX = 0.38, POSY = 0.62;               // the plates' object-position
+  const LOOKS = ['day', 'dusk', 'night'];
+  let D, N, dayIdx, sp, minute, dayStart, cum;
+  const S = { i: 0, playing: false, plates: false, up: false, speed: 10, shown: -1, shownDay: -1, kwB: 0, kwG: 0, tab: 'dispatch', lookDay: 1, lookDusk: 0, lookNight: 0 };
+  const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const gbp = (x) => '£' + Math.round(x).toLocaleString('en-GB');
+  // x is hundredths of £/MWh; 1 £/MWh = 0.1 p/kWh
+  const pence = (x, dp = 2) => { const r = (x/1000).toFixed(dp); return (+r === 0 ? (0).toFixed(dp) : r) + 'p'; };
+  const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const two = (n) => String(n).padStart(2, '0');
+  const dateOf = (d) => new Date(Date.UTC(2025, 0, 1 + d));
+  const hhmm = (m) => two(Math.floor(m/60)) + ':' + two(m % 60);
+
+  function index(){
+    N = D.kwh.length;
+    dayIdx = new Int16Array(N); sp = new Int8Array(N); minute = new Int16Array(N); dayStart = [];
+    let i = 0;
+    D.n.forEach((n, d) => {
+      dayStart.push(i);
+      for (let p = 1; p <= n; p++, i++){
+        dayIdx[i] = d; sp[i] = p;
+        // settlement periods run through the clock change: 46 on the spring day, 50 on the autumn one
+        minute[i] = (p - 1)*30 + (n === 46 && p >= 3 ? 60 : 0) - (n === 50 && p >= 5 ? 60 : 0);
+      }
+    });
+    dayStart.push(N);
+    cum = { e: new Float32Array(N + 1), b: new Float32Array(N + 1), g: new Float64Array(N + 1), c: new Float64Array(N + 1) };
+    for (let k = 0; k < N; k++){
+      cum.e[k + 1] = cum.e[k] + (D.dec[k] === 'E' ? 0.5 : 0);
+      cum.b[k + 1] = cum.b[k] + (D.dec[k] === 'B' ? 0.5 : 0);
+      cum.g[k + 1] = cum.g[k] + (D.kwh[k] - D.b[k])/10000*D.v[k]/100;
+      cum.c[k + 1] = cum.c[k] + D.b[k]/10000*D.strike_p*10;
+    }
+  }
+
+  /* ---------------------------------------------------- the plate and light */
+  const plate = $('plate');
+  let box = { w: 1, h: 1, s: 1, ox: 0, oy: 0 }, dpr = 1;
+  const flow = $('flow'), fx = flow.getContext('2d');
+  let tags = [];
+
+  function setSrc(width){
+    // the day plate first: it is what shows while the others arrive, and the look holds on day until they have
+    $('b-day').src = `assets/dispatch/plate_day_${width}.webp`;
+    $('b-day').decode().catch(() => {}).finally(() => {
+      let n = 0;
+      const one = () => { if (++n === 2) S.plates = true; };
+      for (const id of ['b-dusk', 'b-night']){ $(id).addEventListener('load', one, { once: true }); $(id).addEventListener('error', one, { once: true }); }
+      $('b-dusk').src = `assets/dispatch/plate_dusk_${width}.webp`; $('b-night').src = `assets/dispatch/plate_night_${width}.webp`;
+      for (const l of LOOKS) for (const st of ['blox', 'grid']) $(`l-${l}-${st}`).src = `assets/dispatch/layer_${l}_${st}_${width}.webp`;
+    });
+  }
+
+  function layout(){
+    const r = plate.getBoundingClientRect();
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const s = Math.max(r.width/D.res[0], r.height/D.res[1]);
+    box = { w: r.width, h: r.height, s, ox: (r.width - D.res[0]*s)*POSX, oy: (r.height - D.res[1]*s)*POSY };
+    flow.width = Math.round(r.width*dpr); flow.height = Math.round(r.height*dpr);
+    for (const t of tags){
+      t.el.style.left = (box.ox + t.x*s) + 'px'; t.el.style.top = (box.oy + t.y*s) + 'px';
+      const x = box.ox + t.x*s, y = box.oy + t.y*s;
+      t.el.hidden = x < 20 || x > r.width - 20 || y < 20 || y > r.height;
+    }
+    drawHeat(); drawDay(); if (S.tab === 'year') drawMonths();
+  }
+
+  function setOp(id, v){
+    const el = $(id); const on = v > 0.004;
+    el.style.visibility = on ? 'visible' : 'hidden';
+    if (on) el.style.opacity = v.toFixed(3);
+  }
+
+  // day, dusk and night weights for a clock minute: dusk peaks at sunrise and sunset, 70 minutes from full day or full night
+  function weights(d, m){
+    const [sr, ss] = D.sun[d], tw = 70;
+    let dy, nt;
+    if (m < sr - tw || m > ss + tw){ dy = 0; nt = 1; }
+    else if (m < sr){ dy = 0; nt = (sr - m)/tw; }
+    else if (m < sr + tw){ dy = (m - sr)/tw; nt = 0; }
+    else if (m < ss - tw){ dy = 1; nt = 0; }
+    else if (m < ss){ dy = (ss - m)/tw; nt = 0; }
+    else { dy = 0; nt = (m - ss)/tw; }
+    return [dy, 1 - dy - nt, nt];
+  }
+
+  function light(dt){
+    const idx = Math.floor(S.i), f = S.i - idx;
+    let w = weights(dayIdx[idx], minute[idx] + f*30);
+    if (!S.plates || (S.playing && S.speed > 40)) w = [1, 0, 0];   // fast: no strobing between day and night
+    const k = 1 - Math.exp(-dt/0.22);
+    S.lookDay += (w[0] - S.lookDay)*k; S.lookDusk += (w[1] - S.lookDusk)*k; S.lookNight += (w[2] - S.lookNight)*k;
+    const wy = S.lookDay, wd = S.lookDusk, wn = S.lookNight;
+    // the night plate lies beneath; dusk over it; day over that
+    setOp('b-dusk', Math.min(1, wd + wy)); setOp('b-day', wy);
+    const tkB = D.b[idx]/10*2, tkG = (D.kwh[idx] - D.b[idx])/10*2;
+    S.kwB += (tkB - S.kwB)*k; S.kwG += (tkG - S.kwG)*k;
+    const lb = Math.min(1, S.kwB/300), lg = Math.min(1, S.kwG/250);
+    for (const [l, v] of [['day', wy], ['dusk', wd], ['night', wn]]){ setOp(`l-${l}-blox`, v*lb); setOp(`l-${l}-grid`, v*lg); }
+  }
+
+  /* ---------------------------------------------------- the flow of power */
+  function route(pts){
+    const step = 4, out = []; let carry = 0;
+    for (let k = 1; k < pts.length; k++){
+      const [x0, y0, h0] = pts[k - 1], [x1, y1, h1] = pts[k]; const L = Math.hypot(x1 - x0, y1 - y0);
+      let t = carry;
+      while (t < L){ const u = t/L; out.push([x0 + (x1 - x0)*u, y0 + (y1 - y0)*u, (h0 || h1) ? 1 : 0]); t += step; }
+      carry = t - L;
+    }
+    return { p: out, step, len: out.length*step, phase: 0 };
+  }
+  function sprite(rgb){
+    const c = document.createElement('canvas'); c.width = c.height = 48;
+    const g = c.getContext('2d'), r = g.createRadialGradient(24, 24, 0, 24, 24, 24);
+    r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(0.16, `rgba(${rgb},0.95)`); r.addColorStop(0.42, `rgba(${rgb},0.3)`); r.addColorStop(1, `rgba(${rgb},0)`);
+    g.fillStyle = r; g.fillRect(0, 0, 48, 48); return c;
+  }
+  const SPR = { b: sprite('111,179,214'), g: sprite('255,255,255') };
+  let R = {};
+
+  function drawRoute(rt, kw, spr, dt){
+    if (kw < 3) return;
+    const frac = Math.min(1, kw/470), spacing = 130 - 86*frac, speed = 80 + 230*frac;
+    if (!REDUCED) rt.phase = (rt.phase + speed*dt) % spacing;
+    const q = box.s*dpr, size = (15 + 15*frac)*Math.max(0.6, box.s*1.5)*dpr;
+    for (let s = rt.phase; s < rt.len; s += spacing){
+      for (let k = 0; k < 4; k++){
+        const at = s - k*spacing*0.09; if (at < 0) continue;
+        const pt = rt.p[Math.min(rt.p.length - 1, Math.floor(at/rt.step))];
+        const edge = Math.min(1, s/50, (rt.len - s)/50);
+        fx.globalAlpha = Math.max(0, edge)*(pt[2] ? 0.14 : 1)*[1, 0.5, 0.3, 0.15][k]*(0.55 + 0.45*frac);
+        const z = size*[1, 0.8, 0.65, 0.5][k];
+        fx.drawImage(spr, (box.ox*dpr + pt[0]*q) - z/2, (box.oy*dpr + pt[1]*q) - z/2, z, z);
+      }
+    }
+  }
+
+  function frame(t){
+    const dt = Math.min(0.1, (t - (frame.t || t))/1000); frame.t = t;
+    if (D && S.tab === 'dispatch'){
+      if (S.playing){ S.i += S.speed*dt; if (S.i >= N) S.i -= N; }
+      light(dt);
+      fx.clearRect(0, 0, flow.width, flow.height);
+      fx.globalCompositeOperation = 'lighter';
+      drawRoute(R.grid, S.kwG, SPR.g, dt);
+      drawRoute(R.blox, S.kwB, SPR.b, dt);
+      fx.globalAlpha = 1;
+      const idx = Math.floor(S.i);
+      if (idx !== S.shown) show(idx);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  /* --------------------------------------------------------- the read-out */
+  const dec = (k) => D.dec[k];
+  function show(i){
+    S.shown = i;
+    const d = dayIdx[i], dt = dateOf(d), m = minute[i];
+    const when = `${DOW[dt.getUTCDay()]} ${dt.getUTCDate()} ${MON[dt.getUTCMonth()]} ${dt.getUTCFullYear()}`;
+    const span = `${hhmm(m)}–${hhmm((m + 30) % 1440)}`;
+    $('clock').textContent = `${when}  ·  ${hhmm(m)}`;
+    $('r-when').textContent = when; $('r-sp').textContent = `${span}  ·  settlement period ${sp[i]}`;
+    const c = dec(i), kw = D.kwh[i]/5, bk = D.b[i]/5, gk = kw - bk;
+    const box_ = $('r-dec');
+    if (c === 'B'){ box_.style.background = 'var(--compute)'; $('r-dec-t').textContent = 'Compute'; $('r-dec-s').textContent = 'Export value at or below the strike'; }
+    else if (c === 'E'){ box_.style.background = 'var(--export)'; $('r-dec-t').textContent = 'Export'; $('r-dec-s').textContent = 'Export value above the strike'; }
+    else { box_.style.background = 'var(--off)'; $('r-dec-t').textContent = 'CHP off'; $('r-dec-s').textContent = 'Nothing metered this half hour'; }
+    $('r-kw').textContent = kw.toFixed(0) + ' kW';
+    $('r-px').textContent = pence(D.px[i]);
+    $('r-add').textContent = pence(D.v[i] - D.px[i]) + ' · ' + ({ G: 'green', A: 'amber', R: 'red' }[D.band[i]]);
+    const vp = pence(D.v[i]), st = D.strike_p.toFixed(2) + 'p';
+    $('r-v').textContent = vp === st && D.v[i] !== D.strike_p*1000 ? pence(D.v[i], 3) : vp;
+    $('r-strike').textContent = st;
+    $('r-blox').textContent = bk.toFixed(0) + ' kW'; $('r-grid').textContent = gk.toFixed(0) + ' kW';
+    $('bar-blox').style.width = (bk/4.7) + '%'; $('bar-grid').style.width = (gk/4.7) + '%';
+    const earn = (cum.g[i + 1] - cum.g[i]) + (cum.c[i + 1] - cum.c[i]);
+    $('r-earn').textContent = '£' + earn.toFixed(2);
+    $('y-exp').textContent = Math.round(cum.e[i + 1]).toLocaleString('en-GB');
+    $('y-blox').textContent = Math.round(cum.b[i + 1]).toLocaleString('en-GB');
+    $('y-grid').textContent = gbp(cum.g[i + 1]); $('y-bgbp').textContent = gbp(cum.c[i + 1]); $('y-tot').textContent = gbp(cum.g[i + 1] + cum.c[i + 1]);
+    const sc = $('scrub'); if (document.activeElement !== sc || S.playing) sc.value = i;
+    sc.setAttribute('aria-valuetext', `${when} ${hhmm(m)}, ${$('r-dec-t').textContent}`);
+    if (d !== S.shownDay){ S.shownDay = d; drawDay(); drawHeat(); } else { markDay(); markHeat(); }
+  }
+
+  /* -------------------------------------------------- the day against the strike */
+  let DC = null;
+  const NS = 'http://www.w3.org/2000/svg';
+  function drawDay(){
+    if (!D) return;
+    const svg = $('daychart'), W = svg.clientWidth || 300, H = svg.clientHeight || 112, d = dayIdx[Math.floor(S.i)];
+    const a = dayStart[d], b = dayStart[d + 1], n = b - a;
+    const vals = []; for (let k = a; k < b; k++) vals.push(D.v[k]/1000, D.px[k]/1000);
+    const lo = Math.min(0, ...vals), hi = Math.max(D.strike_p*1.5, ...vals)*1.05;
+    const L = 30, Rr = 6, T = 5, B = 26, ribbon = 5;
+    const x = (k) => L + (W - L - Rr)*(k + 0.5)/n, y = (v) => T + (H - T - B)*(1 - (v - lo)/(hi - lo));
+    const step = hi - lo > 80 ? 40 : hi - lo > 40 ? 20 : hi - lo > 20 ? 10 : 5;
+    let s = '';
+    for (let v = Math.ceil(lo/step)*step; v <= hi; v += step){
+      s += `<line x1="${L}" x2="${W - Rr}" y1="${y(v)}" y2="${y(v)}" stroke="#edf3f6"/><text x="${L - 5}" y="${y(v) + 3}" font-size="9.5" fill="#5a6a73" text-anchor="end">${v}p</text>`;
+    }
+    const path = (key) => { let p = ''; for (let k = 0; k < n; k++) p += (k ? 'L' : 'M') + x(k).toFixed(1) + ' ' + y(D[key][a + k]/1000).toFixed(1); return p; };
+    s += `<path d="${path('px')}" fill="none" stroke="#93a2aa" stroke-width="1.3"/>`;
+    s += `<line x1="${L}" x2="${W - Rr}" y1="${y(D.strike_p)}" y2="${y(D.strike_p)}" stroke="#33454f" stroke-width="1.4" stroke-dasharray="4 3"/>`;
+    s += `<path d="${path('v')}" fill="none" stroke="#4a55b0" stroke-width="2"/>`;
+    for (let k = 0; k < n; k++){
+      const c = dec(a + k), col = c === 'B' ? '#1f97c9' : c === 'E' ? '#4a55b0' : '#0d1b23';
+      s += `<rect x="${L + (W - L - Rr)*k/n + 0.5}" y="${H - B + 4}" width="${Math.max(1, (W - L - Rr)/n - 1)}" height="${ribbon}" fill="${col}"/>`;
+    }
+    for (const h of [0, 6, 12, 18, 24]){
+      let k = n; for (let j = 0; j < n; j++) if (minute[a + j] >= h*60){ k = j; break; }
+      s += `<text x="${L + (W - L - Rr)*k/n}" y="${H - 6}" font-size="9.5" fill="#5a6a73" text-anchor="${h === 0 ? 'start' : h === 24 ? 'end' : 'middle'}">${two(h)}:00</text>`;
+    }
+    s += `<line id="dayhead" y1="${T}" y2="${H - B + 9}" stroke="#0d1b23" stroke-width="1.2"/>`;
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.innerHTML = s;
+    DC = { x, a, n, L, W, Rr };
+    const dt = dateOf(d); $('day-title').textContent = `${dt.getUTCDate()} ${MON[dt.getUTCMonth()]}: export value against the strike`;
+    markDay();
+  }
+  function markDay(){
+    if (!DC) return; const l = $('dayhead'); if (!l) return;
+    const k = Math.floor(S.i) - DC.a, v = DC.x(k); l.setAttribute('x1', v); l.setAttribute('x2', v);
+  }
+
+  /* ------------------------------------------------------------ the year map */
+  let heatBase = null;
+  function heatImage(){
+    const c = document.createElement('canvas'); c.width = 365; c.height = 48;
+    const g = c.getContext('2d'), im = g.createImageData(365, 48);
+    for (let k = 0; k < N; k++){
+      const row = Math.min(47, Math.floor(minute[k]/30)), o = (row*365 + dayIdx[k])*4, ch = dec(k), rgb = ch === 'B' ? COMPUTE : ch === 'E' ? EXPORT : OFF;
+      im.data[o] = rgb[0]; im.data[o + 1] = rgb[1]; im.data[o + 2] = rgb[2]; im.data[o + 3] = 255;
+    }
+    g.putImageData(im, 0, 0); return c;
+  }
+  function drawHeat(){
+    if (!D) return;
+    const c = $('heat'), w = c.clientWidth || 300, h = c.clientHeight || 96, r = Math.min(window.devicePixelRatio || 1, 2);
+    c.width = Math.round(w*r); c.height = Math.round(h*r);
+    heatBase = heatBase || heatImage();
+    markHeat();
+  }
+  function markHeat(){
+    const c = $('heat'), g = c.getContext('2d'); if (!heatBase) return;
+    g.imageSmoothingEnabled = false; g.drawImage(heatBase, 0, 0, c.width, c.height);
+    const i = Math.floor(S.i), x = (dayIdx[i] + 0.5)/365*c.width, y = (Math.floor(minute[i]/30) + 0.5)/48*c.height;
+    g.strokeStyle = '#fff'; g.lineWidth = Math.max(1, c.width/900);
+    g.beginPath(); g.moveTo(x, 0); g.lineTo(x, c.height); g.moveTo(0, y); g.lineTo(c.width, y); g.stroke();
+  }
+
+  /* --------------------------------------------------------------- the year */
+  function drawMonths(){
+    const svg = $('monthchart'), W = svg.clientWidth || 700, H = svg.clientHeight || 250, m = D.months;
+    const L = 46, Rr = 8, T = 8, B = 22;
+    const max = Math.max(...m.map((x) => x.grid_gbp + x.blox_gbp))*1.08, y = (v) => T + (H - T - B)*(1 - v/max);
+    const slot = (W - L - Rr)/12, bw = Math.min(44, slot*0.62);
+    let s = '';
+    for (let v = 0; v <= max; v += 10000) s += `<line x1="${L}" x2="${W - Rr}" y1="${y(v)}" y2="${y(v)}" stroke="#edf3f6"/><text x="${L - 6}" y="${y(v) + 3}" font-size="10" fill="#5a6a73" text-anchor="end">£${v/1000}k</text>`;
+    m.forEach((x, i) => {
+      const cx = L + slot*(i + 0.5), yg = y(x.grid_gbp), yt = y(x.grid_gbp + x.blox_gbp), y0 = y(0);
+      s += `<g data-m="${i}"><rect x="${cx - slot/2}" y="${T}" width="${slot}" height="${H - T - B}" fill="transparent"/>`;
+      s += `<rect x="${cx - bw/2}" y="${yg}" width="${bw}" height="${Math.max(0, y0 - yg)}" fill="#4a55b0"/>`;
+      s += `<path d="M${cx - bw/2} ${yg - 2}V${yt + 4}a4 4 0 0 1 4-4H${cx + bw/2 - 4}a4 4 0 0 1 4 4V${yg - 2}z" fill="#1f97c9"/>`;
+      s += `<text x="${cx}" y="${H - 7}" font-size="10.5" fill="#5a6a73" text-anchor="middle">${MON[i]}</text></g>`;
+    });
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.innerHTML = s;
+  }
+  function year(){
+    const t = D.total, mwh = (k) => Math.round(k/1000).toLocaleString('en-GB');
+    const tile = (v, k) => `<div class="kpi"><div class="v">${v}</div><div class="k">${k}</div></div>`;
+    $('kpis').innerHTML = tile(gbp(t.grid_gbp + t.blox_gbp), 'total earnings')
+      + tile(Math.round(t.export_h).toLocaleString('en-GB'), `hours exporting, ${mwh(t.grid_kwh)} MWh`)
+      + tile(Math.round(t.blox_h).toLocaleString('en-GB'), `hours computing, ${mwh(t.blox_kwh)} MWh`)
+      + tile(gbp(t.grid_gbp), 'grid earnings') + tile(gbp(t.blox_gbp), 'BLOX earnings, at the strike');
+    $('uplifts').innerHTML = tile(gbp(t.partner_gbp), `Energy partners uplift, ${Math.round(D.partner*100)}% of market price`)
+      + tile(gbp(t.p442_gbp), `P442 uplift, £${D.p442}/MWh`)
+      + tile(gbp(t.grid_gbp + t.blox_gbp + t.partner_gbp + t.p442_gbp), 'total earnings with uplifts');
+    const row = (n, x, cls) => `<tr class="${cls || ''}"><td>${n}</td><td>${x.export_h.toLocaleString('en-GB')}</td><td>${x.blox_h.toLocaleString('en-GB')}</td><td>${x.off_h}</td>`
+      + `<td>${(x.grid_kwh/1000).toFixed(1)}</td><td>${(x.blox_kwh/1000).toFixed(1)}</td><td>${gbp(x.grid_gbp)}</td><td>${gbp(x.blox_gbp)}</td><td>${gbp(x.grid_gbp + x.blox_gbp)}</td><td>${gbp(x.partner_gbp)}</td><td>${gbp(x.p442_gbp)}</td></tr>`;
+    $('mtable').innerHTML = '<thead><tr><th>Month</th><th>Export h</th><th>Compute h</th><th>Off h</th><th>Grid MWh</th><th>BLOX MWh</th><th>Grid £</th><th>BLOX £</th><th>Total £</th><th>Energy partners uplift</th><th>P442 uplift</th></tr></thead><tbody>'
+      + D.months.map((x, i) => row(MON[i], x)).join('') + row('2025', t, 'tot') + '</tbody>';
+  }
+
+  /* -------------------------------------------------------------- the controls */
+  const tip = $('tip');
+  function showTip(e, html){ tip.innerHTML = html; tip.hidden = false; const w = tip.offsetWidth; tip.style.left = Math.min(innerWidth - w - 8, e.clientX + 12) + 'px'; tip.style.top = Math.max(8, e.clientY - tip.offsetHeight - 10) + 'px'; }
+  const hideTip = () => { tip.hidden = true; };
+  function seek(i, keep){ S.i = Math.max(0, Math.min(N - 1, i)); S.shown = -1; if (!keep) setPlay(false); }
+  function setPlay(on){
+    S.playing = on; $('play').setAttribute('aria-label', on ? 'Pause' : 'Play');
+    $('play-i').setAttribute('d', on ? 'M4 2.5h3v11H4zM9 2.5h3v11H9z' : 'M4.5 2.4l9 5.6-9 5.6z');
+  }
+  function hoverRow(k){
+    const d = dayIdx[k], dt = dateOf(d), c = dec(k);
+    return `<b>${dt.getUTCDate()} ${MON[dt.getUTCMonth()]}, ${hhmm(minute[k])}</b><br>${c === 'B' ? 'Compute' : c === 'E' ? 'Export' : 'CHP off'}<br>Export value ${pence(D.v[k])}<br>Market price ${pence(D.px[k])}`;
+  }
+  function wireShell(){
+    const tabs = [...document.querySelectorAll('#ptabs [role=tab]')];
+    const setTab = (t) => {
+      S.tab = t; $('p-dispatch').hidden = t !== 'dispatch'; $('p-year').hidden = t !== 'year';
+      tabs.forEach((b) => { const on = b.dataset.tab === t; b.setAttribute('aria-selected', on); b.tabIndex = on ? 0 : -1; });
+      hideTip(); if (D){ if (t === 'year') drawMonths(); else layout(); }
+    };
+    tabs.forEach((b, i) => {
+      b.addEventListener('click', () => setTab(b.dataset.tab));
+      b.addEventListener('keydown', (e) => {
+        const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0; if (!d) return;
+        e.preventDefault(); const n = tabs[(i + d + tabs.length) % tabs.length]; setTab(n.dataset.tab); n.focus();
+      });
+    });
+    const sheet = $('as-sheet'), behind = [document.querySelector('header'), $('stage')];
+    const openAs = () => { sheet.hidden = false; behind.forEach((el) => { el.inert = true; }); sheet.querySelector('.sheet').focus(); };
+    const closeAs = () => { sheet.hidden = true; behind.forEach((el) => { el.inert = false; }); $('as-btn').focus(); };
+    $('as-btn').addEventListener('click', openAs); $('as-x').addEventListener('click', closeAs);
+    sheet.addEventListener('click', (e) => { if (e.target === sheet) closeAs(); });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !sheet.hidden) closeAs();
+      if (e.key !== ' ' || !sheet.hidden || S.tab !== 'dispatch' || !D) return;
+      // space keeps its own meaning on a control that has one; the scrubber has none
+      if (document.activeElement.closest && document.activeElement.closest('#play,[role=tab],a,.speeds button,#as-btn')) return;
+      e.preventDefault(); setPlay(!S.playing);
+    });
+    const hdr = () => document.documentElement.style.setProperty('--hdr', document.querySelector('header').offsetHeight + 'px');
+    hdr(); addEventListener('resize', hdr);
+  }
+  function wire(){
+    $('play').addEventListener('click', () => setPlay(!S.playing));
+    document.querySelectorAll('.speeds button').forEach((b) => b.addEventListener('click', () => {
+      S.speed = +b.dataset.speed; document.querySelectorAll('.speeds button').forEach((x) => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+    }));
+    $('scrub').addEventListener('input', (e) => seek(+e.target.value));
+    const heat = $('heat');
+    const cell = (e) => {
+      const r = heat.getBoundingClientRect(), d = Math.max(0, Math.min(364, Math.floor((e.clientX - r.left)/r.width*365))), row = Math.max(0, Math.min(47, Math.floor((e.clientY - r.top)/r.height*48)));
+      let best = dayStart[d], gap = 1e9;
+      for (let k = dayStart[d]; k < dayStart[d + 1]; k++){ const g = Math.abs(minute[k] - row*30); if (g < gap){ gap = g; best = k; } }
+      return best;
+    };
+    heat.addEventListener('pointermove', (e) => showTip(e, hoverRow(cell(e))));
+    heat.addEventListener('pointerleave', hideTip);
+    heat.addEventListener('click', (e) => seek(cell(e)));
+    const day = $('daychart');
+    const dk = (e) => { const r = day.getBoundingClientRect(), f = (e.clientX - r.left - DC.L)/(DC.W - DC.L - DC.Rr); return DC.a + Math.max(0, Math.min(DC.n - 1, Math.floor(f*DC.n))); };
+    day.addEventListener('pointermove', (e) => { if (DC) showTip(e, hoverRow(dk(e))); });
+    day.addEventListener('pointerleave', hideTip);
+    day.addEventListener('click', (e) => { if (DC) seek(dk(e)); });
+    $('monthchart').addEventListener('pointermove', (e) => {
+      const g = e.target.closest && e.target.closest('g[data-m]'); if (!g) return hideTip();
+      const i = +g.dataset.m, x = D.months[i];
+      showTip(e, `<b>${MON[i]} 2025</b><br>Grid ${gbp(x.grid_gbp)}<br>BLOX ${gbp(x.blox_gbp)}<br>Total ${gbp(x.grid_gbp + x.blox_gbp)}`);
+    });
+    $('monthchart').addEventListener('pointerleave', hideTip);
+    new ResizeObserver(layout).observe(plate);
+    new ResizeObserver(() => { if (S.tab === 'year') drawMonths(); }).observe($('stage'));
+  }
+
+  const failed = (msg) => { $('loading').classList.remove('hide'); $('loading').classList.add('failed'); $('loadmsg').textContent = msg; };
+  async function start(){
+    wireShell();
+    try {
+      const r = await fetch('assets/dispatch_2025.json', { credentials: 'same-origin' });
+      if (!r.ok) throw new Error(r.status);
+      D = await r.json();
+    } catch (e) {
+      failed('The year could not be loaded here. Please reload the page.');
+      return;
+    }
+    index(); year();
+    $('months-axis').innerHTML = MON.map((m) => `<span>${m}</span>`).join('');
+    const tag = (cls, title, sub, x, y) => {
+      const el = document.createElement('div'); el.className = 'tag'; el.innerHTML = `${title}<small>${sub}</small>`; plate.insertBefore(el, $('clock'));
+      tags.push({ el, x, y });
+    };
+    const a = D.anchors, g = D.routes.grid, trans = a.transformer;
+    tag('', 'BLOX', 'Bitcoin mining data centre', a.blox[0], a.blox[1] - 30);
+    tag('', 'CHP', 'biogas engine', a.chp[0], a.chp[1] - 40);
+    tag('', 'Transformer', 'position EST', trans[0], trans[1] - 60);
+    const out = g.filter((p) => p[0] < 2360 && p[0] > trans[0] + 300).pop();
+    if (out) tag('', 'To the grid', 'route EST', out[0], out[1] - 8);
+    R = { blox: route(D.routes.blox), grid: route(D.routes.grid) };
+    const width = (plate.clientWidth*(window.devicePixelRatio || 1)) > 1700 ? 2560 : 1600;
+    setSrc(width);
+    S.i = dayStart[120] + 14;                                 // 1 May at 07:00: the spring, when both decisions show
+    setPlay(false);
+    wire(); layout(); show(Math.floor(S.i));
+    // the year starts when the plate shows, not behind the loader
+    const go = () => { if (S.up) return; S.up = true; $('loading').classList.add('hide'); setPlay(!REDUCED); };
+    const dayPlate = $('b-day');
+    if (dayPlate.complete && dayPlate.naturalWidth) go();
+    else {
+      dayPlate.addEventListener('load', go, { once: true });
+      dayPlate.addEventListener('error', () => failed('The plates could not be loaded here. Please reload the page.'), { once: true });
+    }
+    requestAnimationFrame(frame);
+  }
+  start();
+})();
+</script>
+</body>
+</html>

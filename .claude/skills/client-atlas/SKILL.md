@@ -135,7 +135,7 @@ the client atlas markers. It comes after the existing site cards and before the 
 | SRV | shared | yes |
 | KLD | shared | yes |
 | IHN | its own three.js scene, by the owner's word, under the shared bar and badge | yes |
-| WLD | shared. Its Compute Render (`?view=compute`) is written in this repository, `atlas/wld/compute.html` with `atlas/wld/assets/`, in the BRY Compute Render's shape | yes |
+| WLD | shared. Its Compute Render (`?view=compute`) is written in this repository, `atlas/wld/compute.html` with `atlas/wld/assets/`, in the BRY Compute Render's shape; BLOX Dispatch (`?view=dispatch`) is `atlas/wld/dispatch.html`, on the same bar and tabs | yes |
 
 BRY and BLN are off the standard and wait on the owner's word. A site whose source opens on something other than
 a map gets the shared map unless the owner says otherwise (as for IHN); ask. Update this table when a site changes.
