@@ -1,4 +1,4 @@
-<title>Scrivelsby LV Site View</title>
+<title>LV Site View</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -166,19 +166,19 @@ button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .wn-confirm-h{margin:14px 0 6px;font:600 11px/1.2 var(--font);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
 .wn-confirm{margin:0;padding-left:1.1em;font-size:12.5px;color:var(--muted)}
 .wn-confirm li{margin:2px 0}
-/* "What Lee designed" stays on one line on the narrowest phones */
+/* "What was designed" stays on one line on the narrowest phones */
 @media (max-width:360px){.tabs button{white-space:nowrap}}
 /* in the SRV Electrical app the brand bar names the site and topic from 901 px up */
 @media (min-width:901px){.eyebrow{display:none}}
 </style>
 
-<canvas id="c" aria-label="3D model of the Scrivelsby site showing the CHP, LV kiosk, data centre and their cable routes"></canvas>
+<canvas id="c" aria-label="3D model of the site showing the CHP, LV kiosk, data centre and their cable routes"></canvas>
 <div id="labels" aria-hidden="true"></div>
 
 <section id="panel" aria-label="Scheme controls">
-  <div class="eyebrow">Scrivelsby · LV connection</div>
+  <div class="eyebrow">LV connection</div>
   <div class="tabs" role="tablist" aria-label="Design">
-    <button role="tab" id="tab-lee" aria-selected="true" aria-controls="panel">What Lee designed</button>
+    <button role="tab" id="tab-lee" aria-selected="true" aria-controls="panel">What was designed</button>
     <button role="tab" id="tab-ours" aria-selected="false" aria-controls="panel">What we need</button>
   </div>
   <p class="summary" id="summary"></p>
@@ -611,7 +611,7 @@ document.getElementById('reset').addEventListener('click', () => { flight.t = 1;
    and GLOSSARY (glossary.js) come in with the app's data script; opened on its own,
    the page goes without them. One drawer holds the step list, one step opened up,
    or the glossary. It starts closed; the steps are only ever shown on What we need,
-   and the reader's choice to open the drawer holds while they look at Lee's tab */
+   and the reader's choice to open the drawer holds while they look at What was designed */
 const W = typeof WHAT_WE_NEED === 'object' ? WHAT_WE_NEED : null;
 const SX = W && typeof STEPS_EXPLAINED === 'object' ? STEPS_EXPLAINED : null;
 const MARK_NAMES = typeof STEP_MARKS === 'object' ? STEP_MARKS : {};

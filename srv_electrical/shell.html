@@ -77,7 +77,7 @@ body{background:var(--bg);color:var(--fg);font:14px/1.4 var(--font)}
   <span class="div" aria-hidden="true"></span>
   <div class="ident">
     <div class="kick">SRV Electrical · LV connection</div>
-    <div class="ttl">Home Farm AD site, Scrivelsby, Horncastle LN9 6JB</div>
+    <div class="ttl">The board as designed, and the board we need</div>
   </div>
   <nav class="views" role="tablist" aria-label="View">
     <button type="button" role="tab" id="v-sld" aria-controls="p-sld" aria-selected="true" aria-label="Single-line diagram (SLD)">
@@ -100,12 +100,12 @@ body{background:var(--bg);color:var(--fg);font:14px/1.4 var(--font)}
 <script>
 (() => {
   const VIEWS = ['sld', 'site'];
-  const TITLES = { sld:'Single-line diagram', site:'Site view: 3D model of the Scrivelsby site' };
+  const TITLES = { sld:'Single-line diagram', site:'Site view: 3D model of the site' };
   const Q = window.__LV_QUERY || {};
   const tabs = {}, panes = {}, frames = {}, ready = {};
   for (const k of VIEWS) { tabs[k] = document.getElementById('v-' + k); panes[k] = document.getElementById('p-' + k); }
 
-  /* the design (What Lee designed / What we need), operating state and open step
+  /* the design (What was designed / What we need), operating state and open step
      of What we need the reader last picked: both views show the same, so flipping
      between them is the same moment seen two ways */
   const step0 = Number.isInteger(Q.step) ? Q.step : null;
