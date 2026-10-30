@@ -98,10 +98,13 @@ header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2.5
 @media (max-width:620px){ .wrap{padding:18px 14px 40px} .page h2,#as-sheet h2{font-size:18px} }
 
 /* --------------------------------------------------------------- dispatch -- */
-#p-dispatch{display:grid;grid-template-columns:minmax(0,1fr) 322px;grid-template-rows:minmax(0,1fr) auto;gap:10px;padding:10px}
-#plate{grid-column:1;grid-row:1;position:relative;overflow:hidden;isolation:isolate;border-radius:var(--r-l);background:#0d1b23;box-shadow:var(--sh-1);min-height:0}
-#plate img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:38% 62%;display:block;user-select:none;-webkit-user-drag:none}
-#plate img.lay{mix-blend-mode:screen;mix-blend-mode:plus-lighter}
+/* the desk and the see-saw take the height the plate gives up: its aspect crops the sky-ward slice off the render */
+#p-dispatch{display:grid;grid-template-columns:minmax(0,1fr) 322px;grid-template-rows:auto minmax(0,1fr) auto;gap:10px;padding:10px}
+#plate{grid-column:1;grid-row:1;position:relative;overflow:hidden;isolation:isolate;border-radius:var(--r-l);background:#0d1b23;box-shadow:var(--sh-1);
+  width:100%;aspect-ratio:2.58;max-height:calc(100dvh - var(--hdr,60px) - 310px);min-height:150px}
+#pl{position:absolute}
+#pl img{position:absolute;inset:0;width:100%;height:100%;display:block;user-select:none;-webkit-user-drag:none}
+#pl img.lay{mix-blend-mode:screen;mix-blend-mode:plus-lighter}
 #flow{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 #clock{position:absolute;left:12px;top:12px;z-index:3;background:rgba(9,26,35,.62);color:#fff;border-radius:var(--r-pill);padding:6px 13px;font-size:12.5px;font-weight:650;
   font-variant-numeric:tabular-nums;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
@@ -116,7 +119,7 @@ header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2.5
 #loading.failed::before{display:none}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-#readout{grid-column:2;grid-row:1/span 2;background:var(--surface);border-radius:var(--r-l);box-shadow:var(--sh-1);padding:15px 16px;overflow:auto;display:flex;flex-direction:column;gap:11px}
+#readout{grid-column:2;grid-row:1/span 2;min-height:0;background:var(--surface);border-radius:var(--r-l);box-shadow:var(--sh-1);padding:15px 16px;overflow:auto;display:flex;flex-direction:column;gap:11px}
 .eyebrow{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
 #r-when{margin:2px 0 0;font-size:16.5px;font-weight:720;color:var(--ink);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
 #r-sp{font-size:11.5px;color:var(--muted);margin-top:1px;font-variant-numeric:tabular-nums}
@@ -135,8 +138,8 @@ header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2.5
 .btn-as{margin-top:auto;border:1px solid var(--line);background:var(--tint);color:var(--accent);border-radius:var(--r-pill);padding:7px 12px;font:650 11.8px var(--font);cursor:pointer}
 .btn-as:hover{background:var(--accent);border-color:var(--accent);color:#fff}
 
-#dock{grid-column:1;grid-row:2;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);grid-template-rows:auto auto;gap:8px 10px}
-#ctl{grid-column:1/-1;display:flex;align-items:center;gap:10px;background:var(--surface);border-radius:var(--r-m);box-shadow:var(--sh-1);padding:6px 10px}
+#dock{grid-column:1;grid-row:2;display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:10px;min-height:0;container-type:size}
+#ctl{grid-column:1/-1;grid-row:3;display:flex;align-items:center;gap:10px;background:var(--surface);border-radius:var(--r-m);box-shadow:var(--sh-1);padding:6px 10px}
 #play{flex:0 0 auto;width:34px;height:34px;border:0;border-radius:50%;background:var(--brand);color:#fff;cursor:pointer;display:grid;place-items:center}
 #play:hover{background:var(--accent)}
 #play svg{width:14px;height:14px;display:block}
@@ -144,32 +147,54 @@ header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2.5
 .speeds button{border:0;background:transparent;color:var(--muted);font:650 11px var(--font);padding:5px 9px;border-radius:7px;cursor:pointer;white-space:nowrap}
 .speeds button[aria-pressed="true"]{background:var(--surface);color:var(--brand);box-shadow:0 1px 2px rgba(9,26,35,.14)}
 #scrub{flex:1 1 auto;min-width:60px;accent-color:var(--brand);height:22px;margin:0;cursor:pointer}
-.card{background:var(--surface);border-radius:var(--r-m);box-shadow:var(--sh-1);padding:9px 11px 8px;min-width:0;position:relative}
+.card{background:var(--surface);border-radius:var(--r-m);box-shadow:var(--sh-1);padding:10px 13px 9px;min-width:0;min-height:0;position:relative;display:flex;flex-direction:column}
 .card h3{margin:0;font-size:11.8px;font-weight:680;color:var(--ink)}
 .legend{display:flex;flex-wrap:wrap;gap:3px 11px;font-size:10.8px;color:var(--muted);margin-top:2px}
 .legend i{display:inline-block;width:11px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-0.5px}
 .legend i.line{height:2.5px;border-radius:1px;vertical-align:2.5px}
 .legend i.dash{height:0;border-top:2px dashed var(--ink-2);background:none!important;border-radius:0;vertical-align:2.5px}
-#daychart{display:block;width:100%;height:112px;margin-top:3px;touch-action:pan-y;cursor:crosshair}
-#heatwrap{position:relative;margin-top:4px}
-#heat{display:block;width:100%;height:96px;border-radius:5px;cursor:crosshair;touch-action:pan-y}
-#months-axis{display:flex;margin-top:3px;font-size:9.8px;color:var(--muted)}
-#months-axis span{flex:1 1 0;min-width:0}
+#daychart{display:block;width:100%;flex:1 1 auto;min-height:0;margin-top:4px;touch-action:pan-y;cursor:crosshair}
+
+/* the see-saw: the value of compute against the total export value */
+#see{text-align:center}
+#see h3{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+.vs{display:flex;justify-content:space-between;gap:10px;margin-top:6px}
+.vs>div{flex:1 1 0;min-width:0;transition:opacity .25s}
+.vs .u{font-size:10px;color:var(--muted)}
+.vs .n{font-size:12.5px;font-weight:680;color:var(--ink);white-space:nowrap}
+.vs .x{font-size:19px;font-weight:750;letter-spacing:-.01em;color:var(--brand);font-variant-numeric:tabular-nums;line-height:1.15}
+.vs>div.dim .n,.vs>div.dim .x{color:var(--muted)}
+#seesaw{display:block;width:100%;flex:1 1 auto;min-height:44px;margin:2px 0}
+.ways{display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:left}
+.way{border:2px solid var(--line);border-radius:var(--r-m);padding:7px 10px;background:var(--tint);transition:border-color .25s,background .25s,box-shadow .25s;min-width:0}
+.way .h{display:block;font-size:15px;font-weight:800;letter-spacing:-.01em;color:var(--muted);line-height:1.15}
+.way .h svg{width:16px;height:16px;display:block;margin-bottom:0}
+.way .t{display:block;font-size:9.8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+.way .d{display:block;font-size:10.8px;line-height:1.3;color:var(--muted);margin-top:1px}
+.way.on{background:var(--surface);box-shadow:var(--sh-1)}
+.way.on .h{color:var(--brand)}
+#way-blox.on{border-color:var(--compute)} #way-blox.on .t{color:var(--accent)}
+#way-grid.on{border-color:var(--export)} #way-grid.on .t{color:var(--export)}
+#see-foot{margin-top:6px;font-size:9.8px;font-weight:650;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+@container (max-height:300px){ #see-foot,.way .d{display:none} }
+@media (max-height:680px){ .vs .u{display:none} #p-dispatch{gap:7px;padding:7px} #plate{max-height:calc(100dvh - var(--hdr,60px) - 300px)} }
 #tip{position:fixed;z-index:20;pointer-events:none;background:var(--ink);color:#fff;font-size:11.5px;line-height:1.45;border-radius:8px;padding:6px 9px;box-shadow:var(--sh-2);max-width:240px;font-variant-numeric:tabular-nums}
 #tip b{font-weight:680}
 
 @media (max-width:1040px){
-  /* one column, with the controls straight under the plate they drive */
+  /* one column; the controls stay on screen, along the bottom of whatever is showing */
   #p-dispatch{display:flex;flex-direction:column;gap:8px;overflow:auto;-webkit-overflow-scrolling:touch}
-  #plate{order:1;flex:0 0 auto;aspect-ratio:16/9;width:100%}
+  #plate{order:1;flex:0 0 auto;aspect-ratio:2560/1255;max-height:none}
   #dock{display:contents}
-  #ctl{order:2;flex:0 0 auto}
+  #see{order:2;flex:0 0 auto;min-height:250px}
   #readout{order:3;flex:0 0 auto;overflow:visible}
-  .card{order:4;flex:0 0 auto}
+  #desk{order:4;flex:0 0 auto;height:220px}
+  #ctl{order:5;flex:0 0 auto;position:sticky;bottom:0;z-index:4}
   .btn-as{margin-top:4px}
+  .vs .u{display:block}
 }
 @media (max-width:1040px) and (max-height:620px) and (orientation:landscape){
-  #plate{aspect-ratio:auto;height:calc(100dvh - var(--hdr,60px) - 74px);min-height:160px}
+  #plate{aspect-ratio:auto;height:calc(100dvh - var(--hdr,60px) - 72px);min-height:160px}
 }
 @media (max-width:620px){
   #p-dispatch{padding:7px}
@@ -244,9 +269,11 @@ tr.tot td{font-weight:700;color:var(--ink);border-top:1.5px solid var(--line);bo
 <main id="stage">
   <section class="view" id="p-dispatch" role="tabpanel" aria-labelledby="t-dispatch">
     <div id="plate">
+      <div id="pl">
       <img id="b-night" alt=""/><img id="b-dusk" alt=""/><img id="b-day" alt="Wildmore AD plant from the air: the CHP, the BLOX on its pad beside it, the digester tanks and the silage clamps"/>
       <img class="lay" id="l-day-blox" alt=""/><img class="lay" id="l-dusk-blox" alt=""/><img class="lay" id="l-night-blox" alt=""/>
       <img class="lay" id="l-day-grid" alt=""/><img class="lay" id="l-dusk-grid" alt=""/><img class="lay" id="l-night-grid" alt=""/>
+      </div>
       <canvas id="flow" aria-hidden="true"></canvas>
       <div id="clock"></div>
       <div id="loading" role="status"><span id="loadmsg">Loading the year</span></div>
@@ -288,26 +315,43 @@ tr.tot td{font-weight:700;color:var(--ink);border-top:1.5px solid var(--line);bo
     </aside>
 
     <div id="dock">
-      <div id="ctl">
-        <button type="button" id="play" aria-label="Pause" title="Play or pause (space bar)"><svg viewBox="0 0 16 16" fill="currentColor"><path id="play-i" d="M4 2.5h3v11H4zM9 2.5h3v11H9z"/></svg></button>
-        <div class="speeds" role="group" aria-label="Speed">
-          <button type="button" data-speed="3" aria-pressed="false">Slow</button>
-          <button type="button" data-speed="10" aria-pressed="true">Normal</button>
-          <button type="button" data-speed="96" aria-pressed="false">Fast</button>
-        </div>
-        <input type="range" id="scrub" min="0" max="17519" step="1" value="0" aria-label="The half hour shown, through 2025"/>
-      </div>
-      <div class="card">
+      <div class="card" id="desk">
         <h3 id="day-title">The day: export value against the strike</h3>
         <svg id="daychart" role="img" aria-label="The day's export value and market price against the strike, half hour by half hour"></svg>
-        <div class="legend"><span><i class="line" style="background:var(--export)"></i>Export value</span><span><i class="line" style="background:var(--muted-2)"></i>Market price</span><span><i class="dash"></i>Strike</span></div>
+        <div class="legend"><span><i class="line" style="background:var(--export)"></i>Export value</span><span><i class="line" style="background:var(--muted-2)"></i>Market price</span><span><i class="dash"></i>Strike</span><span><i style="background:var(--compute)"></i>Compute</span><span><i style="background:var(--export)"></i>Export</span><span><i style="background:var(--off)"></i>CHP off</span></div>
       </div>
-      <div class="card">
-        <h3>The year: every half hour, by decision</h3>
-        <div id="heatwrap"><canvas id="heat" role="img" aria-label="2025 as a grid of 365 days by 48 half hours, each coloured by its decision; the table on The year tab gives the same year by month"></canvas></div>
-        <div id="months-axis"></div>
-        <div class="legend"><span><i style="background:var(--compute)"></i>Compute</span><span><i style="background:var(--export)"></i>Export</span><span><i style="background:var(--off)"></i>CHP off</span></div>
+      <div class="card" id="see">
+        <h3>Market prices change every half hour</h3>
+        <div class="vs">
+          <div id="vs-c"><div class="n">Value of compute</div><div class="x" id="vs-cv"></div><div class="u">per kWh</div></div>
+          <div id="vs-e"><div class="n">Total export value</div><div class="x" id="vs-ev"></div><div class="u">per kWh</div></div>
+        </div>
+        <svg id="seesaw" viewBox="0 -10 360 84" preserveAspectRatio="xMidYMid meet" role="img" aria-label="A see-saw tipping towards whichever is worth more this half hour: the value of compute or the total export value">
+          <line x1="20" x2="340" y1="70" y2="70" stroke="#dfe8ed" stroke-width="1.5"/>
+          <path d="M180 34 L201 70 L159 70 Z" fill="#1f5f7f"/>
+          <g id="beam">
+            <rect x="34" y="31" width="292" height="7" rx="3.5" fill="#12475e"/>
+            <rect x="46" y="12" width="46" height="19" rx="3" fill="#1f97c9"/>
+            <rect x="268" y="12" width="46" height="19" rx="3" fill="#4a55b0"/>
+          </g>
+          <circle cx="180" cy="34.5" r="4.5" fill="#fff" stroke="#12475e" stroke-width="2"/>
+        </svg>
+        <div class="ways">
+          <div class="way" id="way-blox"><span class="h">BLOX.</span><span class="t">Use it on site</span><span class="d">Absorbed by our containerised data centre</span></div>
+          <div class="way" id="way-grid"><span class="h"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.2L5 14.8M8 1.2l3 13.6M4.2 4.6h7.6M3 8h10M6.2 9.6l4.8 3.4M9.8 9.6L5 13"/></svg></span><span class="t">Export to grid</span><span class="d">Sold at the half hour's export value</span></div>
+        </div>
+        <div id="see-foot">Decided every half hour, all year</div>
       </div>
+    </div>
+
+    <div id="ctl">
+      <button type="button" id="play" aria-label="Pause" title="Play or pause (space bar)"><svg viewBox="0 0 16 16" fill="currentColor"><path id="play-i" d="M4 2.5h3v11H4zM9 2.5h3v11H9z"/></svg></button>
+      <div class="speeds" role="group" aria-label="Speed">
+        <button type="button" data-speed="1" aria-pressed="true">Slow</button>
+        <button type="button" data-speed="3" aria-pressed="false">Normal</button>
+        <button type="button" data-speed="10" aria-pressed="false">Fast</button>
+      </div>
+      <input type="range" id="scrub" min="0" max="17519" step="1" value="0" aria-label="The half hour shown, through 2025"/>
     </div>
   </section>
 
@@ -369,15 +413,17 @@ tr.tot td{font-weight:700;color:var(--ink);border-top:1.5px solid var(--line);bo
 (() => {
   'use strict';
   const $ = (id) => document.getElementById(id);
-  const COMPUTE = [31, 151, 201], EXPORT = [74, 85, 176], OFF = [13, 27, 35];
-  const POSX = 0.38, POSY = 0.62;               // the plates' object-position
+  const CROP_TOP = 185;                         // plate pixels cut from the top: everything above the second digester
+  const CROP_END = 1175;                        // the plate row that stays in view: the transformer and the way to the grid
   const LOOKS = ['day', 'dusk', 'night'];
   let D, N, dayIdx, sp, minute, dayStart, cum;
-  const S = { i: 0, playing: false, plates: false, up: false, speed: 10, shown: -1, shownDay: -1, kwB: 0, kwG: 0, tab: 'dispatch', lookDay: 1, lookDusk: 0, lookNight: 0 };
+  const S = { i: 0, playing: false, speed: 1, tilt: 0, shown: -1, shownDay: -1, kwB: 0, kwG: 0, tab: 'dispatch', lookDay: 1, lookDusk: 0, lookNight: 0 };
   const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const gbp = (x) => '£' + Math.round(x).toLocaleString('en-GB');
   // x is hundredths of £/MWh; 1 £/MWh = 0.1 p/kWh
   const pence = (x, dp = 2) => { const r = (x/1000).toFixed(dp); return (+r === 0 ? (0).toFixed(dp) : r) + 'p'; };
+  // a value just either side of the strike must not print as equal to it
+  const value = (x) => { const v = pence(x); return v === D.strike_p.toFixed(2) + 'p' && x !== D.strike_p*1000 ? pence(x, 3) : v; };
   const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const two = (n) => String(n).padStart(2, '0');
@@ -413,29 +459,30 @@ tr.tot td{font-weight:700;color:var(--ink);border-top:1.5px solid var(--line);bo
   let tags = [];
 
   function setSrc(width){
-    // the day plate first: it is what shows while the others arrive, and the look holds on day until they have
-    $('b-day').src = `assets/dispatch/plate_day_${width}.webp`;
-    $('b-day').decode().catch(() => {}).finally(() => {
-      let n = 0;
-      const one = () => { if (++n === 2) S.plates = true; };
-      for (const id of ['b-dusk', 'b-night']){ $(id).addEventListener('load', one, { once: true }); $(id).addEventListener('error', one, { once: true }); }
-      $('b-dusk').src = `assets/dispatch/plate_dusk_${width}.webp`; $('b-night').src = `assets/dispatch/plate_night_${width}.webp`;
-      for (const l of LOOKS) for (const st of ['blox', 'grid']) $(`l-${l}-${st}`).src = `assets/dispatch/layer_${l}_${st}_${width}.webp`;
+    const wait = ['day', 'dusk', 'night'].map((l) => {
+      const im = $(`b-${l}`); im.src = `assets/dispatch/plate_${l}_${width}.webp`;
+      return im.decode();
     });
+    for (const l of LOOKS) for (const st of ['blox', 'grid']) $(`l-${l}-${st}`).src = `assets/dispatch/layer_${l}_${st}_${width}.webp`;
+    return Promise.all(wait);
   }
 
   function layout(){
     const r = plate.getBoundingClientRect();
     dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const s = Math.max(r.width/D.res[0], r.height/D.res[1]);
-    box = { w: r.width, h: r.height, s, ox: (r.width - D.res[0]*s)*POSX, oy: (r.height - D.res[1]*s)*POSY };
+    // the plate fills the box from CROP_TOP down, centred across; a box too short for CROP_END slides further down it
+    const rw = D.res[0], rh = D.res[1], s = Math.max(r.width/rw, r.height/(rh - CROP_TOP));
+    const top = Math.max(CROP_TOP, CROP_END - r.height/s);
+    box = { w: r.width, h: r.height, s, ox: (r.width - rw*s)*0.38, oy: -top*s };
+    const pl = $('pl').style;
+    pl.width = rw*s + 'px'; pl.height = rh*s + 'px'; pl.left = box.ox + 'px'; pl.top = box.oy + 'px';
     flow.width = Math.round(r.width*dpr); flow.height = Math.round(r.height*dpr);
     for (const t of tags){
       t.el.style.left = (box.ox + t.x*s) + 'px'; t.el.style.top = (box.oy + t.y*s) + 'px';
       const x = box.ox + t.x*s, y = box.oy + t.y*s;
       t.el.hidden = x < 20 || x > r.width - 20 || y < 20 || y > r.height;
     }
-    drawHeat(); drawDay(); if (S.tab === 'year') drawMonths();
+    drawDay(); if (S.tab === 'year') drawMonths();
   }
 
   function setOp(id, v){
@@ -460,7 +507,6 @@ tr.tot td{font-weight:700;color:var(--ink);border-top:1.5px solid var(--line);bo
   function light(dt){
     const idx = Math.floor(S.i), f = S.i - idx;
     let w = weights(dayIdx[idx], minute[idx] + f*30);
-    if (!S.plates || (S.playing && S.speed > 40)) w = [1, 0, 0];   // fast: no strobing between day and night
     const k = 1 - Math.exp(-dt/0.22);
     S.lookDay += (w[0] - S.lookDay)*k; S.lookDusk += (w[1] - S.lookDusk)*k; S.lookNight += (w[2] - S.lookNight)*k;
     const wy = S.lookDay, wd = S.lookDusk, wn = S.lookNight;
@@ -470,6 +516,10 @@ tr.tot td{font-weight:700;color:var(--ink);border-top:1.5px solid var(--line);bo
     S.kwB += (tkB - S.kwB)*k; S.kwG += (tkG - S.kwG)*k;
     const lb = Math.min(1, S.kwB/300), lg = Math.min(1, S.kwG/250);
     for (const [l, v] of [['day', wy], ['dusk', wd], ['night', wn]]){ setOp(`l-${l}-blox`, v*lb); setOp(`l-${l}-grid`, v*lg); }
+    // the see-saw leans to whichever is worth more, up to 9 degrees
+    const gap = D.dec[idx] === 'O' ? 0 : D.v[idx]/1000 - D.strike_p, lean = Math.max(-9, Math.min(9, gap*2.2));
+    S.tilt = REDUCED ? lean : S.tilt + (lean - S.tilt)*k;
+    $('beam').setAttribute('transform', `rotate(${S.tilt.toFixed(2)} 180 34.5)`);
   }
 
   /* ---------------------------------------------------- the flow of power */
@@ -542,9 +592,10 @@ tr.tot td{font-weight:700;color:var(--ink);border-top:1.5px solid var(--line);bo
     $('r-kw').textContent = kw.toFixed(0) + ' kW';
     $('r-px').textContent = pence(D.px[i]);
     $('r-add').textContent = pence(D.v[i] - D.px[i]) + ' · ' + ({ G: 'green', A: 'amber', R: 'red' }[D.band[i]]);
-    const vp = pence(D.v[i]), st = D.strike_p.toFixed(2) + 'p';
-    $('r-v').textContent = vp === st && D.v[i] !== D.strike_p*1000 ? pence(D.v[i], 3) : vp;
-    $('r-strike').textContent = st;
+    $('r-v').textContent = $('vs-ev').textContent = value(D.v[i]);
+    $('r-strike').textContent = $('vs-cv').textContent = D.strike_p.toFixed(2) + 'p';
+    $('vs-c').classList.toggle('dim', c === 'E'); $('vs-e').classList.toggle('dim', c === 'B');
+    $('way-blox').classList.toggle('on', c === 'B'); $('way-grid').classList.toggle('on', c === 'E');
     $('r-blox').textContent = bk.toFixed(0) + ' kW'; $('r-grid').textContent = gk.toFixed(0) + ' kW';
     $('bar-blox').style.width = (bk/4.7) + '%'; $('bar-grid').style.width = (gk/4.7) + '%';
     const earn = (cum.g[i + 1] - cum.g[i]) + (cum.c[i + 1] - cum.c[i]);
@@ -554,7 +605,7 @@ tr.tot td{font-weight:700;color:var(--ink);border-top:1.5px solid var(--line);bo
     $('y-grid').textContent = gbp(cum.g[i + 1]); $('y-bgbp').textContent = gbp(cum.c[i + 1]); $('y-tot').textContent = gbp(cum.g[i + 1] + cum.c[i + 1]);
     const sc = $('scrub'); if (document.activeElement !== sc || S.playing) sc.value = i;
     sc.setAttribute('aria-valuetext', `${when} ${hhmm(m)}, ${$('r-dec-t').textContent}`);
-    if (d !== S.shownDay){ S.shownDay = d; drawDay(); drawHeat(); } else { markDay(); markHeat(); }
+    if (d !== S.shownDay){ S.shownDay = d; drawDay(); } else markDay();
   }
 
   /* -------------------------------------------------- the day against the strike */
@@ -594,32 +645,6 @@ tr.tot td{font-weight:700;color:var(--ink);border-top:1.5px solid var(--line);bo
   function markDay(){
     if (!DC) return; const l = $('dayhead'); if (!l) return;
     const k = Math.floor(S.i) - DC.a, v = DC.x(k); l.setAttribute('x1', v); l.setAttribute('x2', v);
-  }
-
-  /* ------------------------------------------------------------ the year map */
-  let heatBase = null;
-  function heatImage(){
-    const c = document.createElement('canvas'); c.width = 365; c.height = 48;
-    const g = c.getContext('2d'), im = g.createImageData(365, 48);
-    for (let k = 0; k < N; k++){
-      const row = Math.min(47, Math.floor(minute[k]/30)), o = (row*365 + dayIdx[k])*4, ch = dec(k), rgb = ch === 'B' ? COMPUTE : ch === 'E' ? EXPORT : OFF;
-      im.data[o] = rgb[0]; im.data[o + 1] = rgb[1]; im.data[o + 2] = rgb[2]; im.data[o + 3] = 255;
-    }
-    g.putImageData(im, 0, 0); return c;
-  }
-  function drawHeat(){
-    if (!D) return;
-    const c = $('heat'), w = c.clientWidth || 300, h = c.clientHeight || 96, r = Math.min(window.devicePixelRatio || 1, 2);
-    c.width = Math.round(w*r); c.height = Math.round(h*r);
-    heatBase = heatBase || heatImage();
-    markHeat();
-  }
-  function markHeat(){
-    const c = $('heat'), g = c.getContext('2d'); if (!heatBase) return;
-    g.imageSmoothingEnabled = false; g.drawImage(heatBase, 0, 0, c.width, c.height);
-    const i = Math.floor(S.i), x = (dayIdx[i] + 0.5)/365*c.width, y = (Math.floor(minute[i]/30) + 0.5)/48*c.height;
-    g.strokeStyle = '#fff'; g.lineWidth = Math.max(1, c.width/900);
-    g.beginPath(); g.moveTo(x, 0); g.lineTo(x, c.height); g.moveTo(0, y); g.lineTo(c.width, y); g.stroke();
   }
 
   /* --------------------------------------------------------------- the year */
@@ -666,7 +691,7 @@ tr.tot td{font-weight:700;color:var(--ink);border-top:1.5px solid var(--line);bo
   }
   function hoverRow(k){
     const d = dayIdx[k], dt = dateOf(d), c = dec(k);
-    return `<b>${dt.getUTCDate()} ${MON[dt.getUTCMonth()]}, ${hhmm(minute[k])}</b><br>${c === 'B' ? 'Compute' : c === 'E' ? 'Export' : 'CHP off'}<br>Export value ${pence(D.v[k])}<br>Market price ${pence(D.px[k])}`;
+    return `<b>${dt.getUTCDate()} ${MON[dt.getUTCMonth()]}, ${hhmm(minute[k])}</b><br>${c === 'B' ? 'Compute' : c === 'E' ? 'Export' : 'CHP off'}<br>Export value ${value(D.v[k])}<br>Market price ${pence(D.px[k])}`;
   }
   function wireShell(){
     const tabs = [...document.querySelectorAll('#ptabs [role=tab]')];
@@ -703,16 +728,6 @@ tr.tot td{font-weight:700;color:var(--ink);border-top:1.5px solid var(--line);bo
       S.speed = +b.dataset.speed; document.querySelectorAll('.speeds button').forEach((x) => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
     }));
     $('scrub').addEventListener('input', (e) => seek(+e.target.value));
-    const heat = $('heat');
-    const cell = (e) => {
-      const r = heat.getBoundingClientRect(), d = Math.max(0, Math.min(364, Math.floor((e.clientX - r.left)/r.width*365))), row = Math.max(0, Math.min(47, Math.floor((e.clientY - r.top)/r.height*48)));
-      let best = dayStart[d], gap = 1e9;
-      for (let k = dayStart[d]; k < dayStart[d + 1]; k++){ const g = Math.abs(minute[k] - row*30); if (g < gap){ gap = g; best = k; } }
-      return best;
-    };
-    heat.addEventListener('pointermove', (e) => showTip(e, hoverRow(cell(e))));
-    heat.addEventListener('pointerleave', hideTip);
-    heat.addEventListener('click', (e) => seek(cell(e)));
     const day = $('daychart');
     const dk = (e) => { const r = day.getBoundingClientRect(), f = (e.clientX - r.left - DC.L)/(DC.W - DC.L - DC.Rr); return DC.a + Math.max(0, Math.min(DC.n - 1, Math.floor(f*DC.n))); };
     day.addEventListener('pointermove', (e) => { if (DC) showTip(e, hoverRow(dk(e))); });
@@ -725,6 +740,7 @@ tr.tot td{font-weight:700;color:var(--ink);border-top:1.5px solid var(--line);bo
     });
     $('monthchart').addEventListener('pointerleave', hideTip);
     new ResizeObserver(layout).observe(plate);
+    new ResizeObserver(() => { if (S.tab === 'dispatch') drawDay(); }).observe(day);
     new ResizeObserver(() => { if (S.tab === 'year') drawMonths(); }).observe($('stage'));
   }
 
@@ -740,7 +756,6 @@ tr.tot td{font-weight:700;color:var(--ink);border-top:1.5px solid var(--line);bo
       return;
     }
     index(); year();
-    $('months-axis').innerHTML = MON.map((m) => `<span>${m}</span>`).join('');
     const tag = (cls, title, sub, x, y) => {
       const el = document.createElement('div'); el.className = 'tag'; el.innerHTML = `${title}<small>${sub}</small>`; plate.insertBefore(el, $('clock'));
       tags.push({ el, x, y });
@@ -753,19 +768,14 @@ tr.tot td{font-weight:700;color:var(--ink);border-top:1.5px solid var(--line);bo
     if (out) tag('', 'To the grid', 'route EST', out[0], out[1] - 8);
     R = { blox: route(D.routes.blox), grid: route(D.routes.grid) };
     const width = (plate.clientWidth*(window.devicePixelRatio || 1)) > 1700 ? 2560 : 1600;
-    setSrc(width);
-    S.i = dayStart[120] + 14;                                 // 1 May at 07:00: the spring, when both decisions show
+    S.i = 0;                                                  // the year opens at the start of 1 January
+    const first = weights(0, 0); S.lookDay = first[0]; S.lookDusk = first[1]; S.lookNight = first[2];
     setPlay(false);
-    wire(); layout(); show(Math.floor(S.i));
-    // the year starts when the plate shows, not behind the loader
-    const go = () => { if (S.up) return; S.up = true; $('loading').classList.add('hide'); setPlay(!REDUCED); };
-    const dayPlate = $('b-day');
-    if (dayPlate.complete && dayPlate.naturalWidth) go();
-    else {
-      dayPlate.addEventListener('load', go, { once: true });
-      dayPlate.addEventListener('error', () => failed('The plates could not be loaded here. Please reload the page.'), { once: true });
-    }
+    wire(); layout(); show(0);
     requestAnimationFrame(frame);
+    // the year starts when the plates show, not behind the loader
+    try { await setSrc(width); } catch (e) { failed('The plates could not be loaded here. Please reload the page.'); return; }
+    $('loading').classList.add('hide'); setPlay(!REDUCED);
   }
   start();
 })();
