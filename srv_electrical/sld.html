@@ -666,6 +666,13 @@ svg [data-dim]{opacity:.2;transition:opacity .25s}
       <text class="x-note" x="52" y="449">dashed: doors · hatched: ACBs drawn out</text>`,
     'fault': `<path class="x-fault" d="M604 316 L592 334 L600 334 L594 350 L610 328 L602 328 L608 316 Z"/>`,
     'mccb-note': `<text class="x-note" x="716" y="266">800 A MCCB instead?</text>`,
+    'relay-where': `<rect class="x-frame" x="782" y="98" width="176" height="52" rx="8"/>
+      <text class="x-note" x="862" y="166" text-anchor="end">in the new board's</text>
+      <text class="x-note" x="862" y="179" text-anchor="end">marshalling section</text>
+      <text class="x-note" x="602" y="444" text-anchor="middle">no UVR: cooling stays on</text>
+      <text class="x-note" x="862" y="400">compute container:</text>
+      <text class="x-note" x="862" y="413">power cables only,</text>
+      <text class="x-note" x="862" y="426">no trip wiring</text>`,
   };
   /* each step's diagram: the state it is drawn in (one of What we need's operating
      states, or its own), the signals that run, and what else it shows. The parts lit
@@ -676,7 +683,7 @@ svg [data-dim]{opacity:.2;transition:opacity .25s}
   const SV = [
     { state:0, extras:['interlock-removed'] },
     { state:0, live:['#sig-out'] },
-    { state:0, live:['#sig-eng', '#sig-out'] },
+    { state:0, live:['#sig-eng', '#sig-out'], extras:['relay-where'] },
     { state:0, live:['#sig-wd', '#sig-out'] },
     { state:0, live:['[data-k="meter"] path'] },
     { state:0 },

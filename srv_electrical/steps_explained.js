@@ -16,8 +16,8 @@ const STEP_MARKS = {
   'uvr':            'UVR coils',
   'cool-cdu':       'Cooler and CDU breakers',
   'gen-breaker':    'Generator breaker (2G)',
-  'trip-cable':     'Control cable from the 2G container',
-  'trip-relay':     'Interposing relay',
+  'trip-cable':     'Control cable, 2G container to new board',
+  'trip-relay':     'Interposing relay, new board',
   'controller':     'Our controller',
   'watchdog':       'Watchdog relay',
   'incomer-cts':    'Split-core CTs',
@@ -55,13 +55,14 @@ const STEPS_EXPLAINED = [
   },
   { /* 3 Wire the engine-status trip */
     needed: [
-      { text: "Take a volt-free \"breaker closed\" contact from the 2G generator breaker: closed while the engine is connected, open when it is not.", marks: ['gen-breaker'] },
-      { text: "Run a control cable from that contact in the 2G container to the new board.", marks: ['trip-cable'] },
-      { text: "Fit an interposing relay in the new board, held in by that contact.", marks: ['trip-relay'] },
-      { text: "Wire the relay into the UVR circuit of both rack MCCBs. When the generator breaker opens, the relay drops out and both racks trip.", marks: ['uvr'] },
+      { text: "At the 2G container: a spare volt-free \"breaker closed\" auxiliary contact on the generator breaker itself, not an output from 2G's engine controller, brought out to terminals in 2G's panel. It is closed while the generator is connected and open when it is not.", marks: ['gen-breaker'] },
+      { text: "A screened control cable from those terminals to the new LV board, run apart from the power cables. It is the only trip wiring outside the board: none goes to the compute container.", marks: ['trip-cable'] },
+      { text: "In the new board's marshalling section, the control compartment kept apart from its busbars: the interposing relay. Its coil is fed from the board's UPS-backed control supply, out along the cable, through the 2G contact and back, so it is held in only while the generator breaker is closed.", marks: ['trip-relay'] },
+      { text: "From the same supply, the trip circuit runs through the relay's normally open contact (in series with the watchdog's, step 4) to the UVR coils on the Rack 1 and Rack 3 MCCBs, and to nothing else. The ACBs, and the dry cooler and CDU breakers, have no UVR on it, so a trip leaves them closed and the cooling running.", marks: ['uvr'] },
+      { text: "When the generator breaker opens, the relay drops out, the trip circuit goes dead and both rack MCCBs trip at the board, cutting the two 400 A feeds to the compute container. They cannot be closed again until the generator breaker is back in.", marks: ['rack-mccbs'] },
     ],
-    why: "If the engine stops, the grid becomes the busbar's only source, and the miners would carry on drawing their full load from it. The generator breaker's own contact is the fastest, surest sign the engine has gone: it needs no software and no network, and because the trip works by the circuit opening, a broken wire trips the racks too. The interposing relay keeps 2G's control wiring separate from ours.",
-    done: "Opening the generator breaker trips both rack MCCBs in under 0.1 s.",
+    why: "If the generator breaker opens, the grid becomes the busbar's only source, and the miners would carry on drawing their full load from it. The generator breaker's own auxiliary contact is the surest sign the engine is off: it needs no software and no network, and because the trip works by the circuit opening, a cut cable, a lost control supply or a failed relay trips the racks too. The trip is built into the new board, where the racks' 400 A feeds start, so the compute container needs no changes and the board's side of the trip can be proven at FAT. Only the rack MCCBs carry UVR coils, so the trip takes the miners off and leaves the cooling running. The interposing relay keeps 2G's control wiring separate from ours. If a rack way were an ACB instead, the scheme is the same: an ACB takes an undervoltage release, a motor operator and status contacts too.",
+    done: "Opening the generator breaker trips both rack MCCBs in under 0.1 s and leaves the ACBs and the dry cooler and CDU breakers closed, and the racks cannot be closed again until the generator breaker is back in.",
   },
   { /* 4 Add the controller watchdog */
     needed: [
