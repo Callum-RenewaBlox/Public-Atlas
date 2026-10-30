@@ -16,6 +16,7 @@ writeFileSync(join(TMP, 'edge-lib', 'pages.js'), `export const PAGES = {
   '/clients/srv/contractor/': { client: 'srv', title: 'SRV Contractor Atlas', list: true },
   '/clients/bryn/': { client: 'bryn', title: 'Bryn Atlas', views: { '3d': '3d.html' }, list: true },
   '/team/keith-huntly/': { client: '*', title: 'Keith & Huntly', list: true },
+  '/clients/investors/': { client: 'investors', title: 'Investor Atlas', list: true },
 };
 export const CSP = { '/clients/srv/': "default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com", '/team/': "default-src 'self'" };
 export const REDIRECTS = { '/clients/srv/3d-sim/': '/clients/srv/?view=3d' };
@@ -257,6 +258,39 @@ r = await gate(req('/clients/', { cookie: team }), ctx); html = await r.text(); 
 sb.rpc = async () => json(200, ['srv', '../x', 5, '*']);
 r = await gate(req('/access/callback?code=abc', { cookie: 'rbx_atlas_signin=' + state }), ctx); assert.equal(r.status, 200); ok('odd access values filtered');
 r = await gate(req('/access/sign-out'), ctx); assert.equal(cookieVal(r, 'rbx_atlas'), ''); ok('sign out clears the session');
+
+// the Investor Atlas, for registered investors (code 'investors'); anyone else signed in is sent to register
+{
+  const INV = '/clients/investors/', PORTAL = 'https://www.renewablox.com/invest';
+  const postForm = (path, fields, cookie = '') => new Request(O + path, { method: 'POST', headers: { cookie, 'content-type': 'application/x-www-form-urlencoded', 'sec-fetch-dest': 'document', accept: 'text/html' }, body: new URLSearchParams(fields).toString() });
+  r = await gate(req(INV), ctx); assert.equal(r.status, 303); assert.equal(r.headers.get('location'), '/access/?r=' + encodeURIComponent(INV)); ok('investors: signed out -> sign-in');
+  r = await gate(req('/access/?r=' + encodeURIComponent(INV)), ctx); html = await r.text();
+  assert.match(html, /<h1>Registered investors: sign in<\/h1>/); assert.match(html, /the address you registered with/); assert.ok(html.includes(`href="${PORTAL}"`));
+  assert.match(html, /href="\/access\/start\?p=google&amp;r=%2Fclients%2Finvestors%2F"/); assert.match(html, /href="\/access\/start\?p=microsoft&amp;r=%2Fclients%2Finvestors%2F"/);
+  r = await gate(req('/access/?r=' + encodeURIComponent('/clients/srv/')), ctx); html = await r.text(); assert.match(html, /<h1>Sign in to open this page<\/h1>/); assert.ok(!html.includes(PORTAL));
+  ok("investors: the sign-in speaks to registered investors and links to registration; other pages' sign-in unchanged");
+  r = await gate(req('/access/email?r=' + encodeURIComponent(INV)), ctx); assert.match(await r.text(), /Enter the address you registered with\./); ok('investors: the emailed code asks for the address registered with');
+  r = await gate(req('/access/start?r=' + encodeURIComponent(INV)), ctx); const invState = 'rbx_atlas_signin=' + cookieVal(r, 'rbx_atlas_signin');
+  sb.token = async () => json(200, { access_token: 'AT7', refresh_token: 'RT7', user: user('Stranger@Example.com') }); sb.rpc = async () => json(200, []);
+  r = await gate(req('/access/callback?code=abc', { cookie: invState }), ctx); assert.equal(r.status, 403); assert.equal(cookieVal(r, 'rbx_atlas'), null); html = await r.text();
+  assert.match(html, /isn&rsquo;t registered as an investor/); assert.match(html, /stranger@example\.com/); assert.ok(html.includes(`href="${PORTAL}"`));
+  ok('investors: an unregistered address is sent to register at the Investor Portal, with no session');
+  r = await gate(req('/access/callback?code=abc', { cookie: 'rbx_atlas_signin=' + state }), ctx); assert.match(await r.text(), /Nothing is shared with this account/); ok("investors: other pages' refusal unchanged");
+  sb.otp = async () => json(200, {});
+  r = await gate(postForm('/access/email', { email: 'stranger@example.com', r: INV }), ctx); const invCode = 'rbx_atlas_code=' + cookieVal(r, 'rbx_atlas_code');
+  sb.verify = async () => json(200, { access_token: 'AT8', refresh_token: 'RT8', user: { email: 'stranger@example.com', email_confirmed_at: 'x' } });
+  r = await gate(postForm('/access/email/code', { code: '123456' }, invCode), ctx); assert.equal(r.status, 403); assert.ok((await r.text()).includes(`href="${PORTAL}"`)); ok('investors: by emailed code too');
+  sb.token = async () => json(200, { access_token: 'AT7', refresh_token: 'RT7', user: user('Investor@Example.com') }); sb.rpc = async () => json(200, ['investors']);
+  r = await gate(req('/access/callback?code=abc', { cookie: invState }), ctx); assert.equal(r.status, 200); const inv = 'rbx_atlas=' + cookieVal(r, 'rbx_atlas');
+  assert.match(await r.text(), /location\.replace\("\/clients\/investors\/"/);
+  r = await gate(req(INV, { cookie: inv }), ctx); assert.equal(r.status, 200); assert.equal(await r.text(), 'STATIC');
+  r = await gate(req('/clients/srv/', { cookie: inv }), ctx); assert.equal(r.status, 403); assert.match(await r.text(), /isn&rsquo;t shared with you/);
+  r = await gate(req('/clients/', { cookie: inv }), ctx); html = await r.text(); assert.match(html, /Investor Atlas/); assert.ok(!html.includes('SRV Atlas'));
+  ok('investors: a registered investor opens the Investor Atlas, and only that');
+  r = await gate(req(INV, { cookie: c }), ctx); assert.equal(r.status, 403); html = await r.text(); assert.match(html, /registered as an investor/); assert.ok(html.includes(`href="${PORTAL}"`));
+  ok('investors: a client of another site is sent to register, not told to ask');
+  r = await gate(req(INV, { cookie: team }), ctx); assert.equal(r.status, 200); ok('investors: the team opens it');
+}
 
 }
 

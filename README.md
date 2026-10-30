@@ -28,6 +28,7 @@ points at a `streamlit.app` address.
 | `/investors/demo/` | `investor_demo_home.html` + `peaker_plant_3d.html` + `kld_interactive.html` + `heat_network_3d.html` + `demand_for_constraints_3d.html` | Investor Demo — a landing page for prospective investors that packs the interactive 3D models: Peaker Plant 3D (the peaker business model as a living site, `peaker-plant/`), Hydro 3D (the KLD powerhouse and its in-room data centre, `hydro/`), Heat Network 3D (the IHN heat network and the data centre that heats it, a year half-hour by half-hour, `heat-network/`) and Demand for Constraints 3D (the Moray cluster north of the B4 constraint and the two BLOX halls NESO dispatches to absorb curtailed wind, `demand-for-constraints/`). **Investor data is gated:** on Hydro 3D, Heat Network 3D and Demand for Constraints 3D the panels that carry the figures are blurred and inert and a card points to the investor portal (`GATED` in `packs.py`, applied by the build — the model files are untouched, and the portal serves them unblurred) |
 | `/investors/portal/` | `investor_portal_home.html` + the same four model files | Investor Portal — the Investor Demo's pack in full, unblurred, at the address the Wix investor portal's members area links to, with the Investor Atlas inside it at `/investors/portal/atlas/`. It isn't gated on the Atlas: the way in is the Wix portal's registration and investor declaration, and only the address keeps it from the public (its pages ask not to be indexed). The files themselves stay public in this repository |
 | `/investors/portal/atlas/` | `atlas/vendor/investor_atlas_v3.html`, a copy of Eunice-Platform's | Investor Atlas — contract value, pipeline and market context for AD peakers, subsidised generators and stranded hydro across Great Britain (the SAM, TAM, hydro and PPA views, with a Present mode), in the investor portal; `?view=`, `?site=`, `?theme=` and `?present=1` open it where a shared link points |
+| `/clients/investors/` | the same `atlas/vendor/investor_atlas_v3.html` | Investor Atlas for registered investors — the same page behind the sign-in, where the investors page's "Registered Investors login" leads: the team, and the addresses listed for `investors` (see **Registered investors** below) |
 | `/investors/australia/` | `investor_demo_aus_home.html` + `peaker_plant_3d.html` + `kld_interactive.html` + `nem_negative_price_atlas.html` | Investor Demo (Australia) — Peaker Plant 3D and Hydro 3D plus NEM 3D (mining economics across the Australian NEM, `nem/`), on its own address for the investor group that model was built for |
 | `/models/peaker-plant/` | `peaker_plant_3d.html` | Peaker Plant 3D standalone — the same peaker model on its own link, for client brochures (AD operators): no landing page, no pack navigation, straight into the model, prices in **p/kWh** |
 | `/models/peaker-demo/` | `peaker_plant_3d.html` | Peaker Demo — the pack's Peaker Plant 3D on a link of its own, for sending the peaker without the rest of the pack: no landing page, no pack navigation, prices in **£/MWh**, and tailored for an energy-literate audience (strike opens at £80 on a £50–£100 range; the export price is named **DA + gDUoS**) |
@@ -415,11 +416,12 @@ it is hosted anywhere else, and the build fails if any page points at a
 | Address | Page | Source | Who can open it |
 | --- | --- | --- | --- |
 | `/` | the Atlas front page, with its Client Atlas section | `atlas/root/index.html`; the section is `atlas/front/clients.html`, put between its marker comments by the build | anyone |
-| `/investors/` | the Investor Atlas preview, pointing to the Wix investor portal | `atlas/root/investors/index.html` | anyone |
+| `/investors/` | the Investor Atlas preview: its "Registered Investors login" leads to `/clients/investors/`, and "Register as an investor" to the Wix investor portal | `atlas/root/investors/index.html` | anyone |
 | `/market/`, `/market/map/` | the Market Atlas page, and the map it frames | `atlas/root/market/index.html`, `atlas/vendor/client_atlas_v2.html` | anyone |
 | `/clients/bln/`, `/clients/bln/3d/` | BLN Atlas and BLN 3D | `atlas/bln/` | the sign-in: the team, and the addresses listed for `bln` |
 | `/investors/demo/`, `/investors/australia/`, `/models/` | the public investor packs and the standalone peakers | `atlas/pages.py`, from the files at the root of this repository | anyone with the link |
 | `/investors/portal/`, `/investors/portal/atlas/` | the Investor Portal pack and the Investor Atlas | `atlas/pages.py`, `atlas/vendor/investor_atlas_v3.html` | anyone with the address: the Wix investor portal's members area links to it |
+| `/clients/investors/` | the Investor Atlas for registered investors | `atlas/vendor/investor_atlas_v3.html` (`MAPS["registered"]` in `atlas/build.py`) | the sign-in: the team, and the addresses listed for `investors` |
 | `/clients/<code>/…` | the client atlases | `atlas/pages.py` | the sign-in: the team, and the addresses listed for `<code>` |
 | `/team/…` | the team's pages | `atlas/pages.py`, `atlas/team/` | the sign-in: the team only |
 
@@ -486,7 +488,7 @@ security), add a row for the address they sign in with in Supabase's SQL editor:
     values ('name@example.com', 'srv', 'SRV Atlas for the farm manager');
 
 The codes are `srv`, `srv-contractor`, `bry`, `kld`, `ihn`, `wld`, `reabold` (both
-Reabold maps), `citygate` and `bln`; the address is stored in lower case. A client
+Reabold maps), `citygate`, `bln` and `investors` (the Investor Atlas, below); the address is stored in lower case. A client
 signs in with Google (a Gmail or Google Workspace address) or Microsoft (a
 personal Outlook, Hotmail or Live address, or a Microsoft 365 work one); either
 way the address must be one the provider has verified, and it is the address
@@ -527,6 +529,24 @@ investor declaration), whose members-area buttons link to
 indexed, and their header rules (`site_headers` in `atlas/build.py`) let the Wix
 site frame them. Anyone given the address can open them, and the files are
 public in this repository.
+
+**Registered investors** (`/clients/investors/`, code `investors`). The main
+button on the investors page, "Registered Investors login", opens the Investor
+Atlas behind the sign-in, at its own address so the portal's open copy is left
+as it is. The team gets in with Google, as active CRM team members, like any
+gated page. An investor signs in with Google, Microsoft or a one-time code, and
+gets in once the address they registered with at the Wix investor portal is
+listed for `investors`:
+
+    insert into public.atlas_access (email, client, note)
+    values ('name@example.com', 'investors', 'Registered investor');
+
+The sign-in speaks to investors on this address ("Registered investors: sign
+in", with a link to register), and anyone signed in whose address isn't listed
+is told it isn't registered and sent to register at the Investor Portal
+(`INVESTOR_PORTAL` in `atlas-gate.js`, renewablox.com/invest), with a way to
+sign in again with another address, rather than the page that says nothing is
+shared with them. Removing the row shuts the investor out within ten minutes.
 
 **BLN** (`/clients/bln/`, client code `bln`) is behind the sign-in, so its pages
 may carry the site's details in full; old `/bln/` links redirect there

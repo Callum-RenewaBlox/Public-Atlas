@@ -214,6 +214,14 @@ INVESTOR_ATLAS_CSP = (
     "img-src data: blob: https://tiles.openfreemap.org https://s3.amazonaws.com; "
     "connect-src https://tiles.openfreemap.org https://s3.amazonaws.com; worker-src blob:; child-src blob:; "
     "object-src 'none'; base-uri 'none'; form-action 'none'")
+# The Investor Atlas for registered investors: the same page behind the sign-in, at /clients/investors/, for the
+# addresses listed under 'investors' in public.atlas_access and the team (the gate sends anyone else to register at the
+# Investor Portal). The investors page's "Registered Investors login" leads here; the copy at /investors/portal/atlas/
+# stays open for the Wix portal's members area, as before.
+MAPS["registered"] = {**MAPS["investor"], "target": "clients/investors/index.html",
+                      "url": f"https://{SITE_HOST}/clients/investors/"}
+GATED_PAGES["/clients/investors/"] = {"client": "investors", "title": "Investor Atlas", "list": True}
+EDGE_CSP["/clients/investors/"] = f"{INVESTOR_ATLAS_CSP}; frame-ancestors 'none'"
 # BLN's old public address, now behind the sign-in: Netlify answers these before the site's files (_redirects)
 SITE_REDIRECTS = [("/bln", "/clients/bln/"), ("/bln/*", "/clients/bln/:splat")]
 
@@ -429,6 +437,7 @@ def build(names):
     warnings += put_fonts()
     put_map("market")
     put_map("investor")
+    put_map("registered")
     put_team()
     put_pages()
     check_front(names)   # once every page is in place, so the section may link to any of them
