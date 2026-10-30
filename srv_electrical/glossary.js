@@ -6,7 +6,7 @@
 const GLOSSARY = [
   { term: '2G', full: '', meaning: "The maker of the CHP engine. The 2G container houses the engine, its generator and the generator breaker." },
   { term: 'ACB', full: 'Air circuit breaker', meaning: "A large circuit breaker for high currents (here 1250 A), used for main incomers and big feeders. It is usually withdrawable: it slides out of its cradle for isolation and maintenance." },
-  { term: 'AD', full: 'Anaerobic digestion', meaning: "The process at Home Farm that turns farm feedstock into biogas, which fuels the CHP engine." },
+  { term: 'AD', full: 'Anaerobic digestion', meaning: "The process on site that turns farm feedstock into biogas, which fuels the CHP engine." },
   { term: 'Boundary', full: '', meaning: "Where the site meets the grid: the transformer incomer. Power crossing it is import or export." },
   { term: 'Breaking capacity', full: '', meaning: "The largest fault current a breaker can safely interrupt." },
   { term: 'Busbar', full: '', meaning: "The copper bars in a switchboard that every incoming and outgoing circuit connects to." },

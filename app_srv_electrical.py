@@ -1,20 +1,20 @@
-"""SRV Electrical — the LV connection at Scrivelsby (Home Farm AD), drawn two ways.
+"""SRV Electrical — an AD site's LV connection, drawn two ways.
 
 Paktronic's quoted changeover board (LF42344) set against the shared-busbar
-design RenewaBlox needs, for the Home Farm AD site at Scrivelsby (LN9 6JB,
-operator Qila Energy). Two main tabs in the brand bar, opening on the first:
+design RenewaBlox needs. The page names no site or address. Two main tabs in
+the brand bar, opening on the first:
 
 * **Single-line diagram** — the animated SLD (``srv_electrical/sld.html``):
   the DNO transformer, the existing 2014 board, the new board with the CHP's
   generator breaker, and the data-centre section with its racks, cooler and
   CDU, power drawn flowing in engine orange or grid blue.
-* **Site view** — the same scheme on the September 2026 Scrivelsby site model
+* **Site view** — the same scheme on the September 2026 site model
   (``srv_electrical/site3d.html`` with ``static/srv_electrical/site.glb``):
   the GRP kiosk with both boards back to back, the data-centre container under
   the cooler gantry, and the cable routes carrying the power, with a status
   pill on each asset.
 
-Each view has the same two sub-tabs, **What Lee designed** (the quote as
+Each view has the same two sub-tabs, **What was designed** (the quote as
 drawn: two 1250 A ACBs, mechanically interlocked, so the engine feeds the site
 or the data centre, never both) and **What we need** (the interlock removed,
 the miners turned down in software, and a hardwired trip that drops the racks
@@ -57,7 +57,7 @@ import streamlit as st
 SRC = Path(__file__).resolve().parent / "srv_electrical"
 
 st.set_page_config(
-    page_title="SRV Electrical — Scrivelsby LV connection",
+    page_title="SRV Electrical — LV connection",
     page_icon=":material/electrical_services:",
     layout="wide",
     initial_sidebar_state="collapsed",
