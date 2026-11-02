@@ -398,6 +398,8 @@ body.moved .hint{opacity:0!important}
 (function(){
   const $ = (id) => document.getElementById(id);
   const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // trees, houses and textures are scattered from a fixed seed, so the scene is the same on every load (and in every round's shots)
+  const rand = (() => { let s = 0x2545F491 >>> 0; return () => { s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; })();
 
   /* ========================================================== the process */
   // The developer's twelve steps, lightly edited for length, and the BLOX peaker as the thirteenth. Each step has its
@@ -540,8 +542,8 @@ body.moved .hint{opacity:0!important}
     const g = c.getContext('2d');
     g.fillStyle = c1; g.fillRect(0, 0, size, size);
     for (let i = 0; i < size * size / 9; i++) {
-      g.fillStyle = Math.random() < 0.5 ? c2 : c3; g.globalAlpha = 0.25 + Math.random() * 0.4;
-      const r = 1 + Math.random() * 3; g.fillRect(Math.random() * size, Math.random() * size, r, r);
+      g.fillStyle = rand() < 0.5 ? c2 : c3; g.globalAlpha = 0.25 + rand() * 0.4;
+      const r = 1 + rand() * 3; g.fillRect(rand() * size, rand() * size, r, r);
     }
     const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
     return t;
@@ -742,27 +744,27 @@ body.moved .hint{opacity:0!important}
   function buildTrees(root){
     // low-poly trees in two species, as instances: belts along the river, the railway and the road, and the odd one
     const spots = [];
-    const belt = (fn, n, jitter) => { for (let i = 0; i < n; i++) { const p = fn(i / Math.max(1, n - 1)); spots.push([p[0] + (Math.random() - 0.5) * jitter, p[1] + (Math.random() - 0.5) * jitter, 0.75 + Math.random() * 0.7]); } };
+    const belt = (fn, n, jitter) => { for (let i = 0; i < n; i++) { const p = fn(i / Math.max(1, n - 1)); spots.push([p[0] + (rand() - 0.5) * jitter, p[1] + (rand() - 0.5) * jitter, 0.75 + rand() * 0.7]); } };
     const rc = root.userData.riverCurve;
     belt((u) => { const p = rc.getPointAt(u); return [p.x - 24, -p.z]; }, 70, 12);
     belt((u) => { const p = rc.getPointAt(u); return [p.x + 26, -p.z]; }, 60, 16);
-    belt((u) => [-148 + (Math.random() - 0.5) * 6, -600 + u * 1200], 110, 8);
-    belt((u) => [-175 + (Math.random() - 0.5) * 20, -600 + u * 1200], 80, 24);
-    belt((u) => [-255 + (Math.random() - 0.5) * 10, -600 + u * 1200], 70, 14);
-    belt((u) => [-70 + u * 240, 330 + (Math.random() - 0.5) * 10], 30, 12);
-    belt((u) => [-120 + u * 60, -230 + (Math.random() - 0.5) * 10], 10, 10);
-    for (let i = 0; i < 60; i++) spots.push([-330 + Math.random() * 90, -500 + Math.random() * 1000, 0.8 + Math.random() * 0.6]);
-    for (let i = 0; i < 70; i++) spots.push([200 + Math.random() * 220, -500 + Math.random() * 1000, 0.8 + Math.random() * 0.6]);
+    belt((u) => [-148 + (rand() - 0.5) * 6, -600 + u * 1200], 110, 8);
+    belt((u) => [-175 + (rand() - 0.5) * 20, -600 + u * 1200], 80, 24);
+    belt((u) => [-255 + (rand() - 0.5) * 10, -600 + u * 1200], 70, 14);
+    belt((u) => [-70 + u * 240, 330 + (rand() - 0.5) * 10], 30, 12);
+    belt((u) => [-120 + u * 60, -230 + (rand() - 0.5) * 10], 10, 10);
+    for (let i = 0; i < 60; i++) spots.push([-330 + rand() * 90, -500 + rand() * 1000, 0.8 + rand() * 0.6]);
+    for (let i = 0; i < 70; i++) spots.push([200 + rand() * 220, -500 + rand() * 1000, 0.8 + rand() * 0.6]);
     const geo1 = new THREE.IcosahedronGeometry(3.2, 1), geo2 = new THREE.ConeGeometry(2.6, 7, 7), trunk = new THREE.CylinderGeometry(0.28, 0.38, 2.6, 6);
     const groups = [[geo1, M.leaf1], [geo1, M.leaf2], [geo2, M.leaf3]];
-    const counts = [0, 0, 0], which = spots.map(() => Math.floor(Math.random() * 3));
+    const counts = [0, 0, 0], which = spots.map(() => Math.floor(rand() * 3));
     which.forEach((w) => counts[w]++);
     const ims = groups.map(([g, m], i) => { const im = new THREE.InstancedMesh(g, m, Math.max(1, counts[i])); im.castShadow = true; im.receiveShadow = true; return im; });
     const tr = new THREE.InstancedMesh(trunk, M.trunk, spots.length); tr.castShadow = true;
     const idx = [0, 0, 0], dm = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), pos = new THREE.Vector3();
     spots.forEach((sp, i) => {
       const w = which[i], sc = sp[2];
-      q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.random() * Math.PI);
+      q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), rand() * Math.PI);
       pos.copy(P(sp[0], sp[1], w === 2 ? 2.4 + 3.5 * sc : 2.4 + 3.0 * sc)); s.set(sc, sc, sc); dm.compose(pos, q, s); ims[w].setMatrixAt(idx[w]++, dm);
       pos.copy(P(sp[0], sp[1], 1.3 * sc)); s.set(sc, sc, sc); dm.compose(pos, q, s); tr.setMatrixAt(i, dm);
     });
@@ -787,7 +789,7 @@ body.moved .hint{opacity:0!important}
     // Port Elphinstone's southern edge, a kilometre north-west: a few houses for the scale of the stack
     const hg = new THREE.Group();
     for (let i = 0; i < 26; i++) {
-      const e = -300 + (i % 9) * 26 + (Math.random() - 0.5) * 8, nn = 400 + Math.floor(i / 9) * 30 + (Math.random() - 0.5) * 10;
+      const e = -300 + (i % 9) * 26 + (rand() - 0.5) * 8, nn = 400 + Math.floor(i / 9) * 30 + (rand() - 0.5) * 10;
       hg.add(box(9, 7, 5.5, M.house, e, nn, 0)); const r = mesh(new THREE.ConeGeometry(6.4, 3.2, 4), M.houseRoof, e, nn, 7.1); r.rotation.y = Math.PI / 4; hg.add(r);
     }
     g.add(hg);
