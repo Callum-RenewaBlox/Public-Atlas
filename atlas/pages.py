@@ -98,6 +98,8 @@ def noindex(text, what):
 # (Leaflet's iconAnchor; [23, 23] centres it). The map opens at "zoom" on "at" (on a small screen, no closer than
 # fits every badge in), and the imagery's own detail runs to "nativeZoom" (19 unless given).
 CLIENT_MAP = HERE / "client_map"
+# the imagery every map draws unless its entry names another Esri release ("tiles")
+IMAGERY = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
 CLIENT_MAPS = {
     "srv": {"title": "SRV Atlas — Scrivelsby", "kick": "Proposed compute load bank · SRV Atlas",
             "place": "Home Farm AD site, Scrivelsby, Horncastle LN9 6JB", "at": [53.17680, -0.11020], "zoom": 18.5,
@@ -111,6 +113,17 @@ CLIENT_MAPS = {
             "place": "Wildmore Renewables AD plant, Langrick, Boston PE22 7AN", "at": [53.02642, -0.11930], "zoom": 18,
             "badges": [{"at": [53.0262396, -0.1195814], "label": "BLOX 3D", "short": "3D", "view": "compute"},
                        {"at": [53.0260743, -0.1189871], "label": "BLOX Dispatch", "short": "Dispatch", "view": "dispatch", "side": "right"}]},
+    # THN: the Thainstone Energy Park ERF on the former paper mill ground at Kirkwood Commercial Park, with the BLOX
+    # peaker compound beside it. The map opens on the cleared mill ground between the railway and the Don; the imagery
+    # (Esri) still shows the site as it was before the ERF
+    # Esri's current World Imagery of the mill is a saturated capture (the bright roofs bloom white with red fringes),
+    # so this map takes Esri's World Imagery Wayback release of 27 March 2025, the last clean capture, on the same
+    # terms and credit; every release still shows the paper mill standing
+    "thn": {"title": "THN Atlas — Thainstone Energy Park", "kick": "28 MW BLOX peaker at a 200,000 tpa energy from waste plant · THN Atlas",
+            "place": "Thainstone Energy Park, Kirkwood Commercial Park, Port Elphinstone, Inverurie AB51",
+            "at": [57.26440, -2.36400], "zoom": 18,
+            "tiles": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/6543/{z}/{y}/{x}",
+            "badges": [{"at": [57.26475, -2.36300], "label": "BLOX 3D", "short": "3D", "view": "3d"}]},
 }
 
 
@@ -137,7 +150,8 @@ def client_map(code):
     if badged != views:
         raise PageError(f"{what}: {code} needs a badge for each of its views, and no other (badges {badged}, views {views})")
     style, bar = client_bar(site["kick"], site["place"])
-    config = {"at": site["at"], "zoom": site["zoom"], "nativeZoom": site.get("nativeZoom", 19), "badges": site["badges"]}
+    config = {"at": site["at"], "zoom": site["zoom"], "nativeZoom": site.get("nativeZoom", 19), "badges": site["badges"],
+              "tiles": site.get("tiles", IMAGERY)}
     page = (CLIENT_MAP / "map.html").read_text(encoding="utf-8")
     for key, value in (("TITLE", html.escape(site["title"])), ("BAR_STYLE", style), ("BAR", bar),
                        ("SITE", json.dumps(config, ensure_ascii=False)), ("CHIP", png_data(CLIENT_MAP / "blox-chip.png"))):
@@ -263,6 +277,10 @@ def client_pages():
     # which build.py copies into the same folder (CLIENTS), so they need no patch here.
     out["clients/wld/index.html"] = client_map("wld")
 
+    # THN: Thainstone Energy Park. The map's badge opens BLOX 3D, the Process Render (?view=3d), written for the Atlas:
+    # thn/process.html with its files in thn/assets/, which build.py copies into the same folder (CLIENTS).
+    out["clients/thn/index.html"] = client_map("thn")
+
     # IHN: the heat network. Its opening page keeps its own scene (ihn_atlas below); the 3D view is the shared Heat
     # Network 3D with the IHN chrome spliced in.
     out["clients/ihn/index.html"] = noindex(top_level_nav(ihn_atlas(source("ihn_atlas.html")), "ihn_atlas.html"), "ihn_atlas.html")
@@ -311,6 +329,7 @@ CLIENT_PAGES = {
     "/clients/kld/": {"client": "kld", "title": "KLD Atlas — Kinlochdamph", "list": True, "views": {"3d": "3d.html"}},
     "/clients/ihn/": {"client": "ihn", "title": "IHN Atlas — Islington heat network", "list": True, "views": {"3d": "3d.html"}},
     "/clients/wld/": {"client": "wld", "title": "WLD Atlas — Wildmore Renewables AD", "list": True, "views": {"compute": "compute.html", "dispatch": "dispatch.html"}},
+    "/clients/thn/": {"client": "thn", "title": "THN Atlas — Thainstone Energy Park", "list": True, "views": {"3d": "process.html"}},
     "/clients/reabold/west-newton/": {"client": "reabold", "title": "West Newton infrastructure map", "list": True},
     "/clients/reabold/reservoirs/": {"client": "reabold", "title": "UKCS reservoir atlas (prototype)", "list": True},
     "/clients/citygate/": {"client": "citygate", "title": "Citygate Church · Electricity Portrait", "list": True},
@@ -366,6 +385,12 @@ CLIENT_CSP = {
     "/clients/wld/dispatch.html": ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
                                    "img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'none'; "
                                    "worker-src 'none'; frame-src 'none'; " + _END),
+    "/clients/thn/": CLIENT_MAP_CSP.replace("https://server.arcgisonline.com", "https://wayback.maptiles.arcgis.com"),
+    # the Process Render (?view=3d): its script, font and wordmark from the folder; the scene is drawn in code, so it
+    # fetches no model
+    "/clients/thn/process.html": ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
+                                  "img-src 'self' data: blob:; font-src 'self'; connect-src 'self' blob:; media-src 'none'; "
+                                  "worker-src 'none'; frame-src 'none'; " + _END),
     "/clients/reabold/west-newton/": ("default-src 'none'; script-src 'unsafe-inline' https://cdnjs.cloudflare.com; "
                                       "style-src 'unsafe-inline' https://cdnjs.cloudflare.com; "
                                       f"img-src data: https://cdnjs.cloudflare.com https://server.arcgisonline.com {_OSM}; " + _END),
