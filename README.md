@@ -106,7 +106,11 @@ The SRV Miner Fleet (`?view=fleet`) has no builder yet. `srv_fleet_3d.html` is
 the dashboard model's page ("Scrivelsby 40 vs 44 vs 50 miners"), edited in place:
 its data is inlined as `window.FLEET_DATA` and three.js r128 with OrbitControls is
 inlined as globals (the other SRV pages bundle their own three.js privately: r169 in the 3D sim, r185 in the kiosk page). If the numbers
-change, regenerate `FLEET_DATA` from the dashboard model and re-inline it. Its ways
+change, regenerate `FLEET_DATA` from the dashboard model and re-inline it. Each fleet's
+racks are in `RACKS` in the page's script: 40 miners in two standard racks of 20, 44 in two
+taller custom racks of 22, 50 in three racks (17, 17 and 16), drawn in the 3D view and named
+in the 2D lead and cost card. No modelled figure depends on them (the dashboard's rack cap
+never binds, and break-even and payback price the extra miners only, as the cost card says). Its ways
 in are two hand-maintained layers that `LAYERS` in `app_srv_atlas.py` appends at
 serve time, so a rebuild of the generated pages cannot drop them:
 `srv_atlas_fleet_badge.html` (the third badge, by the load bank, and a row in the

@@ -121,6 +121,8 @@ table.t td.cur,table.t th.cur{background:color-mix(in srgb,var(--fc) 9%,transpar
 .cost div{background:var(--tint);border-radius:10px;padding:9px 11px}
 .cost .k{font-size:9.6px;font-weight:750;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .cost .v{font-size:16px;font-weight:750;color:var(--ink);font-variant-numeric:tabular-nums}
+.cost .s{margin-top:1px;font-size:10.6px;line-height:1.35;color:var(--muted)}
+.cost .cnote{grid-column:1/-1;background:none;padding:0;font-size:11px;line-height:1.5;color:var(--muted)}
 .foot2d{font-size:10.6px;color:var(--muted-2);line-height:1.55;max-width:120ch}
 
 /* ============================================================== 3D view == */
@@ -1403,6 +1405,17 @@ const D = window.FLEET_DATA, K = D.constants, C = D.calcs;
 const FLEETS = [40, 44, 50], KEY = { 40: 'a', 44: 'b', 50: 'c' };
 const FC = { 40: '#12475e', 44: '#0f9d77', 50: '#d97706' };
 const state = { n: 40, view: '2d' };
+// Rack layout per fleet: 40 in two standard racks, 44 in two taller custom racks, 50 in three racks. Only the 3D model
+// and the copy use it; the modelled figures do not depend on it (the dashboard's rack cap never binds, and the payback
+// prices the extra miners only). x is each rack's centre along the container, w its width and h its height, in metres.
+const RACKS = {
+  40: { x: [-0.84, 0.26], w: 1.02, h: 2.2, kind: 'standard racks', mccbs: 2 },
+  44: { x: [-0.84, 0.26], w: 1.02, h: 2.42, kind: 'taller custom racks', mccbs: 2 },
+  50: { x: [-1.0, -0.24, 0.52], w: 0.74, h: 2.2, kind: 'racks', mccbs: 3 },
+};
+const rackCounts = (n) => { const k = RACKS[n].x.length; return RACKS[n].x.map((_, i) => Math.floor(n / k) + (i < n % k ? 1 : 0)); };
+const rackWords = (n) => { const c = rackCounts(n), w = ['', 'One', 'Two', 'Three'][c.length];
+  return c.every((v) => v === c[0]) ? `${w} ${RACKS[n].kind} of ${c[0]}` : `${w} ${RACKS[n].kind}: ${c.slice(0, -1).join(', ')} and ${c[c.length - 1]} miners`; };
 const $ = (s, r = document) => r.querySelector(s), $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const fmt = {
   int: (v) => Math.round(v).toLocaleString('en-GB'),
@@ -1589,8 +1602,8 @@ function render2D() {
   $('#leadh').innerHTML = `<em>${n} miners</em>: ${fmt.pence(f.p_kwh_absorbed)} per kWh, ${fmt.gbp(f.revenue_gbp)} a year`;
   const med = f.power_vs_installed_med_pct;
   $('#leadp').innerHTML = n === 40
-    ? `The baseline. To take the whole surplus, 40 miners have to overclock most of the time: typically <b>${fmt.spct(med)}</b> on installed draw, and above +25% for about <b>${fmt.int(healthVal('hours_over25', n))} hours</b> a year. They never reach the Aggressive profile.`
-    : `Same energy as 40 miners, spread thinner: typically <b>${fmt.spct(med)}</b> on installed draw. That earns <b>${fmt.gbp(f.gain_gbp)}</b> a year more than 40 (${fmt.spct(f.gain_pct)}), or about <b>${fmt.gbp(f.gain_per_extra_miner_gbp)}</b> per extra miner. Above +25%: <b>${fmt.int(healthVal('hours_over25', n))} hours</b> a year.`;
+    ? `The baseline. To take the whole surplus, 40 miners have to overclock most of the time: typically <b>${fmt.spct(med)}</b> on installed draw, and above +25% for about <b>${fmt.int(healthVal('hours_over25', n))} hours</b> a year. They never reach the Aggressive profile. ${rackWords(n)}.`
+    : `Same energy as 40 miners, spread thinner: typically <b>${fmt.spct(med)}</b> on installed draw. That earns <b>${fmt.gbp(f.gain_gbp)}</b> a year more than 40 (${fmt.spct(f.gain_pct)}), or about <b>${fmt.gbp(f.gain_per_extra_miner_gbp)}</b> per extra miner. Above +25%: <b>${fmt.int(healthVal('hours_over25', n))} hours</b> a year. ${rackWords(n)}.`;
   const delta = (v, d, unit = '') => (n === 40 ? '<span>Baseline</span>' : `<span class="${d >= 0 ? 'up' : 'dn'}">${d >= 0 ? '+' : '−'}${unit}${Math.abs(d).toFixed(unit ? 0 : 2)}${unit ? '' : 'p'}</span> on 40`);
   $('#kpis').innerHTML = [
     ['Revenue per kWh absorbed', fmt.pence(f.p_kwh_absorbed), delta(0, f.p_kwh_absorbed - a.p_kwh_absorbed), true],
@@ -1609,9 +1622,11 @@ function render2D() {
   $('#split').innerHTML = `<div class="bar">${parts.map(([l, v, c]) => `<div style="width:${v / tot * 100}%;background:${c}" title="${l}">${v / tot > 0.12 ? `${fmt.d1(v)} kW` : ''}</div>`).join('')}</div>
     <div class="splitkey">${parts.map(([l, v, c]) => `<span><i style="background:${c}"></i>${l}<b>${fmt.d1(v)} kW</b></span>`).join('')}<span><i style="background:#0d1b23"></i>Median export<b>${fmt.d1(tot)} kW</b></span></div>
     <div class="note" style="margin-top:2px">Per miner at the median: <b>${fmt.int(miners * 1000 / n)} W</b> (${fmt.spct(vsInstalled(miners * 1000 / n))} on installed).</div>`;
+  const rk = RACKS[n], racksCell = `<div><div class="k">Racks and MCCBs</div><div class="v">${rk.x.length} + ${rk.mccbs}</div><div class="s">${rackWords(n)}</div></div>`;
   $('#cost').innerHTML = n === 40
-    ? `<div><div class="k">Racks and MCCBs</div><div class="v">2 + 2</div></div><div><div class="k">Highest draw per miner</div><div class="v">${fmt.int(p.usable_max_kw * 1000 / 40)} W</div></div><div><div class="k">Export margin over value</div><div class="v">${f.margin_p_kwh >= 0 ? '+' : '−'}${Math.abs(f.margin_p_kwh).toFixed(2)}p</div></div>`
-    : `<div><div class="k">Extra miners</div><div class="v">${f.extra_miners}</div></div><div><div class="k">Per extra miner</div><div class="v">${fmt.gbp(f.gain_per_extra_miner_gbp)}/yr</div></div><div><div class="k">3-year break-even price</div><div class="v">${fmt.gbp(f.breakeven_price_gbp)}</div></div><div><div class="k">Payback at $10,500 each</div><div class="v">${fmt.d1(f.payback_years)} yrs</div></div>`;
+    ? `${racksCell}<div><div class="k">Highest draw per miner</div><div class="v">${fmt.int(p.usable_max_kw * 1000 / 40)} W</div></div><div><div class="k">Export margin over value</div><div class="v">${f.margin_p_kwh >= 0 ? '+' : '−'}${Math.abs(f.margin_p_kwh).toFixed(2)}p</div></div>`
+    : `${racksCell}<div><div class="k">Extra miners</div><div class="v">${f.extra_miners}</div></div><div><div class="k">Per extra miner</div><div class="v">${fmt.gbp(f.gain_per_extra_miner_gbp)}/yr</div></div><div><div class="k">3-year break-even price</div><div class="v">${fmt.gbp(f.breakeven_price_gbp)}</div></div><div><div class="k">Payback at $10,500 each</div><div class="v">${fmt.d1(f.payback_years)} yrs</div></div>`
+      + `<div class="cnote">Break-even and payback price the extra miners only: ${n === 44 ? 'the taller custom racks are not priced in' : 'the third rack, its MCCB and its feeder are not priced in'}.</div>`;
   drawDuration(); drawBands(); drawSweep(); drawDay();
 }
 
@@ -1718,18 +1733,25 @@ function init3D() {
   box(0.32, 1.9, 0.6, M.panel, CL / 2 - 0.24, 1.07, -0.78, cont);
   box(0.2, 0.9, 0.5, M.panel, -CL / 2 + 0.16, 1.6, 0.72, cont);
 
-  // racks: two cabinets, open fronts facing +z
-  const rackW = 1.02, rackD = 0.78, rackH = 2.2, rackZ = -0.64;
-  const racks = [-0.84, 0.26].map((rx) => {
-    const g = new THREE.Group(); g.position.set(rx, 0.12, rackZ); cont.add(g);
-    box(rackW, 0.06, rackD, M.rack, 0, rackH, 0, g); box(rackW, 0.08, rackD, M.rack, 0, 0.04, 0, g);
-    for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(0.05, rackH, 0.05, M.rack, sx * (rackW / 2 - 0.025), rackH / 2, sz * (rackD / 2 - 0.025), g);
-    box(rackW, rackH, 0.03, M.rack, 0, rackH / 2, -rackD / 2 + 0.015, g);
-    // manifolds behind each column
-    const mh = rackH - 0.25;
-    for (const sx of [-1, 1]) { cyl(0.028, mh, M.hot, sx * 0.47, mh / 2 + 0.12, -0.27, g, 12); cyl(0.028, mh, M.cold, sx * 0.47, mh / 2 + 0.12, -0.19, g, 12); }
-    return g;
-  });
+  // racks: cabinets with open fronts facing +z, rebuilt per fleet from RACKS (two standard, two taller custom, or three)
+  const rackD = 0.78, rackZ = -0.64;
+  const rackGroup = new THREE.Group(); cont.add(rackGroup);
+  function buildRacks(L) {
+    rackGroup.clear();
+    const rackW = L.w, rackH = L.h;
+    for (const rx of L.x) {
+      const g = new THREE.Group(); g.position.set(rx, 0.12, rackZ); rackGroup.add(g);
+      box(rackW, 0.06, rackD, M.rack, 0, rackH, 0, g); box(rackW, 0.08, rackD, M.rack, 0, 0.04, 0, g);
+      for (const sx of [-1, 1]) for (const sz of [-1, 1]) box(0.05, rackH, 0.05, M.rack, sx * (rackW / 2 - 0.025), rackH / 2, sz * (rackD / 2 - 0.025), g);
+      box(rackW, rackH, 0.03, M.rack, 0, rackH / 2, -rackD / 2 + 0.015, g);
+      // manifolds behind each column
+      const mh = rackH - 0.25, mx = rackW / 2 - 0.04;
+      for (const sx of [-1, 1]) { cyl(0.028, mh, M.hot, sx * mx, mh / 2 + 0.12, -0.27, g, 12); cyl(0.028, mh, M.cold, sx * mx, mh / 2 + 0.12, -0.19, g, 12); }
+    }
+    // floor runs from the CDU, just past the last rack
+    const ex = L.x[L.x.length - 1] + rackW / 2;
+    box(0.07, 0.07, 1.4, M.hot, ex + 0.09, 0.2, -0.42, rackGroup); box(0.07, 0.07, 1.4, M.cold, ex + 0.17, 0.32, -0.46, rackGroup);
+  }
 
   // CDU: pump and vessels in front of the racks
   const cdu = new THREE.Group(); cdu.position.set(0.98, 0.12, 0.34); cont.add(cdu);
@@ -1745,7 +1767,6 @@ function init3D() {
   for (const r of [hotRiser, coldRiser]) for (const yy of [-0.7, 0.5]) { const band = new THREE.Mesh(new THREE.CylinderGeometry(0.066, 0.066, 0.05, 20), M.frame); band.position.y = yy; r.add(band); }
   // floor runs to the racks
   box(2.3, 0.07, 0.07, M.hot, -0.25, base + 0.2, -1.1); box(2.3, 0.07, 0.07, M.cold, -0.25, base + 0.32, -1.16);
-  box(0.07, 0.07, 1.4, M.hot, 0.86, base + 0.2, -0.42); box(0.07, 0.07, 1.4, M.cold, 0.94, base + 0.32, -0.46);
 
   // cooler frame and dry cooler on the roof
   const frameY = roofY + 0.55;
@@ -1809,23 +1830,29 @@ function init3D() {
   const faceTex = new THREE.CanvasTexture(fc); faceTex.encoding = THREE.sRGBEncoding;
   const faceMat = new THREE.MeshBasicMaterial({ map: faceTex, transparent: true });
   function buildMiners(n) {
+    const L = RACKS[n], mw = 0.43 * L.w / 1.02, cx = 0.235 * L.w / 1.02;
+    buildRacks(L);
     minerGroup.clear(); miners = [];
-    const perRack = [Math.ceil(n / 2), Math.floor(n / 2)];
-    perRack.forEach((count, ri) => {
-      const rows = Math.ceil(count / 2), usableH = rackH - 0.3, slot = usableH / rows, h = Math.min(0.15, slot * 0.78);
+    rackCounts(n).forEach((count, ri) => {
+      const rows = Math.ceil(count / 2), usableH = L.h - 0.3, slot = usableH / rows, h = Math.min(0.15, slot * 0.78);
       for (let j = 0; j < count; j++) {
         const col = j % 2, row = Math.floor(j / 2);
         const mat = new THREE.MeshStandardMaterial({ color: 0x26343c, roughness: 0.45, metalness: 0.25, emissive: 0x000000 });
         const m = new THREE.Mesh(minerGeo, mat);
-        m.scale.set(0.43, h, 0.5);
-        m.position.set(racks[ri].position.x + (col ? 0.235 : -0.235), 0.12 + 0.22 + row * slot + h / 2, rackZ + 0.08);
+        m.scale.set(mw, h, 0.5);
+        m.position.set(L.x[ri] + (col ? cx : -cx), 0.12 + 0.22 + row * slot + h / 2, rackZ + 0.08);
         m.castShadow = true; m.receiveShadow = true;
-        m.userData = { id: `${ri ? 'B' : 'A'}-${String(j + 1).padStart(2, '0')}`, idx: miners.length, rack: ri };
+        m.userData = { id: `${'ABC'[ri]}-${String(j + 1).padStart(2, '0')}`, idx: miners.length, rack: ri };
         minerGroup.add(m); miners.push(m);
         // face plate with fan grille
-        const face = new THREE.Mesh(new THREE.PlaneGeometry(0.42, h * 0.9), faceMat);
-        face.position.set(0, 0, 0.501); face.scale.set(1 / 0.43, 1 / h, 1); m.add(face);
+        const face = new THREE.Mesh(new THREE.PlaneGeometry(mw - 0.01, h * 0.9), faceMat);
+        face.position.set(0, 0, 0.501); face.scale.set(1 / mw, 1 / h, 1); m.add(face);
       }
+    });
+    // rack labels sit just above each rack, each raised a step on the last so they do not collide from the default view
+    ['rackA', 'rackB', 'rackC'].forEach((k, i) => {
+      LBL[k].hide = i >= L.x.length;
+      if (i < L.x.length) LBL[k].pos.set(L.x[i], base + 0.12 + L.h + 0.06 + 0.24 * i, rackZ);
     });
   }
 
@@ -1837,6 +1864,7 @@ function init3D() {
   label('pump', [0.98, base + 1.62, 0.34]);
   label('rackA', [-0.84, base + 2.38, rackZ]);
   label('rackB', [0.26, base + 2.62, rackZ]);
+  label('rackC', [0.52, base + 2.38, rackZ]);
   label('container', [-1.3, base + CH + 0.02, 1.22]);
   label('grid', [2.6, 0.42, 0.95]);
   // cable out to the LV kiosk
@@ -1873,20 +1901,21 @@ function init3D() {
         emi.copy(col).multiplyScalar(glow * 0.55); m.material.emissive.copy(emi);
       } else { m.material.color.setHex(0x26343c); m.material.emissive.setHex(0x000000); }
     });
-    const rackKW = [0, 0]; miners.forEach((m, idx) => { if (s.mode === 'mining' && idx < s.on) rackKW[m.userData.rack] += s.w / 1000; });
-    const countA = Math.ceil(s.n / 2), countB = Math.floor(s.n / 2);
+    const counts = rackCounts(s.n), rackKW = counts.map(() => 0);
+    miners.forEach((m, idx) => { if (s.mode === 'mining' && idx < s.on) rackKW[m.userData.rack] += s.w / 1000; });
     const coolPct = s.cooler / K.cooler_max_kw * 100;
     LBL.cooler.el.innerHTML = s.mode === 'mining' ? `Dry cooler · <b>${fmt.d1(s.cooler)} kW</b> · fans ${Math.round(coolPct)}%` : 'Dry cooler · idle';
     LBL.pump.el.innerHTML = s.mode === 'mining' ? `Pumps and controls · <b>${fmt.d1(s.fixed)} kW</b>` : 'Pumps and controls · idle';
     const narrow = stage.clientWidth < 600;
-    LBL.rackA.el.innerHTML = narrow ? `A · <b>${fmt.d1(rackKW[0])} kW</b>` : `Rack A · ${countA} miners · <b>${fmt.d1(rackKW[0])} kW</b>`;
-    LBL.rackB.el.innerHTML = narrow ? `B · <b>${fmt.d1(rackKW[1])} kW</b>` : `Rack B · ${countB} miners · <b>${fmt.d1(rackKW[1])} kW</b>`;
+    counts.forEach((c, i) => {
+      const L = 'ABC'[i];
+      LBL[`rack${L}`].el.innerHTML = narrow ? `${L} · <b>${fmt.d1(rackKW[i])} kW</b>` : `Rack ${L} · ${c} miners · <b>${fmt.d1(rackKW[i])} kW</b>`;
+    });
     LBL.container.hide = narrow; LBL.grid.hide = narrow;
     LBL.container.el.innerHTML = `Winchain container · <b>${fmt.d1(s.fleet + s.cooler + s.fixed)} kW</b>`;
     LBL.grid.el.innerHTML = s.mode === 'off' ? 'Engine off' : `To the LV board · export <b>${fmt.d1(s.spill)} kW</b>`;
-    for (const k of ['cooler', 'pump', 'rackA', 'rackB']) LBL[k].el.classList.toggle('off', s.mode !== 'mining');
-    LBL.rackA.el.classList.toggle('hot', s.mode === 'mining' && vsInstalled(s.w) > 20);
-    LBL.rackB.el.classList.toggle('hot', s.mode === 'mining' && vsInstalled(s.w) > 20);
+    for (const k of ['cooler', 'pump', 'rackA', 'rackB', 'rackC']) LBL[k].el.classList.toggle('off', s.mode !== 'mining');
+    for (const k of ['rackA', 'rackB', 'rackC']) LBL[k].el.classList.toggle('hot', s.mode === 'mining' && vsInstalled(s.w) > 20);
   }
 
   let lastT = performance.now();
