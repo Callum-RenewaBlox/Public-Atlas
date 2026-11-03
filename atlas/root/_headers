@@ -44,11 +44,13 @@
   X-Robots-Tag: noindex, nofollow
 
 # The site twins (pages.py, twin_pages), open to anyone with the link and kept out of search engines. Three.js from
-# jsDelivr and Spark from sparkjs.dev (which compiles WebAssembly and runs workers), IBM Plex from Google Fonts, and the
-# twin's files from the private Supabase bucket by the URLs its signer (/twins/<code>/assets, an edge function, which
-# sets its own headers) gives out. Revalidated on every visit, so a change reaches people at once.
+# jsDelivr and Spark from sparkjs.dev (which compiles WebAssembly and runs workers), the brand font and wordmark from
+# the twin's own folder (/twins/<code>/brand/), and the twin's files from the private Supabase bucket by the URLs its
+# signer (/twins/<code>/assets, an edge function, which sets its own headers) gives out: the splats and models fetched,
+# the flythrough played (media-src) and the stills shown (img-src). Revalidated on every visit, so a change reaches
+# people at once.
 /twins/*
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://sparkjs.dev; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' blob: data: https://mojwqeqgwyldbghlzgbq.supabase.co https://cdn.jsdelivr.net https://sparkjs.dev; media-src 'none'; worker-src 'self' blob:; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://sparkjs.dev; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://mojwqeqgwyldbghlzgbq.supabase.co; font-src 'self'; connect-src 'self' blob: data: https://mojwqeqgwyldbghlzgbq.supabase.co https://cdn.jsdelivr.net https://sparkjs.dev; media-src https://mojwqeqgwyldbghlzgbq.supabase.co; worker-src 'self' blob:; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
   X-Frame-Options: DENY
   X-Robots-Tag: noindex, nofollow
   Cache-Control: public, max-age=0, must-revalidate

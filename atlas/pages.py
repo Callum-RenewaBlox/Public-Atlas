@@ -502,12 +502,14 @@ def model(pack, key):
 
 # The site twins, at /twins/<code>/, open to anyone with the link: no sign-in runs there (the gate takes /clients/,
 # /team/ and /access/ only). Each is noindex, in its HTML and by its rule in root/_headers, which also sets its policy.
-# KLD's: the Gaussian-splat capture of the powerhouse with the proposed data centre in X-ray (kld_twin.html), which
-# fetches its three files by the five-minute URLs /twins/kld/assets signs (netlify/edge-functions/kld-twin-assets.js).
+# KLD's: the Gaussian-splat capture of the powerhouse with the proposed data centre in X-ray (kld_twin.html), on the BLOX
+# 3D pages' design (its brand font and wordmark in twins/kld/brand/, which build.py serves beside it). It fetches its
+# files by the URLs /twins/kld/assets signs (netlify/edge-functions/kld-twin-assets.js): the splats and models for five
+# minutes, and the flythrough and stills (?set=media, once its media tab opens) for an hour.
 # The KLD map's BLOX 3D badge links here.
 def twin_pages():
     """{site path: text} for the public site twins."""
-    page = once(source("kld_twin.html"), "<title>Kinlochdamph twin</title>", "<title>KLD — 3D Site Twin</title>", "kld_twin.html")
+    page = once(source("kld_twin.html"), "<title>Kinlochdamph twin</title>", "<title>KLD Atlas — BLOX 3D</title>", "kld_twin.html")
     return {"twins/kld/index.html": noindex(page, "kld_twin.html")}
 
 
