@@ -19,3 +19,6 @@ atlas/netlify/edge-lib/pages.js
 *.ksplat
 # KLD twin model files (GLBs) are hosted with the splat, not committed
 kld_twin/*.glb
+# KLD twin media (the flythrough and stills) are hosted with the splat, not committed
+kld_twin/*.mp4
+kld_twin/*.jpg

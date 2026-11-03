@@ -402,7 +402,7 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
           <h3>Assumed: please check</h3>
           <p class="src">Each is one setting in the model, so a measurement or a decision replaces it directly</p>
           <ul>
-            <li><b>Rack height</b>: 2.18 m, under confirmation with the supplier (26 × 2U is 2.31 m before the frame and PDUs)</li>
+            <li><b>Rack height</b>: 2.18 m as quoted, a placeholder under confirmation with the supplier. It is known to be short: 26 miners at 2U take 2.31 m before the frame and PDUs, so the model draws them closer together than they can stand</li>
             <li><b>Heat exchanger</b>: one plate unit, as taped; its type, its 0.62 m frame width and its nozzle heights are not measured</li>
             <li><b>Pump</b>: one in-line pump on the skid, as taped; only one fits the skid&rsquo;s 0.355 m width</li>
             <li><b>Heights</b>: every height above the floor, the tape being flat: the pipe runs (supply 0.62 m, return 0.30 m), the headers over the racks (2.32 m) and the canopy</li>
@@ -533,7 +533,7 @@ function caption(v) {
 // opens. The video is read in range requests on its URL as it plays and seeks; that URL lasts an hour, so after an
 // error, or on a play once the URLs are 50 minutes old, the page asks again and carries on from the same moment.
 const STILLS = ['racks', 'zone', 'taped', 'built', 'detail'];
-let media = null, mediaAt = 0, mediaLoad = null;
+let media = null, mediaAt = 0, mediaLoad = null, videoAt = 0;   // videoAt: when the video's own URL was signed
 async function mediaUrls(fresh) {
   if (media && !fresh && performance.now() - mediaAt < MEDIA_FRESH_MS) return media;
   const t = performance.now();
@@ -547,14 +547,15 @@ async function mediaUrls(fresh) {
 const fly = $('fly');
 function applyMedia(j) {
   fly.poster = j.poster;
-  if (!fly.getAttribute('src')) fly.src = j.video;
+  if (!fly.getAttribute('src')) { fly.src = j.video; videoAt = mediaAt; }
   for (const s of stills) s.querySelector('img').src = j[s.dataset.k + '_thumb'];
   if (!$('lb').hidden) $('lb-img').src = j[stills[at].dataset.k];
 }
 function mediaMsg(text) {
   const m = $('media-msg'); m.hidden = !text; if (!text) return;
   m.innerHTML = text + ' <a href="#retry">Try again</a>.';
-  m.querySelector('a').addEventListener('click', (e) => { e.preventDefault(); loadMedia(true); });
+  // the video, once it has a URL, is opened again from where it stopped; before that, the set is asked for again
+  m.querySelector('a').addEventListener('click', (e) => { e.preventDefault(); errors = []; if (fly.getAttribute('src')) resignVideo(lastTime, false); else loadMedia(true); });
 }
 function loadMedia(fresh) {
   if (mediaLoad) return mediaLoad;
@@ -576,10 +577,11 @@ async function resignVideo(from, play) {
   try {
     const j = await mediaUrls(true);
     applyMedia(j);
-    fly.preload = 'auto'; fly.src = j.video;   // (with preload "none" a load would wait for a play before its metadata)
+    fly.preload = 'auto'; fly.src = j.video; videoAt = mediaAt;   // (with preload "none" a load would wait for a play before its metadata)
     await new Promise((res, rej) => { fly.addEventListener('loadedmetadata', res, { once: true }); fly.addEventListener('error', rej, { once: true }); fly.load(); });
+    mediaMsg('');
     if (from > 0) fly.currentTime = from;
-    if (play) await fly.play().catch(() => {});
+    if (play && tab === 'media') await fly.play().catch(() => {});   // not behind the Model tab, if the visitor has left
   } catch (e) {
     console.warn('kld_twin: the flythrough could not be opened again', e);
     mediaMsg('The flythrough stopped and could not be opened again. Check the connection.');
@@ -592,7 +594,7 @@ fly.addEventListener('error', () => {
   resignVideo(lastTime, wantPlay);
 });
 fly.addEventListener('play', () => {
-  if (!resigning && media && performance.now() - mediaAt >= MEDIA_FRESH_MS) { const t = fly.currentTime; fly.pause(); resignVideo(t, true); }
+  if (!resigning && videoAt && performance.now() - videoAt >= MEDIA_FRESH_MS) { const t = fly.currentTime; fly.pause(); resignVideo(t, true); }
 });
 // a still whose URL has run out: new URLs, once
 for (const img of [...document.querySelectorAll('#gallery img'), $('lb-img')]) {
@@ -782,6 +784,8 @@ function fitInside(v) {
     return t;
   };
   const pos0 = new THREE.Vector3(...v.pos), tgt0 = new THREE.Vector3(...v.tgt), f0 = tgt0.clone().sub(pos0).normalize();
+  // a landscape desktop keeps the framing exactly, whatever its shape
+  if (aspect >= 1.3 && !window.matchMedia('(max-width:860px)').matches) return { pos: v.pos, tgt: v.tgt, fov: base };
   if (2 * Math.atan(need(pos0, f0)) * 180 / Math.PI <= base) return { pos: v.pos, tgt: v.tgt, fov: base };
   const back = new THREE.Vector3(-f0.x, -f0.y, 0).normalize();
   let best = null;
