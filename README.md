@@ -105,7 +105,7 @@ stays pristine and the sim loads through `?view=3d` only when opened.
 The SRV Miner Fleet (`?view=fleet`) has no builder yet. `srv_fleet_3d.html` is
 the dashboard model's page ("Scrivelsby 40 vs 44 vs 50 miners"), edited in place:
 its data is inlined as `window.FLEET_DATA` and three.js r128 with OrbitControls is
-inlined as globals (the other SRV pages bundle r163 privately). If the numbers
+inlined as globals (the other SRV pages bundle their own three.js privately: r169 in the 3D sim, r185 in the kiosk page). If the numbers
 change, regenerate `FLEET_DATA` from the dashboard model and re-inline it. Its ways
 in are two hand-maintained layers that `LAYERS` in `app_srv_atlas.py` appends at
 serve time, so a rebuild of the generated pages cannot drop them:

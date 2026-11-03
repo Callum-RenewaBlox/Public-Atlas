@@ -203,7 +203,7 @@ footer .f2{text-align:right;color:var(--muted-2)}
   .lead h2{font-size:18px}
 }
 @media (max-width:600px){ footer{display:none} #legend .offk{display:none} #legend{padding:8px 11px} #rampticks{height:24px} .rail-bar span{text-transform:none;letter-spacing:0;font-size:11px;font-weight:650;color:var(--ink-2)} }
-@media (max-width:480px){ #backatlas span{display:none} .tabs button i{display:none} }
+@media (max-width:480px){ .tabs button i{display:none} }
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;transition-duration:.001ms!important}}
 </style>
 </head>
@@ -1988,7 +1988,13 @@ const host = (() => { try { return window.parent !== window && window.parent.loc
 function writeHash() {
   const h = `#f${state.n}-${state.view}`;
   try { history.replaceState(null, '', h); } catch (e) { /* sandboxed */ }
-  try { if (host) host.history.replaceState(host.history.state, '', h); } catch (e) { /* cross-origin */ }
+  try {
+    if (host && host.location.hash !== h) {
+      host.history.replaceState(host.history.state, '', h);
+      // replaceState fires no hashchange, and Streamlit relays the hash to its host (the Cloud address bar) on hashchange
+      host.dispatchEvent(new host.HashChangeEvent('hashchange'));
+    }
+  } catch (e) { /* cross-origin */ }
 }
 function readHash() {
   const m = /^#f(40|44|50)-(2d|3d)$/.exec(location.hash || (host ? host.location.hash : '') || '');
@@ -2053,7 +2059,10 @@ const onHash = () => {
   if (h.view !== state.view) setView(h.view);
 };
 window.addEventListener('hashchange', onHash);
-if (host) host.addEventListener('hashchange', onHash);
+if (host) {
+  host.addEventListener('hashchange', onHash);
+  window.addEventListener('pagehide', () => host.removeEventListener('hashchange', onHash));
+}
 })();
 </script>
 </body>

@@ -8,12 +8,17 @@
   rebuild of the badge cannot drop it.
 ======================================================================= -->
 <style>
-  /* On a phone the map opens with the load bank near the left edge, so 130 px
-     west of it is off screen: hang the chip just under the load bank's label
-     instead (its pill then hangs under the chip, as the badge layer does on
-     phones). Leaflet writes the iconAnchor as inline margins. */
-  @media (max-width:620px){
+  /* Below 900 px the map opens with the load bank near the left edge, so 130 px
+     west of it runs the pill off screen: hang the chip just under the load
+     bank's label instead, with its short pill under the chip, as the badge
+     layer does on phones. Leaflet writes the iconAnchor as inline margins. */
+  @media (max-width:900px){
     .b3d-badge.b3d-fleet{margin-left:-23px !important;margin-top:39px !important}
+    .b3d-badge.b3d-fleet .cta{right:auto;left:50%;top:42px;transform:translateX(-50%);padding:8px 14px}
+    .b3d-badge.b3d-fleet:hover .cta{transform:translateX(-50%) translateY(2px)}
+    .b3d-badge.b3d-fleet .cta .f{display:none}
+    .b3d-badge.b3d-fleet .cta .s{display:inline}
+    .b3d-badge.b3d-fleet.nudge .cta{animation:none}
   }
 </style>
 <script>
