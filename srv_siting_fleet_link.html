@@ -1,0 +1,70 @@
+<!-- ======================================================================
+  SRV Compute Kiosk · link to the Miner Fleet (hand-maintained)
+  Appended to srv_siting_3d.html at serve time by app_srv_atlas.py, so the
+  generated kiosk page stays pristine. Puts a call to action under the
+  option text in the rail: option B's Winchain container is the one the
+  Miner Fleet page models, so it opens that page's 3D view (?view=fleet,
+  #f40-3d).
+======================================================================= -->
+<style>
+  .fl-cta{display:flex;align-items:center;gap:10px;width:100%;margin:10px 0 2px;padding:9px 12px 9px 10px;
+    border:0;border-radius:var(--r-m,12px);cursor:pointer;text-align:left;color:#fff;
+    background:linear-gradient(135deg,var(--brand,#12475e),var(--accent,#1f5f7f) 90%);
+    box-shadow:0 1px 2px rgba(9,26,35,.12),0 3px 10px rgba(9,26,35,.14);transition:filter .15s}
+  .fl-cta:hover{filter:brightness(1.15)}
+  .fl-cta svg{width:26px;height:26px;flex:0 0 auto;display:block}
+  .fl-cta b{display:block;font:700 11.6px/1.3 var(--font);letter-spacing:.01em}
+  .fl-cta .fl-t{display:block;min-width:0}
+  .fl-cta .fl-s{display:block;margin-top:1px;font:500 10.4px/1.35 var(--font);color:rgba(255,255,255,.76)}
+  .fl-cta i{margin-left:auto;font-style:normal;font-size:10px;transition:transform .15s}
+  .fl-cta:hover i{transform:translateX(3px)}
+</style>
+<script>
+(function () {
+  "use strict";
+  var lede = document.getElementById("lede");
+  if (!lede || document.querySelector(".fl-cta")) return;
+
+  // the kiosk page's own way out of Streamlit's sandboxed component iframe: a click on an anchor in the PARENT
+  // document, else rewrite the parent's history entry and reload it, else a new tab
+  function rbxGo(url) {
+    var fallback = setTimeout(function () {
+      try { window.parent.history.pushState(null, "", url); window.parent.location.reload(); }
+      catch (e) { window.open(url, "_blank", "noopener"); }
+    }, 1200);
+    window.addEventListener("pagehide", function () { clearTimeout(fallback); }, { once: true });
+    try {
+      var pd = window.parent.document;
+      var a = pd.createElement("a");
+      a.href = url; a.target = "_self"; a.style.display = "none";
+      pd.body.appendChild(a); a.click(); a.remove();
+    } catch (e) {
+      clearTimeout(fallback);
+      try { window.parent.history.pushState(null, "", url); window.parent.location.reload(); }
+      catch (e2) { window.open(url, "_blank", "noopener"); }
+    }
+  }
+  function fleetUrl() {
+    var href = "";
+    try { href = window.parent.location.href; } catch (e) {}
+    if (!href) href = document.referrer || "";
+    try { var u = new URL(href); u.searchParams.set("view", "fleet"); u.searchParams.delete("embed"); u.hash = "#f40-3d"; return u.toString(); }
+    catch (e) { return "?view=fleet#f40-3d"; }
+  }
+
+  var b = document.createElement("button");
+  b.type = "button";
+  b.className = "fl-cta";
+  b.title = "Open the Miner Fleet page";
+  b.innerHTML =
+    '<svg viewBox="0 0 26 26" aria-hidden="true"><rect x="1" y="1" width="24" height="24" rx="6" fill="rgba(255,255,255,.14)" stroke="#fff" stroke-width="1.4"/>' +
+    '<g fill="#fff"><rect x="5" y="5.5" width="7" height="2.6" rx=".8"/><rect x="14" y="5.5" width="7" height="2.6" rx=".8"/>' +
+    '<rect x="5" y="10" width="7" height="2.6" rx=".8"/><rect x="14" y="10" width="7" height="2.6" rx=".8" fill="#f4ce8c"/>' +
+    '<rect x="5" y="14.5" width="7" height="2.6" rx=".8" fill="#f4ce8c"/><rect x="14" y="14.5" width="7" height="2.6" rx=".8" fill="#e68c34"/>' +
+    '<rect x="5" y="19" width="7" height="2.6" rx=".8" opacity=".45"/><rect x="14" y="19" width="7" height="2.6" rx=".8" opacity=".45"/></g></svg>' +
+    '<span class="fl-t"><b>Miner fleet in the Winchain container</b>' +
+    '<span class="fl-s">Option B with 40, 44 or 50 miners, each coloured by its overclock</span></span><i>▶</i>';
+  b.addEventListener("click", function () { rbxGo(fleetUrl()); });
+  lede.parentNode.insertBefore(b, lede.nextSibling);
+})();
+</script>
