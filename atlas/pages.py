@@ -504,7 +504,7 @@ def model(pack, key):
 # /team/ and /access/ only). Each is noindex, in its HTML and by its rule in root/_headers, which also sets its policy.
 # KLD's: the Gaussian-splat capture of the powerhouse with the proposed data centre in X-ray (kld_twin.html), which
 # fetches its three files by the five-minute URLs /twins/kld/assets signs (netlify/edge-functions/kld-twin-assets.js).
-# The KLD map's "3D Site Twin" badge links here.
+# The KLD map's BLOX 3D badge links here.
 def twin_pages():
     """{site path: text} for the public site twins."""
     page = once(source("kld_twin.html"), "<title>Kinlochdamph twin</title>", "<title>KLD — 3D Site Twin</title>", "kld_twin.html")

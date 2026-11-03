@@ -239,18 +239,18 @@ const HALL_BOX = { x: [-5.0, 6.0], y: [2.0, 10.4], z: [0.0, 2.8] };
 const DC_DIR = [Math.sin(159.5 * Math.PI / 180), Math.cos(159.5 * Math.PI / 180)];   // outward normal of the front (SSE) wall, ENU
 
 let tween = null;
-function animateCamera(pos, tgt, instant, fov = 50, ms = 1100) {
+function animateCamera(pos, tgt, instant, fov = 50, ms = 1100, clamp = false) {
   return new Promise((res) => {
-    if (reduced || instant) { camera.position.copy(pos); controls.target.copy(tgt); camera.fov = fov; camera.updateProjectionMatrix(); tween = null; res(); return; }
     if (tween && tween.done) tween.done();
-    tween = { p0: camera.position.clone(), t0: controls.target.clone(), p1: pos, t1: tgt, f0: camera.fov, f1: fov, start: performance.now(), ms, done: res };
+    if (reduced || instant) { camera.position.copy(pos); controls.target.copy(tgt); camera.fov = fov; camera.updateProjectionMatrix(); tween = null; res(); return; }
+    tween = { p0: camera.position.clone(), t0: controls.target.clone(), p1: pos, t1: tgt, f0: camera.fov, f1: fov, start: performance.now(), ms, done: res, clamp };
   });
 }
 function pressView(name) { document.querySelectorAll('button.v').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === name))); }
 function setView(name, instant) {
   if (mode === 'inside') {
     const v = IN_VIEWS[name]; if (!v) return;
-    pressView(name); return animateCamera(H(...v.pos), H(...v.tgt), instant, IN_FOV);
+    pressView(name); return animateCamera(H(...v.pos), H(...v.tgt), instant, IN_FOV, 1100, true);   // held in the envelope on the way (round the canopy)
   }
   const v = VIEWS[name]; if (!v || mode !== 'outside') return;
   pressView(name);
@@ -307,7 +307,8 @@ function fail(what, err) {
   document.getElementById('bar').style.display = 'none';
 }
 const toast = document.getElementById('toast');
-function say(text, err) { toast.textContent = text; toast.classList.toggle('err', !!err); toast.hidden = !text; }
+// progress updates go out quietly; the first message and errors are announced
+function say(text, err, quiet) { toast.setAttribute('aria-live', quiet ? 'off' : 'polite'); toast.textContent = text; toast.classList.toggle('err', !!err); toast.hidden = !text; }
 
 const local = !!(window.KLD_SPLAT_URL || window.KLD_KIT_URL || window.KLD_HALL_URL || window.KLD_INTERIOR_URL);
 let signedAt = 0, URLS = null;
@@ -410,10 +411,10 @@ function loadInterior() {
   interiorLoad = (async () => {
     const urls = await assetUrls(true);
     say('Loading the interior… 0.0 of ' + (INTERIOR_BYTES / 1e6).toFixed(1) + ' MB');
-    const s = makeSplat(urls.interior, (e) => say(`Loading the interior… ${((e.loaded || 0) / 1e6).toFixed(1)} of ${(INTERIOR_BYTES / 1e6).toFixed(1)} MB`));
+    const s = makeSplat(urls.interior, (e) => say(`Loading the interior… ${((e.loaded || 0) / 1e6).toFixed(1)} of ${(INTERIOR_BYTES / 1e6).toFixed(1)} MB`, false, true));
     const mesh = s.mesh(); if (!mesh) throw new Error('no splat');
     mesh.visible = false; scene.add(mesh); cutBoxes(mesh);
-    try { await s.ready; } catch (e) { scene.remove(mesh); throw e; }
+    try { await s.ready; } catch (e) { scene.remove(mesh); mesh.dispose(); throw e; }
     interior = mesh; state.interiorOk = true; say('');
     return mesh;
   })();
@@ -428,13 +429,13 @@ function reloadExterior() {
   extReload = (async () => {
     const urls = await assetUrls();
     say('Loading the site capture…');
-    const s = makeSplat(urls.splat, (e) => say(`Loading the site capture… ${((e.loaded || 0) / 1e6).toFixed(1)} of ${(SPLAT_BYTES / 1e6).toFixed(1)} MB`));
+    const s = makeSplat(urls.splat, (e) => say(`Loading the site capture… ${((e.loaded || 0) / 1e6).toFixed(1)} of ${(SPLAT_BYTES / 1e6).toFixed(1)} MB`, false, true));
     const mesh = s.mesh(); if (!mesh) throw new Error('no splat');
     mesh.visible = false; scene.add(mesh);
-    try { await s.ready; } catch (e) { scene.remove(mesh); throw e; }
+    try { await s.ready; } catch (e) { scene.remove(mesh); mesh.dispose(); throw e; }
     splat = mesh; say(''); return mesh;
   })();
-  extReload.finally(() => { extReload = null; });
+  extReload.catch(() => {}).finally(() => { extReload = null; });
   return extReload;
 }
 
@@ -474,19 +475,22 @@ async function stepInside(instant) {
     console.warn('kld_twin: the interior did not load', e);
     say('The interior could not be loaded. Check the connection and try again.', true);
     setTimeout(() => say(''), 6000);
-    mode = 'outside'; fadeTo(false);
+    mode = 'outside'; setXray(xray); fadeTo(false);
     await animateCamera(before.pos, before.tgt, instant, before.fov);
   } finally { bIn.disabled = false; }
 }
 async function stepOutside(instant) {
   if (mode !== 'inside') return;
-  mode = 'going-out'; bOut.disabled = true;
+  mode = 'going-out'; bOut.disabled = true; bIn.disabled = true;
+  if (small && interior && !splat) {   // one splat in memory on a phone: the interior goes before the exterior comes back
+    await fadeTo(true); scene.remove(interior); interior.dispose(); interior = null; interiorLoad = null; state.interiorOk = false;
+  }
   try {
     if (!splat) await reloadExterior();
   } catch (e) {
     console.warn('kld_twin: the site capture did not reload', e);
     say('The site capture could not be loaded again. Reload the page to go outside.', true);
-    mode = 'inside'; bOut.disabled = false; return;
+    mode = 'inside'; bOut.disabled = false; bIn.disabled = false; fadeTo(false); return;
   }
   await animateCamera(H(...DOOR_GAP.pos), H(...DOOR_GAP.tgt), instant, IN_FOV, 900);
   if (!instant) await fadeTo(true);
@@ -497,7 +501,7 @@ async function stepOutside(instant) {
   const b = before || { pos: E(...VIEWS.overview.pos), tgt: E(...VIEWS.overview.tgt), fov: 50 };
   document.querySelectorAll('button.v').forEach(x => x.setAttribute('aria-pressed', String(!!b.view && x === b.view)));
   await animateCamera(b.pos, b.tgt, instant, b.fov, 1500);
-  bOut.disabled = false; bIn.focus({ preventScroll: true });
+  bOut.disabled = false; bIn.disabled = false; bIn.focus({ preventScroll: true });
 }
 bIn.addEventListener('click', () => stepInside());
 bOut.addEventListener('click', () => stepOutside());
@@ -551,7 +555,7 @@ function frame() {
     camera.position.lerpVectors(tween.p0, tween.p1, e); controls.target.lerpVectors(tween.t0, tween.t1, e); camera.fov = tween.f0 + (tween.f1 - tween.f0) * e; camera.updateProjectionMatrix();
     if (tt >= 1) { const d = tween.done; tween = null; d(); } }
   controls.update();
-  if (mode === 'inside' && !tween) clampInside();
+  if (insideScene && (!tween || tween.clamp)) clampInside();
   renderer.clear();
   if (insideScene) { renderer.render(backdrop, camera); renderer.clearDepth(); }
   renderer.render(scene, camera); labelR.render(scene, camera); frames++;
