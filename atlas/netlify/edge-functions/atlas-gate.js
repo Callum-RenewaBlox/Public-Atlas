@@ -6,7 +6,8 @@
    only this browser can redeem (PKCE: the verifier sits in a sealed cookie here), and this function redeems it, so no
    Supabase token ever reaches the page. Who may open what is Supabase's to say: public.atlas_my_access(), asked with the
    visitor's own token, answers '*' for an active CRM team member and otherwise the client codes listed for the address
-   in public.atlas_access. /clients/<code>/… opens to '*' or <code>; /team/… to '*' only.
+   in public.atlas_access. /clients/<code>/… opens to '*' or <code>; /team/… to '*' only. The Investor Atlas is
+   /clients/investors/, for the addresses listed under 'investors' (INVESTORS below).
 
    The session is one encrypted cookie: the address, its access, and Supabase's refresh token, so the access is asked
    again at the first page opened after ACCESS_SECONDS (a row removed in Supabase shuts the client out within minutes,
@@ -53,6 +54,13 @@ const PROVIDERS = {
   google: { supabase: 'google', label: 'Sign in with Google', params: { prompt: 'select_account' } },
   microsoft: { supabase: 'azure', label: 'Sign in with Microsoft', params: { scopes: 'email', prompt: 'select_account' } }
 };
+
+// The Investor Atlas is for registered investors: their addresses are listed in public.atlas_access under the code
+// 'investors', as a client's are under its own. Its sign-in speaks to investors, and anyone signed in whom Supabase
+// doesn't list for it is sent to register at the Investor Portal, rather than told to ask RenewaBlox for access.
+const INVESTORS = '/clients/investors/';
+const INVESTOR_PORTAL = 'https://www.renewablox.com/invest';
+const forInvestors = r => typeof r === 'string' && r.startsWith(INVESTORS);
 
 const GATED_HEADERS = {
   'x-robots-tag': 'noindex, nofollow',
@@ -124,6 +132,7 @@ export default async (request, context) => {
   const need = path.startsWith('/team/') ? '*' : (path.match(/^\/clients\/([a-z0-9][a-z0-9-]*)\//) || [])[1];
   if (!need || !(session.a.includes('*') || session.a.includes(need))) {
     if (!isPageRequest(request)) return withCookies(text(403, 'This account can’t open this page.'), cookies);
+    if (forInvestors(path)) return withCookies(notRegistered(session.e, path + url.search), cookies);
     return withCookies(page(403, 'This page isn&rsquo;t shared with you',
       `${esc(session.e)} can&rsquo;t open it. If it should, ask RenewaBlox to add this address, or sign in with the one it was shared with.`,
       { href: '/clients/', label: 'Pages shared with you' }, '', { href: '/access/sign-out', label: 'Sign out' }), cookies);
@@ -181,10 +190,13 @@ function signedOut(request, url, cookies = []) {
 // The sign-in page. A #fragment on the page that sent the visitor here (a view, a camera) survives the redirect, so it
 // is kept in sessionStorage and put back once they are in.
 function signInPage(url) {
-  const r = encodeURIComponent(safeReturn(url.searchParams.get('r')));
-  return page(401, 'Sign in to open this page',
-    'This page is shared privately. Sign in with the account for the address it was shared with: Google for Gmail or ' +
-    'Google Workspace, Microsoft for Outlook, Hotmail, Live or Microsoft&nbsp;365.',
+  const back = safeReturn(url.searchParams.get('r')), r = encodeURIComponent(back);
+  const accounts = 'Google for Gmail or Google Workspace, Microsoft for Outlook, Hotmail, Live or Microsoft&nbsp;365.';
+  return page(401, forInvestors(back) ? 'Registered investors: sign in' : 'Sign in to open this page',
+    forInvestors(back)
+      ? `Sign in with the address you registered with at the RenewaBlox Investor Portal: ${accounts} ` +
+        `Not registered yet? <a href="${INVESTOR_PORTAL}">Register at the Investor Portal</a>.`
+      : `This page is shared privately. Sign in with the account for the address it was shared with: ${accounts}`,
     Object.entries(PROVIDERS).map(([p, v]) => ({ href: `/access/start?p=${p}&r=${r}`, label: v.label })),
     `<script>try{sessionStorage.setItem('rbx.atlas.hash',location.hash||'')}catch(e){}</script>`,
     { href: `/access/email?r=${r}`, label: 'No Google or Microsoft account, or can&rsquo;t sign in? Get a code by email' });
@@ -234,6 +246,7 @@ async function finish(tokens, email, r, cfg, clearState) {
     return page(503, 'We can&rsquo;t check your access just now', 'The sign-in service didn&rsquo;t answer. Try again in a minute.', retry, '', null, [clearState]);
   }
   if (!access.length) {
+    if (forInvestors(r)) return notRegistered(email, r, [clearState]);
     return page(403, 'Nothing is shared with this account',
       `No page on Atlas is shared with ${esc(email)}. Sign in with the address RenewaBlox shared the page with, or ask for this one to be added.`,
       // straight to each way in, not back through /access/, whose page would overwrite the #fragment kept for the return
@@ -247,6 +260,15 @@ async function finish(tokens, email, r, cfg, clearState) {
     `<script>var h='';try{h=sessionStorage.getItem('rbx.atlas.hash')||'';sessionStorage.removeItem('rbx.atlas.hash')}catch(e){}` +
     `location.replace(${JSON.stringify(r)}+(/^#[\\w\\-.~%=&,;:+\\/?!]*$/.test(h)?h:''))</script>`, null,
     [clearState, cookie(SESSION_COOKIE, await seal(session, cfg), '/', SESSION_SECONDS)]);
+}
+
+// Signed in as an address not listed for the Investor Atlas: register at the Investor Portal first.
+function notRegistered(email, r, cookies = []) {
+  return page(403, 'This address isn&rsquo;t registered as an investor',
+    `${esc(email)} isn&rsquo;t on our list of registered investors. Register at the RenewaBlox Investor Portal; once your ` +
+    'registration is approved, sign in here with the address you registered with.',
+    { href: INVESTOR_PORTAL, label: 'Register at the Investor Portal' }, '',
+    { href: `/access/?r=${encodeURIComponent(r)}`, label: 'Registered with a different address? Sign in with that one' }, cookies);
 }
 
 /* ---- the fallback: a one-time code by email ---- */
@@ -270,7 +292,8 @@ placeholder="Code from the email" aria-label="Code from the email" class="field"
 function emailPage(url) {
   const r = safeReturn(url.searchParams.get('r'));
   return page(200, 'Get a sign-in code by email',
-    'Enter the address the page was shared with. We&rsquo;ll email you a one-time code to type in here.',
+    (forInvestors(r) ? 'Enter the address you registered with.' : 'Enter the address the page was shared with.') +
+    ' We&rsquo;ll email you a one-time code to type in here.',
     null, emailForm(r), { href: '/access/?r=' + encodeURIComponent(r), label: 'Back to Google or Microsoft sign-in' });
 }
 

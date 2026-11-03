@@ -4,7 +4,7 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 <title>BLN Atlas · RenewaBlox</title>
-<meta name="description" content="BLN Atlas: the hydro powerhouse on the imagery, with the BLOX data-centre cabinet inside. The BLOX badge opens the 3D render."/>
+<meta name="description" content="BLN Atlas: the hydro powerhouse on the imagery, with the BLOX data-centre cabinet inside. The BLOX badge opens BLOX 3D."/>
 <meta name="robots" content="noindex, nofollow"/>
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%2312475e'/%3E%3Cpath%20d='M16%205.6c4.5%205.5%206.8%209.1%206.8%2012A6.8%206.8%200%200%201%2016%2024.4a6.8%206.8%200%200%201-6.8-6.8C9.2%2014.7%2011.5%2011.1%2016%205.6z'%20fill='%23fff'/%3E%3C/svg%3E"/>
 <script>
@@ -219,11 +219,11 @@ path.leaflet-interactive:focus-visible{outline:none;stroke:#fff;stroke-width:4;s
 <div class="div"></div>
 <div class="txt"><div class="kick">BLN Atlas<span class="lg"> · 300 <span class="u">kW</span> Run-of-River Hydro</span></div>
 <div class="ttl" data-private="address">Hydro powerhouse and BLOX data-centre cabinet</div></div>
-<a class="go" href="3d/">3D render <i>▶</i></a>
+<a class="go" href="3d/">BLOX 3D <i>▶</i></a>
 </div>
 <div id="map" role="region" aria-label="Satellite map of the BLN powerhouse"></div>
 <div id="caveat"><b>Indicative.</b> The powerhouse and its grid compound are drawn from the 2016 substructure drawing on aerial imagery. This is not a measured survey and not a construction drawing.</div>
-<noscript><div id="caveat" style="bottom:auto;top:70px"><b>The map needs JavaScript.</b> <a href="3d/">Open the 3D render</a> instead.</div></noscript>
+<noscript><div id="caveat" style="bottom:auto;top:70px"><b>The map needs JavaScript.</b> <a href="3d/">Open BLOX 3D</a> instead.</div></noscript>
 
 <script src="assets/leaflet.js"></script>
 <script>
@@ -270,7 +270,7 @@ L.control.scale({imperial:false,position:'bottomleft'}).addTo(map);
 const ROUNDEL='assets/blox-roundel.png';
 function ctaRow(){
   return '<a class="b3d-poprow" href="'+OPEN_3D+'"><img src="'+ROUNDEL+'" alt="">'+
-    '<div><b>See it in the 3D render</b><span>Inside the powerhouse: the cabinet, its 20 miners, the fans and a simulated day of technical dispatch</span></div></a>';
+    '<div><b>See it in BLOX 3D</b><span>Inside the powerhouse: the cabinet, its 20 miners, the fans and a simulated day of technical dispatch</span></div></a>';
 }
 const NOTES={
   ph:'<b>Powerhouse · 300 kW run-of-river hydro</b><br>A Gilkes twin-jet Turgo set with a 250 kW export limit. '+
@@ -325,11 +325,11 @@ map.on('zoomend',()=>refreshLabels());
 // browser's Back and the render's own "Atlas" pill come back here.
 function open3d(){ window.location.href=OPEN_3D; }
 const badge=L.marker(centre('ph'),{
-  zIndexOffset:4000,keyboard:true,title:'Open the 3D render',alt:'Open the 3D render',
+  zIndexOffset:4000,keyboard:true,title:'Open BLOX 3D',alt:'Open BLOX 3D',
   icon:L.divIcon({className:'b3d-badge',iconSize:[46,46],iconAnchor:[23,23],
     html:'<div class="ring"></div><div class="ring ring2"></div>'+
          '<img class="chip" src="'+ROUNDEL+'" alt="BLOX">'+
-         '<div class="cta"><span class="f">Open the 3D render</span><span class="s">3D render</span><i>▶</i></div>'})
+         '<div class="cta"><span class="f">BLOX 3D</span><span class="s">3D</span><i>▶</i></div>'})
 }).addTo(map);
 badge.on('click',open3d);
 badge.on('keypress',e=>{ const k=e.originalEvent&&e.originalEvent.key; if(k==='Enter'||k===' ') open3d(); });
