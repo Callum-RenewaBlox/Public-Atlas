@@ -3,10 +3,14 @@
    (kld_twin.html, served as /twins/kld/) asks here before it loads anything, and again on "Step inside" when its URLs
    are getting old (the interior splat is fetched only then); no URL, token or key is ever written into the page or
    this repository.
+   /twins/kld/assets?set=media answers the same way for the "Flythrough & stills" tab: the flythrough, its poster and
+   the five stills with their thumbnails, asked for only when the tab opens. These URLs last an hour, so the video keeps
+   playing and seeking (each seek is a new range request on the same URL); the page asks again after an error, and on
+   a play once its URLs are 50 minutes old.
 
    The twin is public: anyone with the link may open it, so this function checks no session, and the sign-in
    (atlas-gate.js, which takes /clients/, /team/ and /access/ only) never runs here. What stays private is the key and
-   the bucket: a visitor gets URLs that last five minutes, for these four files only.
+   the bucket: a visitor gets URLs that last five minutes (an hour for the media), for these files only.
 
    Set in Netlify (renewablox-atlas, Project configuration > Environment variables; a change needs a redeploy):
      KLD_TWIN_SUPABASE_SECRET  a Supabase secret API key of the renewablox-atlas project, made for this function alone
@@ -15,32 +19,42 @@
                                every deploy context (production and drafts alike).
    The files are in the bucket site-twins under kld/<random folder>/; the folder name is not a secret (the bucket is
    private and has no storage policies), it was changed once to retire signed URLs that had been published. The file
-   names carry the layout's version (v5 GLBs, interior v1); a new version is uploaded beside the old under a new name. */
+   names carry their version (v5 GLBs, interior v1, media v1); a new version is uploaded beside the old under a new name. */
 
 const SUPABASE_URL = 'https://mojwqeqgwyldbghlzgbq.supabase.co';   // renewablox-atlas (not the sign-in's project)
 const BUCKET = 'site-twins';
 const FOLDER = 'kld/08ef398ce6de02ef46118920a71665d1';
-const FILES = { splat: 'kld_web.sog', kit: 'kld_dc_kit_v5.glb', hall: 'kld_hall_v5.glb', interior: 'kld_interior_v1.sog' };
-const URL_SECONDS = 300;                 // how long a signed URL lasts: long enough to start the downloads, no more
+const STILLS = ['racks', 'zone', 'taped', 'built', 'detail'];
+// the sets a visitor may ask for (?set=, model when absent): the answer's keys, their files, and how long the URLs last
+const SETS = {
+  model: { seconds: 300,                 // long enough to start the downloads, no more
+           files: { splat: 'kld_web.sog', kit: 'kld_dc_kit_v5.glb', hall: 'kld_hall_v5.glb', interior: 'kld_interior_v1.sog' } },
+  media: { seconds: 3600,                // the video is fetched in range requests on the same URL as it plays and seeks
+           files: Object.fromEntries([['video', 'kld_flythrough_v1_720p.mp4'], ['poster', 'kld_flythrough_v1_poster.jpg'],
+             ...STILLS.flatMap(s => [[s, `kld_still_${s}_v1.jpg`], [`${s}_thumb`, `kld_still_${s}_v1_thumb.jpg`]])]) },
+};
 const TIMEOUT_MS = 8000;
 
 export const config = { path: '/twins/kld/assets' };
 
 export default async (request) => {
   if (request.method !== 'GET') return answer(405, { error: 'GET only' });
+  const name = new URL(request.url).searchParams.get('set') || 'model';
+  if (!Object.hasOwn(SETS, name)) return answer(400, { error: 'unknown set' });
+  const set = SETS[name];
   const key = String((globalThis.Netlify && Netlify.env.get('KLD_TWIN_SUPABASE_SECRET')) || '').trim();
   if (!key) {
     console.error('kld-twin-assets is locked until KLD_TWIN_SUPABASE_SECRET is set');
     return answer(503, { error: 'not set up' });
   }
 
-  const paths = Object.values(FILES).map(f => `${FOLDER}/${f}`);
+  const paths = Object.values(set.files).map(f => `${FOLDER}/${f}`);
   let signed;
   try {
     const r = await fetch(`${SUPABASE_URL}/storage/v1/object/sign/${BUCKET}`, {
       method: 'POST', signal: AbortSignal.timeout(TIMEOUT_MS),
       headers: { apikey: key, authorization: `Bearer ${key}`, 'content-type': 'application/json' },
-      body: JSON.stringify({ expiresIn: URL_SECONDS, paths })
+      body: JSON.stringify({ expiresIn: set.seconds, paths })
     });
     if (!r.ok) { console.error('kld-twin-assets: Supabase refused to sign', r.status); return answer(503, { error: 'unavailable' }); }
     signed = await r.json();
@@ -48,14 +62,14 @@ export default async (request) => {
     console.error('kld-twin-assets: Supabase unreachable', String(e && e.name));
     return answer(503, { error: 'unavailable' });
   }
-  const out = { expires_in: URL_SECONDS };
-  for (const [name, file] of Object.entries(FILES)) {
+  const out = { expires_in: set.seconds };
+  for (const [k, file] of Object.entries(set.files)) {
     const row = Array.isArray(signed) && signed.find(s => s && s.path === `${FOLDER}/${file}`);
     if (!row || row.error || typeof row.signedURL !== 'string' || !row.signedURL.startsWith('/object/sign/')) {
       console.error('kld-twin-assets: no signed URL for', file);
       return answer(503, { error: 'unavailable' });
     }
-    out[name] = `${SUPABASE_URL}/storage/v1${row.signedURL}`;
+    out[k] = `${SUPABASE_URL}/storage/v1${row.signedURL}`;
   }
   return answer(200, out);
 };

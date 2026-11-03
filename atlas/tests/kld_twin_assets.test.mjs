@@ -70,6 +70,44 @@ for (const cookie of ['', 'rbx_atlas=garbage', 'rbx_atlas=a.b']) {
 }
 ok('any visitor gets the four signed URLs (5 min), never cached, noindex; the key stays server-side');
 
+// ?set=model is the same answer; ?set=media signs the flythrough, its poster and the stills, for an hour
+let res;
+reset();
+res = await signer.default(req('/twins/kld/assets?set=model'));
+assert.equal(res.status, 200);
+assert.deepEqual(Object.keys(await res.json()).sort(), ['expires_in', 'hall', 'interior', 'kit', 'splat']);
+assert.equal(sb.calls[0].body.expiresIn, 300);
+ok('?set=model: the same four five-minute URLs');
+const STILLS = ['racks', 'zone', 'taped', 'built', 'detail'];
+const MEDIA = [['video', 'kld_flythrough_v1_720p.mp4'], ['poster', 'kld_flythrough_v1_poster.jpg'],
+  ...STILLS.flatMap(s => [[s, `kld_still_${s}_v1.jpg`], [`${s}_thumb`, `kld_still_${s}_v1_thumb.jpg`]])];
+for (const cookie of ['', 'rbx_atlas=garbage']) {
+  reset();
+  res = await signer.default(req('/twins/kld/assets?set=media', { cookie }));
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.expires_in, 3600);
+  assert.deepEqual(Object.keys(body).sort(), ['expires_in', ...MEDIA.map(([k]) => k)].sort());
+  for (const [k, f] of MEDIA)
+    assert.equal(body[k], `https://mojwqeqgwyldbghlzgbq.supabase.co/storage/v1/object/sign/site-twins/${FOLDER}/${f}?token=T`);
+  assert.equal(sb.calls.length, 1);
+  assert.deepEqual(sb.calls[0].body, { expiresIn: 3600, paths: MEDIA.map(([, f]) => `${FOLDER}/${f}`) });
+  assert.ok(!sb.calls[0].body.paths.some(p => /\.(sog|glb)$/.test(p)), 'the media set signs no model file');
+  assert.equal(res.headers.get('cache-control'), 'private, no-store');
+  assert.equal(res.headers.get('x-robots-tag'), 'noindex, nofollow');
+  assert.ok(!JSON.stringify(body).includes(KEY), 'the key never reaches the visitor');
+}
+ok('?set=media: any visitor gets the twelve media URLs (1 h), never cached, noindex; no model file among them');
+for (const set of ['other', 'MEDIA', '__proto__', 'constructor', 'toString', '']) {
+  reset();
+  res = await signer.default(req('/twins/kld/assets?set=' + encodeURIComponent(set)));
+  if (set === '') { assert.equal(res.status, 200, 'an empty set is the model set'); continue; }
+  assert.equal(res.status, 400, `set ${set}`);
+  assert.deepEqual(await res.json(), { error: 'unknown set' });
+  assert.equal(sb.calls.length, 0, `nothing signed for set ${set}`);
+}
+ok('any other set: 400, nothing signed');
+
 // only GET
 reset();
 for (const method of ['POST', 'PUT', 'DELETE']) {
@@ -81,12 +119,15 @@ ok('anything but GET: 405, nothing signed');
 
 // fails closed without its key, and when Supabase won't sign
 reset(); delete env.KLD_TWIN_SUPABASE_SECRET;
-let res = await signer.default(req('/twins/kld/assets'));
+res = await signer.default(req('/twins/kld/assets'));
 assert.equal(res.status, 503); assert.equal(sb.calls.length, 0);
 reset(); env.KLD_TWIN_SUPABASE_SECRET = '   ';
 res = await signer.default(req('/twins/kld/assets'));
 assert.equal(res.status, 503); assert.equal(sb.calls.length, 0);
-ok('no key: 503, Supabase never asked');
+reset(); delete env.KLD_TWIN_SUPABASE_SECRET;
+res = await signer.default(req('/twins/kld/assets?set=media'));
+assert.equal(res.status, 503); assert.equal(sb.calls.length, 0);
+ok('no key: 503 for either set, Supabase never asked');
 
 const failures = {
   'Supabase refuses': () => json(400, { error: 'bad' }),
@@ -97,14 +138,16 @@ const failures = {
   'a file in error': b => json(200, b.paths.map((p, i) => ({ path: p, signedURL: i ? `/object/sign/site-twins/${p}?token=T` : null, error: i ? null : 'Not found' }))),
   'a URL elsewhere': b => json(200, b.paths.map(p => ({ path: p, signedURL: `https://evil.example/${p}` }))),
 };
-for (const [what, f] of Object.entries(failures)) {
-  reset(); sb.sign = f;
-  res = await signer.default(req('/twins/kld/assets'));
-  assert.equal(res.status, 503, what);
-  const body = await res.json();
-  assert.deepEqual(Object.keys(body), ['error'], what);
+for (const path of ['/twins/kld/assets', '/twins/kld/assets?set=media']) {
+  for (const [what, f] of Object.entries(failures)) {
+    reset(); sb.sign = f;
+    res = await signer.default(req(path));
+    assert.equal(res.status, 503, `${path}: ${what}`);
+    const body = await res.json();
+    assert.deepEqual(Object.keys(body), ['error'], `${path}: ${what}`);
+  }
 }
-ok('Supabase refusing, unreachable, slow or answering oddly: 503 with no URL');
+ok('Supabase refusing, unreachable, slow or answering oddly: 503 with no URL, for either set');
 
 assert.ok(logged.length > 0 && logged.every(l => !l.includes(KEY)), 'the key never reaches the log');
 ok('the key never reaches the log');
