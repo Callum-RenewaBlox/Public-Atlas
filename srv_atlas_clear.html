@@ -1,0 +1,27 @@
+<!-- ======================================================================
+  SRV Atlas · clear the out-of-date site drawing (hand-maintained)
+  Appended to srv_atlas.html at serve time by app_srv_atlas.py, BEFORE the
+  badge layers. srv_atlas.html is generated (build_srv_client_atlas.py) and
+  still draws the earlier scheme: the numbered asset pins and outlines with
+  their labels, the proposed cable route with its labels, the proposed
+  compute load bank plot, and the layer switch for them. That is all out of
+  date, so this takes every overlay off the map, leaving the satellite
+  imagery for the BLOX badges that follow. Kept apart from the generated
+  file so a rebuild cannot bring the old drawing back.
+======================================================================= -->
+<style>
+  /* the switch for the removed layers ("Proposed cable route", "Site features") */
+  .leaflet-control-layers{display:none !important}
+</style>
+<script>
+(function(){
+  if (typeof map === 'undefined' || !window.L) return;
+  // stop the zoom handler re-binding the asset labels (it would reopen them on layers no longer on the map)
+  try { if (typeof refreshLabels === 'function') map.off('zoomend', refreshLabels); } catch(e){}
+  try { if (typeof labelled !== 'undefined' && labelled.length) labelled.length = 0; } catch(e){}
+  map.closePopup();
+  map.eachLayer(function(l){ if (!(l instanceof L.TileLayer)) map.removeLayer(l); });
+  var lc = document.querySelectorAll('.leaflet-control-layers');
+  for (var i = 0; i < lc.length; i++) lc[i].parentNode.removeChild(lc[i]);
+})();
+</script>

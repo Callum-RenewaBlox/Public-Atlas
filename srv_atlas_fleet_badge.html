@@ -1,26 +1,12 @@
 <!-- ======================================================================
-  SRV Atlas · Miner Fleet gateway (hand-maintained)
+  SRV Atlas · ASIC Deployment gateway (hand-maintained)
   Appended to srv_atlas.html at serve time by app_srv_atlas.py, AFTER the
-  generated srv_atlas_3d_badge.html, whose .b3d-badge / .b3d-poprow styles it
-  reuses. Adds a third pulsing BLOX badge by the proposed compute load bank and
-  a CTA row in that asset's popup, both opening the Miner Fleet page
-  (?view=fleet: 40, 44 or 50 miners). Kept apart from the generated layer so a
-  rebuild of the badge cannot drop it.
+  generated srv_atlas_3d_badge.html, whose .b3d-badge styles it reuses. Adds
+  a third pulsing BLOX badge, "ASIC Deployment", under the 3D Compute Kiosk
+  badge, opening the Miner Fleet page (?view=fleet: 40, 44 or 50 miners in
+  the Winchain container behind the LV kiosk). Kept apart from the generated
+  layer so a rebuild of the badge cannot drop it.
 ======================================================================= -->
-<style>
-  /* Below 900 px the map opens with the load bank near the left edge, so 130 px
-     west of it runs the pill off screen: hang the chip just under the load
-     bank's label instead, with its short pill under the chip, as the badge
-     layer does on phones. Leaflet writes the iconAnchor as inline margins. */
-  @media (max-width:900px){
-    .b3d-badge.b3d-fleet{margin-left:-23px !important;margin-top:39px !important}
-    .b3d-badge.b3d-fleet .cta{right:auto;left:50%;top:42px;transform:translateX(-50%);padding:8px 14px}
-    .b3d-badge.b3d-fleet:hover .cta{transform:translateX(-50%) translateY(2px)}
-    .b3d-badge.b3d-fleet .cta .f{display:none}
-    .b3d-badge.b3d-fleet .cta .s{display:inline}
-    .b3d-badge.b3d-fleet.nudge .cta{animation:none}
-  }
-</style>
 <script>
 (function(){
   if (typeof map === 'undefined' || !window.L) return;
@@ -63,20 +49,20 @@
   window.__openSRVFleet = openFleet;
 
   /* ------------------------------------------------- the badge on the map */
-  // Anchored on the proposed compute load bank (pin 1), with the chip offset in
-  // SCREEN space 130 px west and 32 px south of it, below the "compute units"
-  // label and the 3D Dispatch Sim pill, so it clears the load bank's label at
-  // any viewport; the pill reaches west over the open field. Phones: see above.
-  var m = L.marker([53.176528, -0.110505], {
+  // Anchored where the 3D Compute Kiosk badge is (the LV kiosk, with the
+  // Winchain container just west of it), its chip offset in SCREEN space
+  // 85 px below the kiosk badge's, pill to the right like it: the two read as
+  // a pair over the yard, and the offset holds at any viewport.
+  var m = L.marker([53.176878, -0.110333], {
     zIndexOffset: 4000,
     keyboard: true,
-    title: 'Open the Miner Fleet: 40, 44 or 50 miners',
+    title: 'ASIC Deployment: 40, 44 or 50 miners',
     icon: L.divIcon({
-      className: 'b3d-badge b3d-fleet',
-      iconSize: [46,46], iconAnchor: [153,-9],
+      className: 'b3d-badge b3d-right b3d-fleet',
+      iconSize: [46,46], iconAnchor: [-37,-81],
       html: '<div class="ring"></div><div class="ring ring2"></div>' +
-            '<img class="chip" src="' + BLOX + '" alt="Open the Miner Fleet">' +
-            '<div class="cta"><span class="f">Miner Fleet · 40 / 44 / 50</span><span class="s">Fleet</span><i>▶</i></div>'
+            '<img class="chip" src="' + BLOX + '" alt="Open ASIC Deployment">' +
+            '<div class="cta"><i>◀</i><span class="f">ASIC Deployment</span><span class="s">ASIC</span></div>'
     })
   });
   m.on('click', openFleet);
@@ -87,18 +73,23 @@
     if (el){ el.classList.add('nudge'); setTimeout(function(){ el.classList.remove('nudge'); }, 4200); }
   }, 2300);
 
-  /* ----------------------------- CTA row in the compute load bank's popup */
-  map.on('popupopen', function(e){
-    var node = e.popup && e.popup._contentNode;
-    if (!node || node.querySelector('.b3d-poprow.fleet')) return;
-    var title = node.querySelector('b');
-    if (!title || !/compute load bank/i.test(title.textContent)) return;
-    var r = document.createElement('div');
-    r.className = 'b3d-poprow fleet';
-    r.innerHTML = '<img src="' + BLOX + '" alt="">' +
-      '<div><b>40, 44 or 50 miners</b><span>How hard each miner runs, in charts and in the container</span></div>';
-    r.addEventListener('click', openFleet);
-    node.appendChild(r);
-  });
+  /* ------------------------- keep all three badges on screen on a narrow map */
+  // The map opens centred for a desktop, so on a phone the 3D Dispatch Sim
+  // badge falls off the left edge. If the badges do not all fit, pan the map
+  // sideways to centre them, until the visitor moves the map themselves.
+  // Checked more than once, because Streamlit's component iframe is briefly
+  // narrow while the host page lays out.
+  var touched = false;
+  map.on('dragstart zoomstart', function(){ touched = true; });
+  function fitBadges(){
+    if (touched) return;
+    var l = Infinity, r = -Infinity, parts = document.querySelectorAll('.b3d-badge .chip, .b3d-badge .cta');
+    for (var i = 0; i < parts.length; i++) { var b = parts[i].getBoundingClientRect(); if (b.width) { l = Math.min(l, b.left); r = Math.max(r, b.right); } }
+    var W = map.getSize().x;
+    if (!isFinite(l) || (l >= 8 && r <= W - 8)) return;
+    map.panBy([Math.round((l + r) / 2 - W / 2), 0], { animate: false });
+  }
+  [0, 400, 1200].forEach(function(t){ setTimeout(fitBadges, t); });
+
 })();
 </script>

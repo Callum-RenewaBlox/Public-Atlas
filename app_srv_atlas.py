@@ -1,14 +1,17 @@
 """SRV Atlas — Scrivelsby (Home Farm AD) electrical site survey.
 
-A standalone Leaflet site-survey map of the Home Farm AD site at Scrivelsby
-(LN9 6JB, operator Qila Energy): site assets (CHP, transformer, LV switchroom,
-proposed compute load bank), geolocated site photos, and grid/site context.
+A standalone Leaflet map of the Home Farm AD site at Scrivelsby (LN9 6JB,
+operator Qila Energy). The generated map file still draws the earlier scheme
+(the asset pins and labels, the proposed cable route and the compute load bank
+plot); that is out of date, so ``srv_atlas_clear.html`` takes it all off at
+serve time and the map shows the satellite imagery and the three badges.
 
 One app, four views — the same shape as ``app_kld_atlas.py``, so the site
 atlases behave identically and a new site is a copy of either:
 
 * default — the map (``srv_atlas.html``), carrying three pulsing BLOX badges on
-  the yard, each with a standing call to action.
+  the yard, each with a standing call to action: 3D Dispatch Sim, 3D Compute
+  Kiosk and ASIC Deployment.
 * ``?view=3d`` — the 3D Dispatch Sim (``srv_3d_sim.html``): the peaker model
   over a real metered year.
 * ``?view=siting`` — the 3D Compute Kiosk (``srv_siting_3d.html``): the two
@@ -31,8 +34,8 @@ pages come from ``build_srv_3d_sim.py`` and ``siting/build_siting.py`` in the
 same folder. The Miner Fleet has no builder yet: ``srv_fleet_3d.html`` is
 edited in place. Its ways in are hand-maintained layers appended at serve time
 too (``LAYERS``), so a rebuild of the generated pages cannot drop them: the
-third badge and its popup row in ``srv_atlas_fleet_badge.html``, and the link
-under the option text on the kiosk page in ``srv_siting_fleet_link.html``.
+ASIC Deployment badge in ``srv_atlas_fleet_badge.html``, and the link under the
+option text on the kiosk page in ``srv_siting_fleet_link.html``.
 
 Self-contained: every view reads local HTML (Leaflet / three.js, all data and
 photos embedded) and renders via ``st.iframe``. No database, no secrets.
@@ -51,10 +54,12 @@ VIEWS = {
     "fleet":  ("srv_fleet_3d.html",  "SRV Atlas — Miner Fleet"),
 }
 # Layers appended to a page at serve time, in order, so the generated files
-# stay pristine. The fleet badge reuses the generated badge layer's styles, so
-# it comes after it.
+# stay pristine. On the map the clear-out goes first (it takes the generated
+# page's out-of-date drawing off, so it must run before any badge is added),
+# and the ASIC Deployment badge reuses the generated badge layer's styles, so
+# it comes after that.
 LAYERS = {
-    "":       ("srv_atlas_3d_badge.html", "srv_atlas_fleet_badge.html"),
+    "":       ("srv_atlas_clear.html", "srv_atlas_3d_badge.html", "srv_atlas_fleet_badge.html"),
     "siting": ("srv_siting_fleet_link.html",),
 }
 # read before set_page_config so the tab title can follow the route
