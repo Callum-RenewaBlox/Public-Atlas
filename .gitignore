@@ -11,3 +11,11 @@ atlas/.address
 ai/site/
 .netlify/
 atlas/netlify/edge-lib/pages.js
+# Gaussian splats are never committed (hosted in Supabase); the twin page fetches them by signed URL
+*.ply
+*.spz
+*.sog
+*.splat
+*.ksplat
+# KLD twin model files (GLBs) are hosted with the splat, not committed
+kld_twin/*.glb

@@ -10,20 +10,22 @@ a regenerated source that loses it fails the build instead of shipping a page th
     /clients/srv/             SRV Atlas (?view=3d BLOX Dispatch, ?view=siting BLOX 3D)
     /clients/srv-contractor/  SRV Contractor Atlas, the electrical survey for the LV connection RFQ
     /clients/bry/             Bryn Atlas, code BRY (?view=3d BLOX Dispatch, ?view=compute BLOX 3D)
-    /clients/kld/             KLD Atlas (?view=3d BLOX Dispatch)
+    /clients/kld/             KLD Atlas (?view=3d BLOX Dispatch; its BLOX 3D badge opens /twins/kld/)
     /clients/ihn/             IHN Atlas (?view=3d BLOX Dispatch)
     /clients/reabold/west-newton/, /clients/reabold/reservoirs/   Reabold's two maps
     /clients/citygate/        Citygate Church's electricity portrait
     /team/keith-huntly/, /team/moray/   the team's decision pages for the Moray primaries
     /investors/demo/, /investors/australia/, /investors/portal/   the investor packs (landing + models)
     /models/peaker-plant/, /models/peaker-demo/   Peaker Plant 3D on links of its own
+    /twins/kld/               the KLD 3D Site Twin, open to anyone with the link (no sign-in)
 
 /clients/ and /team/ are behind the sign-in (netlify/edge-functions/atlas-gate.js), which opens
 /clients/<code>/ to the addresses listed for <code> in Supabase's public.atlas_access and to the
 team, /team/ to the team only, and routes ?view=. The client pages name their sites, so they live only
 behind the sign-in; only a client's public cover on the front page is held to the anonymity checks (build.py).
 /investors/portal/ is not gated: the Wix investor portal's members area links to it, and only its address keeps it
-from the public.
+from the public. /twins/ is not gated either: the site twins open to anyone with the link, are kept out of search
+engines (noindex), and fetch their files through a signer that answers any visitor (netlify/edge-functions/kld-twin-assets.js).
 """
 import base64
 import html
@@ -106,7 +108,9 @@ CLIENT_MAPS = {
                         "side": "right", "anchor": [-37, 4]}]},
     "kld": {"title": "KLD Atlas — Kinlochdamph", "kick": "999 kW run-of-river hydro · KLD Atlas",
             "place": "Kinlochdamph hydro scheme, Loch Damh, Wester Ross", "at": [57.46160, -5.55778], "zoom": 17,
-            "badges": [{"at": [57.46160, -5.55778], "label": "BLOX Dispatch", "short": "Dispatch", "view": "3d"}]},
+            "badges": [{"at": [57.46160, -5.55778], "label": "BLOX Dispatch", "short": "Dispatch", "view": "3d"},
+                       {"at": [57.46160, -5.55778], "label": "BLOX 3D", "short": "3D", "href": "/twins/kld/",
+                        "side": "right", "anchor": [-37, 4]}]},
     "wld": {"title": "WLD Atlas — Wildmore Renewables AD", "kick": "BLOX Bitcoin mining data centre · WLD Atlas",
             "place": "Wildmore Renewables AD plant, Langrick, Boston PE22 7AN", "at": [53.02642, -0.11930], "zoom": 18,
             "badges": [{"at": [53.0262396, -0.1195814], "label": "BLOX 3D", "short": "3D", "view": "compute"},
@@ -133,9 +137,13 @@ def png_data(path):
 def client_map(code):
     """The opening page of /clients/<code>/: atlas/client_map/map.html filled in from the site's entry in CLIENT_MAPS."""
     site, what = CLIENT_MAPS[code], "atlas/client_map/map.html"
-    badged, views = sorted(b["view"] for b in site["badges"]), sorted(CLIENT_PAGES[f"/clients/{code}/"].get("views", {}))
+    # a badge opens one of the page's views (?view=), or, with "href", a public page outside the sign-in (/twins/)
+    badged, views = sorted(b["view"] for b in site["badges"] if "view" in b), sorted(CLIENT_PAGES[f"/clients/{code}/"].get("views", {}))
     if badged != views:
         raise PageError(f"{what}: {code} needs a badge for each of its views, and no other (badges {badged}, views {views})")
+    for b in site["badges"]:
+        if ("view" in b) == ("href" in b) or ("href" in b and not re.fullmatch(r"/twins/[a-z0-9-]+/", b["href"])):
+            raise PageError(f"{what}: {code}'s badge {b['label']!r} needs a view, or an href to a page under /twins/")
     style, bar = client_bar(site["kick"], site["place"])
     config = {"at": site["at"], "zoom": site["zoom"], "nativeZoom": site.get("nativeZoom", 19), "badges": site["badges"]}
     page = (CLIENT_MAP / "map.html").read_text(encoding="utf-8")
@@ -490,6 +498,17 @@ def model(pack, key):
         page = once(page, "</head>", f"<style>{css}</style></head>", view["file"])
         page = once(page, "</body>", packs.GATE_HTML.format(url=packs.PORTAL_URL) + "</body>", view["file"])
     return page
+
+
+# The site twins, at /twins/<code>/, open to anyone with the link: no sign-in runs there (the gate takes /clients/,
+# /team/ and /access/ only). Each is noindex, in its HTML and by its rule in root/_headers, which also sets its policy.
+# KLD's: the Gaussian-splat capture of the powerhouse with the proposed data centre in X-ray (kld_twin.html), which
+# fetches its three files by the five-minute URLs /twins/kld/assets signs (netlify/edge-functions/kld-twin-assets.js).
+# The KLD map's BLOX 3D badge links here.
+def twin_pages():
+    """{site path: text} for the public site twins."""
+    page = once(source("kld_twin.html"), "<title>Kinlochdamph twin</title>", "<title>KLD — 3D Site Twin</title>", "kld_twin.html")
+    return {"twins/kld/index.html": noindex(page, "kld_twin.html")}
 
 
 def investor_pages():

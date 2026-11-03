@@ -596,9 +596,9 @@ def put_map(name):
 
 
 def put_pages():
-    """The client atlases, the team's pages, the investor packs and the standalone models (pages.py)."""
+    """The client atlases, the team's pages, the investor packs, the standalone models and the site twins (pages.py)."""
     try:
-        built = {**pages.client_pages(), **pages.investor_pages()}
+        built = {**pages.client_pages(), **pages.investor_pages(), **pages.twin_pages()}
     except pages.PageError as e:
         fail(str(e))
     for rel, text in built.items():
