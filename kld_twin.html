@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Kinlochdamph twin</title>
-<meta name="description" content="Gaussian-splat capture of the Kinlochdamph powerhouse with an X-ray view of the proposed in-room data centre.">
+<meta name="description" content="Gaussian-splat capture of the Kinlochdamph powerhouse, outside and in, with the proposed in-room data centre.">
 <meta name="theme-color" content="#1F5F7F">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22><circle cx=%228%22 cy=%228%22 r=%227%22 fill=%22%231F5F7F%22/></svg>">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
@@ -66,6 +66,17 @@
   button.t:hover { background: var(--accent-soft); }
   button.t[aria-pressed="true"]:hover { background: var(--accent); }
   button.t:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  button.t.go { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; padding: 9px 16px; }
+  button.t.go:hover { filter: brightness(1.08); background: var(--accent); }
+  button.t:disabled { opacity: .55; cursor: progress; }
+  body.inside .out-only, body:not(.inside) .in-only { display: none !important; }
+  #toast { position: fixed; left: 50%; bottom: calc(40px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 7; max-width: calc(100vw - 32px);
+           background: var(--panel); color: var(--panel-fg); border: 1px solid var(--line); border-radius: 999px; padding: 8px 16px; font: 500 12.5px/1.3 var(--font-ui);
+           font-variant-numeric: tabular-nums; box-shadow: 0 2px 10px rgba(0,0,0,.25); }
+  #toast[hidden] { display: none; }
+  #toast.err { border-color: #c0392b; }
+  #fade { position: fixed; inset: 0; background: var(--bg); opacity: 0; pointer-events: none; z-index: 4; transition: opacity .25s ease; }
+  #fade.on { opacity: 1; }
   #notes { position: fixed; left: max(16px, env(safe-area-inset-left, 0px)); bottom: calc(30px + env(safe-area-inset-bottom, 0px)); z-index: 5; max-width: min(520px, calc(100vw - 32px)); }
   #notes .card { font-size: 12px; color: var(--muted); padding: 8px 12px; }
   #notes b { color: var(--panel-fg); font-weight: 600; }
@@ -83,7 +94,7 @@
   #loadmsg { font-variant-numeric: tabular-nums; }
   @media (max-width: 520px) { #notes { display: none; } h1 { font-size: 15px; } #strip .cap { display: none; } .sub { display: none; } }
   @media (max-height: 560px) { #notes { display: none; } }
-  @media (prefers-reduced-motion: reduce) { #bar i { transition: none; } }
+  @media (prefers-reduced-motion: reduce) { #bar i, #fade { transition: none; } }
   #strip .back { color: #fff; text-decoration: none; font-size: 12.5px; font-weight: 600; padding: 4px 10px; margin-right: 12px;
                  border: 1px solid rgba(255,255,255,.35); border-radius: 999px; white-space: nowrap; }
   #strip .back:hover, #strip .back:focus-visible { background: rgba(255,255,255,.12); outline: none; }
@@ -97,15 +108,18 @@
 
 <div id="ui">
   <div class="card">
-    <p class="eyebrow">RenewaBlox · Kinlochdamph hydro</p>
-    <h1>Powerhouse twin and in-room data centre</h1>
-    <p class="sub">Gaussian-splat capture of the powerhouse and its surroundings. Switch on X-ray to see the proposed racks and cooling plant through the walls.</p>
-    <div class="row">
+    <p class="eyebrow out-only">RenewaBlox · Kinlochdamph hydro</p>
+    <p class="eyebrow in-only">RenewaBlox · Kinlochdamph hydro · inside</p>
+    <h1 class="out-only">Powerhouse twin and in-room data centre</h1>
+    <h1 class="in-only">Inside the powerhouse</h1>
+    <p class="sub out-only">Gaussian-splat capture of the powerhouse and its surroundings. Switch on X-ray to see the proposed racks and cooling plant through the walls.</p>
+    <p class="sub in-only">Drone capture of the hall, with the proposed racks and cooling plant drawn in place.</p>
+    <div class="row out-only">
       <span class="k">Show</span>
       <button class="t" id="b-xray" aria-pressed="false">X-ray</button>
       <button class="t" id="b-hall" aria-pressed="true">Hall outline</button>
     </div>
-    <div class="row">
+    <div class="row out-only">
       <span class="k">View</span>
       <button class="t v" data-v="overview" aria-pressed="true">Overview</button>
       <button class="t v" data-v="approach" aria-pressed="false">Approach</button>
@@ -113,11 +127,25 @@
       <button class="t v" data-v="ground" aria-pressed="false">Ground level</button>
       <button class="t v" data-v="dc" aria-pressed="false">Data centre</button>
     </div>
+    <div class="row in-only">
+      <span class="k">View</span>
+      <button class="t v" data-v="door" aria-pressed="false">From the door</button>
+      <button class="t v" data-v="racks" aria-pressed="false">Along the racks</button>
+      <button class="t v" data-v="cooling" aria-pressed="false">Cooling corner</button>
+    </div>
+    <div class="row">
+      <button class="t go out-only" id="b-in" disabled>Step inside</button>
+      <button class="t go in-only" id="b-out">Step outside</button>
+    </div>
   </div>
 </div>
 
-<div id="notes"><div class="card"><b>Site capture, June 2026.</b> Drag to orbit, scroll or pinch to zoom, right-drag or two-finger drag to pan.
-  <span class="xr" id="xrnote">Data-centre layout as taped out on site; positions about ±0.2 m; rack height under confirmation.</span></div></div>
+<div id="notes"><div class="card"><span class="out-only"><b>Site capture, June 2026.</b> Drag to orbit, scroll or pinch to zoom, right-drag or two-finger drag to pan.
+  <span class="xr" id="xrnote">Data-centre layout as taped out on site; positions about ±0.2 m; rack height under confirmation.</span></span>
+  <span class="in-only"><b>Interior capture.</b> Drag to look around, scroll or pinch to zoom. The view stays where the drone flew, about 2.4 to 3.4 m up, where the capture holds together.
+  Layout as taped out on site; positions about ±0.2 m; rack height under confirmation.</span></div></div>
+<div id="fade"></div>
+<div id="toast" role="status" aria-live="polite" hidden></div>
 
 <div id="foot">Kinlochdamph powerhouse · captured 8 June 2026 · RenewaBlox</div>
 
@@ -135,25 +163,38 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
-import { SplatMesh, SparkRenderer } from '@sparkjsdev/spark';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { SplatMesh, SparkRenderer, SplatEdit, SplatEditSdf, SplatEditSdfType, SplatEditRgbaBlendMode } from '@sparkjsdev/spark';
 
-// ---- assets: the splat and the two GLBs sit in a private Supabase bucket, never in this repository. On the Atlas the
-// page asks /twins/kld/assets for short-lived signed URLs before it loads anything; no URL, token or key is written
-// into the page. window.KLD_SPLAT_URL / KLD_KIT_URL / KLD_HALL_URL override them for local tests.
+// ---- assets: the two splats and the two GLBs sit in a private Supabase bucket, never in this repository. On the Atlas
+// the page asks /twins/kld/assets for short-lived signed URLs before it loads anything, and again when it steps inside
+// if the first ones are getting old; no URL, token or key is written into the page. window.KLD_SPLAT_URL / KLD_KIT_URL /
+// KLD_HALL_URL / KLD_INTERIOR_URL override them for local tests.
 const ASSETS = '/twins/kld/assets';
-const SPLAT_BYTES = 11618440;                                   // for the progress bar only
-const KIT_BYTES = 764824, HALL_BYTES = 794620;     // for the progress bar only
+const SPLAT_BYTES = 11618440;                       // for the progress bars only
+const KIT_BYTES = 682000, HALL_BYTES = 634592;      // the v5 GLBs
+const INTERIOR_BYTES = 14579755;                    // the interior capture, fetched only on "Step inside"
+const URL_FRESH_MS = 240000;                        // the signer's URLs last 300 s: ask again after 240 s
 
-// ---- frames. The splat is ENU metres, Z up (x east, y north). The GLBs are the same frame in glTF Y-up:
+// ---- frames. The splats are ENU metres, Z up (x east, y north). The GLBs are the same frame in glTF Y-up:
 // glTF (x, y, z) = (east, up, -north). E() takes ENU and returns a three.js vector in the GLBs' frame.
+// The hall's own frame (the layout's "model frame": x along the hall towards the ENE wall, y in from the main-door wall,
+// z up from the hall floor) sits in ENU by 20.5° about z and (-13.96, -5.22, -3.75). H() takes model metres.
 const E = (x, y, z) => new THREE.Vector3(x, z, -y);
+const ROT = 20.5 * Math.PI / 180, cR = Math.cos(ROT), sR = Math.sin(ROT);
+const toEnu = (x, y, z) => [cR * x - sR * y - 13.96, sR * x + cR * y - 5.22, z - 3.75];
+const H = (x, y, z) => E(...toEnu(x, y, z));
+const toModel = (v) => { const ex = v.x + 13.96, ny = -v.z + 5.22; return [cR * ex + sR * ny, -sR * ex + cR * ny, v.y + 3.75]; };
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const q = new URLSearchParams(location.search);
+// a phone or small tablet: inside, the exterior capture is unloaded to keep one splat in memory (?small=0/1 to test)
+const small = q.has('small') ? q.get('small') === '1' : window.matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 820;
 
 const stage = document.getElementById('stage');
 const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.setSize(stage.clientWidth, stage.clientHeight);
+renderer.autoClear = false;                         // the backdrop pass (inside) and the main pass share a frame
 stage.appendChild(renderer.domElement);
 const labelR = new CSS2DRenderer({ element: document.getElementById('labels') });
 labelR.setSize(stage.clientWidth, stage.clientHeight);
@@ -161,13 +202,19 @@ labelR.setSize(stage.clientWidth, stage.clientHeight);
 const scene = new THREE.Scene();
 const spark = new SparkRenderer({ renderer });   // Spark 2.x: created explicitly with the WebGL renderer and added to the scene
 scene.add(spark);
-scene.background = new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#1b2730');
+// no scene.background: a colour background clears the frame, and inside the backdrop pass comes first
+renderer.setClearColor(new THREE.Color(getComputedStyle(document.documentElement).getPropertyValue('--bg').trim() || '#1b2730'), 1);
 const camera = new THREE.PerspectiveCamera(50, stage.clientWidth / stage.clientHeight, 0.2, 600);
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true; controls.dampingFactor = 0.08; controls.maxPolarAngle = Math.PI * 0.56;
-controls.minDistance = 0.8; controls.maxDistance = 160; controls.zoomSpeed = 0.9;
+controls.enableDamping = true; controls.dampingFactor = 0.08; controls.zoomSpeed = 0.9;
+const OUTSIDE_LIMITS = { minDistance: 0.8, maxDistance: 160, minPolarAngle: 0, maxPolarAngle: Math.PI * 0.56, near: 0.2 };
+const INSIDE_LIMITS = { minDistance: 0.5, maxDistance: 5.5, minPolarAngle: Math.PI * 0.22, maxPolarAngle: Math.PI * 0.55, near: 0.05 };
+function limits(l) { Object.assign(controls, { minDistance: l.minDistance, maxDistance: l.maxDistance, minPolarAngle: l.minPolarAngle, maxPolarAngle: l.maxPolarAngle });
+  camera.near = l.near; camera.updateProjectionMatrix(); }
+limits(OUTSIDE_LIMITS);
 
-// ---- preset views (ENU metres: position, target). The "dc" preset is derived from the rack bounds once the kit has loaded.
+// ---- preset views. Outside: ENU metres (position, target); the "dc" preset is derived from the rack bounds once the kit
+// has loaded. Inside: model metres, every position inside the drone's flight envelope (see ENVELOPE).
 const VIEWS = {
   overview: { pos: [16, -34, 26], tgt: [-12, 0, -3] },                       // from above, south-east: building, apron, track, river and footbridge
   approach: { pos: [-5, -14.5, 0.3], tgt: [-13.7, -3.6, -2.4] },             // eye height on the track, coming up to the doors (track at z -1.3 there)
@@ -175,17 +222,40 @@ const VIEWS = {
   ground:   { pos: [-10.6, -9.4, -2.0], tgt: [-14.4, -4.0, -2.2], fov: 65 }, // eye height at the foot of the ramp on the apron, looking at the front wall
   dc:       { pos: [-7.2, -8.5, -1.2], tgt: [-12.1, 4.7, -2.6], xray: true }, // replaced from the rack bounds once the kit has loaded
 };
+const IN_VIEWS = {
+  door:    { pos: [2.1, 3.1, 2.62], tgt: [4.58, 4.13, 1.28] },   // just inside the main door, on film D's raised line: past y 3.08, where the door reveal smears
+  racks:   { pos: [1.4, 6.3, 2.75], tgt: [4.9, 3.0, 1.0] },     // the rack fronts from the skid end, the exchanger and its pipework in front (straight down the row, the door's smear fills the view)
+  cooling: { pos: [1.6, 7.3, 3.0], tgt: [3.7, 5.0, 0.85] },      // over the hall towards the exchanger, the skid and the spur to the Y-piece
+};
+const IN_FOV = 55;
+// The way in: from the apron in front of the main door (door x 1.71-5.21 in the model frame, west of the canopy at x 2.6)
+// through the doorway to the "door" view. No camera of either capture is lower than about 2.4 m here, so neither is this.
+const DOOR_OUT = { pos: [2.3, -2.6, 2.6], tgt: [2.9, 1.76, 1.6] }, DOOR_GAP = { pos: [2.25, 1.0, 2.55], tgt: [3.3, 4.0, 1.5] };
+// The interior capture holds together only where the drone flew: 2.4-3.4 m up, y 3.0-8.5 m in from the door wall
+// (nearer the door the reveal smears into a figure-like shape), x -1.0-4.3 m, and west of x 2.4 while over the canopy
+// (y < 5.85), whose top otherwise fills the view. The orbit target stays inside the hall.
+const ENVELOPE = { x: [-1.0, 4.3], y: [3.0, 8.5], z: [2.4, 3.4], canopy: { x: 2.4, y: 5.85 } };
+const HALL_BOX = { x: [-5.0, 6.0], y: [2.0, 10.4], z: [0.0, 2.8] };
 const DC_DIR = [Math.sin(159.5 * Math.PI / 180), Math.cos(159.5 * Math.PI / 180)];   // outward normal of the front (SSE) wall, ENU
+
 let tween = null;
-function animateCamera(pos, tgt, instant, fov = 50) {
-  if (reduced || instant) { camera.position.copy(pos); controls.target.copy(tgt); camera.fov = fov; camera.updateProjectionMatrix(); tween = null; return; }
-  tween = { p0: camera.position.clone(), t0: controls.target.clone(), p1: pos, t1: tgt, f0: camera.fov, f1: fov, start: performance.now() };
+function animateCamera(pos, tgt, instant, fov = 50, ms = 1100) {
+  return new Promise((res) => {
+    if (reduced || instant) { camera.position.copy(pos); controls.target.copy(tgt); camera.fov = fov; camera.updateProjectionMatrix(); tween = null; res(); return; }
+    if (tween && tween.done) tween.done();
+    tween = { p0: camera.position.clone(), t0: controls.target.clone(), p1: pos, t1: tgt, f0: camera.fov, f1: fov, start: performance.now(), ms, done: res };
+  });
 }
+function pressView(name) { document.querySelectorAll('button.v').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === name))); }
 function setView(name, instant) {
-  const v = VIEWS[name]; if (!v) return;
-  document.querySelectorAll('button.v').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === name)));
+  if (mode === 'inside') {
+    const v = IN_VIEWS[name]; if (!v) return;
+    pressView(name); return animateCamera(H(...v.pos), H(...v.tgt), instant, IN_FOV);
+  }
+  const v = VIEWS[name]; if (!v || mode !== 'outside') return;
+  pressView(name);
   if (v.xray) setXray(true);
-  animateCamera(E(...v.pos), E(...v.tgt), instant, v.fov || 50);
+  return animateCamera(E(...v.pos), E(...v.tgt), instant, v.fov || 50);
 }
 
 // ---- X-ray: the kit and hall GLBs drawn through the splat (no depth test) in RenewaBlox blue, kit brighter than hall.
@@ -196,7 +266,18 @@ const hallEdge = new THREE.LineBasicMaterial({ color: 0x6fb3d6, transparent: tru
 const xrayGroup = new THREE.Group(); xrayGroup.visible = false; scene.add(xrayGroup);
 const hallGroup = new THREE.Group(); xrayGroup.add(hallGroup);
 const kitGroup = new THREE.Group(); xrayGroup.add(kitGroup);
-let xray = false, hallOn = true, labelObj = null;
+// ---- inside: the kit solid in its own materials, lit, and behind everything the hall's linings, ceiling and beams as a
+// backdrop drawn in a pass of its own, so it fills what the capture lacks (it holds little above 2.5 m) and never hides it.
+const solidGroup = new THREE.Group(); solidGroup.visible = false; scene.add(solidGroup);
+const backdrop = new THREE.Scene();
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture; scene.environmentIntensity = 0.55;
+backdrop.environment = scene.environment; backdrop.environmentIntensity = 0.5;
+for (const s of [scene, backdrop]) {
+  s.add(new THREE.HemisphereLight(0xf2f6fa, 0x4a4640, 1.1));
+  const sun = new THREE.DirectionalLight(0xffffff, 1.2); sun.position.copy(H(0.5, 8.0, 6.0)); sun.target.position.copy(H(4.0, 3.5, 0)); s.add(sun, sun.target);
+}
+let xray = false, hallOn = true, labelObj = null, mode = 'outside', insideScene = false;   // mode: outside, going-in, inside, going-out
 const rackBox = new THREE.Box3();
 
 function ghost(root, group, fill, edge, edgeNames) {
@@ -225,54 +306,65 @@ function fail(what, err) {
   msg.textContent = `${what} (${(err && err.message) || err}). Check the connection and reload; if it persists, the asset is missing from the server.`;
   document.getElementById('bar').style.display = 'none';
 }
+const toast = document.getElementById('toast');
+function say(text, err) { toast.textContent = text; toast.classList.toggle('err', !!err); toast.hidden = !text; }
 
-async function assetUrls() {
-  if (window.KLD_SPLAT_URL || window.KLD_KIT_URL || window.KLD_HALL_URL) {
-    return { splat: window.KLD_SPLAT_URL || 'kld_twin/kld_web.sog', kit: window.KLD_KIT_URL || 'kld_twin/kld_dc_kit.glb',
-             hall: window.KLD_HALL_URL || 'kld_twin/kld_hall.glb' };
+const local = !!(window.KLD_SPLAT_URL || window.KLD_KIT_URL || window.KLD_HALL_URL || window.KLD_INTERIOR_URL);
+let signedAt = 0, URLS = null;
+async function assetUrls(fresh) {
+  if (local) {
+    return { splat: window.KLD_SPLAT_URL || 'kld_twin/kld_web.sog', kit: window.KLD_KIT_URL || 'kld_twin/kld_dc_kit_v5.glb',
+             hall: window.KLD_HALL_URL || 'kld_twin/kld_hall_v5.glb', interior: window.KLD_INTERIOR_URL || 'kld_twin/kld_interior_v1.sog' };
   }
+  if (URLS && !fresh && performance.now() - signedAt < URL_FRESH_MS) return URLS;
+  const t = performance.now();
   const r = await fetch(ASSETS, { credentials: 'same-origin', cache: 'no-store', headers: { accept: 'application/json' } });
   if (!r.ok) throw new Error('HTTP ' + r.status);
   const j = await r.json();
-  if (!j.splat || !j.kit || !j.hall) throw new Error('incomplete answer');
+  if (!j.splat || !j.kit || !j.hall || !j.interior) throw new Error('incomplete answer');
+  signedAt = t; URLS = j;
   return j;
 }
-let URLS = null;
 try { URLS = await assetUrls(); } catch (e) { fail('The twin’s files could not be opened', e); }
 const SPLAT_URL = URLS ? URLS.splat : '', KIT_URL = URLS ? URLS.kit : '', HALL_URL = URLS ? URLS.hall : '';
 
 const gltf = new GLTFLoader();
 const loadGlb = (url, k, bytes) => !url ? Promise.reject(new Error('no URL')) : new Promise((res, rej) => gltf.load(url, res, (e) => progress(k, e.loaded, bytes), (e) => rej(new Error('HTTP ' + (e && e.target && e.target.status || '') + ' ' + url))));
 
-// Spark loads .sog/.spz/.ply directly from a URL. The splat is Z-up: -90° about X puts it in the GLBs' Y-up frame.
+// Spark loads .sog/.spz/.ply directly from a URL. The splats are Z-up: -90° about X puts them in the GLBs' Y-up frame.
+function makeSplat(url, onProgress) {
+  let mesh = null;
+  const ready = new Promise((res, rej) => {
+    if (!url) { rej(new Error('no URL')); return; }
+    try {
+      mesh = new SplatMesh({ url, onProgress, onLoad: () => res(mesh) });
+      mesh.rotation.x = -Math.PI / 2;
+      if (mesh.initialized && mesh.initialized.catch) mesh.initialized.catch(rej);
+    } catch (e) { rej(e); }
+  });
+  return { mesh: () => mesh, ready };
+}
 let splat = null;
-const loadSplat = new Promise((res, rej) => {
-  if (!SPLAT_URL) { rej(new Error('no URL')); return; }
-  try {
-    splat = new SplatMesh({ url: SPLAT_URL,
-      onProgress: (e) => progress('splat', e.loaded || 0, SPLAT_BYTES),
-      onLoad: () => res(splat) });
-    splat.rotation.x = -Math.PI / 2;
-    if (splat.initialized && splat.initialized.catch) splat.initialized.catch(rej);
-    scene.add(splat);
-  } catch (e) { rej(e); }
-});
+const ext = makeSplat(SPLAT_URL, (e) => progress('splat', e.loaded || 0, SPLAT_BYTES));
+splat = ext.mesh(); if (splat) scene.add(splat);
+const loadSplat = ext.ready;
 
-const state = { ready: false, splatOk: false, kitOk: false, hallOk: false, racks: null, errors: [] };
+const state = { ready: false, splatOk: false, kitOk: false, hallOk: false, interiorOk: false, racks: null, errors: [] };
 window.KLD = state;   // for the test harness
-state.splat = () => splat; state.scene = scene; state.THREE = THREE;
+state.splat = () => splat; state.interior = () => interior; state.scene = scene; state.THREE = THREE; state.mode = () => mode;
 try {
   const r = await Promise.allSettled([loadSplat, loadGlb(KIT_URL, 'kit', KIT_BYTES), loadGlb(HALL_URL, 'hall', HALL_BYTES)]);
   if (r[0].status === 'fulfilled') { state.splatOk = true; progress('splat', SPLAT_BYTES, SPLAT_BYTES); }
   else fail('The site capture did not load', r[0].reason);
   if (r[1].status === 'fulfilled') {
-    const root = r[1].value.scene; ghost(root, kitGroup, kitMat, kitEdge, /^(rack_|heat_exch|duplex|isolation_valve|control_valve|canopy|cable_ladder)/);
+    const root = r[1].value.scene; ghost(root, kitGroup, kitMat, kitEdge, /^(rack_|heat_exch|duplex|isolation_valve|control_valve|canopy)/);
+    solidGroup.add(root);
     root.updateMatrixWorld(true);
     root.traverse((o) => { if (o.isMesh && /^rack_\d/.test(o.name)) rackBox.expandByObject(o, true); });
     if (!rackBox.isEmpty()) {
       const c = rackBox.getCenter(new THREE.Vector3());
       state.racks = { enu: [c.x, -c.z, c.y], size: rackBox.getSize(new THREE.Vector3()).toArray(), top: rackBox.max.y };
-      // label above the racks
+      // label above the racks: X-ray outside, always inside
       const el = document.createElement('div'); el.className = 'lbl';
       el.innerHTML = '4 × DCX racks · 104 × M63S++ · 748 kW (up to ~1 MW)<small>Layout as taped out on site, about ±0.2 m; rack height under confirmation</small>';
       labelObj = new CSS2DObject(el); labelObj.position.set(c.x, rackBox.max.y + 0.35, c.z); labelObj.visible = false; scene.add(labelObj);
@@ -283,24 +375,164 @@ try {
     }
     state.kitOk = true; progress('kit', KIT_BYTES, KIT_BYTES);
   } else fail('The data-centre model did not load', r[1].reason);
-  if (r[2].status === 'fulfilled') { ghost(r[2].value.scene, hallGroup, hallMat, hallEdge, /^(wall|roof|slab|floor|lin_|door|pen_|penstock|turbine|gen|miv|hpu|tail)/i); state.hallOk = true; progress('hall', HALL_BYTES, HALL_BYTES); }
+  if (r[2].status === 'fulfilled') {
+    const root = r[2].value.scene;
+    ghost(root, hallGroup, hallMat, hallEdge, /^(wall|roof|slab|floor|lin_|door|pen_|penstock|turbine|casing|tail)/i);
+    // the backdrop for inside: the hall's inner linings, ceiling, roof beams and lintels in their own materials
+    const keep = /^(lin_|ceil|beam_|lintel|wall_|fw$)/;
+    root.updateMatrixWorld(true);
+    root.traverse((o) => { if (o.isMesh && keep.test(o.name)) { const m = o.clone(); m.matrixAutoUpdate = false; m.matrix.copy(o.matrixWorld);
+      m.material = o.material.clone(); m.material.side = THREE.DoubleSide; backdrop.add(m); } });
+    state.hallOk = true; progress('hall', HALL_BYTES, HALL_BYTES);
+  }
   else fail('The building model did not load', r[2].reason);
 } catch (e) { fail('Loading failed', e); }
 
+// ---- the interior capture, loaded only on "Step inside". Two cuts, as on film D, both deletions in the model frame:
+// 321 flat white floaters over the open floor in front of the racks (x 2.7-4.72, y 1.7-3.6, z 0.05-1.7; it starts east of
+// the real rucksack and jacket at about x 2) and floaters in the air above the racks, under the canopy (x 4.5-6.1,
+// y 1.8-5.6, z 2.19-2.69). Nothing real stands in either.
+const CUTS = [[[2.7, 4.72], [1.7, 3.6], [0.05, 1.7]], [[4.5, 6.1], [1.8, 5.6], [2.19, 2.69]]];
+let interior = null, interiorLoad = null;
+function cutBoxes(mesh) {
+  const edit = new SplatEdit({ rgbaBlendMode: SplatEditRgbaBlendMode.MULTIPLY, softEdge: 0, sdfSmooth: 0 });
+  for (const [bx, by, bz] of CUTS) {
+    const sdf = new SplatEditSdf({ type: SplatEditSdfType.BOX, opacity: 0, color: new THREE.Color(1, 1, 1), radius: 0 });
+    const c = toEnu((bx[0] + bx[1]) / 2, (by[0] + by[1]) / 2, (bz[0] + bz[1]) / 2);
+    sdf.position.set(...c); sdf.rotation.z = ROT;                                     // the splat's own frame is ENU
+    sdf.scale.set((bx[1] - bx[0]) / 2, (by[1] - by[0]) / 2, (bz[1] - bz[0]) / 2);    // a BOX is ±1 in its own frame
+    edit.add(sdf);
+  }
+  mesh.add(edit);
+}
+function loadInterior() {
+  if (interiorLoad) return interiorLoad;
+  interiorLoad = (async () => {
+    const urls = await assetUrls(true);
+    say('Loading the interior… 0.0 of ' + (INTERIOR_BYTES / 1e6).toFixed(1) + ' MB');
+    const s = makeSplat(urls.interior, (e) => say(`Loading the interior… ${((e.loaded || 0) / 1e6).toFixed(1)} of ${(INTERIOR_BYTES / 1e6).toFixed(1)} MB`));
+    const mesh = s.mesh(); if (!mesh) throw new Error('no splat');
+    mesh.visible = false; scene.add(mesh); cutBoxes(mesh);
+    try { await s.ready; } catch (e) { scene.remove(mesh); throw e; }
+    interior = mesh; state.interiorOk = true; say('');
+    return mesh;
+  })();
+  interiorLoad.catch(() => { interiorLoad = null; });
+  return interiorLoad;
+}
+// back outside on a phone: the exterior capture was unloaded, so load it again
+let extReload = null;
+function reloadExterior() {
+  if (splat) return Promise.resolve(splat);
+  if (extReload) return extReload;
+  extReload = (async () => {
+    const urls = await assetUrls();
+    say('Loading the site capture…');
+    const s = makeSplat(urls.splat, (e) => say(`Loading the site capture… ${((e.loaded || 0) / 1e6).toFixed(1)} of ${(SPLAT_BYTES / 1e6).toFixed(1)} MB`));
+    const mesh = s.mesh(); if (!mesh) throw new Error('no splat');
+    mesh.visible = false; scene.add(mesh);
+    try { await s.ready; } catch (e) { scene.remove(mesh); throw e; }
+    splat = mesh; say(''); return mesh;
+  })();
+  extReload.finally(() => { extReload = null; });
+  return extReload;
+}
+
+// ---- stepping in and out
+const bIn = document.getElementById('b-in'), bOut = document.getElementById('b-out'), fade = document.getElementById('fade');
+const fadeTo = (on) => new Promise((res) => { fade.classList.toggle('on', on); setTimeout(res, reduced ? 0 : 260); });
+// after a swap Spark draws the old splat for a frame or two while it re-sorts: wait for that under the fade
+const settle = () => new Promise((res) => { let n = 0; const f = () => (++n >= 6 ? setTimeout(res, 120) : requestAnimationFrame(f)); requestAnimationFrame(f); });
+let before = null;
+function setInsideScene(inside) {
+  insideScene = inside; document.body.classList.toggle('inside', inside);
+  xrayGroup.visible = !inside && xray; solidGroup.visible = inside;
+  if (splat) splat.visible = !inside;
+  if (interior) interior.visible = inside;
+  if (labelObj) labelObj.visible = inside || xray;
+  limits(inside ? INSIDE_LIMITS : OUTSIDE_LIMITS);
+  controls.enablePan = !inside;
+}
+async function stepInside(instant) {
+  if (mode !== 'outside' || !state.ready) return;
+  mode = 'going-in'; bIn.disabled = true;
+  before = { pos: camera.position.clone(), tgt: controls.target.clone(), fov: camera.fov, view: [...document.querySelectorAll('button.v')].find(b => b.getAttribute('aria-pressed') === 'true') };
+  const got = loadInterior();
+  try {
+    await animateCamera(H(...DOOR_OUT.pos), H(...DOOR_OUT.tgt), instant, 50, 1400);
+    await got;
+    await animateCamera(H(...DOOR_GAP.pos), H(...DOOR_GAP.tgt), instant, IN_FOV, 900);
+    if (!instant) await fadeTo(true);
+    setInsideScene(true);
+    if (small && splat) { scene.remove(splat); splat.dispose(); splat = null; }   // one splat in memory on a phone
+    mode = 'inside'; pressView('door');
+    const fly = animateCamera(H(...IN_VIEWS.door.pos), H(...IN_VIEWS.door.tgt), instant, IN_FOV, 1400);   // under way before the clamp could act
+    if (!instant) { await settle(); fadeTo(false); }
+    await fly;
+    bOut.focus({ preventScroll: true });
+  } catch (e) {
+    console.warn('kld_twin: the interior did not load', e);
+    say('The interior could not be loaded. Check the connection and try again.', true);
+    setTimeout(() => say(''), 6000);
+    mode = 'outside'; fadeTo(false);
+    await animateCamera(before.pos, before.tgt, instant, before.fov);
+  } finally { bIn.disabled = false; }
+}
+async function stepOutside(instant) {
+  if (mode !== 'inside') return;
+  mode = 'going-out'; bOut.disabled = true;
+  try {
+    if (!splat) await reloadExterior();
+  } catch (e) {
+    console.warn('kld_twin: the site capture did not reload', e);
+    say('The site capture could not be loaded again. Reload the page to go outside.', true);
+    mode = 'inside'; bOut.disabled = false; return;
+  }
+  await animateCamera(H(...DOOR_GAP.pos), H(...DOOR_GAP.tgt), instant, IN_FOV, 900);
+  if (!instant) await fadeTo(true);
+  setInsideScene(false);
+  camera.position.copy(H(...DOOR_GAP.pos)); controls.target.copy(H(...DOOR_OUT.tgt)); camera.updateProjectionMatrix();
+  mode = 'outside';
+  if (!instant) { await settle(); fadeTo(false); }
+  const b = before || { pos: E(...VIEWS.overview.pos), tgt: E(...VIEWS.overview.tgt), fov: 50 };
+  document.querySelectorAll('button.v').forEach(x => x.setAttribute('aria-pressed', String(!!b.view && x === b.view)));
+  await animateCamera(b.pos, b.tgt, instant, b.fov, 1500);
+  bOut.disabled = false; bIn.focus({ preventScroll: true });
+}
+bIn.addEventListener('click', () => stepInside());
+bOut.addEventListener('click', () => stepOutside());
+window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && mode === 'inside') stepOutside(); });
+
+// inside, every frame: the camera back into the drone's envelope and the target into the hall
+const _m = new THREE.Vector3();
+function clampInside() {
+  const clamp = (v, [a, b]) => Math.min(b, Math.max(a, v));
+  let [x, y, z] = toModel(camera.position);
+  x = clamp(x, ENVELOPE.x); y = clamp(y, ENVELOPE.y); z = clamp(z, ENVELOPE.z);
+  if (x > ENVELOPE.canopy.x && y < ENVELOPE.canopy.y) {   // over the canopy: back out the shorter way
+    if (x - ENVELOPE.canopy.x < ENVELOPE.canopy.y - y) x = ENVELOPE.canopy.x; else y = ENVELOPE.canopy.y;
+  }
+  camera.position.copy(H(x, y, z));
+  const t = toModel(controls.target);
+  controls.target.copy(H(clamp(t[0], HALL_BOX.x), clamp(t[1], HALL_BOX.y), clamp(t[2], HALL_BOX.z)));
+}
+state.envelope = () => toModel(camera.position);
+
 if (state.splatOk) {
-  // debug: ?pos=e,n,u&tgt=e,n,u (ENU) or ?view=name, and ?xray=1
+  // debug: ?pos=e,n,u&tgt=e,n,u (ENU) or ?view=name, ?xray=1, ?inside=1 (straight inside, at ?view= if an inside view)
   if (q.get('xray') === '1') setXray(true);
   if (q.get('pos') && q.get('tgt')) { const p = q.get('pos').split(',').map(Number), t = q.get('tgt').split(',').map(Number); animateCamera(E(...p), E(...t), true, Number(q.get('fov') || 50));
     document.querySelectorAll('button.v').forEach(b => b.setAttribute('aria-pressed', 'false')); }
-  else setView(q.get('view') || 'overview', true);
+  else setView(VIEWS[q.get('view')] ? q.get('view') : 'overview', true);
   if (q.get('hall') === '0') setHall(false);
-  state.ready = true;
+  state.ready = true; bIn.disabled = false;
   if (!load.classList.contains('err')) { bar.style.width = '100%'; setTimeout(() => { load.hidden = true; }, 120); }
+  if (q.get('inside') === '1') stepInside(true).then(() => { if (IN_VIEWS[q.get('view')]) setView(q.get('view'), true); });
 }
 
 // ---- toggles
 function setXray(on) {
-  xray = on; xrayGroup.visible = on; if (labelObj) labelObj.visible = on;
+  xray = on; xrayGroup.visible = on && mode === 'outside'; if (labelObj) labelObj.visible = on || mode === 'inside';
   document.getElementById('b-xray').setAttribute('aria-pressed', String(on));
   document.getElementById('xrnote').classList.toggle('on', on);
 }
@@ -308,15 +540,21 @@ function setHall(on) { hallOn = on; hallGroup.visible = on; document.getElementB
 document.getElementById('b-xray').addEventListener('click', () => setXray(!xray));
 document.getElementById('b-hall').addEventListener('click', () => setHall(!hallOn));
 document.querySelectorAll('button.v').forEach(b => b.addEventListener('click', () => setView(b.dataset.v)));
-window.KLD.setView = setView; window.KLD.setXray = setXray; window.KLD.views = VIEWS;
+Object.assign(window.KLD, { setView, setXray, views: VIEWS, inViews: IN_VIEWS, stepInside, stepOutside, small });
 window.KLD.camera = () => ({ pos: [camera.position.x, -camera.position.z, camera.position.y], tgt: [controls.target.x, -controls.target.z, controls.target.y] });
+controls.addEventListener('start', () => { if (mode === 'inside' || mode === 'outside') { if (tween && tween.done) tween.done(); tween = null; } });
 
 // ---- loop
 let frames = 0; window.KLD.frames = () => frames;
 function frame() {
-  if (tween) { const tt = Math.min(1, (performance.now() - tween.start) / 1100); const e = tt < 0.5 ? 2 * tt * tt : 1 - Math.pow(-2 * tt + 2, 2) / 2;
-    camera.position.lerpVectors(tween.p0, tween.p1, e); controls.target.lerpVectors(tween.t0, tween.t1, e); camera.fov = tween.f0 + (tween.f1 - tween.f0) * e; camera.updateProjectionMatrix(); if (tt >= 1) tween = null; }
-  controls.update(); renderer.render(scene, camera); labelR.render(scene, camera); frames++;
+  if (tween) { const tt = Math.min(1, (performance.now() - tween.start) / tween.ms); const e = tt < 0.5 ? 2 * tt * tt : 1 - Math.pow(-2 * tt + 2, 2) / 2;
+    camera.position.lerpVectors(tween.p0, tween.p1, e); controls.target.lerpVectors(tween.t0, tween.t1, e); camera.fov = tween.f0 + (tween.f1 - tween.f0) * e; camera.updateProjectionMatrix();
+    if (tt >= 1) { const d = tween.done; tween = null; d(); } }
+  controls.update();
+  if (mode === 'inside' && !tween) clampInside();
+  renderer.clear();
+  if (insideScene) { renderer.render(backdrop, camera); renderer.clearDepth(); }
+  renderer.render(scene, camera); labelR.render(scene, camera); frames++;
   requestAnimationFrame(frame);
 }
 frame();

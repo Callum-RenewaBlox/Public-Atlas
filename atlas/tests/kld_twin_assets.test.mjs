@@ -48,25 +48,27 @@ const src = readFileSync(join(FN, 'kld-twin-assets.js'), 'utf8');
 assert.ok(!/ATLAS_SESSION_SECRET|rbx_atlas|cookie|edge-lib/.test(src.replace(/\/\*[\s\S]*?\*\//g, '')), 'no session code left in the signer');
 ok('the signer has no session check to depend on');
 
-// any visitor, signed in or not, gets three five-minute URLs
+// any visitor, signed in or not, gets four five-minute URLs
 for (const cookie of ['', 'rbx_atlas=garbage', 'rbx_atlas=a.b']) {
   reset();
   const res = await signer.default(req('/twins/kld/assets', { cookie }));
   assert.equal(res.status, 200, `status with cookie ${JSON.stringify(cookie)}`);
   const body = await res.json();
   assert.equal(body.expires_in, 300);
-  for (const [k, f] of [['splat', 'kld_web.sog'], ['kit', 'kld_dc_kit.glb'], ['hall', 'kld_hall.glb']])
+  const FILES = [['splat', 'kld_web.sog'], ['kit', 'kld_dc_kit_v5.glb'], ['hall', 'kld_hall_v5.glb'], ['interior', 'kld_interior_v1.sog']];
+  assert.deepEqual(Object.keys(body).sort(), ['expires_in', ...FILES.map(([k]) => k)].sort());
+  for (const [k, f] of FILES)
     assert.equal(body[k], `https://mojwqeqgwyldbghlzgbq.supabase.co/storage/v1/object/sign/site-twins/${FOLDER}/${f}?token=T`);
   assert.equal(sb.calls.length, 1);
   assert.equal(sb.calls[0].method, 'POST');
-  assert.deepEqual(sb.calls[0].body, { expiresIn: 300, paths: ['kld_web.sog', 'kld_dc_kit.glb', 'kld_hall.glb'].map(f => `${FOLDER}/${f}`) });
+  assert.deepEqual(sb.calls[0].body, { expiresIn: 300, paths: FILES.map(([, f]) => `${FOLDER}/${f}`) });
   assert.equal(sb.calls[0].headers.apikey, KEY);
   assert.equal(sb.calls[0].headers.authorization, `Bearer ${KEY}`);
   assert.equal(res.headers.get('cache-control'), 'private, no-store');
   assert.equal(res.headers.get('x-robots-tag'), 'noindex, nofollow');
   assert.ok(!JSON.stringify(body).includes(KEY), 'the key never reaches the visitor');
 }
-ok('any visitor gets the three signed URLs (5 min), never cached, noindex; the key stays server-side');
+ok('any visitor gets the four signed URLs (5 min), never cached, noindex; the key stays server-side');
 
 // only GET
 reset();
