@@ -527,7 +527,7 @@ header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2.5
   /* The Dispatch tab: four real GB days, half hour by half hour. Each half hour the CHP's 444 kW net goes to the BLOX
      when the market price is below the strike (the five-year mining value per MWh) and to the grid when it is above.
      assets/dispatch_days.json holds the days (Elexon MID and wind and solar outturn), the net output (kw for the
-     page's figures; mw and mwh_sp for the arithmetic) and the plate: its size, the rows the desk may crop, the
+     page's figures and bars; mwh_sp, the MWh a half hour, for the arithmetic) and the plate: its size, the rows the desk may crop, the
      routes of the power in plate pixels ([x, y, hidden]) and the labels, the BLOX's first. */
   const $ = (id) => document.getElementById(id);
   const LOOKS = ['day', 'dusk', 'night'];
@@ -862,7 +862,7 @@ header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2.5
     hdr(); addEventListener('resize', hdr);
   }
   function buildDays(){
-    $('days').innerHTML = D.days.map((dy, k) => `<button type="button" role="radio" aria-checked="false" data-k="${k}" title="${dy.dow} ${dy.label}: ${dy.t.toLowerCase()}"><b>${dy.k}</b><span>${dy.dow} ${dy.label.replace(/ \d{4}$/, '')}</span></button>`).join('');
+    $('days').innerHTML = D.days.map((dy, k) => `<button type="button" role="radio" aria-checked="false" data-k="${k}" title="${dy.dow} ${dy.label}: ${dy.t.charAt(0).toLowerCase() + dy.t.slice(1)}"><b>${dy.k}</b><span>${dy.dow} ${dy.label.replace(/ \d{4}$/, '')}</span></button>`).join('');
     const bs = [...document.querySelectorAll('#days button')];
     bs.forEach((b, k) => {
       b.addEventListener('click', () => setDay(k, !REDUCED));
