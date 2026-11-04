@@ -119,10 +119,12 @@ L.control.scale({imperial: false, position: 'bottomleft'}).addTo(map);
 map.setView(SITE.at, SITE.zoom);
 
 // A badge opens its view as the page's own address with ?view=, a full-window page of its own (each carries an
-// "Atlas" control to come back), so the map carries none of the models' weight.
-function openView(view) {
+// "Atlas" control to come back), so the map carries none of the models' weight. A badge with an href (a site twin,
+// public at /twins/<code>/) opens that page instead.
+function openView(b) {
+  if (b.href) { location.assign(b.href); return; }
   const u = new URL(location.href);
-  u.searchParams.set('view', view);
+  u.searchParams.set('view', b.view);
   u.hash = '';
   location.assign(u.toString());
 }
@@ -133,11 +135,11 @@ SITE.badges.forEach(function (b, i) {
     icon: L.divIcon({className: 'b3d-badge' + (right ? ' b3d-right' : ''), iconSize: [46, 46], iconAnchor: b.anchor || [23, 23],
       html: '<div class="ring"></div><div class="ring ring2"></div><img class="chip" alt="" src="' + CHIP + '">' +
             '<div class="cta">' + (right ? '<i>◀</i>' + f : f + '<i>▶</i>') + '</div>'})});
-  m.on('click', function () { openView(b.view); });
+  m.on('click', function () { openView(b); });
   m.addTo(map);
   // a badge is a button to the keyboard too (Leaflet gives it role=button and a tab stop, but no key handling)
   m.getElement().addEventListener('keydown', function (e) {
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openView(b.view); }
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openView(b); }
   });
   // one gentle nudge each shortly after load, staggered, so the pills catch the eye once without waving in unison
   setTimeout(function () {

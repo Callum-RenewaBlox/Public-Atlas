@@ -439,6 +439,7 @@ def build(names):
     put_map("investor")
     put_map("registered")
     put_team()
+    put_twins()
     put_pages()
     check_front(names)   # once every page is in place, so the section may link to any of them
     headers = site_headers()
@@ -595,10 +596,29 @@ def put_map(name):
     target.write_text(page, encoding="utf-8")
 
 
+def put_twins():
+    """The site twins' own files (twins/<code>/brand/: the brand font and wordmark, as the BLOX 3D pages carry them in
+    their assets/), served beside the twin pages pages.py builds. Their 3D files and media are never here: they sit
+    in the private bucket, behind each twin's signer."""
+    for path in sorted((HERE / "twins").rglob("*")):
+        if not path.is_file():
+            continue
+        rel = path.relative_to(HERE).as_posix()
+        if path.suffix not in TWIN_FILES:
+            fail(f"{rel}: a twin's folder holds only its brand files ({', '.join(sorted(TWIN_FILES))}); "
+                 "its models, splats and media go in the private bucket")
+        dest = OUT / rel
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(path, dest)
+
+
+TWIN_FILES = {".woff2", ".png"}
+
+
 def put_pages():
-    """The client atlases, the team's pages, the investor packs and the standalone models (pages.py)."""
+    """The client atlases, the team's pages, the investor packs, the standalone models and the site twins (pages.py)."""
     try:
-        built = {**pages.client_pages(), **pages.investor_pages()}
+        built = {**pages.client_pages(), **pages.investor_pages(), **pages.twin_pages()}
     except pages.PageError as e:
         fail(str(e))
     for rel, text in built.items():
