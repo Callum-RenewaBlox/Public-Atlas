@@ -127,7 +127,9 @@ CLIENT_MAPS = {
             "place": "Thainstone Energy Park, Inverurie AB51",
             "at": [57.26194, -2.36286], "zoom": 17,
             "tiles": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/6543/{z}/{y}/{x}",
-            "badges": [{"at": [57.26265, -2.36311], "label": "BLOX 3D", "short": "3D", "view": "3d"}]},
+            "badges": [{"at": [57.26265, -2.36311], "label": "BLOX 3D", "short": "3D", "view": "3d"},
+                       # BLOX Dispatch on the proposed BLOX compound, east of the reception hall (61 m E, 129 m S of the furnace)
+                       {"at": [57.26149, -2.36209], "label": "BLOX Dispatch", "short": "Dispatch", "view": "dispatch", "side": "right"}]},
     "lpf": {"title": "LPF Atlas — Little Pengethley AD", "kick": "BLOX Bitcoin mining data centre · LPF Atlas",
             "place": "Little Pengethley AD plant, Peterstow, Ross-on-Wye HR9 6NB", "at": [51.92393, -2.66883], "zoom": 18,
             "badges": [{"at": [51.9239708, -2.6686638], "label": "BLOX 3D", "short": "3D", "view": "compute"}]},
@@ -288,8 +290,9 @@ def client_pages():
     # which build.py copies into the same folder (CLIENTS), so they need no patch here.
     out["clients/wld/index.html"] = client_map("wld")
 
-    # THN: Thainstone Energy Park. The map's badge opens BLOX 3D, the Process Render (?view=3d), written for the Atlas:
-    # thn/process.html with its files in thn/assets/, which build.py copies into the same folder (CLIENTS).
+    # THN: Thainstone Energy Park. The map's badges open BLOX 3D, the Process Render (?view=3d), and BLOX Dispatch
+    # (?view=dispatch), both written for the Atlas: thn/process.html and thn/dispatch.html with their files in thn/assets/,
+    # which build.py copies into the same folder (CLIENTS).
     out["clients/thn/index.html"] = client_map("thn")
 
     # LPF: Little Pengethley AD. The map's badge opens BLOX 3D, the Compute Render (?view=compute), written for the Atlas
@@ -345,7 +348,7 @@ CLIENT_PAGES = {
     "/clients/kld/": {"client": "kld", "title": "KLD Atlas — Kinlochdamph", "list": True, "views": {"3d": "3d.html"}},
     "/clients/ihn/": {"client": "ihn", "title": "IHN Atlas — Islington heat network", "list": True, "views": {"3d": "3d.html"}},
     "/clients/wld/": {"client": "wld", "title": "WLD Atlas — Wildmore Renewables AD", "list": True, "views": {"compute": "compute.html", "dispatch": "dispatch.html"}},
-    "/clients/thn/": {"client": "thn", "title": "THN Atlas — Thainstone Energy Park", "list": True, "views": {"3d": "process.html"}},
+    "/clients/thn/": {"client": "thn", "title": "THN Atlas — Thainstone Energy Park", "list": True, "views": {"3d": "process.html", "dispatch": "dispatch.html"}},
     "/clients/lpf/": {"client": "lpf", "title": "LPF Atlas — Little Pengethley AD", "list": True, "views": {"compute": "compute.html"}},
     "/clients/reabold/west-newton/": {"client": "reabold", "title": "West Newton infrastructure map", "list": True},
     "/clients/reabold/reservoirs/": {"client": "reabold", "title": "UKCS reservoir atlas (prototype)", "list": True},
@@ -408,6 +411,10 @@ CLIENT_CSP = {
     "/clients/thn/process.html": ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
                                   "img-src 'self' data: blob:; font-src 'self'; connect-src 'self' blob:; media-src 'self'; "
                                   "worker-src 'none'; frame-src 'none'; " + _END),
+    # BLOX Dispatch (?view=dispatch), as WLD's: its script, plates, four days of data and font from the folder
+    "/clients/thn/dispatch.html": ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
+                                   "img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'none'; "
+                                   "worker-src 'none'; frame-src 'none'; " + _END),
     "/clients/lpf/": CLIENT_MAP_CSP,
     # the Compute Render (?view=compute), as WLD's: its script, model, flythrough, stills and font from the folder
     "/clients/lpf/compute.html": ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
