@@ -386,10 +386,10 @@ CLIENT_CSP = {
                                    "img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'none'; "
                                    "worker-src 'none'; frame-src 'none'; " + _END),
     "/clients/thn/": CLIENT_MAP_CSP.replace("https://server.arcgisonline.com", "https://wayback.maptiles.arcgis.com"),
-    # the Process Render (?view=3d): its script, font and wordmark from the folder; the scene is drawn in code, so it
-    # fetches no model
+    # the Process Render (?view=3d), as WLD's Compute Render: its script, model, flythrough, stills, font and wordmark
+    # from the folder, nothing else
     "/clients/thn/process.html": ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
-                                  "img-src 'self' data: blob:; font-src 'self'; connect-src 'self' blob:; media-src 'none'; "
+                                  "img-src 'self' data: blob:; font-src 'self'; connect-src 'self' blob:; media-src 'self'; "
                                   "worker-src 'none'; frame-src 'none'; " + _END),
     "/clients/reabold/west-newton/": ("default-src 'none'; script-src 'unsafe-inline' https://cdnjs.cloudflare.com; "
                                       "style-src 'unsafe-inline' https://cdnjs.cloudflare.com; "

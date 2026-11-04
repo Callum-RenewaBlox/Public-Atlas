@@ -4,19 +4,21 @@
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
 <title>THN Atlas — BLOX 3D</title>
-<meta name="description" content="Thainstone Process Render: the energy from waste plant at Thainstone Energy Park and the 28 MW BLOX peaker beside it, as one working system. A 3D model with the process as a thirteen-step walkthrough, and the process flow as a schematic."/>
+<meta name="description" content="Thainstone Process Render: the energy from waste plant at Thainstone Energy Park, with RenewaBlox&rsquo;s proposed 28 MW BLOX peaker inside its boundary. A 3D model built from the developer&rsquo;s planning drawings, with the process as a thirteen-step walkthrough, a flythrough and stills, and the process flow as a schematic."/>
 <meta name="robots" content="noindex, nofollow"/>
 <meta name="theme-color" content="#12475e"/>
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%2312475e'/%3E%3Cpath%20d='M17.8%204.5L9%2017.6h5.6l-1.3%209.9L23%2014.1h-6.2z'%20fill='%23fff'/%3E%3C/svg%3E"/>
 <!-- The page is served at /clients/thn/?view=3d (the sign-in serves this file there) and, locally, as
      /clients/thn/process.html: both are in the folder its files sit in, so every address below is assets/… -->
+<link rel="preload" href="assets/thn_site_web.glb" as="fetch" crossorigin="anonymous"/>
 <style>
 /* ===================================================================
    RenewaBlox design system — Thainstone Process Render
    The same house bar, tabs, rail, caption and glass panels as the WLD
    and BRY Compute Renders, so the atlas and its renders read as one
-   product. The scene is three.js (assets/three-0.170.0.min.js), drawn
-   in code from the developer's published model and process description.
+   product. The scene is the Blender model's web export
+   (assets/thn_site_web.glb), loaded with three.js
+   (assets/three-0.170.0.min.js) as WLD's Compute Render loads its own.
    =================================================================== */
 @font-face{font-family:"Inter";font-style:normal;font-display:swap;font-weight:100 900;src:url(assets/inter.woff2) format("woff2")}
 :root{
@@ -43,6 +45,9 @@ body{display:flex;flex-direction:column;height:100dvh;font-family:var(--font);co
 ::selection{background:rgba(31,95,127,.22)}
 button{font-family:inherit}
 [hidden]{display:none!important}
+/* the proposal layer: RenewaBlox's parts and words carry data-proposal="1", the plant-alone words data-proposal="0" */
+body.noprop [data-proposal="1"]{display:none!important}
+body:not(.noprop) [data-proposal="0"]{display:none!important}
 
 /* ================================================================ header == */
 header{position:relative;flex:0 0 auto;z-index:5;padding:11px 20px;background:linear-gradient(180deg,#fff,#f8fbfc);
@@ -74,7 +79,7 @@ header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2.5
   .ptabs::-webkit-scrollbar{display:none}
   .ptabs button{flex:1 0 auto;justify-content:center;padding:6px 11px;font-size:12px}
 }
-@media (min-width:861px) and (max-width:1140px){ .logo,.divider{display:none} .ptabs button svg{display:none} }
+@media (min-width:861px) and (max-width:1240px){ .logo,.divider{display:none} .ptabs button svg{display:none} }
 @media (max-width:520px){ .logo,.divider{display:none} }
 @media (max-width:480px){ .ptabs button svg{display:none} }
 @media (max-width:400px){ .ptabs button{padding:6px 7px;font-size:11.5px} #backatlas span{display:none} #backatlas{padding:7px 9px} }
@@ -114,6 +119,9 @@ header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2.5
 #loading.hide{opacity:0;pointer-events:none}
 #loading::before{content:"";width:34px;height:34px;border-radius:50%;border:2.5px solid rgba(31,95,127,.18);border-top-color:var(--accent);animation:spin .85s linear infinite}
 #loading.failed::before{display:none}
+#loading .bar{width:180px;height:3px;border-radius:3px;background:rgba(31,95,127,.14);overflow:hidden}
+#loading .bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+#loading.failed .bar{display:none}
 #loading a{color:var(--accent);font-weight:700}
 @keyframes spin{to{transform:rotate(360deg)}}
 
@@ -121,6 +129,8 @@ header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2.5
   border-radius:var(--r-l);box-shadow:var(--sh-1)}
 .panel,.hint,#labels,#steps{opacity:0;transform:translateY(6px);transition:opacity .7s ease,transform .7s var(--ease)}
 body.ready .panel,body.ready .hint,body.ready #labels,body.ready #steps{opacity:1;transform:none}
+/* the schematic needs no model: its tab shows its panels and the strip at once */
+.tab-schem .panel,.tab-schem #steps{opacity:1;transform:none}
 
 /* the camera and model rail, down the left */
 #rail{left:16px;top:16px;width:198px;padding:8px;display:flex;flex-direction:column;gap:2px;max-height:calc(100% - 140px);overflow:auto;scrollbar-width:thin}
@@ -151,6 +161,8 @@ body.ready .panel,body.ready .hint,body.ready #labels,body.ready #steps{opacity:
 #cap-flows{display:flex;flex-wrap:wrap;gap:5px 12px;margin-top:9px;font-size:10.5px;font-weight:650;color:var(--ink-2)}
 #cap-flows span{display:inline-flex;align-items:center;gap:5px}
 #cap-flows i{width:16px;height:4px;border-radius:2px;display:block}
+/* a dashed key entry: the flow is proposed or future */
+#cap-flows i.d{background-image:linear-gradient(90deg,transparent 50%,rgba(255,255,255,.95) 50%)!important;background-size:6px 4px}
 
 .hint{position:absolute;z-index:5;left:50%;bottom:104px;translate:-50% 0;font-size:11px;font-weight:600;color:var(--muted);
   background:rgba(251,253,254,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);padding:5px 12px;border-radius:var(--r-pill);
@@ -159,9 +171,10 @@ body.moved .hint{opacity:0!important}
 .hint .s{display:none}
 
 /* --------------------------------------------------------------- the steps -- */
-/* the process as a strip along the bottom: thirteen numbered chips, Play, and the arrows */
+/* the process as a strip along the bottom: the numbered chips, Play, and the arrows */
 #steps{position:absolute;z-index:7;left:16px;right:16px;bottom:14px;display:flex;align-items:center;gap:8px;pointer-events:none}
 #steps > *{pointer-events:auto}
+.tab-media #steps{display:none}
 .sbtn{flex:0 0 auto;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--glass);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
   color:var(--brand);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;box-shadow:var(--sh-1);transition:background .15s,color .15s,border-color .15s}
 .sbtn svg{width:15px;height:15px;display:block}
@@ -181,7 +194,7 @@ body.moved .hint{opacity:0!important}
 /* the progress of the current step while Play runs: a hairline that fills along the chip's foot */
 .step .pr{position:absolute;left:0;bottom:0;height:2px;width:100%;background:rgba(255,255,255,.65);transform-origin:left;transform:scaleX(0)}
 .step[aria-current="true"] .pr{transform:scaleX(var(--pr,0))}
-/* a BLOX chip stands out: it is the one step that is RenewaBlox's */
+/* the BLOX chip stands out: it is the one step that is RenewaBlox's proposal */
 .step.blox .n{background:var(--brand);box-shadow:inset 0 0 0 1.5px var(--accent-l)}
 .step[aria-current="true"].blox .n{background:#fff;color:var(--brand)}
 @media (max-width:1300px){ .step .t{display:none} .step{flex:0 0 auto;justify-content:center;padding:6px 5px} .step .n{width:24px;height:24px} }
@@ -205,10 +218,15 @@ body.moved .hint{opacity:0!important}
   .hint .f{display:none} .hint .s{display:inline}
   #steps{left:10px;right:10px;bottom:10px;gap:6px}
   .sbtn{width:36px;height:36px}
+  /* the rail scrolls sideways: fade whichever edge has more beyond it */
+  #rail.more-r{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent)}
+  #rail.more-l{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px);mask-image:linear-gradient(90deg,transparent,#000 40px)}
+  #rail.more-l.more-r{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent)}
 }
 @media (max-height:500px) and (orientation:landscape){
   #caption{width:min(330px,45%);left:auto;top:10px} #caption p,#capmore{display:none} .hint{display:none}
   #rail{top:10px;max-width:50%}
+  .vidcard{max-width:calc(100% - 150px)} .vidcard video{max-height:calc(100dvh - 120px)}
 }
 
 /* -------------------------------------------------------------- schematic -- */
@@ -229,8 +247,10 @@ body.moved .hint{opacity:0!important}
 #schem.focus .node:not(.on) rect,#schem.focus .node:not(.on) text{opacity:.42}
 #schem .flow{fill:none;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
 #schem .flow.dash{stroke-dasharray:7 9;animation:flowdash 1.1s linear infinite}
+#schem .flow.lite{stroke-width:2.2;stroke-dasharray:3 7}
 #schem.focus .flow:not(.on){opacity:.18}
 #schem .flow.on{stroke-width:4}
+#schem .flow.lite.on{stroke-width:2.8}
 #schem .ext text{font-size:11.5px;font-weight:650;fill:var(--muted)}
 #schem .ext path{fill:none;stroke:var(--muted-2);stroke-width:1.2;stroke-dasharray:3 4}
 #schem .key text{font-size:11.5px;font-weight:600;fill:var(--ink-2)}
@@ -238,6 +258,37 @@ body.moved .hint{opacity:0!important}
 #schem .arrow{fill:currentColor}
 @keyframes flowdash{to{stroke-dashoffset:-16}}
 @media (prefers-reduced-motion:reduce){ #schem .flow.dash{animation:none} }
+
+/* ------------------------------------------------------------ flythrough -- */
+.vidcard{background:#0d1b23;border-radius:var(--r-l);overflow:hidden;box-shadow:var(--sh-2)}
+video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspect-ratio:16/9;background:#0d1b23}
+
+/* ---------------------------------------------------------------- stills -- */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.still{position:relative;margin:0;padding:0;border:0;text-align:left;cursor:zoom-in;background:var(--surface);border-radius:var(--r-l);overflow:hidden;
+  box-shadow:var(--sh-1);font:inherit;color:inherit;transition:transform .18s var(--ease),box-shadow .18s;
+  display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch}
+.still:hover{transform:translateY(-2px);box-shadow:var(--sh-2)}
+.still img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:var(--tint-2)}
+.still > span{display:block;padding:11px 14px 13px;font-size:12.5px;line-height:1.5;color:var(--muted)}
+.still > span b{display:block;color:var(--ink);font-size:13.5px;font-weight:700;margin-bottom:1px}
+/* the tag on a still that shows RenewaBlox's proposal: over the picture, which itself stays a clean copy of the render */
+.chip{position:absolute;left:10px;top:10px;z-index:1;font:750 9.6px/1 var(--font);font-style:normal;letter-spacing:.12em;text-transform:uppercase;
+  color:#fff;background:rgba(18,71,94,.88);padding:5px 8px 5px;border-radius:var(--r-pill);box-shadow:0 1px 3px rgba(0,0,0,.25);pointer-events:none;white-space:nowrap}
+.sub .chip{position:static;display:inline-block;vertical-align:1px;box-shadow:none;padding:3px 7px}
+#lb{position:fixed;inset:0;z-index:50;background:rgba(9,20,26,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;padding:56px 64px 22px}
+#lb-fig{position:relative;margin:0;max-width:100%;min-height:0}
+#lb-img{display:block;max-width:calc(100vw - 128px);max-height:calc(100dvh - 170px);border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.5);object-fit:contain}
+#lb .cap{color:#cfdbe2;font-size:13px;line-height:1.5;text-align:center;max-width:760px}
+#lb .cap b{display:block;color:#fff;margin-bottom:2px}
+#lb button{position:absolute;border:0;cursor:pointer;color:#fff;background:rgba(255,255,255,.12);border-radius:var(--r-pill);font:650 13px var(--font);
+  transition:background .15s}
+#lb button:hover{background:rgba(255,255,255,.24)}
+#lb .x{top:14px;right:16px;padding:8px 14px}
+#lb .pv,#lb .nx{top:50%;translate:0 -50%;width:42px;height:42px;font-size:18px}
+#lb .pv{left:12px} #lb .nx{right:12px}
+@media (max-width:620px){ #lb{padding:56px 10px 70px} #lb-img{max-width:calc(100vw - 20px);max-height:calc(100dvh - 230px)} #lb .pv,#lb .nx{top:auto;bottom:16px;translate:none} }
 
 /* ----------------------------------------------------------------- facts -- */
 .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
@@ -254,6 +305,9 @@ body.moved .hint{opacity:0!important}
 .kpi .v{font-size:24px;font-weight:750;color:var(--brand);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
 .kpi .k{font-size:12px;color:var(--muted);margin-top:2px}
 .foot{margin-top:22px;font-size:11.5px;color:var(--muted);line-height:1.6}
+.page h2.sec{margin-top:38px}
+/* a page scrolls clear of the Assumptions button in the corner */
+.page .wrap{padding-bottom:84px}
 
 /* ----------------------------------------------------------- assumptions -- */
 #as-open{position:fixed;z-index:10;right:16px;bottom:70px;display:inline-flex;align-items:center;gap:7px;
@@ -262,7 +316,8 @@ body.moved .hint{opacity:0!important}
   transition:background .15s,color .15s,border-color .15s}
 #as-open:hover{background:var(--brand);border-color:var(--brand);color:#fff}
 #as-open svg{width:14px;height:14px;display:block;flex:0 0 auto}
-@media (max-width:860px){ #as-open{right:10px;bottom:62px} }
+.tab-media #as-open{bottom:16px}
+@media (max-width:860px){ #as-open{right:10px;bottom:62px} .tab-media #as-open{bottom:10px} }
 #as-sheet{position:fixed;inset:0;z-index:40;background:rgba(9,20,26,.5);display:flex;align-items:flex-start;justify-content:center;
   padding:24px 16px;overflow:auto;overscroll-behavior:contain}
 #as-sheet .sheet{position:relative;width:100%;max-width:1180px;margin:auto 0;background:var(--tint);border-radius:var(--r-l);box-shadow:var(--sh-2)}
@@ -287,12 +342,13 @@ body.moved .hint{opacity:0!important}
   <div class="logo"><img alt="RenewaBlox" src="assets/renewablox-wordmark.png"/></div>
   <div class="divider"></div>
   <div class="title">
-    <h1>Process Render: the energy from waste plant and the BLOX peaker</h1>
-    <p>Thainstone Energy Park · 200,000 tonnes a year of residual waste · 28 MW BLOX flexible demand · concept, November 2026</p>
+    <h1>Process Render: the energy from waste plant<span data-proposal="1"> and the proposed BLOX peaker</span></h1>
+    <p><span data-proposal="1">Thainstone Energy Park · up to 200,000 tonnes a year of residual waste · 28 MW BLOX peaker, proposed · concept, November 2026</span><span data-proposal="0">Thainstone Energy Park · up to 200,000 tonnes a year of residual waste · circa 30 MW exported · concept, November 2026</span></p>
   </div>
   <nav class="ptabs" id="ptabs" role="tablist" aria-label="What the page shows">
     <button type="button" role="tab" id="t-model" data-tab="model" aria-selected="true" aria-controls="p-model"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.8l5.6 3.1v6.2L8 14.2l-5.6-3.1V4.9z"/><path d="M2.4 4.9L8 8l5.6-3.1M8 8v6.2"/></svg>Model</button>
     <button type="button" role="tab" id="t-schem" data-tab="schem" aria-selected="false" aria-controls="p-schem" tabindex="-1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.8" y="2.4" width="4.4" height="3.6" rx=".9"/><rect x="9.8" y="2.4" width="4.4" height="3.6" rx=".9"/><rect x="5.8" y="10" width="4.4" height="3.6" rx=".9"/><path d="M4 6v2.2h8V6M8 8.2V10"/></svg>Schematic</button>
+    <button type="button" role="tab" id="t-media" data-tab="media" aria-selected="false" aria-controls="p-media" tabindex="-1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.8" y="3.2" width="12.4" height="9.6" rx="1.6"/><path d="M6.6 6v4l3.6-2z"/></svg>Flythrough &amp; stills</button>
   </nav>
 </header>
 
@@ -301,24 +357,25 @@ body.moved .hint{opacity:0!important}
   <section class="view" id="p-model" role="tabpanel" aria-labelledby="t-model">
     <nav class="panel" id="rail" aria-label="Camera and model" inert>
       <div class="rail-h">Camera</div>
-      <button type="button" data-v="overview" aria-current="true" title="The whole plant from the south-west, the BLOX compound in front (click again to reset the view)"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.8 11.4l6.2-3.4 6.2 3.4"/><path d="M1.8 11.4V5.2L8 1.8l6.2 3.4v6.2"/><path d="M8 8V1.8"/></svg><span>Overview</span></button>
-      <button type="button" data-v="site" title="The site in its setting: the river, the railway, the road and the town"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.2"/><path d="M1.8 8h12.4M8 1.8c2.2 2.3 2.2 10.1 0 12.4M8 1.8c-2.2 2.3-2.2 10.1 0 12.4"/></svg><span>Setting</span></button>
-      <button type="button" data-v="blox" title="The BLOX peaker compound"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.8" y="4.2" width="12.4" height="8.4" rx="1"/><path d="M8 4.2v8.4M4.6 7h1.2M10.2 7h1.2"/></svg><span>BLOX</span></button>
+      <button type="button" data-v="overview" aria-current="true" title="The whole plant from over the Don to the south-east, with the proposed BLOX compound by the river (click again to reset the view)"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.8 11.4l6.2-3.4 6.2 3.4"/><path d="M1.8 11.4V5.2L8 1.8l6.2 3.4v6.2"/><path d="M8 8V1.8"/></svg><span>Overview</span></button>
+      <button type="button" data-v="site" title="The site in its setting: the river, the estate road, the railway, the A96, Port Elphinstone and Inverurie"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.2"/><path d="M1.8 8h12.4M8 1.8c2.2 2.3 2.2 10.1 0 12.4M8 1.8c-2.2 2.3-2.2 10.1 0 12.4"/></svg><span>Setting</span></button>
+      <button type="button" data-v="blox" data-proposal="1" title="The proposed BLOX compound, east of the reception hall"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.8" y="4.2" width="12.4" height="8.4" rx="1"/><path d="M8 4.2v8.4M4.6 7h1.2M10.2 7h1.2"/></svg><span>BLOX</span></button>
       <div class="sep"></div>
       <div class="rail-h">Show</div>
       <button type="button" class="tg" id="b-flows" aria-pressed="true" title="The flows between the parts of the plant, in the process key's colours"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 11.5c2.5 0 2.5-7 5-7s2.5 7 5 7 2.5-7 5-7" transform="translate(-1.5 0) scale(.95 1)"/></svg><span>Flows</span></button>
-      <button type="button" class="tg" id="b-xray" aria-pressed="false" title="Make the halls see-through, to show the furnace, the boiler, the turbine and the waste processing inside"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.8" y="4.2" width="12.4" height="8.4" rx="1" stroke-dasharray="2.1 1.7"/><path d="M5 7h6M5 9.6h6"/></svg><span>X-ray</span></button>
+      <button type="button" class="tg" id="b-xray" aria-pressed="false" title="Make the halls see-through, to show the furnace and boiler, the turbine, the waste processing and the heat pumps inside"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.8" y="4.2" width="12.4" height="8.4" rx="1" stroke-dasharray="2.1 1.7"/><path d="M5 7h6M5 9.6h6"/></svg><span>X-ray</span></button>
       <button type="button" class="tg" id="b-labels" aria-pressed="false" title="Show or hide the labels"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 14.4s4.6-4.2 4.6-7.6A4.6 4.6 0 0 0 3.4 6.8c0 3.4 4.6 7.6 4.6 7.6z"/><circle cx="8" cy="6.8" r="1.6"/></svg><span>Labels</span></button>
-      <button type="button" class="tg" id="b-dusk" aria-pressed="false" title="The plant after sunset, its lights and the BLOX glow lines on"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13.2 9.6A5.6 5.6 0 1 1 6.4 2.8a4.6 4.6 0 0 0 6.8 6.8z"/></svg><span>Dusk</span></button>
+      <button type="button" class="tg" id="b-dusk" aria-pressed="false" title="The plant after sunset, its lights on, and the proposed BLOX compound&rsquo;s glow lines"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13.2 9.6A5.6 5.6 0 1 1 6.4 2.8a4.6 4.6 0 0 0 6.8 6.8z"/></svg><span>Dusk</span></button>
       <button type="button" class="tg" id="b-rot" aria-pressed="false" title="Turn the view slowly round the plant; any camera button stops it"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13.4 8A5.4 5.4 0 1 1 11.8 4.2"/><path d="M13.6 2.2v3h-3"/></svg><span>Turn slowly</span></button>
+      <button type="button" class="tg" id="b-prop" aria-pressed="true" title="Show or hide RenewaBlox&rsquo;s proposal: the BLOX compound, its links to the plant and step 13"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.8l6 3.2-6 3.2-6-3.2z"/><path d="M2 8.2l6 3.2 6-3.2"/><path d="M2 11.2l6 3.2 6-3.2" stroke-dasharray="1.8 1.6"/></svg><span>Proposal</span></button>
     </nav>
-    <div id="gl" aria-label="3D model of the Thainstone energy from waste plant, with the BLOX peaker compound beside it, between the railway and the River Don" role="img"></div>
+    <div id="gl" aria-label="3D model of the Thainstone energy from waste plant, between the estate road and the River Don, with RenewaBlox&rsquo;s proposed BLOX compound inside its boundary" role="img"></div>
     <div id="labels"></div>
-    <div id="loading" role="status"><span id="loadmsg">Building the plant</span></div>
+    <div id="loading" role="status"><span id="loadmsg">Loading the plant</span><div class="bar"><i id="loadbar"></i></div></div>
 
     <div class="panel" id="caption" aria-live="polite" inert>
-      <div class="k" id="cap-k"><i></i><span>Overview</span></div>
-      <h2 id="cap-h">One plant, two outlets for its power</h2>
+      <div class="k" id="cap-k"><i></i><span>Camera · Overview</span></div>
+      <h2 id="cap-h">The plant, and the proposed BLOX beside it</h2>
       <p id="cap-p"></p>
       <div id="cap-flows"></div>
       <button type="button" id="capmore">More</button>
@@ -328,10 +385,46 @@ body.moved .hint{opacity:0!important}
 
   <!-- ========================================================= schematic -->
   <section class="view" id="p-schem" role="tabpanel" aria-labelledby="t-schem" hidden>
-    <div id="schem-wrap"><svg id="schem" viewBox="0 0 1480 560" role="img" aria-label="Process flow schematic: the plant's thirteen steps and the flows between them"></svg></div>
+    <div id="schem-wrap"><svg id="schem" viewBox="0 0 1480 560" role="img" aria-label="Process flow schematic: the developer&rsquo;s twelve steps and the proposed BLOX, and the flows between them"></svg></div>
   </section>
 
-  <!-- the steps strip serves both tabs -->
+  <!-- ============================================== flythrough & stills -->
+  <section class="view page" id="p-media" role="tabpanel" aria-labelledby="t-media" tabindex="0" hidden>
+    <div class="wrap">
+      <h2>Flythrough</h2>
+      <p class="sub" data-proposal="1">99 seconds, rendered from the same model as the 3D view: in over the plant and the proposed BLOX compound beside it, the roofs coming off into the cutaway, then the developer&rsquo;s twelve steps in order, each with its flows in the key colours, and RenewaBlox&rsquo;s proposed BLOX as a thirteenth, where the export gives way to the BLOX; the close shows the whole process lit. Each step is captioned; the film gives no figures.</p>
+      <p class="sub" data-proposal="0">99 seconds, rendered from the same model as the 3D view, with the developer&rsquo;s twelve steps in order. The film was made with RenewaBlox&rsquo;s proposal in it: the proposed BLOX compound is in view from the opening, and is the thirteenth step. Each step is captioned; the film gives no figures.</p>
+      <div class="vidcard">
+        <video id="fly" controls preload="none" playsinline poster="assets/flythrough_poster.jpg" aria-label="The process film: the plant&rsquo;s twelve steps, then the proposed BLOX">
+          <source src="assets/thn_process_720p.mp4" type="video/mp4"/>
+          This browser cannot play the video. <a href="assets/thn_process_720p.mp4">Download the MP4</a>.
+        </video>
+      </div>
+
+      <h2 id="stills" class="sec">Stills</h2>
+      <p class="sub" data-proposal="1">Path-traced views of the model, with the light and materials the browser cannot show. The views tagged <i class="chip">RenewaBlox proposal</i> show the proposed BLOX compound or its links; most have a twin with the developer&rsquo;s plant alone. Click one to see it full size; the arrow keys step through them.</p>
+      <p class="sub" data-proposal="0">Path-traced views of the developer&rsquo;s plant, with the light and materials the browser cannot show. Click one to see it full size; the arrow keys step through them.</p>
+      <div class="grid" id="gallery">
+        <button type="button" class="still" data-proposal="1" data-full="assets/st_hero.jpg"><img src="assets/st_hero_thumb.jpg" alt="The energy from waste plant from across the River Don, with the proposed BLOX compound in front" loading="lazy"/><i class="chip">RenewaBlox proposal</i><span><b>The plant from across the Don</b>From the south-east, over the river: the reception and processing halls under their solar roofs, the boiler house with its roofline after Bennachie&rsquo;s profile, the stack, the heat station under its coolers, the heat stores and the office, with the proposed BLOX compound in front, inside the gabion wall</span></button>
+        <button type="button" class="still" data-full="assets/st_hero_plant.jpg"><img src="assets/st_hero_plant_thumb.jpg" alt="The energy from waste plant from across the River Don" loading="lazy"/><span><b>The plant from across the Don, alone</b><span data-proposal="1">The plant-only twin of &ldquo;The plant from across the Don&rdquo;: the</span><span data-proposal="0">The</span> developer&rsquo;s plant as its drawings show it, the yard east of the reception hall left open</span></button>
+        <button type="button" class="still" data-proposal="1" data-full="assets/st_hero_flows.jpg"><img src="assets/st_hero_flows_thumb.jpg" alt="The proposed power and heat links between the plant and the BLOX compound" loading="lazy"/><i class="chip">RenewaBlox proposal</i><span><b>The proposed links to the plant</b>From a little higher, beside the view across the Don: the 13.5 kV power link from the plant&rsquo;s switchroom along the footway to the compound (blue), and the heat pair from the compound&rsquo;s north-east corner along the gabion wall to the heat station (orange, out and back), both dashed as proposed. The routes are indicative</span></button>
+        <button type="button" class="still" data-proposal="1" data-full="assets/st_cutaway.jpg"><img src="assets/st_cutaway_thumb.jpg" alt="The plant cut away to show the process flows, with the proposed BLOX compound running" loading="lazy"/><i class="chip">RenewaBlox proposal</i><span><b>The process, cut away: the BLOX&rsquo;s hours</b>From the south-east, the halls cut away and the far walls kept, so the developer&rsquo;s twelve steps show in their key colours, from the fuel silos at the south end to the flue gas climbing the stack. Here export prices are low: the plant&rsquo;s power runs the proposed BLOX compound by the river, its heat pair runs to the heat station, and the export rests. The heat network beyond the site is dashed, as future</span></button>
+        <button type="button" class="still" data-proposal="1" data-full="assets/st_cutaway_export.jpg"><img src="assets/st_cutaway_export_thumb.jpg" alt="The plant cut away to show the process flows, exporting to the grid, the proposed BLOX compound idle" loading="lazy"/><i class="chip">RenewaBlox proposal</i><span><b>The process, cut away: export hours</b>The same view when export prices are high: the plant&rsquo;s power goes to the grid, drawn to the fence and dashed beyond it as the connection&rsquo;s route is still open, and the proposed BLOX compound stands idle</span></button>
+        <button type="button" class="still" data-full="assets/st_cutaway_plant.jpg"><img src="assets/st_cutaway_plant_thumb.jpg" alt="The plant cut away to show the process flows" loading="lazy"/><span><b>The process, cut away: the plant alone</b><span data-proposal="1">The plant-only twin of the two cutaways: the developer&rsquo;s twelve steps and their flows, without the BLOX compound or its links</span><span data-proposal="0">From the south-east, the halls cut away and the far walls kept, so the developer&rsquo;s twelve steps show in their key colours, from the fuel silos at the south end to the flue gas climbing the stack. The heat network beyond the site is dashed, as future</span></span></button>
+        <button type="button" class="still" data-proposal="1" data-full="assets/st_blox.jpg"><img src="assets/st_blox_thumb.jpg" alt="The proposed BLOX compound: two banks of containers either side of a spine of transformers" loading="lazy"/><i class="chip">RenewaBlox proposal</i><span><b>The proposed BLOX compound</b>From the east-south-east: sixteen 40 ft hydro-cooled containers in two banks of eight, their dry coolers on the roofs, either side of a spine of transformer kiosks, the switchgear house and the control container, with the heat recovery skid on the right by the wall and the reception hall and the office behind. The proposed layout keeps the hatched apron at the hall&rsquo;s east lorry door clear</span></button>
+        <button type="button" class="still" data-proposal="1" data-full="assets/st_dusk.jpg"><img src="assets/st_dusk_thumb.jpg" alt="The plant and the proposed BLOX compound at dusk, their lights on" loading="lazy"/><i class="chip">RenewaBlox proposal</i><span><b>At dusk</b>The view across the Don at blue hour: the wall lights and uplights on the timber, the office&rsquo;s glazing, the stack&rsquo;s obstruction lights and the town&rsquo;s windows beyond, and the proposed compound&rsquo;s light columns and glow lines. The lighting is assumed</span></button>
+        <button type="button" class="still" data-full="assets/st_dusk_plant.jpg"><img src="assets/st_dusk_plant_thumb.jpg" alt="The plant at dusk, its lights on" loading="lazy"/><span><b>At dusk, the plant alone</b><span data-proposal="1">The plant-only twin of &ldquo;At dusk&rdquo;</span><span data-proposal="0">The view across the Don at blue hour: the wall lights and uplights on the timber, the office&rsquo;s glazing, the stack&rsquo;s obstruction lights and the town&rsquo;s windows beyond. The lighting is assumed</span></span></button>
+        <button type="button" class="still" data-proposal="1" data-full="assets/st_setting.jpg"><img src="assets/st_setting_thumb.jpg" alt="The plant from high over the River Don, with Port Elphinstone and Inverurie beyond" loading="lazy"/><i class="chip">RenewaBlox proposal</i><span><b>The setting</b>From high over the Don to the south-south-east: the plant on its strip between the estate road and the river, the railway and the A96 to the west, the retained mill sheds to the north, and Port Elphinstone and Inverurie beyond. The proposed compound is the blue block by the river</span></button>
+        <button type="button" class="still" data-full="assets/st_setting_plant.jpg"><img src="assets/st_setting_plant_thumb.jpg" alt="The plant from high over the River Don, with Port Elphinstone and Inverurie beyond" loading="lazy"/><span><b>The setting, the plant alone</b><span data-proposal="1">The plant-only twin of &ldquo;The setting&rdquo;</span><span data-proposal="0">From high over the Don to the south-south-east: the plant on its strip between the estate road and the river, the railway and the A96 to the west, the retained mill sheds to the north, and Port Elphinstone and Inverurie beyond</span></span></button>
+        <button type="button" class="still" data-proposal="1" data-full="assets/st_bennachie.jpg"><img src="assets/st_bennachie_thumb.jpg" alt="The boiler house&rsquo;s roofline in front of Bennachie" loading="lazy"/><i class="chip">RenewaBlox proposal</i><span><b>Under Bennachie</b>From 1.2 km east-south-east, on a long lens: the boiler house&rsquo;s roofline under Mither Tap, the hill whose profile the design follows, 12 km to the west-north-west. The proposed compound&rsquo;s roof coolers just show behind the gabion wall at the lower left</span></button>
+        <button type="button" class="still" data-full="assets/st_bennachie_plant.jpg"><img src="assets/st_bennachie_plant_thumb.jpg" alt="The boiler house&rsquo;s roofline in front of Bennachie" loading="lazy"/><span><b>Under Bennachie, the plant alone</b><span data-proposal="1">The plant-only twin of &ldquo;Under Bennachie&rdquo;</span><span data-proposal="0">From 1.2 km east-south-east, on a long lens: the boiler house&rsquo;s roofline under Mither Tap, the hill whose profile the design follows, 12 km to the west-north-west</span></span></button>
+        <button type="button" class="still" data-full="assets/st_interior.jpg"><img src="assets/st_interior_thumb.jpg" alt="Inside the cutaway: the daily fuel silos, the furnace and the turbine with their flows" loading="lazy"/><span><b>Inside the boiler house and the turbine hall</b>Into the cutaway from over the turbine hall: the fuel (purple) arriving along the bridge into the two daily fuel silos, the furnace&rsquo;s glow at its viewing port, the steam (pink) to the turbine, its exhaust heat (orange) down to the condenser and on towards the heat station, the generator&rsquo;s power (blue), and the ash silos along the east wall. The equipment is illustrative</span></button>
+        <button type="button" class="still" data-full="assets/st_interior_close.jpg"><img src="assets/st_interior_close_thumb.jpg" alt="Close on the steam turbine, its steam pipe and the daily fuel silos" loading="lazy"/><span><b>The turbine and the daily fuel silos</b>Closer: the steam (pink) along its lagged pipe into the turbine, the exhaust heat (orange) turning down into the condenser, and the two daily fuel silos behind, fed from above. The equipment is illustrative, laid out from the developer&rsquo;s description</span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- the steps strip serves the model and the schematic -->
   <div id="steps" aria-label="The process, step by step">
     <button type="button" class="sbtn" id="s-prev" title="Previous step (←)" aria-label="Previous step"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.6L4.6 8 10 13.4"/></svg></button>
     <button type="button" class="sbtn" id="s-play" title="Play the process, step by step (space)" aria-pressed="false" aria-label="Play the process"><svg viewBox="0 0 16 16" fill="currentColor" class="pl"><path d="M4.2 2.6v10.8L13 8z"/></svg><svg viewBox="0 0 16 16" fill="currentColor" class="pa" hidden><path d="M3.6 2.8h3.2v10.4H3.6zM9.2 2.8h3.2v10.4H9.2z"/></svg></button>
@@ -346,51 +439,71 @@ body.moved .hint{opacity:0!important}
   <div class="sheet">
     <button type="button" id="as-x" aria-label="Close the assumptions">Close ✕</button>
     <div class="wrap">
-      <h2 id="as-h">What comes from the developer, and what is assumed</h2>
-      <p class="sub">So the people who know the plant can see at once what to trust. The process, its twelve steps and the key colours are the developer&rsquo;s own, from the project pages for the Integrated Resource Recovery Facility; the massing of the buildings follows the photograph of the planning model on the same pages; the ground is the former paper mill site between the railway and the River Don. The BLOX peaker is RenewaBlox&rsquo;s proposal. Everything else is a modelling choice, and this sheet says which.</p>
+      <h2 id="as-h"><span data-proposal="1">What comes from the developer, what RenewaBlox proposes, and what is assumed</span><span data-proposal="0">What comes from the developer, and what is assumed</span></h2>
+      <p class="sub">So the people who know the plant can see at once what to trust. The process, its twelve steps and the key colours are the developer&rsquo;s own, from the project pages; the buildings follow the developer&rsquo;s published planning drawings, used as a reference for their sizes and layout and not reproduced here; the ground and the town come from government open data.<span data-proposal="1"> The BLOX compound and its links to the plant are RenewaBlox&rsquo;s proposal, not part of the consented scheme.</span> Everything else is a modelling choice, and this sheet says which.</p>
       <div class="cols">
         <div class="card">
           <h3>From the developer&rsquo;s published material</h3>
-          <p class="src">The project overview and location map for the Thainstone Integrated Resource Recovery Facility, read in November 2026</p>
+          <p class="src">The project pages, the planning drawings (2020) and the Heat and Power Plan (January 2021) for the Thainstone Integrated Resource Recovery Facility, read in November 2026</p>
           <ul>
-            <li><b>The process</b>: the twelve numbered steps, from waste reception to water re-use, in the developer&rsquo;s words lightly edited for length; the key colours for waste, fuel, flue gas, steam, heat, district heating, electricity and residues</li>
+            <li><b>The process</b>: the twelve numbered steps, from waste reception to water re-use, in the developer&rsquo;s words lightly edited for length; the key colours for waste, fuel, flue gas, steam, heat, district heating, electricity, ash and water</li>
             <li><b>Scale</b>: up to 200,000 tonnes a year of residual municipal and industrial waste; circa 30 MW of electricity exported; heat for a district heat network</li>
-            <li><b>Site</b>: the former paper mill at Kirkwood Commercial Park, Port Elphinstone, between the Aberdeen&ndash;Inverness railway and the River Don, with the A96 beyond the railway</li>
-            <li><b>Massing</b>: the arrangement in the planning model photograph: a tall boiler house with a slender stack at its north end, a turbine hall, the fuel silos and the covered conveyor from a long, low waste reception and processing hall, coolers by the river, the retained commercial units to the north and the container yard to the south</li>
+            <li><b>Layout and sizes</b>: every building, silo, tank and the stack placed and sized from the planning drawings (site plan, elevations, sections and roof plans), which are the developer&rsquo;s copyright, used as a reference and not reproduced: one long timber-clad building whose roofline follows Bennachie&rsquo;s profile, the twin fuel silos at its south end, the 70 m stack and the two heat stores at its north end, the heat station with its coolers, the water treatment and tanks, the office, the gabion wall along the river and the pond</li>
+            <li><b>Inside</b>: a circulating fluidised bed furnace and boiler; heat pumps in the heat station for the district heating; flue gas condensing in the heat recovery building</li>
+            <li><b>Finishes</b>: timber in its natural colour, profiled metal in RAL 7012 on the cores and the coolers&rsquo; housing, white aluminium on the office, solar panels on the hall roofs, as the drawings&rsquo; legends give them</li>
             <li><b>Emissions and permitting</b>: continuous monitoring to the plant&rsquo;s SEPA permit; coolers designed to leave no visible plume; bottom ash and APCR treated into aggregate</li>
+            <li><b>The heat network</b>: not part of the plant&rsquo;s consent; the network beyond the site is the Inverurie Community Energy Society&rsquo;s, still to be consented, so the model draws it dashed, as future and indicative</li>
           </ul>
         </div>
-        <div class="card scaled">
+        <div class="card scaled" data-proposal="1">
           <h3>RenewaBlox&rsquo;s proposal</h3>
-          <p class="src">The BLOX peaker model as modelled for this site, November 2026</p>
+          <p class="src">The BLOX peaker as modelled for this site, November 2026: not part of the consented scheme</p>
           <ul>
-            <li><b>28 MW of flexible demand</b> behind the plant&rsquo;s meter: sixteen hydro-cooled BLOX data-centre containers, each with its roof dry cooler, in a fenced compound on the cleared mill ground west of the turbine hall</li>
-            <li><b>Dispatch</b>: the plant runs at full load throughout; its output goes to the grid when export prices are high and to the BLOX when they are low, so the generator never turns down and never sells cheap</li>
-            <li><b>Connection</b>: from the plant&rsquo;s switchroom to the compound&rsquo;s switchgear, drawn as one cable route; the compound can be built in stages, four containers at a time</li>
-            <li><b>Heat</b>: the containers reject their heat to air through the dry coolers; recovery into the district heating return is possible and is not drawn</li>
+            <li><b>28 MW of flexible demand</b> behind the plant&rsquo;s meter: sixteen 40 ft Winchain hydro-cooled containers of Whatsminer M63S++ hydro miners, each with dry coolers on its roof, in one fenced compound inside the gabion wall east of the reception hall, on the plot the drawings give to the LNG station (left out of this model) and the yard beside it</li>
+            <li><b>Dispatch</b>: the plant runs at full load either way; when export prices are high its power would go to the grid, and when they are low the same power could run the BLOX</li>
+            <li><b>Connection</b>: at 13.5 kV from the plant&rsquo;s switchroom (item 14 on the drawings), buried along the footway, to eight 13.5/0.4 kV transformers on the compound&rsquo;s spine, with the 13.5 kV switchgear house and a control container</li>
+            <li><b>Heat</b>: a heat recovery skid in the compound&rsquo;s north-east corner and an insulated pipe pair, on a low rack inside the wall and buried where it crosses the service road, to the return at the heat station. It could preheat the water returning from the planned heat network ahead of the developer&rsquo;s heat pumps, with a bypass so the network never depends on the BLOX; the roof coolers would take the rest. This depends on the plant&rsquo;s heat balance, which only the developer&rsquo;s engineers can confirm, and on the miners chosen</li>
+            <li><b>Layout</b>: the apron at the reception hall&rsquo;s east lorry door kept clear; the plot the developer reserves for later uses left free; the electrical kit on raised plinths, subject to the plant&rsquo;s flood design</li>
+            <li><b>Not claimed</b>: the page gives no heat output, homes, power gain, temperature, heat sale, cost or revenue</li>
           </ul>
         </div>
         <div class="card est">
           <h3>Assumed: please check</h3>
           <p class="src">Each is one setting in the model, so a drawing or a decision replaces it directly</p>
           <ul>
-            <li><b>Dimensions</b>: every building, silo and stack is sized by eye from the model photograph against the site&rsquo;s width; the stack is drawn at 75 m, the boiler house at about 40 m, the reception hall at 70 by 60 m. None is measured from a drawing</li>
-            <li><b>Positions</b>: the plant sits on the paper mill&rsquo;s footprint along the river; the BLOX compound, the transformer compound, the ash and water tanks and the heat station are placed where the ground is clear, not where the design puts them</li>
-            <li><b>Routes</b>: the grid connection westward under the railway and the district heating main north towards the town are drawn as indicative lines only</li>
-            <li><b>The setting</b>: the river&rsquo;s curve, the railway, the A96, the trees and the houses are drawn from map imagery by eye, not surveyed; the ground is flat, where the real site falls gently to the river</li>
-            <li><b>Finishes</b>: the warm vertical cladding and the colours follow the model photograph; the real materials are the architect&rsquo;s</li>
+            <li><b>Heights and rooflines</b>: from the elevations and sections where they are drawn; where they are not (eaves, roof pitches, the heights of the cores and the bag filter house), estimated</li>
+            <li><b>The screens</b>: the timber screens over the roofs drawn as solid surfaces, not as the open fins of the design</li>
+            <li><b>Inside the halls</b>: the reception line (after BMH Technology&rsquo;s published line, the developer&rsquo;s preferred partner), the furnace, boiler, turbine, condenser, heat pumps and flue gas plant are illustrative, laid out from the developer&rsquo;s descriptions and usual practice, not from a design</li>
+            <li><b>The flows</b>: a diagram of the process drawn over the plant, not its pipework; routes and heights chosen so each flow can be seen</li>
+            <li><b>Routes off site</b>: the export drawn underground to the fence and dashed beyond it, as the grid connection&rsquo;s route is still open; the heat network&rsquo;s route beyond the site indicative</li>
+            <li data-proposal="1"><b>The BLOX</b>: the container count and size, the compound&rsquo;s layout, the transformer kiosks, the 13.5 kV route and the skid and pipe pair&rsquo;s route are RenewaBlox&rsquo;s working assumptions</li>
+            <li><b>Details the drawings don&rsquo;t show</b>: the transformers&rsquo; sizes, the stack&rsquo;s sampling platform, some doors, the access kiosk, the ash lorry, the pens and fences, the lighting at dusk</li>
+            <li><b>Finishes</b>: the timber&rsquo;s tone and weathering, the RAL colours as screen approximations, the office&rsquo;s panel joints</li>
+            <li><b>The setting</b>: the ground near the site from LiDAR; beyond it, the town&rsquo;s buildings as simple forms on Ordnance Survey footprints with assumed heights, roofs and colours; the field pattern invented, as Scotland has no open crop map; the container yard as on the March 2025 imagery</li>
+            <li><b>The light</b>: one sun for the page and the film, from the south and a little higher than an October noon, so the open halls are lit</li>
+            <li data-proposal="1"><b>Branding</b>: the RenewaBlox livery and the BLOX marks on the containers and coolers</li>
+            <li><b>The cutaway</b>: the stills and the film cut the halls at 8 m and keep some far walls standing; the page makes the halls see-through instead</li>
           </ul>
         </div>
       </div>
       <div class="kpis">
-        <div class="kpi"><div class="v">200,000 t</div><div class="k">residual waste a year, the developer&rsquo;s figure</div></div>
+        <div class="kpi"><div class="v">200,000 t</div><div class="k">residual waste a year at most, the developer&rsquo;s figure</div></div>
         <div class="kpi"><div class="v">≈ 30 MW</div><div class="k">electricity exported, the developer&rsquo;s figure</div></div>
-        <div class="kpi"><div class="v">28 MW</div><div class="k">BLOX flexible demand, in 16 containers</div></div>
-        <div class="kpi"><div class="v">13 steps</div><div class="k">the developer&rsquo;s twelve, and the BLOX</div></div>
+        <div class="kpi" data-proposal="1"><div class="v">28 MW</div><div class="k">BLOX flexible demand, proposed, in 16 containers</div></div>
+        <div class="kpi" data-proposal="1"><div class="v">13 steps</div><div class="k">the developer&rsquo;s twelve, and the proposed BLOX</div></div>
+        <div class="kpi" data-proposal="0"><div class="v">12 steps</div><div class="k">the developer&rsquo;s process</div></div>
       </div>
-      <p class="foot">RenewaBlox · Thainstone concept visualisation, November 2026: the energy from waste plant and the BLOX peaker as one working system. Drawn in code in the browser from the developer&rsquo;s published process description and model photograph; no survey, no drawings, no Google Earth content. Not for construction. The satellite imagery on the atlas map is Esri&rsquo;s, used under its terms and credited there. The process steps are the developer&rsquo;s, quoted with light edits for length.</p>
+      <p class="foot">RenewaBlox · Thainstone concept visualisation, November 2026: the developer&rsquo;s energy from waste plant<span data-proposal="1">, with RenewaBlox&rsquo;s proposed BLOX peaker</span>. Built in Blender from the developer&rsquo;s published planning drawings, used as a reference for sizes and layout and not reproduced, and from government open data; the stills are path-traced in Cycles and the film rendered in Blender&rsquo;s real-time engine, EEVEE. In the browser the finishes show as flat colours. Not a survey, and not for construction. No Google Earth or Google 3D content. The process steps are the developer&rsquo;s, quoted with light edits for length. The satellite imagery on the atlas map is Esri&rsquo;s, used under its terms and credited there. Ground: Scottish Public Sector LiDAR Phase 1. Terrain, buildings, roads, rail, water and woodland: OS Terrain 50 and OS OpenMap Local; contains OS data © Crown copyright and database right 2026. Contains public sector information licensed under the Open Government Licence v3.0.</p>
     </div>
   </div>
+</div>
+
+<div id="lb" role="dialog" aria-modal="true" aria-label="Still" hidden>
+  <button type="button" class="x" id="lb-x">Close ✕</button>
+  <button type="button" class="pv" id="lb-pv" aria-label="Previous still">‹</button>
+  <figure id="lb-fig"><img id="lb-img" alt=""/><i class="chip" id="lb-chip" hidden>RenewaBlox proposal</i></figure>
+  <div class="cap" id="lb-cap"></div>
+  <button type="button" class="nx" id="lb-nx" aria-label="Next still">›</button>
 </div>
 
 <script src="assets/three-0.170.0.min.js"></script>
@@ -398,71 +511,101 @@ body.moved .hint{opacity:0!important}
 (function(){
   const $ = (id) => document.getElementById(id);
   const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  // trees, houses and textures are scattered from a fixed seed, so the scene is the same on every load (and in every round's shots)
+  // a fixed seed for the fans' phases, so the scene is the same on every load (and in every round's shots)
   const rand = (() => { let s = 0x2545F491 >>> 0; return () => { s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; })();
+  // the proposal layer (BRIEF 4b): RenewaBlox's parts, flows, step and words, on unless the address says ?proposal=0
+  let proposal = new URLSearchParams(location.search).get('proposal') !== '0';
+  document.body.classList.toggle('noprop', !proposal);
+
+  /* ========================================================== the model's data */
+  // The model's cameras ([position, target] in site metres, east, north and height above the yard from the centre of the
+  // furnace and boiler hall, and the vertical field of view) and its flows' routes, from the Blender scene's web export.
+  /*MODEL-BEGIN*/
+    const MODEL = /* from out_web/thn_web_data.json (wip/page_data.py): cameras [position, target, vertical fov] and the routes of the flows, ENU metres */
+    {"cams":{"S00":[[190.0,-330.0,170.0],[15.0,-75.0,10.0],41.97],"S01":[[-95.0,-245.0,55.0],[5.0,-135.0,8.0],41.97],"S02":[[-60.0,-300.0,55.0],[8.0,-200.0,12.0],41.97],"S03":[[86.6,-89.1,66.0],[-0.8,-8.0,36.0],41.97],"S04":[[32.0,40.0,22.0],[15.0,-2.0,7.0],41.97],"S05":[[-71.4,-111.4,30.0],[-27.7,-55.5,14.0],41.97],"S06":[[-79.1,63.2,40.0],[-2.8,42.5,14.0],41.97],"S07":[[86.1,107.0,40.0],[2.2,52.0,20.0],41.97],"S08":[[-95.0,130.0,62.0],[4.6,64.0,40.0],41.97],"S09":[[-63.6,-101.7,40.0],[-33.0,-72.0,3.0],41.97],"S10":[[128.9,32.3,50.0],[44.3,0.6,12.0],41.97],"S11":[[131.8,-38.3,22.0],[47.8,-24.9,17.0],41.97],"S12":[[111.9,-86.6,30.0],[68.9,-35.0,4.0],41.97],"S13":[[144.8,-59.7,80.0],[23.9,-112.9,2.0],41.97],"S14":[[-520.0,-560.0,320.0],[0.0,-60.0,0.0],41.97],"S15":[[125.9,-148.3,32.0],[48.6,-117.4,4.0],41.97]},"flows":[{"id":"waste","k":"waste","c":"#7bb43a","s":[1],"r":0.75,"st":"a","d":null,"dim":0.0,"p":[-47.16,-210.35,1.6,-42.04,-184.97,1.6,-41.65,-182.76,1.6,-41.44,-181.09,1.6,-37.48,-137.52,1.6,-36.31,-111.19,1.6,-36.22,-110.07,1.6,-35.91,-108.44,1.61,-35.38,-106.85,1.63,-31.42,-96.92,1.77,-30.91,-96.02,1.79,-30.6,-95.67,1.79,-30.23,-95.41,1.8,-29.83,-95.21,1.81,-29.38,-95.08,1.82,-28.89,-95.03,1.83,-22.88,-95.6,1.96,-20.66,-95.92,2.06,-18.49,-96.42,2.29,-8.12,-99.3,3.71,-7.1,-99.68,3.85,-6.19,-100.22,3.97,-5.4,-100.91,4.07,-4.72,-101.77,4.16,3.89,-114.59,5.31,4.49,-115.5,5.51,5.07,-116.41,5.79,7.75,-120.7,7.69,8.02,-121.16,7.87,8.52,-122.08,8.1,8.97,-123.04,8.15,9.36,-124.04,8.03,10.4,-127.17,7.15]},{"id":"fuel_line","k":"fuel","c":"#7a63c9","s":[1,2],"r":0.6,"st":"a","d":null,"dim":0.0,"p":[10.03,-130.85,3.3,8.41,-147.04,5.78,8.23,-148.81,5.94,8.06,-150.59,5.87,7.24,-158.81,5.02,7.06,-160.57,4.75,6.63,-164.81,3.94,6.67,-165.62,3.79,6.93,-166.27,3.7,7.43,-166.78,3.66,7.77,-166.97,3.65,15.65,-169.61,3.94,16.38,-169.97,3.97,16.66,-170.2,3.99,17.05,-170.79,4.03,17.19,-171.53,4.07,16.58,-177.93,4.4]},{"id":"recyc","k":"recyc","c":"#a9d36a","s":[1],"r":0.45,"st":"a","d":null,"dim":0.2,"p":[8.23,-148.81,6.05,-1.05,-159.68,3.29,-1.3,-159.94,3.22,-1.84,-160.34,3.1,-2.46,-160.58,3.0,-3.13,-160.67,2.92,-3.5,-160.65,2.89,-8.85,-160.11,2.49,-10.71,-159.93,2.41,-18.92,-159.11,2.41,-25.09,-158.49,2.6]},{"id":"air","k":"air","c":"#bcc6ce","s":[1,3],"r":0.32,"st":"a","d":null,"dim":0.2,"p":[-15.23,-87.52,12.1,-14.36,-87.01,12.37,-13.89,-86.68,12.71,-13.66,-86.45,13.11,-13.09,-85.69,14.77,-12.92,-85.34,15.88,-12.77,-83.94,21.84,-12.76,-83.82,22.08,-12.73,-83.52,22.47,-12.69,-83.1,22.73,-12.64,-82.56,22.86,-9.04,-46.61,26.67,-8.95,-45.73,26.84,-8.85,-44.58,27.21,-8.98,-44.19,27.34,-9.2,-44.02,27.39,-10.59,-43.77,27.4,-14.17,-43.4,27.38,-14.62,-43.33,27.23,-14.91,-43.25,26.94,-15.0,-43.2,26.74,-15.06,-43.1,26.22,-15.0,-42.48,22.89,-14.99,-42.33,21.4,-14.99,-42.3,10.26,-15.04,-42.19,9.77,-15.2,-41.79,9.19,-15.37,-41.38,8.9,-15.61,-40.69,8.58,-15.73,-39.92,8.37,-15.74,-39.38,8.31,-14.25,-24.39,8.3,-14.18,-23.88,8.25,-14.1,-23.43,8.09,-14.0,-23.04,7.82,-13.82,-22.57,7.25,-13.56,-22.17,6.62,-13.05,-21.81,5.78,-11.89,-21.42,4.3]},{"id":"fuel","k":"fuel","c":"#7a63c9","s":[2],"r":0.75,"st":"a","d":null,"dim":0.0,"p":[16.58,-177.93,4.4,16.5,-178.78,4.57,16.43,-179.43,4.9,13.58,-207.95,26.67,13.43,-209.29,27.52,13.32,-209.52,27.66,12.99,-209.69,27.78,12.67,-209.7,27.8,-4.86,-207.95,27.8,-5.39,-207.9,27.77,-5.84,-207.85,27.66,-6.23,-207.81,27.48,-6.54,-207.78,27.24,-6.79,-207.75,26.92,-6.96,-207.74,26.53,-7.07,-207.73,26.08,-7.1,-207.72,25.55,-7.1,-207.72,16.25,-7.09,-207.65,15.15,-7.07,-207.41,14.1,-7.03,-207.02,13.09,-6.98,-206.47,12.13,-6.49,-201.61,4.87,-6.5,-201.31,4.43,-6.57,-201.02,4.04,-6.72,-200.76,3.7,-6.93,-200.51,3.42,-7.22,-200.28,3.19,-7.58,-200.07,3.01,-8.01,-199.88,2.88,-24.87,-194.71,1.3,-25.5,-194.41,1.12,-25.64,-194.29,1.02,-25.81,-194.0,0.74,-25.81,-193.33,-0.01,-25.77,-192.93,-0.28,-25.7,-192.25,-0.41,-25.66,-191.75,-0.31,-19.74,-132.63,19.25,-19.64,-131.56,19.57,-19.47,-129.93,19.94,-19.31,-128.28,20.19,-11.03,-45.43,28.97]},{"id":"fuel_feed","k":"fuel","c":"#7a63c9","s":[2,3],"r":0.6,"st":"a","d":null,"dim":0.0,"p":[-10.85,-43.64,29.0,-9.85,-40.56,28.89,-9.55,-39.5,28.73,-9.38,-38.79,28.56,-9.14,-37.76,28.22,-9.01,-37.15,27.88,-8.91,-36.64,27.43,-8.85,-36.23,26.87,-8.76,-35.31,24.87,-8.74,-35.12,24.16,-8.72,-35.0,23.44,-8.72,-34.93,12.14,-8.7,-34.75,11.54,-8.66,-34.39,11.07,-8.64,-34.14,10.9,-8.58,-33.5,10.65,-8.29,-30.65,10.0,-8.14,-29.18,9.85,-8.01,-27.84,9.86,-7.9,-26.73,9.93,-7.79,-25.62,10.09,-7.25,-20.27,11.34,-7.14,-19.66,11.44,-6.94,-19.1,11.42,-6.65,-18.61,11.29,-6.27,-18.17,11.04,-5.23,-17.16,10.3]},{"id":"flue_boiler","k":"flue","c":"#d8352f","s":[3],"r":0.75,"st":"a","d":null,"dim":0.0,"p":[-1.29,-12.94,5.25,-1.29,-12.9,25.43,-1.27,-12.67,28.23,-1.11,-11.11,41.3,-1.1,-10.96,41.79,-1.05,-10.49,42.64,-0.98,-9.78,43.3,-0.93,-9.34,43.56,-0.26,-2.6,46.07,-0.21,-2.15,46.12,-0.18,-1.76,46.08,-0.14,-1.42,45.95,-0.11,-1.13,45.73,-0.09,-0.9,45.41,-0.07,-0.71,44.99,0.17,1.68,32.21,0.18,2.0,31.23,0.17,2.24,30.83,0.17,2.55,30.49,0.15,2.9,30.22,0.11,3.79,29.86,-0.25,9.88,29.14,-0.28,10.34,28.99,-0.3,10.72,28.77,-0.32,11.03,28.5,-0.33,11.28,28.15,-0.34,11.45,27.75,-0.35,11.56,27.28,-0.36,11.61,21.7,-0.4,11.67,21.16,-0.54,11.91,20.14,-0.77,12.3,19.18,-0.92,12.56,18.73,-2.35,15.04,15.4,-2.49,15.4,15.06,-2.68,16.21,14.53,-2.75,17.15,14.21,-2.74,17.66,14.13,-2.1,24.23,14.1]},{"id":"steam","k":"steam","c":"#d4368c","s":[3,5],"r":0.5,"st":"a","d":null,"dim":0.0,"p":[-1.29,-12.94,46.0,4.27,0.74,40.55,4.52,1.41,40.23,4.69,2.01,39.81,4.79,2.56,39.3,4.81,3.05,38.69,4.6,10.18,28.61,4.69,10.57,28.04,4.98,10.83,27.63,5.47,10.95,27.38,5.8,10.96,27.32,11.67,10.39,27.27,12.26,10.33,27.07,12.66,10.29,26.68,12.86,10.27,26.07,12.89,10.27,25.7,12.89,10.27,14.6,12.88,10.24,14.22,12.86,10.04,13.62,12.82,9.65,13.22,12.76,9.05,13.03,12.73,8.68,13.0,7.57,-42.87,13.0,7.41,-43.58,13.0,7.06,-44.14,13.0,6.54,-44.54,13.0,5.85,-44.78,13.0,2.66,-45.45,13.0,2.05,-45.77,13.0,1.62,-46.25,13.0,1.47,-46.55,13.0,1.3,-47.26,12.99,0.6,-54.33,12.96,0.43,-55.02,12.95,0.08,-55.48,12.95,-0.16,-55.63,12.95,-0.78,-55.77,12.94,-6.33,-55.24,12.91,-7.07,-55.26,12.88,-7.69,-55.47,12.8,-8.2,-55.88,12.66,-8.41,-56.15,12.58,-8.95,-57.14,12.27,-9.16,-57.41,12.18,-9.67,-57.81,12.03,-10.29,-58.02,11.93,-10.64,-58.06,11.89,-12.97,-57.85,11.75]},{"id":"ash","k":"ash","c":"#6c767d","s":[4],"r":0.45,"st":"a","d":null,"dim":0.0,"p":[1.38,-12.3,3.4,6.3,-12.05,3.58,6.92,-11.93,3.75,7.42,-11.74,4.08,7.62,-11.62,4.3,7.92,-11.31,4.84,9.14,-9.52,8.07,9.36,-9.27,8.72,9.55,-9.1,9.4,9.79,-9.02,10.47,11.37,-9.18,18.27,11.63,-9.2,18.75,11.8,-9.22,18.93,12.26,-9.27,19.17,13.13,-9.35,19.25,13.71,-9.33,19.25,14.14,-9.13,19.25,14.3,-8.96,19.25,14.51,-8.49,19.25,14.56,-8.18,19.25,16.18,8.03,19.25,16.32,8.68,19.19,16.57,9.12,19.0,16.75,9.27,18.87,17.19,9.41,18.5,18.05,9.35,17.73,18.48,9.31,17.17,18.84,9.27,16.22,18.92,9.26,15.5,18.92,9.26,4.9,19.01,9.26,4.23,19.28,9.23,3.71,19.74,9.18,3.35,20.04,9.15,3.22,23.39,8.82,2.6]},{"id":"apcr","k":"ash","c":"#6c767d","s":[4,6],"r":0.4,"st":"a","d":null,"dim":0.0,"p":[-1.05,34.68,7.6,-1.05,34.68,5.0,-0.94,34.64,4.11,-0.79,34.6,3.75,-0.58,34.54,3.45,-0.31,34.46,3.21,0.02,34.37,3.02,0.86,34.13,2.81,7.76,32.13,2.14,8.61,31.72,2.07,9.37,31.17,2.03,10.03,30.48,2.0,10.31,30.08,2.0,14.21,24.25,2.0,14.96,22.97,2.02,15.36,22.07,2.06,15.69,21.13,2.11,16.98,16.09,2.5]},{"id":"elec","k":"elec","c":"#2d8fe0","s":[5,9],"r":0.6,"st":"a","d":null,"dim":0.0,"p":[-28.35,-58.37,9.3,-28.45,-59.37,7.92,-28.49,-59.76,7.57,-28.53,-60.22,7.33,-28.61,-61.02,7.2,-28.89,-63.84,7.2,-28.98,-64.68,7.33,-29.05,-65.41,7.71,-29.09,-65.83,8.1,-29.21,-67.02,9.44,-29.24,-67.25,9.62,-29.29,-67.8,9.79,-29.35,-68.39,9.77,-29.38,-68.79,9.62,-29.39,-69.03,9.44,-29.41,-71.03,7.2]},{"id":"exhaust","k":"heat","c":"#e5812a","s":[5],"r":0.45,"st":"a","d":null,"dim":0.2,"p":[-17.77,-57.12,13.2,-20.11,-59.03,12.7,-20.57,-59.4,12.48,-20.98,-59.71,12.12,-21.43,-60.04,11.5,-21.63,-60.19,10.95,-21.69,-60.23,10.54,-21.7,-60.24,9.05]},{"id":"heat","k":"heat","c":"#e5812a","s":[5,10],"r":0.75,"st":"a","d":null,"dim":0.0,"p":[-12.19,-57.57,4.6,-9.81,-57.81,6.66,-9.14,-57.88,7.03,-8.39,-57.95,7.22,-6.01,-58.19,7.3,5.59,-59.33,7.3,6.44,-59.29,7.31,7.27,-59.11,7.32,8.45,-58.6,7.34,15.4,-54.66,7.4,17.07,-53.57,7.41,18.25,-52.64,7.42,27.54,-44.83,7.58,28.19,-44.38,7.6,28.88,-44.08,7.64,29.61,-43.94,7.7,31.18,-44.01,7.87,32.3,-43.87,7.96,33.35,-43.44,8.0,34.28,-42.79,8.0,34.56,-42.53,8.0,35.0,-41.95,8.0,35.16,-41.63,8.0,35.39,-40.92,8.0,36.61,-28.85,8.0,36.84,-28.0,7.97,37.15,-27.54,7.93,37.58,-27.16,7.86,38.36,-26.73,7.74,39.22,-26.46,7.63,40.12,-26.38,7.55,43.16,-26.68,7.4]},{"id":"flue_filter","k":"flue","c":"#d8352f","s":[6],"r":0.75,"st":"a","d":null,"dim":0.0,"g":["#e4726d",0.3,0.6],"p":[-1.96,25.62,14.6,-1.9,26.24,16.18,-1.87,26.52,16.56,-1.81,27.1,16.89,-1.71,28.1,16.95,-1.58,29.43,16.8,-1.2,33.27,15.86,-1.09,34.29,15.67,-0.99,35.32,15.57,-0.66,38.66,15.45,-0.66,39.33,15.4,-0.8,39.93,15.31,-1.08,40.48,15.18,-1.5,40.97,15.01,-2.75,42.16,14.48,-2.95,42.35,14.33,-3.26,42.66,13.95,-3.36,42.77,13.71,-3.48,42.92,13.14,-3.45,43.4,6.83,-3.43,43.6,5.46,-3.35,44.05,3.74,-3.17,44.26,3.37,-2.77,44.65,2.9]},{"id":"flue_hr","k":"flue_mid","c":"#e4726d","s":[7],"r":0.75,"st":"a","d":null,"dim":0.0,"p":[0.06,45.62,5.0,0.25,47.47,5.96,0.45,48.07,6.22,0.67,48.45,6.35,1.1,48.97,6.46,1.45,49.27,6.52,1.83,49.47,6.57,2.25,49.57,6.59,2.71,49.58,6.6,6.98,49.15,6.58,7.62,49.09,6.42,8.67,48.98,5.9]},{"id":"flue_tower","k":"flue_mid","c":"#e4726d","s":[7],"r":0.75,"st":"a","d":null,"dim":0.0,"g":["#e3a7a1",0.05,0.6],"p":[15.95,45.94,6.2,15.94,45.95,27.28,15.82,46.13,28.53,15.66,46.38,29.33,15.19,47.09,30.76,14.85,47.54,31.32,14.43,48.06,31.7,13.93,48.65,31.9,12.66,50.07,31.96,11.5,51.23,31.96,10.27,52.32,31.9,8.44,53.77,31.74,7.98,54.07,31.56,7.58,54.26,31.24,7.25,54.33,30.77,6.85,54.29,29.91,6.57,54.25,28.97,6.46,54.23,28.32,6.43,54.23,18.4]},{"id":"heat2","k":"heat","c":"#e5812a","s":[7,10],"r":0.6,"st":"a","d":null,"dim":0.0,"p":[-8.76,49.12,3.6,-5.98,47.34,6.08,-5.22,46.99,6.53,-4.82,46.84,6.7,-3.94,46.62,6.92,-2.99,46.48,7.0,15.12,44.67,7.0,16.08,44.49,7.0,16.97,44.17,6.98,17.79,43.69,6.95,18.17,43.4,6.94,22.46,39.21,6.68,22.79,38.85,6.66,23.36,38.08,6.63,23.78,37.23,6.6,24.05,36.31,6.58,27.01,13.33,6.23,27.33,11.9,6.26,27.69,11.01,6.33,28.45,9.77,6.52,30.51,7.05,7.08,31.16,6.35,7.23,31.9,5.82,7.36,32.74,5.46,7.46,33.2,5.35,7.5,38.44,4.77,7.89,39.16,4.45,7.94,39.41,4.2,7.96,39.6,3.9,7.98,39.78,3.13,8.0,39.08,-4.3,8.0,39.15,-4.91,7.97,39.35,-5.48,7.93,39.69,-6.0,7.86,40.37,-6.66,7.74,40.89,-7.03,7.66,41.46,-7.29,7.6,42.4,-7.51,7.53,45.05,-7.77,7.4]},{"id":"flue_stack","k":"flue_clean","c":"#e3a7a1","s":[8],"r":0.75,"st":"a","d":null,"dim":0.0,"p":[8.33,57.16,12.7,6.66,60.38,12.73,6.1,61.37,12.89,5.72,62.01,13.08,5.17,62.9,13.45,4.88,63.37,13.83,4.69,63.69,14.34,4.59,63.84,14.98,4.58,63.86,66.5]},{"id":"grid","k":"elec","c":"#2d8fe0","s":[9],"r":0.75,"st":"a","d":23.09,"dim":0.0,"p":[-28.62,-73.19,8.9,-30.31,-72.84,8.03,-30.81,-72.72,7.66,-31.24,-72.62,7.23,-31.6,-72.52,6.71,-32.84,-72.14,4.32,-33.4,-72.04,3.56,-34.44,-71.93,2.5,-34.98,-71.88,2.07,-35.57,-71.82,1.74,-36.4,-71.73,1.4,-37.06,-71.67,1.25,-37.74,-71.6,1.2,-61.69,-69.2,1.02,-78.11,-67.56,1.22]},{"id":"dh","k":"dh","c":"#e0b324","s":[10],"r":0.6,"st":"a","d":null,"dim":0.0,"p":[50.47,-17.86,7.4,53.67,-18.82,8.44,54.39,-19.17,8.7,54.75,-19.54,8.86,55.01,-20.0,9.0,55.26,-20.79,9.19,55.41,-21.65,9.33,55.4,-22.83,9.4,52.8,-49.04,9.4,52.82,-49.72,9.4,53.05,-50.7,9.4,54.14,-52.88,9.4,54.42,-53.42,9.31,54.62,-53.81,9.05,54.7,-53.95,8.85,54.78,-54.1,8.33,54.79,-54.12,2.85,54.85,-54.12,2.43,55.02,-54.14,2.14,55.32,-54.17,1.96,55.73,-54.21,1.9,56.88,-54.33,1.9]},{"id":"dh_net","k":"dh","c":"#e0b324","s":[10],"r":0.75,"st":"f","d":0.0,"dim":0.0,"p":[56.88,-54.33,1.9,57.92,-54.39,1.9,58.21,-54.21,1.9,58.33,-53.84,1.9,63.04,-6.71,1.9,62.98,-5.84,1.94,62.75,-5.0,2.01,61.03,-1.25,2.5,60.32,0.05,2.71,58.25,3.25,3.4,57.46,4.88,3.7,57.18,5.71,3.82,57.07,6.57,3.89,57.09,7.16,3.9,57.71,13.32,3.9,57.75,14.21,3.85,57.64,15.36,3.65,57.26,17.16,3.14,57.14,18.3,2.81,57.28,20.83,2.09,57.35,21.71,1.95,57.43,22.6,1.9,63.09,79.22,1.9,64.41,92.35,1.61,65.77,105.98,1.56]},{"id":"dh_return_net","k":"dhr","c":"#e9cf7a","s":[10],"r":0.6,"st":"f","d":0.0,"dim":0.0,"p":[68.06,105.75,1.28,66.67,91.82,1.3,65.38,78.99,1.6,59.59,21.08,1.6,59.27,19.31,1.6,57.84,14.26,1.6,57.08,6.86,1.6,57.19,6.03,1.6,57.55,5.26,1.6,60.07,2.01,1.6,62.37,-1.6,1.6,65.08,-5.34,1.6,65.33,-5.85,1.6,65.48,-6.39,1.6,65.5,-7.25,1.6,63.62,-26.16,1.6,61.47,-50.47,1.6,60.97,-55.42,1.6,60.89,-55.66,1.6,60.63,-56.01,1.6,60.23,-56.2,1.6,59.7,-56.22,1.6,57.08,-55.96,1.6]},{"id":"dh_return","k":"dhr","c":"#e9cf7a","s":[10],"r":0.5,"st":"a","d":null,"dim":0.0,"p":[56.73,-55.92,1.6,55.23,-55.77,1.6,54.7,-55.72,1.68,54.33,-55.68,1.9,54.11,-55.66,2.27,54.03,-55.65,2.8,54.02,-55.64,8.28,53.85,-55.5,8.77,53.49,-55.18,8.98,52.68,-54.41,9.0,52.16,-53.65,9.0,51.44,-52.15,8.99,51.26,-51.62,8.9,51.16,-51.11,8.73,51.14,-50.37,8.3,51.38,-48.02,6.55,51.46,-47.16,5.73,51.58,-45.96,4.4]},{"id":"dh_store","k":"dh","c":"#e0b324","s":[10],"r":0.6,"st":"a","d":null,"dim":0.0,"p":[51.42,-8.41,7.4,50.52,-3.49,7.39,50.28,-2.06,7.17,50.06,-0.69,6.71,49.49,3.29,4.68,49.25,4.64,4.09,48.84,6.48,3.44,48.51,7.86,3.03,48.32,8.81,2.82,48.18,9.77,2.68,48.08,10.75,2.61,47.66,18.35,2.6]},{"id":"cool","k":"heat","c":"#e5812a","s":[11],"r":0.45,"st":"a","d":null,"dim":0.2,"p":[33.79,-43.98,8.0,37.56,-44.6,8.64,38.26,-44.7,8.83,39.08,-44.81,9.32,40.22,-44.92,10.47,40.45,-44.95,10.88,40.62,-44.96,11.55,40.66,-44.98,18.94,40.77,-45.02,19.34,40.95,-45.1,19.71,41.32,-45.26,20.2,41.62,-45.37,20.48,42.15,-45.49,20.76,42.77,-45.58,20.85,50.49,-46.35,20.85,51.11,-46.27,20.85,51.38,-46.05,20.85,51.58,-45.46,20.85,53.17,-29.6,20.85,53.24,-28.89,20.9,53.31,-28.2,21.04,53.37,-27.55,21.26,53.42,-27.12,21.46,53.45,-26.76,21.72,53.5,-26.3,22.23,53.57,-25.56,23.5]},{"id":"water","k":"water","c":"#2aa9a0","s":[12],"r":0.45,"st":"a","d":null,"dim":0.2,"p":[54.6,8.31,1.2,54.99,4.25,1.54,55.24,3.25,1.65,55.61,2.28,1.78,57.24,-1.2,2.27,57.73,-2.08,2.5,58.28,-2.88,2.85,59.56,-4.45,3.8,59.99,-4.91,4.06,60.49,-5.29,4.25,61.37,-5.73,4.39,64.87,-6.81,4.4,65.85,-7.12,4.3,66.47,-7.32,4.12,67.06,-7.52,3.86,68.49,-8.01,3.0,69.1,-8.31,2.66,69.69,-8.72,2.4,70.21,-9.2,2.21,70.48,-9.58,2.1,70.64,-10.0,2.04,70.68,-10.72,2.0,69.49,-22.63,2.0,69.48,-23.29,2.05,69.57,-23.89,2.21,69.66,-24.16,2.32,70.09,-24.88,2.82,70.68,-25.54,3.47,71.02,-25.84,3.85,71.76,-26.23,4.68,72.32,-26.36,5.33,72.62,-26.42,5.82,72.81,-26.46,6.35,72.91,-26.48,6.92,72.93,-26.49,9.4,72.92,-26.57,10.04,72.91,-26.67,10.31,72.88,-27.01,10.76,72.85,-27.24,10.94,72.79,-27.82,11.21,72.61,-29.71,11.77,72.43,-31.41,11.99,71.33,-42.51,12.0,71.18,-43.11,11.98,70.88,-43.52,11.91,70.44,-43.74,11.79,69.84,-43.77,11.64,67.04,-43.49,10.86,66.77,-43.46,10.72,66.34,-43.42,10.34,66.19,-43.4,10.1,66.01,-43.38,9.53,65.92,-43.37,6.74,65.75,-43.36,6.07,65.54,-43.34,5.66,65.09,-43.29,5.12,64.74,-43.26,4.8,64.34,-43.22,4.58,63.91,-43.17,4.45,63.44,-43.13,4.4,55.36,-42.32,4.4]},{"id":"bloxpower","k":"elec","c":"#2d8fe0","s":[13],"r":0.75,"st":"p","d":0.0,"dim":0.0,"p":[-8.06,-75.57,9.0,-8.4,-78.98,2.62,-8.51,-80.07,1.11,-8.52,-80.2,1.02,-8.54,-80.41,1.0,-8.42,-80.56,1.0,55.9,-86.99,1.0,56.37,-87.07,1.0,57.09,-87.39,1.0,57.34,-87.64,1.0,57.53,-87.94,1.0,57.71,-88.71,1.0,57.69,-89.18,1.0,53.87,-127.38,1.0]},{"id":"bloxheat","k":"heat","c":"#e5812a","s":[13],"r":0.6,"st":"p","d":0.0,"dim":0.0,"p":[74.61,-105.08,2.1,74.92,-101.56,2.1,74.96,-100.12,2.02,74.47,-92.39,1.09,74.31,-90.82,0.95,74.03,-89.25,0.9,70.78,-74.43,0.9,70.53,-73.71,0.9,70.14,-73.12,0.9,69.61,-72.65,0.9,69.29,-72.46,0.9,66.57,-71.43,0.9,65.9,-71.23,0.9,63.83,-70.99,0.96,54.54,-69.85,1.93,53.85,-69.66,2.01,53.38,-69.3,2.06,53.12,-68.77,2.09,53.07,-68.06,2.1,53.66,-59.46,2.1,53.72,-58.77,2.0,53.85,-57.84,1.73,54.23,-56.7,1.6]},{"id":"bloxheat_cool","k":"heat_pale","c":"#efb37f","s":[13],"r":0.6,"st":"p","d":0.0,"dim":0.0,"p":[55.63,-56.74,1.6,55.77,-58.03,1.73,55.71,-58.97,2.0,55.64,-59.52,2.09,54.66,-66.73,2.1,54.67,-67.44,2.09,54.9,-67.95,2.05,55.35,-68.29,1.99,56.03,-68.44,1.91,63.87,-69.02,0.98,65.66,-69.19,0.9,66.55,-69.37,0.9,67.39,-69.69,0.9,71.16,-71.54,0.9,71.74,-72.0,0.9,72.19,-72.56,0.9,72.36,-72.89,0.9,72.6,-73.61,0.9,76.0,-88.92,0.9,76.28,-90.49,0.95,76.45,-92.07,1.09,76.96,-100.0,2.02,76.92,-101.58,2.1,76.61,-105.23,2.1]}]};
+    /*MODEL-END*/
 
   /* ========================================================== the process */
-  // The developer's twelve steps, lightly edited for length, and the BLOX peaker as the thirteenth. Each step has its
-  // key colour, the camera that shows it (east, north, height, in metres from the boiler house), the parts that stay in
-  // colour while the rest of the plant stands back, the flows that run, and whether a hall goes see-through.
+  // The developer's twelve steps, lightly edited for length, and RenewaBlox's proposed BLOX peaker as the thirteenth.
+  // Each step has its key colour, the model's camera that shows it (S01 to S13), the parts that stay in colour while the
+  // rest of the plant stands back, the halls that go see-through, and (from the model) the flows that run.
   const KEY = {
     waste: ['#7bb43a', 'Mixed waste'], fuel: ['#7a63c9', 'Processed fuel'], flue: ['#d8352f', 'Flue gas'], steam: ['#d4368c', 'Steam'],
     heat: ['#e5812a', 'Heat'], dh: ['#e0b324', 'District heating'], elec: ['#2d8fe0', 'Electricity'], ash: ['#6c767d', 'Ash and APCR'],
-    water: ['#2aa9a0', 'Water'], air: ['#a9c45c', 'Extracted air'],
+    water: ['#2aa9a0', 'Water'], air: ['#bcc6ce', 'Extracted air'], recyc: ['#a9d36a', 'Recyclables and inerts'],
+    dhr: ['#e9cf7a', 'District heating return'], bloxheat: ['#f0b37f', 'BLOX heat, proposed'],
   };
   const STEPS = [
     { n: 1, id: 'reception', key: 'waste', t: 'Waste reception and processing', h: 'Residual waste comes in and is made into fuel',
       p: 'Mixed residual waste is delivered to the site and taken into the material recovery and waste processing hall. Equipment there shreds the delivered material, recovers recyclables and removes inert elements such as bricks, stones and metals; heavy plastics are separated as far as possible and sent for recycling. The biodegradable waste that remains is processed into fuel and sent to the storage silos. The hall runs at negative air pressure so no odour escapes, and the extracted air goes to the furnace as part of the combustion process.',
-      cam: [[-105, -185, 58], [-4, -108, 8]], hi: ['reception', 'gate', 'lorries'], flows: ['waste', 'recyc', 'air'], xray: ['reception'] },
+      hi: ['reception', 'gate', 'lorries', 'bridge'], xray: ['reception'] },
     { n: 2, id: 'silos', key: 'fuel', t: 'Fuel storage silos', h: 'The fuel is homogenised over several days',
       p: 'The fuel is carried by covered conveyor to the fuel storage silos. Their design mixes and homogenises the fuel delivered over several days, so the furnace receives a uniform fuel at any one time, which is essential for optimum furnace operation.',
-      cam: [[-76, -118, 52], [2, -60, 16]], hi: ['silos', 'conveyor'], flows: ['fuel'] },
+      hi: ['silos', 'conveyor', 'bridge', 'reception'], xray: ['reception', 'silos'] },
     { n: 3, id: 'furnace', key: 'heat', t: 'Furnace and boiler', h: 'Controlled combustion raises steam',
       p: 'Fuel is delivered to the furnace and combusted under controlled conditions, using proven energy from waste technology, to generate heat and raise steam in the boiler. The process applies best available technology so that residence times and temperatures prevent the formation of dioxins and furans, and the combustion design minimises nitrogen oxides and carbon monoxide.',
-      cam: [[-88, -72, 64], [0, 0, 20]], hi: ['boiler'], flows: ['fuel', 'steam', 'flue'], xray: ['boiler'] },
+      hi: ['boiler', 'silos'], xray: ['boiler', 'silos'] },
     { n: 4, id: 'ash', key: 'ash', t: 'Bottom ash and APCR', h: 'Residues become aggregate',
       p: 'Bottom ash from the furnace is treated and made into an aggregate, using some of the carbon dioxide from the flue gas. The air pollution control residues from gas cleaning are treated in the same way.',
-      cam: [[86, -36, 46], [30, 10, 4]], hi: ['ashbay', 'boiler'], flows: ['ash', 'apcr'], xray: ['boiler'] },
+      hi: ['ashsilos', 'ashbay', 'apcr', 'boiler', 'lorries'], xray: ['boiler'] },
     { n: 5, id: 'turbine', key: 'steam', t: 'Steam turbine and generator', h: 'Steam drives the turbine; the rest of the heat is recovered',
       p: 'The heat generated makes steam that drives a steam turbine, which powers a generator to produce electricity. The remaining heat is collected by the surface condenser, through heat exchange with the cooling water.',
-      cam: [[52, -82, 38], [4, -27, 8]], hi: ['turbine', 'boiler'], flows: ['steam', 'elec'], xray: ['turbine'] },
+      hi: ['turbine', 'boiler', 'silos'], xray: ['turbine', 'boiler', 'silos'] },
     { n: 6, id: 'fgt', key: 'flue', t: 'Flue gas cleaning', h: 'The flue gas is cleaned and continually monitored',
       p: 'Combustion produces flue gases, mainly nitrogen and carbon dioxide, which are carefully cleaned before release. The process is continually monitored for adherence to the Pollution Prevention and Control Regulations and to the plant permit conditions set by the Scottish Environment Protection Agency (SEPA).',
-      cam: [[44, 76, 44], [2, 32, 12]], hi: ['fgt', 'boiler'], flows: ['flue'] },
+      hi: ['filters', 'boiler', 'scrubber', 'cems'], xray: ['boiler', 'scrubber'] },
     { n: 7, id: 'scrub', key: 'heat', t: 'Heat recovery and scrubbing', h: 'Heat, water and the last particulates are recovered',
       p: 'Treated flue gas goes to a heat recovery and scrubbing facility, with water treatment equipment, to recover the remaining heat energy, water and any small particulates before the gas reaches the stack.',
-      cam: [[-48, 70, 32], [-8, 36, 12]], hi: ['scrubber', 'fgt'], flows: ['flue', 'heat2'] },
+      hi: ['scrubber', 'filters', 'heatstation'], xray: ['scrubber', 'heatstation'] },
     { n: 8, id: 'stack', key: 'flue', t: 'The stack', h: 'Clean, low-temperature flue gas is released',
       p: 'Clean, low temperature flue gas is vented through the stack and released to the atmosphere. This too is continually monitored, for compliance with SEPA requirements and the plant licence conditions.',
-      cam: [[-118, 96, 64], [-20, 32, 44]], hi: ['stack', 'scrubber'], flows: ['flue', 'plume'] },
+      hi: ['stack', 'cems', 'scrubber'], xray: ['stack', 'scrubber'] },
     { n: 9, id: 'export', key: 'elec', t: 'Electricity to the grid', h: 'The generator&rsquo;s power goes out to customers',
-      p: 'Electricity from the generator is taken to the main power transformer for onward export to customers. The export connection is drawn here as an indicative route leaving the site to the west, under the railway.',
-      cam: [[66, -84, 42], [26, -40, 4]], hi: ['turbine', 'transformer', 'gridline'], flows: ['elec', 'grid'] },
-    { n: 10, id: 'heat', key: 'dh', t: 'Heat and district heating', h: 'Heat captured along the process warms the town',
-      p: 'Heat energy is captured at a number of points along the process and used both to improve the efficiency of the combustion process and to supply district heating. The heat main is drawn as an indicative route leaving the site to the north, towards Port Elphinstone and Inverurie.',
-      cam: [[-116, 6, 62], [-30, 14, 8]], hi: ['heatstation', 'dhline', 'turbine'], flows: ['heat', 'heat2', 'dh'] },
+      p: 'Electricity from the generator is taken to the main power transformer for onward export to customers. In the model the export runs underground from the main power transformer to the site fence, and is drawn dashed beyond it, as the route of the grid connection is still open.',
+      hi: ['turbine', 'transformer', 'gridline'], xray: ['turbine', 'transformer'] },
+    { n: 10, id: 'heat', key: 'dh', t: 'Heat and district heating', h: 'Heat captured along the process, for district heating',
+      p: 'Heat energy is captured at a number of points along the process and used both to improve the efficiency of the combustion process and to supply district heating. In the model the heat leaves from the heat station, with the two heat stores north of it by the stack; the network beyond the site is the Inverurie Community Energy Society&rsquo;s, still to be consented, so it is drawn dashed, as future and indicative.',
+      hi: ['heatstation', 'heatstores', 'dhline', 'turbine', 'scrubber'], xray: ['heatstation', 'coolers', 'turbine'] },
     { n: 11, id: 'coolers', key: 'heat', t: 'Coolers', h: 'When heat demand is low, the coolers take over',
       p: 'When district heating demand is low, additional cooling for the steam turbine comes from the cooler units. The coolers the project will use are designed to prevent the formation of a visible plume.',
-      cam: [[96, -52, 40], [38, -10, 7]], hi: ['coolers', 'turbine'], flows: ['cool'] },
+      hi: ['coolers', 'heatstation', 'turbine'], xray: ['heatstation', 'coolers'] },
     { n: 12, id: 'water', key: 'water', t: 'Water re-use', h: 'Process water and rainwater are kept and re-used',
       p: 'Treated process water and recovered rainwater are retained and stored so that water can be re-used, minimising the plant&rsquo;s draw on local resources.',
-      cam: [[72, 64, 36], [30, 36, 6]], hi: ['watertanks', 'fgt'], flows: ['water'] },
-    { n: 13, id: 'blox', key: 'elec', t: 'The BLOX peaker', h: '28 MW of flexible demand, behind the meter', blox: true,
-      p: 'RenewaBlox&rsquo;s BLOX peaker: sixteen hydro-cooled Bitcoin mining containers in a compound beside the plant, 28 MW in all. The plant runs at full load throughout. When export prices are high its power goes to the grid; when they are low the same power runs the BLOX instead, so the generator never turns down and never sells cheap. The compound connects at the plant&rsquo;s switchroom and can be built four containers at a time.',
-      cam: [[-156, -98, 58], [-80, -20, 6]], hi: ['blox', 'transformer', 'bloxline', 'turbine'], flows: ['elec', 'bloxpower', 'grid'], alternate: true },
+      hi: ['watertanks', 'heatstation', 'pond'], xray: ['heatstation'] },
+    { n: 13, id: 'blox', key: 'elec', t: 'The proposed BLOX peaker', h: 'Proposed: 28 MW of flexible demand, behind the plant&rsquo;s meter', blox: true,
+      p: 'RenewaBlox&rsquo;s proposal, not part of the consented scheme: sixteen hydro-cooled Bitcoin mining containers, 28 MW in all, in a compound inside the gabion wall east of the reception hall, fed at 13.5 kV from the plant&rsquo;s switchroom. The plant runs at full load either way: when export prices are high its power would go to the grid, and when they are low the same power could run the BLOX instead. If the plant&rsquo;s heat balance allows, the BLOX&rsquo;s heat could preheat the water returning from the planned heat network at the heat station, and the dry coolers on the containers&rsquo; roofs would take the rest. In the model the power switches between the grid and the proposed BLOX every few seconds, and the heat link runs only while the BLOX does.',
+      hi: ['blox', 'bloxline', 'bloxheat', 'transformer', 'heatstation', 'dhline'], xray: ['transformer', 'office', 'heatstation'], alternate: true },
   ];
+  // each step's camera and flows from the model: S01 to S13, and every route the model files under the step; step 8 adds the
+  // page's own plume over the stack, and step 13 the generator's power and the export it alternates with
+  const EXTRA_FLOWS = { 8: ['plume'], 13: ['elec', 'grid'] };
+  STEPS.forEach((s) => {
+    s.cam = MODEL.cams['S' + String(s.n).padStart(2, '0')];
+    s.flows = MODEL.flows.filter((f) => f.s.includes(s.n)).map((f) => f.id).concat(EXTRA_FLOWS[s.n] || []);
+  });
   const CAMERAS = {
-    overview: { pos: [-172, -236, 118], tgt: [-6, -40, 12], k: 'Overview', h: 'One plant, two outlets for its power',
-      p: 'The energy from waste plant on the former paper mill ground between the railway and the River Don, from the south-west: the reception hall nearest, the silos and their conveyor, the turbine hall, the boiler house and the stack, with the retained commercial units beyond. In front of the turbine hall, the fenced BLOX peaker compound. The numbered steps along the foot walk the process; the flows run in the developer&rsquo;s key colours.' },
-    site: { pos: [-520, -420, 300], tgt: [-30, 20, 0], k: 'Setting', h: 'The site in its setting',
-      p: 'The plant lies along the west bank of the Don, two hundred metres east of the A96 and hard against the Aberdeen&ndash;Inverness railway, a kilometre south of Port Elphinstone. The drawing of the river, the roads, the trees and the houses is by eye from map imagery, not surveyed.' },
-    blox: { pos: [-150, -78, 42], tgt: [-80, -20, 5], k: 'BLOX', h: 'The BLOX peaker compound',
-      p: 'Sixteen 40 ft hydro-cooled containers in four rows, each with its dry cooler on the roof, a switchgear skid at the head of each row and the control container at the gate. The compound takes 28 MW; the connection comes from the plant&rsquo;s switchroom, south of the turbine hall.' },
+    overview: { cam: MODEL.cams.S00, k: 'Overview', h: 'The plant, and the proposed BLOX beside it',
+      p: 'The developer&rsquo;s energy from waste plant on the former paper mill ground between the estate road and the River Don, from over the river to the south-east. From the south: the twin fuel silos, the waste reception and processing halls, the turbine hall and the boiler house, its roofline after the profile of Bennachie, with the stack at the north end; on the river side, the office, the heat station under its coolers, the water tanks and the two heat stores. Inside the gabion wall, east of the reception hall, RenewaBlox&rsquo;s proposed BLOX compound. The numbered steps along the foot walk the process; the flows run in the developer&rsquo;s key colours.',
+      offH: 'The energy from waste plant',
+      offP: 'The developer&rsquo;s energy from waste plant on the former paper mill ground between the estate road and the River Don, from over the river to the south-east. From the south: the twin fuel silos, the waste reception and processing halls, the turbine hall and the boiler house, its roofline after the profile of Bennachie, with the stack at the north end; on the river side, the office, the heat station under its coolers, the water tanks and the two heat stores. The numbered steps along the foot walk the developer&rsquo;s twelve-step process; the flows run in its key colours.' },
+    site: { cam: MODEL.cams.S14, k: 'Setting', h: 'The site in its setting',
+      p: 'The plant on the west bank of the Don, on the former paper mill ground at Kirkwood Commercial Park: the estate road, the Kirkwood office and sheds and a container yard to the west, then the Aberdeen&ndash;Inverness railway and the A96; the retained mill sheds to the north, and Port Elphinstone about a kilometre beyond them, with Inverurie past it. The ground near the site is the Scottish LiDAR survey; the buildings beyond it are simple forms on Ordnance Survey footprints, not surveyed.' },
+    blox: { cam: MODEL.cams.S15, k: 'BLOX', h: 'The proposed BLOX compound', prop: true,
+      p: 'RenewaBlox&rsquo;s proposal, inside the gabion wall east of the reception hall: sixteen 40 ft hydro-cooled containers in two banks of eight, the dry coolers on their roofs, either side of a spine of eight transformers, the 13.5 kV switchgear house and the control container. The power would come at 13.5 kV from the plant&rsquo;s switchroom, buried along the footway, and the heat recovery skid in the north-east corner, nearest, would send the heat along a pipe pair to the heat station. The proposed layout keeps the apron at the reception hall&rsquo;s east lorry door clear and leaves the developer&rsquo;s reserved plot free.' },
   };
+  // the steps the strip, Play and the arrows walk: all thirteen, or the developer's twelve with the proposal off
+  const active = () => STEPS.filter((s) => proposal || !s.blox);
+  // the attributes that change with the proposal (the words in the markup carry data-proposal instead)
+  const PROP_ATTRS = [
+    ['#rail [data-v="overview"]', 'title', 'The whole plant from over the Don to the south-east, with the proposed BLOX compound by the river (click again to reset the view)', 'The whole plant from over the Don to the south-east (click again to reset the view)'],
+    ['#b-dusk', 'title', 'The plant after sunset, its lights on, and the proposed BLOX compound’s glow lines', 'The plant after sunset, its lights on'],
+    ['#gl', 'aria-label', '3D model of the Thainstone energy from waste plant, between the estate road and the River Don, with RenewaBlox’s proposed BLOX compound inside its boundary', '3D model of the Thainstone energy from waste plant, between the estate road and the River Don'],
+    ['#schem', 'aria-label', 'Process flow schematic: the developer’s twelve steps and the proposed BLOX, and the flows between them', 'Process flow schematic: the plant’s twelve steps and the flows between them'],
+  ];
 
   /* ------------------------------------------------------------ the tabs */
-  const TABS = ['model', 'schem'];
-  const ALIAS = { schematic: 'schem', process: 'schem' };
+  const TABS = ['model', 'schem', 'media'];
+  const ALIAS = { schematic: 'schem', process: 'schem', flythrough: 'media', stills: 'media' };
   const tabBtns = [...document.querySelectorAll('#ptabs [role=tab]')];
   let tab = 'model';
   function setTab(t, focus){
@@ -477,9 +620,10 @@ body.moved .hint{opacity:0!important}
     });
     TABS.forEach((k) => { $('p-' + k).hidden = k !== t; });
     document.body.className = document.body.className.replace(/\btab-\w+/, '') + ' tab-' + t;
-    // the caption serves both tabs: it moves to whichever shows
+    if (t !== 'media') $('fly').pause();
+    // the caption serves the model and the schematic: it moves to whichever shows
     (t === 'schem' ? $('p-schem') : $('p-model')).appendChild($('caption'));
-    if (t === 'model') { clampCaption(); }
+    if (t === 'model') { clampCaption(); railEdges(); }
     run();
     const u = new URL(location.href);
     u.searchParams.delete('tab');
@@ -504,50 +648,38 @@ body.moved .hint{opacity:0!important}
   });
 
   /* ============================================================ the scene */
-  // Positions are site metres: east, north and height above the yard, from the centre of the boiler house; P() turns
-  // them into three.js (x east, y up, z south). The parts of the plant register under names the steps light up.
+  // The model is the Blender scene's web GLB, fetched from beside the page. Its frame is the page's: P(e, n, h) is three.js
+  // (e, h, -n), which is Blender's (x, y, z) exported to glTF's Y-up (x, z, -y). Every node is named <part>__<name> and
+  // carries its part in its extras, with shell (a hall's fabric, see-through for X-ray), ghost (the coolers' housing over
+  // the heat station), inside (an interior, shown only while its hall is see-through), proposal (RenewaBlox's) and pivot
+  // (a fan that turns).
   const L = window.RBX3D || null;
   let THREE = null, renderer = null, labelR = null, scene = null, camera = null, controls = null, tween = null, raf = 0, clock = null, pmrem = null;
   let loaded = false, lastMove = 0, view = 'overview', step = 0, playing = false, playT = 0, flowsOn = true, xrayOn = false, labelsOn = false, dusk = false;
-  const parts = {}, flows = {}, labelObjs = [], shells = [], glowMats = [], lampMats = [], windowMats = [];
-  let sun = null, hemi = null, skyCol = null, fogCol = null, skyDome = null, plantRoot = null, dimMat = null, xrayMat = null, edgeMat = null, fans = [], bloxFans = [], stackLamp = null;
-  const fireMats = [];
+  const flows = {}, labelObjs = [], groups = [], fanSets = [], coolFans = [];
+  let sun = null, hemi = null, skyCol = null, fogCol = null, skyDome = null, dimMat = null, dimMatT = null, xrayMat = null, edgeMat = null, FLOWDOT = null;
+  let bloxAng = 0, coolAng = 0, bloxRunning = true;
+  const DUSK = { glaze: [], lamp: [], glow: [], obst: [], warm: [] };
+  // the halls X-ray makes see-through
+  const XRAY_ALL = ['reception', 'silos', 'boiler', 'turbine', 'scrubber', 'heatstation', 'coolers', 'transformer', 'office'];
   const P = (e, n, h) => new THREE.Vector3(e, h, -n);
+  // the film's sun, from 190° at 32° (the page, the film and the cutaway stills share it); and a low one from the
+  // west-south-west for dusk
+  const sunDir = (az, el) => { const a = az * Math.PI / 180, b = el * Math.PI / 180; return [Math.sin(a) * Math.cos(b), Math.cos(a) * Math.cos(b), Math.sin(b)]; };
+  const SUN_DAY = sunDir(190, 32), SUN_DUSK = sunDir(240, 7), SUN_AT = [15, -90, 0];
 
-  function failed(msg){
+  function pressed(id, on){ $(id).setAttribute('aria-pressed', on ? 'true' : 'false'); }
+  function failed(msg, retry){
     const l = $('loading'); l.classList.remove('hide'); l.classList.add('failed');
-    $('loadmsg').innerHTML = msg + ' The <a href="#schem">schematic</a> shows the same process.';
-    l.querySelectorAll('a').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); setTab('schem'); }));
+    $('loadmsg').innerHTML = msg + (retry ? ' <a href="#retry">Try again</a>, or see the' : ' See the') + ' <a href="#schem">schematic</a> or the <a href="#media">flythrough and stills</a>, which show the same process.';
+    l.querySelectorAll('a').forEach((a) => a.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (a.getAttribute('href') === '#retry') { l.classList.remove('failed'); $('loadmsg').textContent = 'Loading the plant'; bar(0); load(); }
+      else setTab(a.getAttribute('href').slice(1));
+    }));
   }
+  function bar(f){ $('loadbar').style.width = Math.round(Math.max(0, Math.min(1, f)) * 100) + '%'; }
 
-  /* ---------------------------------------------------------- materials */
-  let M = null;
-  function slatTexture(base, dark, light, period){
-    // vertical cladding: a canvas of slats, repeated by each face at a constant slat width
-    const c = document.createElement('canvas'); c.width = 256; c.height = 64;
-    const g = c.getContext('2d');
-    g.fillStyle = base; g.fillRect(0, 0, 256, 64);
-    const w = 256 / period;
-    for (let i = 0; i < period; i++) {
-      const x = i * w;
-      g.fillStyle = dark; g.fillRect(x, 0, w * 0.26, 64);
-      g.fillStyle = light; g.fillRect(x + w * 0.26, 0, w * 0.1, 64);
-      g.fillStyle = 'rgba(0,0,0,.06)'; g.fillRect(x + w * 0.6, 0, w * 0.4, 64);
-    }
-    const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
-    return t;
-  }
-  function noiseTexture(c1, c2, c3, size){
-    const c = document.createElement('canvas'); c.width = c.height = size;
-    const g = c.getContext('2d');
-    g.fillStyle = c1; g.fillRect(0, 0, size, size);
-    for (let i = 0; i < size * size / 9; i++) {
-      g.fillStyle = rand() < 0.5 ? c2 : c3; g.globalAlpha = 0.25 + rand() * 0.4;
-      const r = 1 + rand() * 3; g.fillRect(rand() * size, rand() * size, r, r);
-    }
-    const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
-    return t;
-  }
   function skyTexture(night){
     // the sky: a vertical gradient, pale at the horizon and deeper overhead, warm along the horizon after sunset
     const c = document.createElement('canvas'); c.width = 4; c.height = 256;
@@ -557,463 +689,6 @@ body.moved .hint{opacity:0!important}
     g.fillStyle = gr; g.fillRect(0, 0, 4, 256);
     const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
   }
-  function liveryTexture(){
-    // the long side of a BLOX container: white, a blue band and the wordmark, as RenewaBlox's kit is liveried
-    const c = document.createElement('canvas'); c.width = 1024; c.height = 256;
-    const g = c.getContext('2d');
-    g.fillStyle = '#f1f4f6'; g.fillRect(0, 0, 1024, 256);
-    // corrugation
-    for (let x = 0; x < 1024; x += 16) { g.fillStyle = 'rgba(9,26,35,.07)'; g.fillRect(x, 0, 5, 256); g.fillStyle = 'rgba(255,255,255,.5)'; g.fillRect(x + 9, 0, 3, 256); }
-    g.fillStyle = '#1f5f7f'; g.fillRect(0, 168, 1024, 40);
-    g.fillStyle = '#3a89ae'; g.fillRect(0, 208, 1024, 8);
-    g.fillStyle = '#12475e'; g.font = '800 72px Inter, system-ui, sans-serif'; g.textBaseline = 'middle';
-    g.fillText('RENEWA', 64, 100); g.fillStyle = '#1f5f7f'; g.fillText('BLOX.', 64 + g.measureText('RENEWA').width, 100);
-    g.fillStyle = '#0d1b23'; g.font = '700 30px Inter, system-ui, sans-serif'; g.fillText('BLOX.', 880, 100);
-    g.fillStyle = 'rgba(13,27,35,.55)'; g.font = '600 20px Inter, system-ui, sans-serif'; g.fillText('HYDRO-COOLED DATA CENTRE  ·  1.75 MW', 64, 236);
-    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8;
-    return t;
-  }
-  function makeMaterials(){
-    const std = (o) => new THREE.MeshStandardMaterial(Object.assign({ roughness: 0.85, metalness: 0.0 }, o));
-    const grass = noiseTexture('#6b8e47', '#5d7f3e', '#7b9d55', 256); grass.repeat.set(290, 290);
-    const field2 = noiseTexture('#a7905b', '#9a8350', '#b59e67', 256); field2.repeat.set(20, 20);
-    const yard = noiseTexture('#b5b2aa', '#a9a69e', '#bdbab2', 256); yard.repeat.set(30, 30);
-    const cladT = slatTexture('#c7955d', '#9d6f3f', '#d9ad78', 16);
-    M = {
-      grass: std({ map: grass, roughness: 1 }),
-      field2: std({ map: field2, roughness: 1 }),
-      yard: std({ map: yard, roughness: 0.95 }),
-      asphalt: std({ color: 0x565a5e, roughness: 0.95 }),
-      asphaltD: std({ color: 0x4a4e52, roughness: 0.95 }),
-      paint: std({ color: 0xe8e8e2, roughness: 0.9 }),
-      ballast: std({ color: 0x8a847a, roughness: 1 }),
-      rail: std({ color: 0x5a5e62, roughness: 0.4, metalness: 0.7 }),
-      sleeper: std({ color: 0x8c8a85, roughness: 0.9 }),
-      concrete: std({ color: 0xc2bfb6, roughness: 0.9 }),
-      kerb: std({ color: 0xd8d5cc, roughness: 0.9 }),
-      cladT, clad: std({ color: 0xc7955d, roughness: 0.75 }),
-      cladDark: std({ color: 0x4e5962, roughness: 0.7, metalness: 0.2 }),
-      roof: std({ color: 0x8e979d, roughness: 0.8, metalness: 0.15 }),
-      roofLight: std({ color: 0xdfe3e5, roughness: 0.75 }),
-      shedWall: std({ color: 0xb9c0c4, roughness: 0.8 }),
-      glass: new THREE.MeshPhysicalMaterial({ color: 0x2c4a5e, roughness: 0.15, metalness: 0.2, transparent: true, opacity: 0.86, emissive: 0xffe2a8, emissiveIntensity: 0 }),
-      steel: std({ color: 0xe6e9eb, roughness: 0.45, metalness: 0.5 }),
-      steelDark: std({ color: 0x3d444a, roughness: 0.5, metalness: 0.5 }),
-      stack: std({ color: 0xe9eaea, roughness: 0.6 }),
-      silo: std({ color: 0xb89067, roughness: 0.6, metalness: 0.2 }),
-      siloRoof: std({ color: 0x5a6168, roughness: 0.6, metalness: 0.3 }),
-      tank: std({ color: 0x9fb3bb, roughness: 0.5, metalness: 0.35 }),
-      tankTeal: std({ color: 0x5f9ea0, roughness: 0.5, metalness: 0.2 }),
-      water: new THREE.MeshPhysicalMaterial({ color: 0x3c6579, roughness: 0.08, metalness: 0.1, transparent: true, opacity: 0.92 }),
-      bank: std({ color: 0x6b6a4a, roughness: 1 }),
-      trunk: std({ color: 0x5c4a36, roughness: 1 }),
-      leaf1: std({ color: 0x4f7d3a, roughness: 1 }),
-      leaf2: std({ color: 0x6c9448, roughness: 1 }),
-      leaf3: std({ color: 0x8aa352, roughness: 1 }),
-      fence: new THREE.MeshStandardMaterial({ color: 0x9aa4ab, roughness: 0.7, metalness: 0.3, transparent: true, opacity: 0.55, side: THREE.DoubleSide }),
-      post: std({ color: 0x6d7880, roughness: 0.6, metalness: 0.4 }),
-      container: std({ map: liveryTexture(), roughness: 0.7 }),
-      containerEnd: std({ color: 0xeef1f3, roughness: 0.7 }),
-      coolerFrame: std({ color: 0x2f3a42, roughness: 0.6, metalness: 0.4 }),
-      coolerBody: std({ color: 0x6f8aa0, roughness: 0.55, metalness: 0.35 }),
-      fan: std({ color: 0x1f5f7f, roughness: 0.5, metalness: 0.3 }),
-      fanRing: std({ color: 0xd9dee1, roughness: 0.5, metalness: 0.4 }),
-      skid: std({ color: 0x7f8a92, roughness: 0.6, metalness: 0.4 }),
-      transformer: std({ color: 0x6d7a84, roughness: 0.6, metalness: 0.45 }),
-      heap: std({ color: 0x3e4a44, roughness: 1 }),
-      heapAsh: std({ color: 0x6e6b64, roughness: 1 }),
-      lorry: std({ color: 0xf3f4f5, roughness: 0.6 }),
-      lorryCab: std({ color: 0x2e7dd1, roughness: 0.5 }),
-      tyre: std({ color: 0x222426, roughness: 1 }),
-      house: std({ color: 0xd9d2c4, roughness: 0.9 }),
-      train: std({ color: 0x1d3f6e, roughness: 0.5, metalness: 0.2 }),
-      trainBand: std({ color: 0xe9ecef, roughness: 0.5 }),
-      houseRoof: std({ color: 0x5c5f66, roughness: 0.9 }),
-      pipeDH: std({ color: 0xe0b324, roughness: 0.5, metalness: 0.2 }),
-      pipeSteam: std({ color: 0xc9c2bd, roughness: 0.5, metalness: 0.3 }),
-      duct: std({ color: 0x9aa3a9, roughness: 0.55, metalness: 0.35 }),
-      glow: new THREE.MeshStandardMaterial({ color: 0x1a7f9a, emissive: 0x19d6ff, emissiveIntensity: 0, roughness: 0.4 }),
-      lamp: new THREE.MeshStandardMaterial({ color: 0xffe9c2, emissive: 0xffd48a, emissiveIntensity: 0, roughness: 0.6 }),
-      red: new THREE.MeshStandardMaterial({ color: 0xff3b3b, emissive: 0xff2a2a, emissiveIntensity: 0, roughness: 0.5 }),
-    };
-    glowMats.push(M.glow); lampMats.push(M.lamp, M.red); windowMats.push(M.glass);
-    dimMat = new THREE.MeshStandardMaterial({ color: 0xd9e0e5, roughness: 1, metalness: 0 });
-    xrayMat = new THREE.MeshPhysicalMaterial({ color: 0x9fd0c6, transparent: true, opacity: 0.26, roughness: 0.12, metalness: 0.0, depthWrite: false, side: THREE.DoubleSide });
-    edgeMat = new THREE.LineBasicMaterial({ color: 0x1f5f7f, transparent: true, opacity: 0.8 });
-  }
-
-  /* ----------------------------------------------------------- builders */
-  function reg(name, obj){
-    (parts[name] = parts[name] || { objs: [] }).objs.push(obj);
-    obj.traverse((o) => { if (o.isMesh) { o.userData.part = name; } });
-    return obj;
-  }
-  function mesh(geo, mat, e, n, h, part){
-    const m = new THREE.Mesh(geo, mat); m.position.copy(P(e, n, h)); m.castShadow = true; m.receiveShadow = true;
-    if (part) m.userData.part = part;
-    return m;
-  }
-  // a box w (east) by d (north) by h (up), its base at height base
-  function box(w, d, h, mat, e, n, base){ return mesh(new THREE.BoxGeometry(w, h, d), mat, e, n, (base || 0) + h / 2); }
-  function cyl(r, h, mat, e, n, base, seg, rTop){
-    return mesh(new THREE.CylinderGeometry(rTop == null ? r : rTop, r, h, seg || 32), mat, e, n, (base || 0) + h / 2);
-  }
-  function cone(r, h, mat, e, n, base){ return mesh(new THREE.ConeGeometry(r, h, 32), mat, e, n, (base || 0) + h / 2); }
-  function slab(w, d, mat, e, n, h){ const m = mesh(new THREE.PlaneGeometry(w, d), mat, e, n, h); m.rotation.x = -Math.PI / 2; m.castShadow = false; return m; }
-  // a clad box: each wall its own slatted texture so the slats keep one width, a roof on top
-  function cladBox(w, d, h, e, n, base, roofMat){
-    const face = (len) => { const t = M.cladT.clone(); t.needsUpdate = true; t.repeat.set(len / 12, h / 14); return new THREE.MeshStandardMaterial({ map: t, roughness: 0.72 }); };
-    const mats = [face(d), face(d), roofMat || M.roof, M.concrete, face(w), face(w)];
-    const m = mesh(new THREE.BoxGeometry(w, h, d), mats, e, n, (base || 0) + h / 2);
-    // the outline that keeps the building's form while it is see-through
-    const edges = new THREE.LineSegments(new THREE.EdgesGeometry(m.geometry, 20), edgeMat); edges.visible = false; edges.userData.edges = true; m.add(edges);
-    return m;
-  }
-  function path(points, closed){ return new THREE.CatmullRomCurve3(points.map((p) => P(p[0], p[1], p[2])), !!closed, 'catmullrom', 0.3); }
-  function tube(curve, r, mat, seg){ const m = new THREE.Mesh(new THREE.TubeGeometry(curve, seg || 64, r, 10, false), mat); m.castShadow = true; m.receiveShadow = true; return m; }
-  function fenceRun(x0, n0, x1, n1, hgt, group){
-    const len = Math.hypot(x1 - x0, n1 - n0), ang = Math.atan2(x1 - x0, n1 - n0);
-    const f = new THREE.Mesh(new THREE.PlaneGeometry(len, hgt), M.fence); f.position.copy(P((x0 + x1) / 2, (n0 + n1) / 2, hgt / 2)); f.rotation.y = ang + Math.PI / 2; f.castShadow = false;
-    group.add(f);
-    const posts = Math.floor(len / 3);
-    const pg = new THREE.InstancedMesh(new THREE.CylinderGeometry(0.06, 0.06, hgt + 0.3, 6), M.post, posts + 1);
-    const dm = new THREE.Matrix4();
-    for (let i = 0; i <= posts; i++) { const u = i / posts; dm.setPosition(P(x0 + (x1 - x0) * u, n0 + (n1 - n0) * u, (hgt + 0.3) / 2)); pg.setMatrixAt(i, dm); }
-    pg.castShadow = true; group.add(pg);
-  }
-  function fenceRect(e0, n0, e1, n1, hgt, group){ fenceRun(e0, n0, e1, n0, hgt, group); fenceRun(e1, n0, e1, n1, hgt, group); fenceRun(e1, n1, e0, n1, hgt, group); fenceRun(e0, n1, e0, n0, hgt, group); }
-
-  /* --------------------------------------------------------- the ground */
-  function buildGround(root){
-    // the country: fields to the horizon, the site's own ground a hard yard
-    const far = slab(24000, 24000, M.grass, 0, 0, -0.15); far.receiveShadow = true; root.add(far);
-    // a few paler fields east of the river and west of the road, so the country is not one green
-    [[300, 120, 180, 160], [330, -140, 220, 200], [-420, 180, 220, 160], [-460, -220, 240, 220], [360, 360, 240, 180], [-200, 480, 300, 160]].forEach(([e, n, w, d]) => {
-      const f = slab(w, d, M.field2, e, n, -0.1); f.receiveShadow = true; root.add(f);
-    });
-    // the mill ground: hard standing from the retained units to the container yard, between railway and river
-    const yard = slab(190, 560, M.yard, -20, -40, 0); yard.receiveShadow = true; root.add(yard);
-    // the plant apron, a shade lighter
-    const apron = slab(120, 300, M.concrete, 10, -50, 0.04); apron.receiveShadow = true; root.add(apron);
-    // the access road from the north-west, along the railway, to the gate and the hall
-    const roadN = slab(8, 420, M.asphalt, -62, 90, 0.08); root.add(roadN);
-    const roadS = slab(90, 8, M.asphalt, -20, -100, 0.08); root.add(roadS);
-    const roadE = slab(8, 120, M.asphalt, 40, -140, 0.08); root.add(roadE);
-    const roadN2 = slab(140, 7, M.asphalt, 10, 150, 0.08); root.add(roadN2);
-  }
-  function buildRiver(root){
-    // the Don: a band of water below the bank, curving as it does past the mill
-    const pts = [[112, -520], [96, -360], [86, -200], [94, -40], [118, 120], [130, 280], [122, 460], [140, 640]];
-    const c = new THREE.CatmullRomCurve3(pts.map(([e, n]) => P(e, n, -2.2)), false, 'catmullrom', 0.5);
-    const water = new THREE.Mesh(new THREE.TubeGeometry(c, 120, 15, 3, false), M.water); water.scale.y = 0.08; water.receiveShadow = true; root.add(water);
-    const bank = new THREE.Mesh(new THREE.TubeGeometry(c, 120, 20, 4, false), M.bank); bank.scale.y = 0.06; bank.position.y = -1.2; bank.receiveShadow = true; root.add(bank);
-    root.userData.riverCurve = c;
-  }
-  function buildRailway(root){
-    const g = new THREE.Group();
-    g.add(slab(12, 1200, M.ballast, -135, 0, 0.1));
-    for (const dx of [-2.2, 2.2]) {
-      for (const r of [-0.72, 0.72]) { const rl = box(0.14, 1200, 0.16, M.rail, -135 + dx + r, 0, 0.42); rl.castShadow = false; g.add(rl); }
-      const n = 400, im = new THREE.InstancedMesh(new THREE.BoxGeometry(2.5, 0.16, 0.26), M.sleeper, n), dm = new THREE.Matrix4();
-      for (let i = 0; i < n; i++) { dm.setPosition(P(-135 + dx, -600 + i * 3, 0.34)); im.setMatrixAt(i, dm); }
-      im.castShadow = false; im.receiveShadow = true; g.add(im);
-    }
-    // a two-car train on the up line, for the scale of the plant
-    const train = new THREE.Group();
-    [[-135 - 2.2, 60], [-135 - 2.2, 84.5]].forEach(([e, n]) => {
-      train.add(box(2.8, 23, 3.4, M.train, e, n, 0.6)); train.add(box(2.9, 23.2, 0.5, M.trainBand, e, n, 2.2)); train.add(box(2.6, 22.6, 0.4, M.steelDark, e, n, 4.0));
-    });
-    g.add(train);
-    // the overhead-line-free line has its own small lineside: a few relay cabinets
-    [[-128, -60], [-128, 180]].forEach(([e, n]) => g.add(box(1.6, 1, 1.4, M.steelDark, e, n, 0.1)));
-    root.add(g);
-  }
-  function buildRoads(root){
-    // the A96: two carriageways and a reserve, 220 m west, with a lay-by of trees between it and the railway
-    const g = new THREE.Group();
-    g.add(slab(8, 1300, M.asphaltD, -222, 0, 0.1)); g.add(slab(8, 1300, M.asphaltD, -236, 0, 0.1));
-    g.add(slab(6, 1300, M.grass, -229, 0, 0.12));
-    const dashes = 160, im = new THREE.InstancedMesh(new THREE.BoxGeometry(0.2, 0.02, 3), M.paint, dashes * 2), dm = new THREE.Matrix4();
-    for (let i = 0; i < dashes; i++) { dm.setPosition(P(-222, -640 + i * 8, 0.12)); im.setMatrixAt(i, dm); dm.setPosition(P(-236, -640 + i * 8, 0.12)); im.setMatrixAt(dashes + i, dm); }
-    g.add(im);
-    // Mill Road's bridge over the railway, north of the site, where the access road crosses
-    g.add(box(30, 8, 1.2, M.concrete, -135, 300, 5.6)); g.add(box(4, 8, 5.6, M.concrete, -150, 300, 0)); g.add(box(4, 8, 5.6, M.concrete, -120, 300, 0));
-    g.add(slab(30, 7, M.asphalt, -135, 300, 6.25)); g.add(slab(90, 7, M.asphalt, -195, 300, 0.1)); g.add(slab(70, 7, M.asphalt, -97, 300, 0.1));
-    root.add(g);
-  }
-  function buildTrees(root){
-    // low-poly trees in two species, as instances: belts along the river, the railway and the road, and the odd one
-    const spots = [];
-    const belt = (fn, n, jitter) => { for (let i = 0; i < n; i++) { const p = fn(i / Math.max(1, n - 1)); spots.push([p[0] + (rand() - 0.5) * jitter, p[1] + (rand() - 0.5) * jitter, 0.75 + rand() * 0.7]); } };
-    const rc = root.userData.riverCurve;
-    belt((u) => { const p = rc.getPointAt(u); return [p.x - 24, -p.z]; }, 70, 12);
-    belt((u) => { const p = rc.getPointAt(u); return [p.x + 26, -p.z]; }, 60, 16);
-    belt((u) => [-148 + (rand() - 0.5) * 6, -600 + u * 1200], 110, 8);
-    belt((u) => [-175 + (rand() - 0.5) * 20, -600 + u * 1200], 80, 24);
-    belt((u) => [-255 + (rand() - 0.5) * 10, -600 + u * 1200], 70, 14);
-    belt((u) => [-70 + u * 240, 330 + (rand() - 0.5) * 10], 30, 12);
-    belt((u) => [-120 + u * 60, -230 + (rand() - 0.5) * 10], 10, 10);
-    for (let i = 0; i < 60; i++) spots.push([-330 + rand() * 90, -500 + rand() * 1000, 0.8 + rand() * 0.6]);
-    for (let i = 0; i < 70; i++) spots.push([200 + rand() * 220, -500 + rand() * 1000, 0.8 + rand() * 0.6]);
-    const geo1 = new THREE.IcosahedronGeometry(3.2, 1), geo2 = new THREE.ConeGeometry(2.6, 7, 7), trunk = new THREE.CylinderGeometry(0.28, 0.38, 2.6, 6);
-    const groups = [[geo1, M.leaf1], [geo1, M.leaf2], [geo2, M.leaf3]];
-    const counts = [0, 0, 0], which = spots.map(() => Math.floor(rand() * 3));
-    which.forEach((w) => counts[w]++);
-    const ims = groups.map(([g, m], i) => { const im = new THREE.InstancedMesh(g, m, Math.max(1, counts[i])); im.castShadow = true; im.receiveShadow = true; return im; });
-    const tr = new THREE.InstancedMesh(trunk, M.trunk, spots.length); tr.castShadow = true;
-    const idx = [0, 0, 0], dm = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), pos = new THREE.Vector3();
-    spots.forEach((sp, i) => {
-      const w = which[i], sc = sp[2];
-      q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), rand() * Math.PI);
-      pos.copy(P(sp[0], sp[1], w === 2 ? 2.4 + 3.5 * sc : 2.4 + 3.0 * sc)); s.set(sc, sc, sc); dm.compose(pos, q, s); ims[w].setMatrixAt(idx[w]++, dm);
-      pos.copy(P(sp[0], sp[1], 1.3 * sc)); s.set(sc, sc, sc); dm.compose(pos, q, s); tr.setMatrixAt(i, dm);
-    });
-    ims.forEach((im) => root.add(im)); root.add(tr);
-  }
-  function buildNeighbours(root){
-    // the retained commercial units to the north, the container yard to the south, and the village to the north-west
-    const g = new THREE.Group();
-    const shed = (w, d, h, e, n) => { g.add(box(w, d, h - 1.5, M.shedWall, e, n, 0)); const r = box(w + 0.6, d + 0.6, 1.5, M.roofLight, e, n, h - 1.5); g.add(r); };
-    shed(92, 34, 12, 14, 232); shed(92, 30, 10, 14, 196); shed(44, 30, 9, 86, 236); shed(34, 20, 8, -40, 230);
-    reg('units', g);
-    // the yard's containers, stacked one and two high in the usual colours
-    const cols = [0x8a2b2b, 0x2a5e8a, 0x3f6f3a, 0xb7772c, 0x7a7f84, 0xd0cfc9, 0x5b3f7a], n = 48;
-    const im = new THREE.InstancedMesh(new THREE.BoxGeometry(12.2, 2.6, 2.44), new THREE.MeshStandardMaterial({ roughness: 0.75 }), n);
-    const dm = new THREE.Matrix4(), col = new THREE.Color();
-    for (let i = 0; i < n; i++) {
-      const r = i % 6, c = Math.floor(i / 6), lvl = (i % 5 === 0 && c > 1) ? 1 : 0;
-      dm.makeTranslation(14 + c * 14.5, 1.3 + lvl * 2.6 + (i % 7 === 0 ? 2.6 : 0), 180 + r * 3.6); // z south = +n negated below
-      dm.setPosition(P(14 + c * 14.5, -180 - r * 3.6, 1.3 + lvl * 2.6)); im.setMatrixAt(i, dm); col.setHex(cols[(i * 5 + c) % cols.length]); im.setColorAt(i, col);
-    }
-    im.castShadow = true; im.receiveShadow = true; g.add(im);
-    // Port Elphinstone's southern edge, a kilometre north-west: a few houses for the scale of the stack
-    const hg = new THREE.Group();
-    for (let i = 0; i < 26; i++) {
-      const e = -300 + (i % 9) * 26 + (rand() - 0.5) * 8, nn = 400 + Math.floor(i / 9) * 30 + (rand() - 0.5) * 10;
-      hg.add(box(9, 7, 5.5, M.house, e, nn, 0)); const r = mesh(new THREE.ConeGeometry(6.4, 3.2, 4), M.houseRoof, e, nn, 7.1); r.rotation.y = Math.PI / 4; hg.add(r);
-    }
-    g.add(hg);
-    root.add(g);
-  }
-
-  /* --------------------------------------------------------- the plant */
-  function buildPlant(root){
-    plantRoot = new THREE.Group();
-    const R = plantRoot;
-
-    // Boiler house: the tall clad mass, a taller core, the glazed slot on its west face, roof plant and the louvred top
-    const bh = new THREE.Group();
-    const shellB = cladBox(44, 34, 38, 0, 0, 0); shellB.userData.shell = 'boiler'; shells.push(shellB); bh.add(shellB);
-    const core = cladBox(22, 18, 46, 3, 2, 0, M.cladDark); core.userData.shell = 'boiler'; shells.push(core); bh.add(core);
-    const slot = box(0.6, 6, 34, M.glass, -22.2, -6, 2); slot.userData.shell = 'boiler'; bh.add(slot);
-    bh.add(box(12, 10, 3, M.cladDark, -12, 8, 38)); bh.add(box(6, 6, 2.2, M.steelDark, 14, -10, 38));
-    const louvre = box(44.2, 34.2, 2.6, M.cladDark, 0, 0, 33); louvre.userData.shell = 'boiler'; bh.add(louvre);
-    const stair = cladBox(5, 5, 42, -24.6, 12, 0, M.cladDark); stair.userData.shell = 'boiler'; shells.push(stair); bh.add(stair);
-    for (let i = 0; i < 3; i++) bh.add(cyl(1.3, 1.2, M.steelDark, -6 + i * 6, -12, 38, 16));
-    // inside: the furnace and grate, the boiler passes and the steam drum
-    const inside = new THREE.Group();
-    const fire = new THREE.MeshStandardMaterial({ color: 0xff8a2a, emissive: 0xff6a10, emissiveIntensity: 1.6, roughness: 0.6 }); fireMats.push(fire);
-    // the feed hopper over the grate, the combustion chamber (lit), the inclined grate and the ash discharge
-    const hopper = cyl(2.2, 6, M.steelDark, -8, -4, 22, 4, 4.6); hopper.rotation.y = Math.PI / 4; inside.add(hopper);
-    inside.add(box(10, 12, 3, M.steelDark, -6, -4, 0)); inside.add(box(10, 12, 7, fire, -6, -4, 3)); inside.add(box(10, 12, 7, M.steelDark, -6, -4, 10));
-    const grate = box(9, 10, 0.8, M.duct, -5, -4, 3.2); grate.rotation.z = -0.22; inside.add(grate);
-    inside.add(box(5, 6, 3, M.steelDark, -2, -4, 0.2));
-    // the boiler: three passes, the steam drum above them and the economiser
-    inside.add(box(8, 10, 30, M.duct, 2, -2, 6)); inside.add(box(6, 10, 26, M.duct, 9.5, -2, 10)); inside.add(box(5, 10, 20, M.duct, 15.5, -2, 14));
-    const drum = cyl(1.7, 14, M.pipeSteam, 5, 7, 38.5); drum.rotation.z = Math.PI / 2; inside.add(drum);
-    for (let i = 0; i < 4; i++) { const r = cyl(0.3, 4, M.pipeSteam, 1 + i * 2.4, 4.5, 36.2); inside.add(r); }
-    inside.add(box(8, 6, 1, M.steelDark, 2, -2, 36)); inside.add(box(3, 1.2, 1.2, M.steelDark, 16, -6, 1.5));
-    inside.traverse((o) => { if (o.isMesh) o.userData.inside = true; });
-    bh.add(inside);
-    reg('boiler', bh); R.add(bh);
-
-    // the stack, with its platform, ladder cage and aviation light
-    const sg = new THREE.Group();
-    sg.add(cyl(2.6, 75, M.stack, -20, 32, 0, 40, 2.1)); sg.add(cyl(3.4, 0.4, M.steelDark, -20, 32, 60, 40)); sg.add(cyl(3.0, 2, M.steelDark, -20, 32, 0, 40));
-    stackLamp = mesh(new THREE.SphereGeometry(0.5, 12, 12), M.red, -20, 32, 75.6); sg.add(stackLamp);
-    reg('stack', sg); R.add(sg);
-
-    // flue gas treatment: the reactor and bag-filter hall, its reagent silos, the duct from the boiler
-    const fg = new THREE.Group();
-    const fgt = cladBox(32, 16, 20, 4, 32, 0, M.cladDark); fgt.userData.shell = 'fgt'; fg.add(fgt);
-    fg.add(cyl(2.1, 14, M.tank, -8, 46, 0)); fg.add(cone(2.1, 2.2, M.siloRoof, -8, 46, 14)); fg.add(cyl(2.1, 14, M.tank, -2, 46, 0)); fg.add(cone(2.1, 2.2, M.siloRoof, -2, 46, 14));
-    fg.add(box(6, 6, 8, M.duct, 10, 32, 20)); fg.add(box(6, 4, 4, M.steelDark, 16, 42, 0));
-    const duct1 = tube(path([[6, 16, 40], [6, 26, 30], [8, 32, 24]]), 1.5, M.duct, 24); fg.add(duct1);
-    reg('fgt', fg); R.add(fg);
-
-    // heat recovery and scrubbing: the condensing scrubber tower and its tanks between the hall and the stack
-    const sc = new THREE.Group();
-    sc.add(cyl(3.2, 22, M.steel, -9, 36, 0)); sc.add(cyl(3.6, 1.4, M.steelDark, -9, 36, 22)); sc.add(cyl(1.6, 6, M.tank, -14, 40, 0)); sc.add(box(6, 4, 4, M.steelDark, -2, 40, 0));
-    const duct2 = tube(path([[-12, 32, 16], [-9, 34, 20], [-9, 36, 23]]), 1.2, M.duct, 16); sc.add(duct2);
-    const duct3 = tube(path([[-9, 36, 23], [-14, 34, 26], [-20, 32, 30]]), 1.2, M.duct, 16); sc.add(duct3);
-    reg('scrubber', sc); R.add(sc);
-
-    // the turbine hall, the turbine and generator on their pedestal, the condenser below
-    const th = new THREE.Group();
-    const shellT = cladBox(40, 20, 16, 4, -27, 0); shellT.userData.shell = 'turbine'; shells.push(shellT); th.add(shellT);
-    const glz = box(30, 0.5, 4, M.glass, 4, -37.3, 9); glz.userData.shell = 'turbine'; th.add(glz);
-    th.add(box(8, 6, 2.4, M.steelDark, -8, -22, 16));
-    const ti = new THREE.Group();
-    ti.add(box(24, 7, 4.4, M.concrete, 4, -27, 0));
-    const turb = cyl(1.6, 9, M.steel, -3, -27, 6.6, 24, 2.6); turb.rotation.z = Math.PI / 2; ti.add(turb);     // the turbine, widening to its exhaust
-    const gen = cyl(2.3, 7, M.steelDark, 8, -27, 6.7); gen.rotation.z = Math.PI / 2; ti.add(gen);               // the generator
-    const exc = cyl(1.2, 2, M.steel, 13, -27, 6.7); exc.rotation.z = Math.PI / 2; ti.add(exc);                   // the exciter
-    ti.add(box(2.4, 7, 2.2, M.steelDark, 2.6, -27, 4.4)); ti.add(box(10, 6, 3.8, M.duct, -3, -27, 0.2));        // the gearbox and the condenser below
-    ti.add(box(36, 0.6, 0.8, M.steelDark, 4, -20, 13)); ti.add(box(36, 0.6, 0.8, M.steelDark, 4, -34, 13));      // the crane rails
-    ti.add(box(1.2, 14.6, 1, M.steelDark, -8, -27, 13.4));
-    ti.traverse((o) => { if (o.isMesh) o.userData.inside = true; }); th.add(ti);
-    const steamPipe = tube(path([[6, -17, 38], [6, -19, 34], [2, -19.5, 14], [0, -22, 9], [-2, -25, 7]]), 0.6, M.pipeSteam, 32); th.add(steamPipe);
-    reg('turbine', th); R.add(th);
-
-    // the transformer compound and the 33 kV switchroom
-    const tc = new THREE.Group();
-    tc.add(box(6, 4, 5, M.transformer, 32, -30, 0)); [-3.6, 3.6].forEach((dx) => tc.add(box(1, 3.4, 4, M.steelDark, 32 + dx, -30, 0.5)));
-    for (let i = 0; i < 3; i++) tc.add(cyl(0.22, 1.6, M.stack, 30.5 + i * 1.5, -30, 5));
-    tc.add(box(14, 8, 5.5, M.cladDark, 32, -44, 0)); tc.add(box(1.4, 2.4, 2.4, M.steel, 25.2, -44, 0));
-    fenceRect(24, -50, 42, -24, 2.4, tc);
-    reg('transformer', tc); R.add(tc);
-
-    // the coolers by the river: a steel structure with six fans, drawn as the plume-free units the developer describes
-    const co = new THREE.Group();
-    co.add(box(26, 11, 6.5, M.coolerBody, 40, -8, 2.5)); co.add(box(26.4, 11.4, 0.6, M.steelDark, 40, -8, 8.4)); for (let i = 0; i < 4; i++) co.add(box(0.6, 0.6, 2.5, M.steelDark, 29 + i * 7.3, -13, 0));
-    for (let i = 0; i < 4; i++) co.add(box(0.6, 0.6, 2.5, M.steelDark, 29 + i * 7.3, -3, 0));
-    for (let i = 0; i < 6; i++) {
-      const e = 30 + (i % 3) * 10, n = -5.5 - Math.floor(i / 3) * 5;
-      co.add(cyl(2.1, 0.5, M.fanRing, e, n, 9, 24));
-      const f = new THREE.Group(); f.position.copy(P(e, n, 9.3));
-      for (let b = 0; b < 4; b++) { const bl = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.08, 0.6), M.fan); bl.rotation.y = b * Math.PI / 4; f.add(bl); }
-      fans.push(f); co.add(f);
-    }
-    reg('coolers', co); R.add(co);
-
-    // the fuel storage silos and the covered conveyor from the hall, over the silos and into the boiler house
-    const si = new THREE.Group();
-    [-6, 10].forEach((e) => { si.add(cyl(7, 24, M.silo, e, -58, 0, 40)); si.add(cone(7.4, 4.5, M.siloRoof, e, -58, 24)); si.add(cyl(1.2, 2, M.steelDark, e, -58, 28.5)); });
-    si.add(box(2.4, 2.4, 24, M.steel, 2, -66, 0));
-    reg('silos', si); R.add(si);
-    const cv = new THREE.Group();
-    cv.add(tube(path([[-2, -82, 14.5], [0, -72, 22], [2, -62, 29.5]]), 1.6, M.steel, 24));
-    cv.add(tube(path([[-6, -58, 30], [2, -58, 31], [10, -58, 30]]), 1.3, M.steel, 12));
-    cv.add(tube(path([[2, -50, 30.5], [2, -34, 33.5], [2, -17, 36]]), 1.6, M.steel, 24));
-    [[-1, -76, 0, 18], [1, -68, 0, 25], [2, -44, 0, 31], [2, -28, 0, 34]].forEach(([e, n, b, h]) => cv.add(box(1.2, 1.2, h, M.steel, e, n, b)));
-    reg('conveyor', cv); R.add(cv);
-
-    // the waste reception and processing hall: long and low, its tipping doors on the west and the processing line inside
-    const rh = new THREE.Group();
-    const shellR = cladBox(70, 60, 14, 0, -110, 0); shellR.userData.shell = 'reception'; shells.push(shellR); rh.add(shellR);
-    [-125, -110, -95].forEach((n) => { const d = box(0.4, 7, 7, M.cladDark, -35.2, n, 0.2); d.userData.shell = 'reception'; rh.add(d); });
-    rh.add(box(16, 0.6, 5, M.cladDark, -10, -140.2, 0.2)); rh.add(box(12, 8, 3, M.cladDark, 20, -120, 14)); rh.add(box(8, 8, 2.4, M.steelDark, -18, -96, 14));
-    const ri = new THREE.Group();
-    ri.add(box(26, 16, 0.8, M.concrete, -20, -110, 0));                                                           // the tipping floor
-    [[-24, -106, 3.6], [-18, -112, 3.0], [-26, -118, 2.6], [-14, -104, 2.2], [-20, -100, 2.0]].forEach(([e, n, r]) => { const hp = mesh(new THREE.IcosahedronGeometry(r, 0), M.heap, e, n, r * 0.5); hp.scale.y = 0.7; hp.rotation.y = r; ri.add(hp); });
-    ri.add(box(8, 6, 6, M.steelDark, -6, -116, 0)); ri.add(box(6, 4, 1.2, new THREE.MeshStandardMaterial({ color: 0xb7392f, roughness: 0.6 }), -6, -116, 6));   // the shredder
-    const trommel = cyl(2.4, 12, M.steel, 10, -116, 4); trommel.rotation.z = Math.PI / 2; trommel.rotation.y = 0.06; ri.add(trommel);   // the trommel screen
-    [4, 16].forEach((e) => ri.add(box(1.2, 5, 4, M.steelDark, e, -116, 0)));
-    ri.add(box(3, 4, 4, M.steelDark, 22, -116, 0)); ri.add(box(3, 4, 1.4, new THREE.MeshStandardMaterial({ color: 0x2f6fb8, roughness: 0.6 }), 22, -116, 4));  // the overband magnet
-    const c1 = box(28, 1.6, 0.6, M.steelDark, 6, -102, 3); c1.rotation.z = 0.08; ri.add(c1);                   // the conveyors
-    const c2 = box(30, 1.6, 0.6, M.steelDark, -4, -96, 6); c2.rotation.z = -0.06; ri.add(c2);
-    ri.add(box(1.6, 18, 0.6, M.steelDark, 26, -104, 3)); ri.add(box(6, 4, 3, M.heapAsh, -26, -126, 0.8));
-    ri.traverse((o) => { if (o.isMesh) o.userData.inside = true; }); rh.add(ri);
-    // the recyclables skips on the east side
-    [-98, -104, -110].forEach((n) => rh.add(box(6, 2.6, 1.8, M.steelDark, 40, n, 0)));
-    reg('reception', rh); R.add(rh);
-
-    // the gate, the weighbridge and the admin building
-    const ga = new THREE.Group();
-    ga.add(box(4, 3, 3, M.cladDark, -66, -95, 0)); ga.add(box(18, 3.4, 0.3, M.steelDark, -58, -100, 0.1)); ga.add(box(0.3, 8, 1.2, M.steel, -58, -100, 1.4));
-    ga.add(box(20, 10, 7.5, M.clad, -52, -70, 0)); ga.add(box(19.4, 0.5, 2.4, M.glass, -52, -75.1, 1.2)); ga.add(box(19.4, 0.5, 2.4, M.glass, -52, -75.1, 4.6));
-    reg('gate', ga); R.add(ga);
-
-    // the ash bay and the APCR silo east of the boiler house
-    const ab = new THREE.Group();
-    ab.add(box(14, 10, 4.5, M.concrete, 34, 6, 0)); ab.add(box(12, 8, 4.4, M.heapAsh, 34, 6, 0.2)); ab.add(box(12, 8, 1.2, M.heapAsh, 34, 6, 4.6));
-    ab.add(cyl(2.2, 12, M.tank, 34, 18, 0)); ab.add(cone(2.2, 2.2, M.siloRoof, 34, 18, 12)); ab.add(cyl(0.4, 1, M.steelDark, 34, 18, 14.2));
-    reg('ashbay', ab); R.add(ab);
-
-    // water treatment and the rainwater store
-    const wt = new THREE.Group();
-    wt.add(cyl(4.2, 8, M.tankTeal, 28, 36, 0)); wt.add(cyl(3, 6, M.tankTeal, 36, 38, 0)); wt.add(box(10, 8, 5, M.cladDark, 42, 30, 0)); wt.add(cyl(1.4, 5, M.tank, 24, 44, 0));
-    reg('watertanks', wt); R.add(wt);
-
-    // the heat station west of the turbine hall, with the district heating main leaving north
-    const hs = new THREE.Group();
-    hs.add(box(16, 10, 7, M.clad, -32, -28, 0)); hs.add(box(6, 4, 2.4, M.steelDark, -36, -26, 7)); hs.add(cyl(2.2, 9, M.tankTeal, -26, -20, 0));
-    const hx = box(8, 3, 2.6, M.steel, -20, -32, 0); hs.add(hx);
-    reg('heatstation', hs); R.add(hs);
-    const dl = new THREE.Group();
-    const dhc = path([[-34, -22, 1.2], [-34, 20, 1.2], [-34, 58, 1.2], [-80, 60, 1.2], [-124, 62, 1.2], [-126, 180, 1.2], [-126, 420, 1.2]]);
-    [0.45, -0.45].forEach((off) => { const t = tube(dhc, 0.32, M.pipeDH, 120); t.position.x += off; dl.add(t); });
-    reg('dhline', dl); R.add(dl);
-    // the export route: a cable, drawn as a marker line, leaving west under the railway
-    const gl = new THREE.Group();
-    const gc = path([[25, -46, 0.4], [-10, -54, 0.4], [-40, -60, 0.4], [-100, -64, 0.4], [-135, -66, 0.4], [-230, -70, 0.4], [-300, -72, 0.4]]);
-    gl.add(tube(gc, 0.25, M.steelDark, 80));
-    [[-40, -60], [-100, -64], [-170, -68], [-260, -71]].forEach(([e, n]) => gl.add(box(0.3, 0.3, 1.2, M.paint, e, n, 0)));
-    reg('gridline', gl); R.add(gl);
-    root.userData.gridCurve = gc; root.userData.dhCurve = dhc;
-
-    // lorries: at the tipping doors and the weighbridge
-    const lo = new THREE.Group();
-    const lorry = (e, n, ang) => {
-      const g = new THREE.Group(); g.position.copy(P(e, n, 0)); g.rotation.y = ang;
-      const body = new THREE.Mesh(new THREE.BoxGeometry(2.5, 3.2, 9.5), M.lorry); body.position.set(0, 2.6, -1.8); body.castShadow = true; g.add(body);
-      const cab = new THREE.Mesh(new THREE.BoxGeometry(2.5, 2.6, 2.4), M.lorryCab); cab.position.set(0, 2.0, 4.2); cab.castShadow = true; g.add(cab);
-      for (const z of [-5, -2.8, 3.6]) for (const x of [-1.1, 1.1]) { const t = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.55, 0.4, 14), M.tyre); t.rotation.z = Math.PI / 2; t.position.set(x, 0.55, z); g.add(t); }
-      return g;
-    };
-    lo.add(lorry(-44, -125, Math.PI / 2)); lo.add(lorry(-46, -110, Math.PI / 2)); lo.add(lorry(-58, -100, 0)); lo.add(lorry(-62, -40, Math.PI));
-    reg('lorries', lo); R.add(lo);
-
-    root.add(R);
-  }
-
-  /* ----------------------------------------------------------- the BLOX */
-  function buildBlox(root){
-    const g = new THREE.Group();
-    const E0 = -80, N0 = -20;   // compound centre
-    // the slab and the fence
-    g.add(slab(78, 56, M.concrete, E0, N0, 0.06));
-    fenceRect(E0 - 39, N0 - 28, E0 + 39, N0 + 28, 2.4, g);
-    g.add(box(0.3, 6, 2.4, M.steel, E0 + 39, N0 + 22, 0));   // the gate, on the east side towards the plant
-    // sixteen 40 ft hydro-cooled containers in four rows, long axis east-west, each with its roof dry cooler
-    const bodyGeo = new THREE.BoxGeometry(12.2, 2.9, 2.44);
-    for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) {
-      const e = E0 - 24 + c * 15.4, n = N0 + 19 - r * 12.5;
-      const cont = new THREE.Group(); cont.position.copy(P(e, n, 0));
-      const body = new THREE.Mesh(bodyGeo, [M.containerEnd, M.containerEnd, M.roofLight, M.concrete, M.container, M.container]); body.position.y = 1.45 + 0.2; body.castShadow = true; body.receiveShadow = true; cont.add(body);
-      [-5.6, 5.6].forEach((x) => { const f = new THREE.Mesh(new THREE.BoxGeometry(1, 0.4, 2.6), M.concrete); f.position.set(x, 0.2, 0); cont.add(f); });
-      // the dry cooler: a frame, the fin pack and five fans in a line
-      const frame = new THREE.Mesh(new THREE.BoxGeometry(11.6, 1.6, 2.3), M.coolerFrame); frame.position.y = 3.95; frame.castShadow = true; cont.add(frame);
-      for (let i = 0; i < 5; i++) {
-        const ring = new THREE.Mesh(new THREE.CylinderGeometry(1.0, 1.0, 0.3, 20), M.fanRing); ring.position.set(-4.6 + i * 2.3, 4.85, 0); cont.add(ring);
-        const f = new THREE.Group(); f.position.set(-4.6 + i * 2.3, 5.0, 0);
-        for (let b = 0; b < 3; b++) { const bl = new THREE.Mesh(new THREE.BoxGeometry(1.7, 0.05, 0.3), M.fan); bl.rotation.y = b * Math.PI / 3; f.add(bl); }
-        bloxFans.push(f); cont.add(f);
-      }
-      // the glow line along the foot of each long side, lit at dusk
-      [1.26, -1.26].forEach((z) => { const gl = new THREE.Mesh(new THREE.BoxGeometry(12.0, 0.06, 0.06), M.glow); gl.position.set(0, 0.46, z); cont.add(gl); });
-      // the flow and return to the cooler at the services end
-      [[0.5, 0xb8322f], [-0.5, 0x2f6fb8]].forEach(([z, col]) => { const p = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 1.8, 8), new THREE.MeshStandardMaterial({ color: col, roughness: 0.5 })); p.position.set(5.4, 3.2, z); cont.add(p); });
-      g.add(cont);
-    }
-    // a switchgear skid at the head of each row, and the control container at the gate
-    for (let r = 0; r < 4; r++) { const n = N0 + 19 - r * 12.5; g.add(box(3.2, 2.4, 2.8, M.skid, E0 + 31, n, 0.2)); g.add(box(2.2, 1.6, 2.2, M.transformer, E0 + 35, n, 0.2)); }
-    const ctl = new THREE.Mesh(new THREE.BoxGeometry(6.06, 2.9, 2.44), [M.containerEnd, M.containerEnd, M.roofLight, M.concrete, M.container, M.container]);
-    ctl.position.copy(P(E0 + 32, N0 - 24, 1.65)); ctl.castShadow = true; g.add(ctl);
-    // yard lights at the corners
-    [[E0 - 36, N0 - 25], [E0 + 36, N0 - 25], [E0 - 36, N0 + 25], [E0 + 36, N0 + 25]].forEach(([e, n]) => { g.add(cyl(0.12, 8, M.post, e, n, 0)); g.add(mesh(new THREE.SphereGeometry(0.35, 10, 10), M.lamp, e, n, 8.1)); });
-    reg('blox', g); root.add(g);
-    // the cable from the switchroom to the compound
-    const bl = new THREE.Group();
-    const bc = path([[25, -47, 0.3], [0, -56, 0.3], [-30, -52, 0.3], [-41, -38, 0.3], [-45, -20, 0.3]]);
-    bl.add(tube(bc, 0.25, M.steelDark, 48));
-    reg('bloxline', bl); root.add(bl);
-    root.userData.bloxCurve = bc;
-  }
-
-  /* ------------------------------------------------------------ the flows */
-  // Each flow is a path, a key colour and a stream of points that run along it; the path itself is drawn faintly so
-  // the route reads when the points are far apart.
   function dot(){
     const c = document.createElement('canvas'); c.width = c.height = 64;
     const g = c.getContext('2d'), r = g.createRadialGradient(32, 32, 0, 32, 32, 32);
@@ -1021,131 +696,10 @@ body.moved .hint{opacity:0!important}
     g.fillStyle = r; g.fillRect(0, 0, 64, 64);
     const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
   }
-  function addFlow(id, key, pts, o){
-    o = o || {};
-    const curve = o.curve || path(pts);
-    const col = new THREE.Color(KEY[key][0]);
-    const n = o.n || Math.max(8, Math.round(curve.getLength() / (o.gap || 7)));
-    const pos = new Float32Array(n * 3), geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    const mat = new THREE.PointsMaterial({ color: col, size: o.size || 5.4, map: FLOWDOT, transparent: true, opacity: 0, depthWrite: false, sizeAttenuation: true, alphaTest: 0.02 });
-    const points = new THREE.Points(geo, mat); points.frustumCulled = false; points.renderOrder = 20;
-    const line = new THREE.Mesh(new THREE.TubeGeometry(curve, 96, o.r || 0.5, 8, false), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0, depthWrite: false }));
-    line.renderOrder = 19;
-    const f = { id, key, curve, points, line, n, speed: o.speed || 0.07, target: 0, level: 0, fade: o.fade || false, grow: o.grow || 0 };
-    flows[id] = f; scene.add(points); scene.add(line);
-    return f;
-  }
-  function buildFlows(root){
-    const rc = root.userData;
-    // 1 waste: along the access road, over the weighbridge, in at the tipping doors to the floor
-    addFlow('waste', 'waste', [[-62, 120, 1.8], [-62, -20, 1.8], [-60, -92, 1.8], [-50, -108, 1.8], [-37, -112, 1.6], [-22, -110, 2.2]], { gap: 7 });
-    // recyclables and inerts out of the east side to the skips
-    addFlow('recyc', 'ash', [[-6, -116, 4], [10, -116, 5], [22, -116, 3], [34, -108, 2], [40, -104, 2.2]], { gap: 6, size: 2.6 });
-    // the hall's air to the furnace
-    addFlow('air', 'air', [[-10, -96, 9], [-14, -80, 14], [-16, -50, 24], [-12, -20, 26], [-6, -6, 16]], { gap: 9, size: 2.4, speed: 0.06 });
-    // 2 fuel: the processing line, up the conveyor, over the silos, into the boiler house, down to the grate
-    addFlow('fuel', 'fuel', [[-20, -110, 3], [6, -102, 4], [20, -98, 7], [-2, -82, 15], [0, -72, 22.5], [2, -62, 30], [-6, -58, 30.5], [10, -58, 30.5], [2, -50, 31], [2, -34, 34], [2, -17, 36.5], [-2, -8, 30], [-6, -4, 16]], { gap: 6 });
-    // 3/5 steam: from the drum down the south face into the turbine
-    addFlow('steam', 'steam', [[7, 7, 41], [6, -17, 38.6], [6, -19, 34], [2, -19.5, 14], [0, -22, 9], [-2, -25, 7], [-2, -27, 6.5]], { gap: 5, size: 2.8, speed: 0.09 });
-    // 3/6/7/8 flue: up the boiler passes, the duct, the hall, the scrubber, the stack
-    addFlow('flue', 'flue', [[-6, -4, 10], [4, -2, 20], [6, 4, 36], [6, 16, 40], [6, 26, 30], [8, 32, 24], [10, 32, 14], [0, 32, 10], [-9, 34, 10], [-9, 36, 20], [-14, 34, 26], [-20, 32, 30], [-20, 32, 50], [-20, 32, 76]], { gap: 6, speed: 0.06 });
-    // the plume: clean gas, drawn nearly white and fading as it disperses to the north-east
-    addFlow('plume', 'flue', [[-20, 32, 76], [-14, 40, 86], [-2, 54, 96], [16, 74, 106], [40, 100, 114]], { gap: 3.5, size: 8.5, speed: 0.045, fade: true, grow: 1 });
-    flows.plume.points.material.color.set('#f1f4f6'); flows.plume.line.material.color.set('#f1f4f6'); flows.plume.lineMax = 0;
-    // 4 ash and APCR
-    addFlow('ash', 'ash', [[-6, -4, 2], [6, -2, 1.6], [18, 2, 1.6], [28, 6, 2], [34, 6, 4]], { gap: 6, speed: 0.05 });
-    addFlow('apcr', 'ash', [[4, 32, 2], [16, 28, 1.6], [26, 22, 2], [34, 18, 6], [34, 18, 12]], { gap: 6, speed: 0.05 });
-    // 5/9 electricity: generator, transformer, switchroom; then the grid route west under the railway
-    addFlow('elec', 'elec', [[8, -27, 6], [14, -30, 4], [24, -30, 3], [32, -30, 3], [32, -37, 2.5], [32, -44, 2.5]], { gap: 5, speed: 0.1 });
-    addFlow('grid', 'elec', null, { curve: rc.gridCurve, gap: 7, speed: 0.1 });
-    // 13 power to the BLOX
-    addFlow('bloxpower', 'elec', null, { curve: rc.bloxCurve, gap: 6, speed: 0.1 });
-    // 10 heat: from the condenser to the heat station, the recovered heat from the scrubber, and the main north
-    addFlow('heat', 'heat', [[0, -32, 3], [-10, -32, 3], [-20, -32, 2.6], [-28, -30, 3]], { gap: 5, size: 2.8 });
-    addFlow('heat2', 'heat', [[-9, 36, 8], [-18, 34, 6], [-28, 24, 4], [-34, 10, 3.5], [-34, -14, 3.5], [-32, -24, 3]], { gap: 6, size: 2.8 });
-    addFlow('dh', 'dh', null, { curve: rc.dhCurve, gap: 8, speed: 0.06 });
-    // 11 the cooling loop to the coolers
-    addFlow('cool', 'heat', [[14, -30, 3], [22, -24, 3], [30, -14, 4], [34, -8, 8], [38, -6, 10], [44, -8, 10.5], [40, -12, 8], [30, -20, 4], [16, -29, 3]], { gap: 6, size: 2.8, speed: 0.08 });
-    flows.cool.points.material.color.set('#f0a060'); flows.cool.line.material.color.set('#f0a060');
-    // 12 water: from the roofs and the scrubber to the tanks and back into the process
-    addFlow('water', 'water', [[4, 32, 20], [16, 36, 12], [28, 36, 9], [36, 38, 7], [42, 30, 4], [30, 24, 2], [16, 26, 2], [6, 30, 3]], { gap: 6, size: 2.6, speed: 0.07 });
-  }
-  function flowFrame(dt, t){
-    const v = new THREE.Vector3();
-    for (const id in flows) {
-      const f = flows[id];
-      // each flow fades to its target over half a second
-      if (f.level !== f.target) f.level = f.target > f.level ? Math.min(f.target, f.level + dt * 2) : Math.max(f.target, f.level - dt * 2);
-      f.points.visible = f.level > 0.01; f.line.visible = f.level > 0.01;
-      f.points.material.opacity = f.level; f.line.material.opacity = (f.lineMax == null ? 0.55 : f.lineMax) * f.level;
-      if (!f.points.visible) continue;
-      const pos = f.points.geometry.attributes.position.array;
-      for (let i = 0; i < f.n; i++) {
-        const u = (i / f.n + t * f.speed) % 1;
-        f.curve.getPointAt(u, v);
-        if (f.grow) { v.x += Math.sin(i * 7.3 + t) * 2.5 * u; v.y += Math.cos(i * 3.1 + t * 0.7) * 2 * u; }
-        pos[i * 3] = v.x; pos[i * 3 + 1] = v.y; pos[i * 3 + 2] = v.z;
-      }
-      f.points.geometry.attributes.position.needsUpdate = true;
-    }
-  }
 
-  /* ----------------------------------------------------------- the labels */
-  const LABELS = [
-    ['Waste reception and processing hall', 'Tipping floor, shredder, screens, magnets', [0, -110, 15], 'reception', 700],
-    ['Fuel storage silos', 'Mixing and homogenising', [2, -58, 30], 'silos', 500],
-    ['Boiler house', 'Furnace and boiler', [0, 0, 47], 'boiler', 900],
-    ['Turbine hall', 'Steam turbine and generator', [4, -27, 17], 'turbine', 500],
-    ['Flue gas cleaning', 'Reactor and bag filter', [4, 32, 21], 'fgt', 500],
-    ['Heat recovery and scrubber', 'Condensing scrubber', [-9, 36, 24], 'scrubber', 400],
-    ['Stack', '75 m, assumed', [-20, 32, 77], 'stack', 1200],
-    ['Coolers', 'Plume-free units', [40, -8, 10.5], 'coolers', 400],
-    ['Transformer and switchroom', 'Export, and the BLOX feed', [32, -37, 7], 'transformer', 400],
-    ['Ash bay and APCR silo', 'Residues to aggregate', [34, 12, 15], 'ashbay', 400],
-    ['Water treatment and store', 'Process water and rainwater', [30, 36, 10], 'watertanks', 400],
-    ['Heat station', 'District heating main leaves north', [-32, -28, 9], 'heatstation', 400],
-    ['BLOX peaker compound', '16 hydro-cooled containers · 28 MW', [-80, -20, 8], 'blox', 1200],
-    ['River Don', '', [96, -40, 0], 'site', 2000],
-    ['Aberdeen–Inverness railway', '', [-135, -100, 2], 'site', 2000],
-    ['A96', '', [-229, 60, 1], 'site', 2000],
-    ['Retained commercial units', '', [14, 214, 13], 'units', 1200],
-    ['Container yard', '', [50, -190, 6], 'site', 1200],
-    ['To Port Elphinstone and Inverurie', 'District heating main, indicative', [-126, 300, 2], 'dhline', 1200],
-    ['To the grid', 'Export cable, indicative', [-260, -71, 1], 'gridline', 1200],
-  ];
-  function buildLabels(){
-    for (const [title, sub, p, part, near] of LABELS) {
-      const wrap = document.createElement('div'); wrap.className = 'lab';
-      const el = document.createElement('button'); el.className = 'lbl'; el.type = 'button';
-      el.innerHTML = title + (sub ? '<small>' + sub + '</small>' : ''); el.title = 'Go to: ' + title;
-      el.addEventListener('click', () => flyTo(P(...p)));
-      wrap.appendChild(el);
-      const o = new L.CSS2DObject(wrap); o.position.copy(P(...p)); o.userData.part = part; o.userData.near = near;
-      scene.add(o); labelObjs.push(o);
-    }
-    let pd = null;
-    $('labels').addEventListener('pointerdown', (e) => { pd = e; });
-    $('labels').addEventListener('pointermove', (e) => {
-      if (!pd || Math.hypot(e.clientX - pd.clientX, e.clientY - pd.clientY) < 6) return;
-      renderer.domElement.dispatchEvent(new PointerEvent('pointerdown', pd)); pd = null;
-    });
-    $('labels').addEventListener('pointerup', () => { pd = null; });
-    $('labels').addEventListener('pointercancel', () => { pd = null; });
-  }
-  function updateLabels(){
-    const v = new THREE.Vector3(), hi = step ? new Set(STEPS[step - 1].hi) : null;
-    for (const o of labelObjs) {
-      const d = camera.position.distanceTo(o.position);
-      o.visible = labelsOn && d < o.userData.near;
-      o.element.classList.toggle('dim', !!hi && !hi.has(o.userData.part));
-      v.copy(o.position).project(camera);
-      o.element.firstElementChild.tabIndex = (o.visible && Math.abs(v.x) <= 1 && Math.abs(v.y) <= 1 && v.z < 1) ? 0 : -1;
-    }
-  }
-
-  /* -------------------------------------------------------------- the view */
   function start(){
-    if (!L || !L.THREE) { failed('The 3D viewer did not load.'); return; }
+    if (location.protocol === 'file:') { failed('Opened from a folder, the browser will not load the 3D model; serve the folder over http(s).'); return; }
+    if (!L || !L.THREE || !L.GLTFLoader) { failed('The 3D viewer did not load.'); return; }
     THREE = L.THREE;
     const probe = document.createElement('canvas');
     if (!(probe.getContext('webgl2') || probe.getContext('webgl'))) { failed('This browser cannot show 3D (WebGL is off).'); return; }
@@ -1161,13 +715,13 @@ body.moved .hint{opacity:0!important}
 
     scene = new THREE.Scene();
     skyCol = new THREE.Color(0xc9dcec); fogCol = new THREE.Color(0xd9e6ef);
-    scene.background = skyCol; scene.fog = new THREE.Fog(fogCol, 800, 4200);
+    scene.background = skyCol; scene.fog = new THREE.Fog(fogCol, 900, 5200);
     skyDome = new THREE.Mesh(new THREE.SphereGeometry(9000, 32, 16), new THREE.MeshBasicMaterial({ map: skyTexture(false), side: THREE.BackSide, fog: false, depthWrite: false }));
     skyDome.renderOrder = -1; scene.add(skyDome);
     camera = new THREE.PerspectiveCamera(42, gl.clientWidth / Math.max(1, gl.clientHeight), 0.5, 20000);
     controls = new L.OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true; controls.dampingFactor = 0.08; controls.maxPolarAngle = Math.PI * 0.49;
-    controls.minDistance = 6; controls.maxDistance = 1600; controls.autoRotateSpeed = 0.5;
+    controls.minDistance = 6; controls.maxDistance = 1800; controls.autoRotateSpeed = 0.5;
     controls.addEventListener('start', () => { document.body.classList.add('moved'); tween = null; lastMove = performance.now(); if (playing) setPlay(false); run(); });
     controls.addEventListener('change', () => { lastMove = performance.now(); run(); });
 
@@ -1176,75 +730,381 @@ body.moved .hint{opacity:0!important}
     renderer.domElement.addEventListener('webglcontextrestored', () => { scene.environment = pmrem.fromScene(new L.RoomEnvironment(), 0.04).texture; if (loaded) draw(); });
     hemi = new THREE.HemisphereLight(0xd6e6f4, 0x7b7a5a, 0.85); scene.add(hemi);
     sun = new THREE.DirectionalLight(0xfff2dc, 2.4);
-    // an afternoon sun from the south-west, as the stills of the model were lit
-    sun.position.copy(P(-280, -360, 420)); sun.target.position.copy(P(0, -20, 0));
-    sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096); sun.shadow.bias = -0.0008; sun.shadow.normalBias = 0.08;
-    const sc = sun.shadow.camera; sc.near = 100; sc.far = 1400; sc.left = -380; sc.right = 380; sc.top = 380; sc.bottom = -380;
+    placeSun(SUN_DAY);
+    sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096); sun.shadow.bias = -0.0006; sun.shadow.normalBias = 0.06;
+    const sc = sun.shadow.camera; sc.near = 100; sc.far = 1500; sc.left = -340; sc.right = 340; sc.top = 340; sc.bottom = -340;
     scene.add(sun); scene.add(sun.target);
-    makeMaterials();
+    // the country beyond the model's 8 km of terrain: one flat field colour, lost in the haze
+    const far = new THREE.Mesh(new THREE.PlaneGeometry(30000, 30000), new THREE.MeshStandardMaterial({ color: 0x8a9a62, roughness: 1 }));
+    far.rotation.x = -Math.PI / 2; far.position.y = -16; scene.add(far);
+    dimMat = new THREE.MeshStandardMaterial({ color: 0xd9e0e5, roughness: 1, metalness: 0, side: THREE.DoubleSide });
+    dimMatT = new THREE.MeshStandardMaterial({ color: 0xd9e0e5, roughness: 1, metalness: 0, side: THREE.DoubleSide, transparent: true, opacity: 0.3, depthWrite: false });
+    xrayMat = new THREE.MeshPhysicalMaterial({ color: 0x9fd0c6, transparent: true, opacity: 0.22, roughness: 0.12, metalness: 0.0, depthWrite: false, side: THREE.DoubleSide });
+    edgeMat = new THREE.LineBasicMaterial({ color: 0x1f5f7f, transparent: true, opacity: 0.55, depthWrite: false });
     FLOWDOT = dot();
     clock = new THREE.Clock();
-
-    const root = new THREE.Group();
-    buildGround(root); buildRiver(root); buildRailway(root); buildRoads(root); buildTrees(root); buildNeighbours(root);
-    buildPlant(root); buildBlox(root);
-    scene.add(root);
-    buildFlows(root);
-    buildLabels();
-
-    // the page opens from high over the Don and comes down to the overview
-    const [p0, t0] = aim([CAMERAS.site.pos, CAMERAS.site.tgt]), [p1, t1] = aim([CAMERAS.overview.pos, CAMERAS.overview.tgt]);
-    if (REDUCED) { controls.target.copy(t1); camera.position.copy(p1); }
-    else { controls.target.copy(t0); camera.position.copy(p0); setTimeout(() => { if (!step && view === 'overview' && !document.body.classList.contains('moved')) animateCamera(p1, t1, 3600); }, 350); }
     new ResizeObserver(() => {
       const w = gl.clientWidth, h = gl.clientHeight;
       if (!w || !h) return;
       camera.aspect = w / h; camera.updateProjectionMatrix(); renderer.setSize(w, h); labelR.setSize(w, h);
       if (!raf && loaded) draw();
     }).observe(gl);
+    load();
+  }
+  function placeSun(d){
+    sun.target.position.copy(P(...SUN_AT));
+    sun.position.copy(P(SUN_AT[0] + d[0] * 700, SUN_AT[1] + d[1] * 700, SUN_AT[2] + d[2] * 700));
+  }
 
+  // The model, fetched with its progress on the bar (the preload in the head has usually already brought it); a model
+  // that failed to arrive is asked for again under a new address, so a retry is a fresh request.
+  let tries = 0;
+  async function load(){
+    try {
+      const res = await fetch('assets/thn_site_web.glb' + (tries ? '?retry=' + tries : ''), { credentials: 'same-origin' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const total = +res.headers.get('content-length') || 0;
+      const chunks = []; let got = 0;
+      const reader = res.body.getReader();
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value); got += value.length;
+        if (total) bar(0.85 * got / total);
+      }
+      const buf = new Uint8Array(got); let o = 0;
+      for (const c of chunks) { buf.set(c, o); o += c.length; }
+      bar(0.9); $('loadmsg').textContent = 'Building the scene';
+      // let the message paint before the parse holds the thread
+      await new Promise((ok) => setTimeout(ok, 30));
+      new L.GLTFLoader().parse(buf.buffer, '', (g) => {
+        try { build(g); } catch (err) { console.error(err); failed('The 3D model could not be read.', false); }
+      }, () => { tries++; failed('The 3D model could not be read.', true); });
+    } catch (e) {
+      tries++;
+      failed('The 3D model could not be loaded here.', true);
+    }
+  }
+
+  // The GLB holds eight thousand nodes (the trees, hedges and fans share a few meshes). Parts that share a material and a
+  // role (part, hall fabric, interior, proposal) are merged into one mesh each, so the scene draws in a couple of hundred
+  // calls and a step can still put any part in clay; the BLOX's 288 fans are drawn as instances of their pivots, and the
+  // coolers' three keep their nodes, so that all of them turn.
+  function build(gltf){
+    const root = gltf.scene; root.updateMatrixWorld(true);
+    const up = (o, k) => { for (let p = o; p; p = p.parent) if (p.userData && p.userData[k] != null) return p.userData[k]; return null; };
+    const nodeOf = (o) => { for (let p = o; p; p = p.parent) if (p.userData && p.userData.part) return p; return o; };
+    const G = new Map(), pivots = new Map();
+    root.traverse((o) => {
+      if (!o.isMesh) return;
+      let piv = null;
+      for (let p = o.parent; p && p !== root; p = p.parent) if (p.userData && p.userData.pivot) { piv = p; break; }
+      if (piv) { if (!pivots.has(piv)) pivots.set(piv, []); pivots.get(piv).push(o); return; }
+      const node = nodeOf(o), nm = node.name || '', part = up(o, 'part') || 'site';
+      // the stack's shell, ladder and rings go see-through for step 8 (its lights and plinth stay)
+      const shell = up(o, 'shell') || up(o, 'ghost') || (part === 'stack' && !/obstruction|plinth/.test(nm));
+      const cls = shell ? 'S' : (up(o, 'inside') ? 'I' : 'N'), prop = up(o, 'proposal') ? 1 : 0, mat = o.material;
+      const key = mat.uuid + '|' + Object.keys(o.geometry.attributes).sort().join(',') + '|' + (o.geometry.index ? 'i' : 'n') + '|' + part + '|' + cls + '|' + prop;
+      if (!G.has(key)) G.set(key, { mat, part, cls, prop, geos: [] });
+      const g = o.geometry.clone(); g.applyMatrix4(o.matrixWorld); G.get(key).geos.push(g);
+    });
+    const world = new THREE.Group(); world.name = 'thn_model';
+    const ground = /^web_(ground|water|PLANT_PondWater|PLANT_Markings|road_white|PLANT_Asphalt|PLANT_Yard|PLANT_Kerb|PLANT_Grass|PLANT_Laydown|BLOX_Slab|THN_ApronYellow|BLOX_TrenchCover|BLOX_CableRoute)/;
+    const add = (geo, g) => {
+      const m = new THREE.Mesh(geo, g.mat);
+      m.matrixAutoUpdate = false;
+      const cast = !(geo.attributes.color || ground.test(g.mat.name || ''));
+      m.castShadow = cast; m.receiveShadow = true;
+      world.add(m);
+      groups.push({ m, part: g.part, cls: g.cls, prop: g.prop, orig: g.mat, cast, edges: null });
+    };
+    for (const g of G.values()) {
+      const mt = g.mat;
+      mt.envMapIntensity = 0.7;
+      if (mt.transparent) mt.depthWrite = false;
+      if (g.geos[0].attributes.color) { mt.vertexColors = true; mt.color.set(0xffffff); }
+      let geo = null;
+      try { geo = g.geos.length > 1 ? L.mergeGeometries(g.geos, false) : g.geos[0]; } catch (e) { geo = null; }
+      if (geo) add(geo, g); else g.geos.forEach((one) => add(one, g));
+    }
+    // the fans: each pivot's place is kept and its blades turn about its own up axis
+    const sets = new Map();
+    for (const [piv, meshes] of pivots) {
+      const it = { base: piv.parent.matrixWorld.clone(), pos: piv.position.clone(), q0: piv.quaternion.clone(), scl: piv.scale.clone(), phase: rand() * Math.PI * 2 };
+      const inv = piv.matrixWorld.clone().invert(), part = up(piv, 'part') || 'site', prop = up(piv, 'proposal') ? 1 : 0;
+      for (const m of meshes) {
+        const k = m.geometry.uuid + '|' + m.material.uuid + '|' + part + '|' + prop;
+        if (!sets.has(k)) sets.set(k, { geo: m.geometry, mat: m.material, part, prop, list: [] });
+        sets.get(k).list.push([it, inv.clone().multiply(m.matrixWorld)]);
+      }
+    }
+    for (const s of sets.values()) {
+      s.mat.envMapIntensity = 0.7;
+      const im = new THREE.InstancedMesh(s.geo, s.mat, s.list.length);
+      im.instanceMatrix.setUsage(THREE.DynamicDrawUsage); im.castShadow = true; im.receiveShadow = true; im.frustumCulled = false;
+      world.add(im);
+      fanSets.push({ im, list: s.list, blox: s.part === 'blox' });
+      groups.push({ m: im, part: s.part, cls: 'N', prop: s.prop, orig: s.mat, cast: true, edges: null });
+    }
+    placeFans();
+    scene.add(world);
+    // the materials dusk lights, by their names in the model
+    const seen = new Set();
+    for (const g of groups) {
+      const m = g.orig; if (seen.has(m)) continue; seen.add(m);
+      const n = m.name || '';
+      if (/^web_PLANT_Glazing/.test(n)) DUSK.glaze.push(m);
+      else if (/^web_BLOX_LampLens/.test(n)) DUSK.lamp.push(m);
+      else if (/^web_blox_glow/.test(n)) DUSK.glow.push([m, m.emissiveIntensity]);
+      else if (/^web_PLANT_ObstLight/.test(n)) DUSK.obst.push(m);
+      // the office's and the town's warm light is their lit windows: off by day, a glow after sunset
+      else if (/^web_PLANT_Office/.test(n)) { DUSK.warm.push([m, 0.32]); m.emissiveIntensity = 0; }
+      else if (/^web_thn_town_wall/.test(n)) { DUSK.warm.push([m, 0.12]); m.emissiveIntensity = 0; }
+    }
+    buildFlows();
+    buildLabels();
     loaded = true;
+    bar(1);
+    // the page opens from high over the Don and comes down to the overview (or goes straight to the step the address asks for)
+    if (step) { const [p1, t1, f1] = aim(STEPS[step - 1].cam); camera.position.copy(p1); controls.target.copy(t1); setFov(f1); }
+    else {
+      const [p0, t0, f0] = aim(CAMERAS.site.cam), [p1, t1, f1] = aim(CAMERAS.overview.cam);
+      if (REDUCED || view !== 'overview') { camera.position.copy(p1); controls.target.copy(t1); setFov(f1); }
+      else { camera.position.copy(p0); controls.target.copy(t0); setFov(f0); setTimeout(() => { if (!step && view === 'overview' && !document.body.classList.contains('moved')) animateCamera(p1, t1, 3600, f1); }, 350); }
+    }
+    controls.update();
     applyStep();
     draw();
     setTimeout(() => {
       $('loading').classList.add('hide');
       document.body.classList.add('ready');
       $('rail').removeAttribute('inert'); $('caption').removeAttribute('inert');
-      clampCaption();
+      clampCaption(); railEdges();
     }, 150);
     run();
-    window.__atlas = { setStep, setCamera: setView, setDusk, setXray, setLabels, setFlows, draw, settle, cover, get camera(){ return camera; }, get controls(){ return controls; }, renderer: () => renderer };
   }
-  let FLOWDOT = null;
+  // the fans' blades: the BLOX's turn fast while the BLOX runs (their roof coolers carry its heat), slowly while it rests
+  let _q = null, _qy = null;
+  function placeFans(){
+    if (!_q) { _q = new THREE.Quaternion(); _qy = new THREE.Quaternion(); }
+    const M = new THREE.Matrix4(), T = new THREE.Matrix4(), Y = new THREE.Vector3(0, 1, 0);
+    for (const fs of fanSets) {
+      const ang = fs.blox ? bloxAng : coolAng;
+      fs.list.forEach(([it, R], i) => {
+        _qy.setFromAxisAngle(Y, ang + it.phase); _q.copy(it.q0).multiply(_qy);
+        T.compose(it.pos, _q, it.scl); M.multiplyMatrices(it.base, T).multiply(R); fs.im.setMatrixAt(i, M);
+      });
+      fs.im.instanceMatrix.needsUpdate = true;
+    }
+  }
 
-  // for the front-page cover: the scene alone from a given camera, every lettered surface plain, as a JPEG data URL
-  function cover(pos, tgt, w, h){
-    const plain = M.containerEnd, lettered = [];
-    scene.traverse((o) => { if (o.isMesh && Array.isArray(o.material) && o.material.includes(M.container)) { lettered.push([o, o.material]); o.material = o.material.map((m) => m === M.container ? plain : m); } });
-    const keepL = labelsOn; labelsOn = false;
-    const p0 = camera.position.clone(), t0 = controls.target.clone(), asp = camera.aspect;
-    renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+  /* ------------------------------------------------------------ the flows */
+  // Each flow is the model's route, a stream of points in its key colour running along it at walking pace, a faint tube
+  // so the route reads where the points are far apart, and an arrowhead at its end. A proposed or future flow is dashed:
+  // its tube in short lengths and its stream showing only in them. The BLOX's heat pair is drawn lighter than the network's
+  // main: fewer, smaller and paler points, a fainter tube.
+  function route(flat){
+    const pts = []; for (let i = 0; i < flat.length; i += 3) pts.push(P(flat[i], flat[i + 1], flat[i + 2]));
+    const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + pts[i].distanceTo(pts[i - 1]));
+    return { pts, cum, len: cum[cum.length - 1] };
+  }
+  function at(rt, s, out){
+    s = Math.max(0, Math.min(rt.len, s));
+    let lo = 0, hi = rt.cum.length - 1;
+    while (hi - lo > 1) { const m = (lo + hi) >> 1; if (rt.cum[m] <= s) lo = m; else hi = m; }
+    const seg = (rt.cum[hi] - rt.cum[lo]) || 1;
+    return out.lerpVectors(rt.pts[lo], rt.pts[hi], (s - rt.cum[lo]) / seg);
+  }
+  function tubeOf(rt, s0, s1, r){
+    const c = new THREE.Curve();
+    c.getPoint = (t, o) => at(rt, s0 + (s1 - s0) * t, o || new THREE.Vector3());
+    c.getPointAt = c.getPoint;
+    c.getTangentAt = (t, o) => c.getTangent(t, o);
+    return new THREE.TubeGeometry(c, Math.max(2, Math.min(500, Math.ceil((s1 - s0) / 0.6))), r, 6, false);
+  }
+  // a dashed flow's lengths (m): the points show only well inside a dash, so a gap stays clear of their glow
+  const DASH = 3.5, GAP = 4.5;
+  function addFlow(def){
+    const rt = route(def.p), Lr = rt.len;
+    const lite = /^bloxheat/.test(def.id), plume = def.id === 'plume';
+    const base = new THREE.Color(def.c);
+    if (lite) base.lerp(new THREE.Color(0xffffff), 0.25);
+    const r = def.r, size = (plume ? 9 : 7 * r) * (lite ? 0.8 : 1);
+    const d0 = def.d == null ? Lr : Math.max(0, Math.min(Lr, def.d));
+    // the stream: points spaced along the solid part, closer in the dashed part so each dash holds a few
+    const gapS = (r >= 0.6 ? 3.6 : 3.0) * (lite ? 1.8 : 1) * (plume ? 0.6 : 1), gapD = lite ? 1.7 : 1.2;
+    const S0 = [], A = [], B = [], DP = [];
+    if (d0 > 0.5) { const n = Math.max(2, Math.round(d0 / gapS)); for (let i = 0; i < n; i++) { S0.push(i * d0 / n); A.push(0); B.push(d0); DP.push(0); } }
+    if (Lr - d0 > 0.5) { const n = Math.max(2, Math.round((Lr - d0) / gapD)); for (let i = 0; i < n; i++) { S0.push(i * (Lr - d0) / n); A.push(d0); B.push(Lr); DP.push(1); } }
+    const n = S0.length;
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 3), 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(n * 4), 4));
+    const mat = new THREE.PointsMaterial({ size, map: FLOWDOT, vertexColors: true, transparent: true, opacity: 0, depthWrite: false, sizeAttenuation: true, alphaTest: 0.02 });
+    const points = new THREE.Points(geo, mat); points.frustumCulled = false; points.renderOrder = 20;
+    // the tube: whole where the flow is solid, in dashes beyond its dash point, and the arrowhead
+    const tr = r * (lite ? 0.32 : 0.45), parts = [];
+    if (!plume) {
+      if (d0 > 0.3) parts.push(tubeOf(rt, 0, d0, tr));
+      for (let s = d0; s < Lr - 0.3; s += DASH + GAP) parts.push(tubeOf(rt, s, Math.min(Lr, s + DASH), tr));
+      const end = rt.pts[rt.pts.length - 1], dir = new THREE.Vector3().subVectors(end, rt.pts[rt.pts.length - 2]).normalize();
+      const h = 4.2 * r * (lite ? 0.75 : 1), cone = new THREE.ConeGeometry(1.6 * r * (lite ? 0.75 : 1), h, 10);
+      cone.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir));
+      cone.translate(end.x - dir.x * h / 2, end.y - dir.y * h / 2, end.z - dir.z * h / 2);
+      parts.push(cone);
+    }
+    let line = null;
+    if (parts.length) {
+      parts.forEach((g, i) => { if (g.index) parts[i] = g.toNonIndexed(); });
+      let lg = null; try { lg = L.mergeGeometries(parts, false); } catch (e) { lg = parts[0]; }
+      line = new THREE.Mesh(lg, new THREE.MeshBasicMaterial({ color: base, transparent: true, opacity: 0, depthWrite: false }));
+      line.renderOrder = 19; line.frustumCulled = false; scene.add(line);
+    }
+    scene.add(points);
+    const f = { id: def.id, key: def.k, prop: def.st === 'p', rt, points, line, n, S0: Float32Array.from(S0), A: Float32Array.from(A), B: Float32Array.from(B), DP: Uint8Array.from(DP),
+      base, grad: def.g ? [new THREE.Color(def.g[0]), def.g[1], def.g[2]] : null, lite, plume,
+      speed: plume ? 2.6 : (r >= 0.6 ? 4 : 3) * (lite ? 0.7 : 1), lineMax: plume ? 0 : (lite ? 0.28 : 0.5) * (1 - (def.dim || 0)),
+      target: 0, level: 0 };
+    flows[def.id] = f;
+    return f;
+  }
+  function buildFlows(){
+    MODEL.flows.forEach(addFlow);
+    // the plume: the clean flue gas leaving the stack's top, nearly white, thinning as it disperses downwind
+    addFlow({ id: 'plume', k: 'flue', c: '#f1f4f6', s: [8], r: 0.75, st: 'a', d: null, dim: 0,
+      p: [4.58, 63.86, 71.2, 6.5, 66.5, 78, 11, 72, 86, 19, 81, 94, 31, 93, 101, 47, 108, 107] });
+  }
+  function flowFrame(dt, t){
+    const v = new THREE.Vector3(), c = new THREE.Color();
+    for (const id in flows) {
+      const f = flows[id];
+      // each flow fades to its target over half a second
+      if (f.level !== f.target) f.level = f.target > f.level ? Math.min(f.target, f.level + dt * 2) : Math.max(f.target, f.level - dt * 2);
+      const on = f.level > 0.01;
+      f.points.visible = on; if (f.line) { f.line.visible = on; f.line.material.opacity = f.lineMax * f.level; }
+      f.points.material.opacity = f.level;
+      if (!on) continue;
+      const pos = f.points.geometry.attributes.position.array, col = f.points.geometry.attributes.color.array, Lr = f.rt.len;
+      for (let i = 0; i < f.n; i++) {
+        const a = f.A[i], span = f.B[i] - a;
+        const s = a + ((f.S0[i] + t * f.speed) % span + span) % span;
+        at(f.rt, s, v);
+        // the points fade in at the route's start and out at its end; in the dashed part they show only in the dashes
+        let al = Math.min(1, s / 1.5, (Lr - s) / 1.5);
+        if (f.DP[i]) { const m = (s - a) % (DASH + GAP); al *= m < DASH ? Math.max(0, Math.min(1, (m - 0.5) / 0.5, (DASH - 0.5 - m) / 0.5)) : 0; }
+        const u = s / Lr;
+        if (f.plume) { al *= Math.pow(1 - u, 1.3); v.x += Math.sin(i * 7.3 + t) * 2.2 * u; v.y += Math.cos(i * 3.1 + t * 0.7) * 1.6 * u; }
+        pos[i * 3] = v.x; pos[i * 3 + 1] = v.y; pos[i * 3 + 2] = v.z;
+        c.copy(f.base);
+        if (f.grad) { const k = Math.max(0, Math.min(1, (u - f.grad[1]) / Math.max(0.001, f.grad[2] - f.grad[1]))); c.lerp(f.grad[0], k); }
+        col[i * 4] = c.r; col[i * 4 + 1] = c.g; col[i * 4 + 2] = c.b; col[i * 4 + 3] = Math.max(0, al);
+      }
+      f.points.geometry.attributes.position.needsUpdate = true; f.points.geometry.attributes.color.needsUpdate = true;
+    }
+  }
+
+  /* ----------------------------------------------------------- the labels */
+  // title, subtitle, where (site metres), the part it names, shown within (m: the plant's smaller parts only nearer than
+  // the overview, so its labels stay legible), and 1 / 0 for a label that shows only with / without the proposal
+  const LABELS = [
+    ['Waste reception hall', 'Tipping floor, bunker and shredder', [8, -104, 20.5], 'reception', 700],
+    ['Waste processing hall', 'Recyclables and inerts out, fuel made', [5, -158, 20.5], 'reception', 700],
+    ['Fuel storage silos', 'Mixing and homogenising', [6.5, -209, 27], 'silos', 600],
+    ['Fuel delivery bridge', 'Covered conveyor to the daily fuel silos', [-19, -100, 22.5], 'bridge', 330],
+    ['Boiler house', 'Furnace and boiler', [-1, -11, 59.6], 'boiler', 900],
+    ['Turbine hall', 'Steam turbine, generator and condenser', [-18, -57, 22.5], 'turbine', 500],
+    ['Ash silos', 'Bottom ash and APCR', [16.4, 9.5, 17.9], 'ashsilos', 300],
+    ['Flue gas cleaning', 'Bag filter and activated carbon', [-1, 35, 21.4], 'filters', 330],
+    ['Heat recovery and scrubbing', 'Flue gas condensing', [7.4, 50.5, 35.4], 'scrubber', 330],
+    ['Stack', '70 m', [4.6, 63.9, 71.3], 'stack', 1200],
+    ['Switching and transformers', 'Export, and the proposed BLOX feed', [-14, -74, 18.7], 'transformer', 330, 1],
+    ['Switching and transformers', 'Export to the grid', [-14, -74, 18.7], 'transformer', 330, 0],
+    ['Heat station', 'Heat pumps for district heating', [43, -53, 12.6], 'heatstation', 500],
+    ['Coolers', 'Over the heat station; no visible plume', [47.5, -25, 24.4], 'coolers', 330],
+    ['Heat stores', 'Hot water storage', [47, 42, 28.2], 'heatstores', 400],
+    ['Water treatment and store', 'Process water and rainwater', [71.5, -38, 11.4], 'watertanks', 330],
+    ['Office and visitor centre', 'With the control room', [47, -78, 13.6], 'office', 330],
+    ['Gabion wall', 'Along the river', [80, -38, 4.3], 'gabion', 300],
+    ['BLOX compound, proposed', '16 hydro-cooled containers · 28 MW', [61, -129, 8.3], 'blox', 1200, 1],
+    ['Heat recovery skid, proposed', 'Pipe pair to the heat station', [71, -108, 3.6], 'bloxheat', 300, 1],
+    ['River Don', '', [110, 25, 1], 'site', 2000],
+    ['Aberdeen–Inverness railway', '', [-198, -60, 4], 'site', 2000],
+    ['A96', '', [-500, 0, 6], 'site', 2000],
+    ['Retained commercial units', '', [-25, 210, 12.5], 'units', 1200],
+    ['Container yard', '', [-100, -250, 3], 'site', 1200],
+    ['Heat network beyond the site', 'Future; route indicative', [65.5, 100, 2], 'dhline', 1200],
+    ['To the grid', 'Connection still open', [-77, -67.6, 1.5], 'gridline', 1200],
+    ['Port Elphinstone', '', [-560, 800, 22], 'site', 4000],
+    ['Inverurie', '', [-700, 2300, 25], 'site', 5000],
+  ];
+  function buildLabels(){
+    for (const [title, sub, p, part, near, pr] of LABELS) {
+      const wrap = document.createElement('div'); wrap.className = 'lab';
+      const el = document.createElement('button'); el.className = 'lbl'; el.type = 'button';
+      el.innerHTML = title + (sub ? '<small>' + sub + '</small>' : ''); el.title = 'Go to: ' + title;
+      el.addEventListener('click', () => flyTo(P(...p)));
+      wrap.appendChild(el);
+      const o = new L.CSS2DObject(wrap); o.position.copy(P(...p)); o.userData.part = part; o.userData.near = near; o.userData.prop = pr;
+      scene.add(o); labelObjs.push(o);
+    }
+    let pd = null;
+    $('labels').addEventListener('pointerdown', (e) => { pd = e; });
+    $('labels').addEventListener('pointermove', (e) => {
+      if (!pd || Math.hypot(e.clientX - pd.clientX, e.clientY - pd.clientY) < 6) return;
+      renderer.domElement.dispatchEvent(new PointerEvent('pointerdown', pd)); pd = null;
+    });
+    $('labels').addEventListener('pointerup', () => { pd = null; });
+    $('labels').addEventListener('pointercancel', () => { pd = null; });
+  }
+  function updateLabels(){
+    const v = new THREE.Vector3(), hi = step ? new Set(STEPS[step - 1].hi) : null;
+    for (const o of labelObjs) {
+      const d = camera.position.distanceTo(o.position), pr = o.userData.prop;
+      o.visible = labelsOn && d < o.userData.near && (pr == null || pr === (proposal ? 1 : 0));
+      o.element.classList.toggle('dim', !!hi && !hi.has(o.userData.part));
+      v.copy(o.position).project(camera);
+      o.element.firstElementChild.tabIndex = (o.visible && Math.abs(v.x) <= 1 && Math.abs(v.y) <= 1 && v.z < 1) ? 0 : -1;
+    }
+  }
+
+  /* --------------------------------------------------------- the hooks */
+  function hooks(){
+    window.__atlas = { setStep, setCamera: setView, setDusk, setXray, setLabels, setFlows, setProposal, setTab, draw, settle, cover,
+      get ready(){ return loaded; }, get scene(){ return scene; }, get camera(){ return camera; },
+      // for the checks: what shows now
+      get state(){ return { tab, step, view, proposal, flowsOn, xrayOn, labelsOn, dusk, bloxRunning, flows: Object.keys(flows).filter((k) => flows[k].target > 0) }; }, get controls(){ return controls; }, renderer: () => renderer };
+  }
+  // for the front-page cover: the scene alone from a given camera (site metres; the field of view optional), labels off,
+  // as a JPEG data URL. The containers' livery lettering and the signs (lettered surfaces) are hidden for the shot.
+  function cover(pos, tgt, w, h, fov){
+    const keepL = labelsOn; labelsOn = false; updateLabels();
+    const lettered = []; scene.traverse((o) => { if (o.isMesh && o.visible && [].concat(o.material).some((m) => /^web_(BLOX_Livery|yellow_sign)/.test(m.name || ''))) { o.visible = false; lettered.push(o); } });
+    const p0 = camera.position.clone(), t0 = controls.target.clone(), asp = camera.aspect, f0 = camera.fov;
+    renderer.setSize(w, h, false); camera.aspect = w / h; if (fov) camera.fov = fov; camera.updateProjectionMatrix();
     camera.position.copy(P(...pos)); controls.target.copy(P(...tgt)); controls.update();
     for (const id in flows) flows[id].level = flows[id].target; flowFrame(0, tAcc);
     renderer.render(scene, camera);
     const url = renderer.domElement.toDataURL('image/jpeg', 0.95);
-    lettered.forEach(([o, m]) => { o.material = m; }); labelsOn = keepL;
-    const gl = $('gl'); renderer.setSize(gl.clientWidth, gl.clientHeight); camera.aspect = asp; camera.updateProjectionMatrix();
+    for (const o of lettered) o.visible = true;
+    labelsOn = keepL;
+    const gl = $('gl'); renderer.setSize(gl.clientWidth, gl.clientHeight); camera.aspect = asp; camera.fov = f0; camera.updateProjectionMatrix();
     camera.position.copy(p0); controls.target.copy(t0); controls.update(); draw();
     return url;
   }
-
   // for the covers and the checks: finish any camera flight and fade at once, then draw
   function settle(){
-    if (tween) { camera.position.copy(tween.p1); controls.target.copy(tween.t1); tween = null; }
+    if (!loaded) return;
+    if (tween) { camera.position.copy(tween.p1); controls.target.copy(tween.t1); camera.fov = tween.f1; camera.updateProjectionMatrix(); tween = null; }
     for (const id in flows) flows[id].level = flows[id].target;
     flowFrame(0, tAcc); controls.update(); draw();
   }
 
   /* ------------------------------------------------------- camera moves */
-  function animateCamera(pos, tgt, ms){
-    if (REDUCED) { camera.position.copy(pos); controls.target.copy(tgt); draw(); return; }
-    tween = { p0: camera.position.clone(), t0: controls.target.clone(), p1: pos, t1: tgt, start: performance.now(), ms: ms || 1500 };
+  function setFov(f){ if (f && camera.fov !== f) { camera.fov = f; camera.updateProjectionMatrix(); } }
+  function animateCamera(pos, tgt, ms, fov){
+    fov = fov || camera.fov;
+    if (REDUCED) { camera.position.copy(pos); controls.target.copy(tgt); setFov(fov); draw(); return; }
+    tween = { p0: camera.position.clone(), t0: controls.target.clone(), f0: camera.fov, p1: pos, t1: tgt, f1: fov, start: performance.now(), ms: ms || 1500 };
     run();
   }
   function flyTo(target){
@@ -1257,15 +1117,16 @@ body.moved .hint{opacity:0!important}
     const narrow = camera.aspect < 0.8;
     const pos = P(...cam[0]), tgt = P(...cam[1]);
     if (narrow) pos.sub(tgt).multiplyScalar(1.55).add(tgt);
-    return [pos, tgt];
+    return [pos, tgt, cam[2]];
   }
   function setView(name){
+    if (name === 'blox' && !proposal) name = 'overview';
     const v = CAMERAS[name]; if (!v || !loaded) return;
     view = name; step = 0; setPlay(false);
     document.querySelectorAll('#rail [data-v]').forEach((b) => b.setAttribute('aria-current', b.dataset.v === name ? 'true' : 'false'));
     if (controls.autoRotate) { controls.autoRotate = false; pressed('b-rot', false); }
-    const [pos, tgt] = aim([v.pos, v.tgt]);
-    animateCamera(pos, tgt);
+    const [pos, tgt, fov] = aim(v.cam);
+    animateCamera(pos, tgt, null, fov);
     applyStep();
   }
   document.querySelectorAll('#rail [data-v]').forEach((b) => b.addEventListener('click', () => setView(b.dataset.v)));
@@ -1274,6 +1135,7 @@ body.moved .hint{opacity:0!important}
   const strip = $('strip');
   STEPS.forEach((s) => {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'step' + (s.blox ? ' blox' : ''); b.setAttribute('role', 'tab');
+    if (s.blox) b.dataset.proposal = '1';
     b.style.setProperty('--kcol', KEY[s.key][0]); b.dataset.n = s.n; b.title = s.t;
     b.innerHTML = '<span class="n">' + s.n + '</span><span class="t">' + s.t + '</span><i class="pr"></i>';
     b.addEventListener('click', () => { setStep(s.n); });
@@ -1281,64 +1143,79 @@ body.moved .hint{opacity:0!important}
   });
   function setStep(n, keepPlay){
     n = Math.max(0, Math.min(STEPS.length, n | 0));
+    if (n && STEPS[n - 1].blox && !proposal) n = 0;
     step = n; playT = 0;
     if (!keepPlay) setPlay(false);
     document.querySelectorAll('#rail [data-v]').forEach((b) => b.setAttribute('aria-current', 'false'));
     if (loaded && n) {
       if (controls.autoRotate) { controls.autoRotate = false; pressed('b-rot', false); }
-      const [pos, tgt] = aim(STEPS[n - 1].cam);
-      animateCamera(pos, tgt, 1700);
-      // a step on the model tab scrolls its chip into view on a narrow strip
+      const [pos, tgt, fov] = aim(STEPS[n - 1].cam);
+      animateCamera(pos, tgt, 1700, fov);
     }
     applyStep();
     const b = strip.querySelector('.step[aria-current="true"]');
     if (b && b.scrollIntoView) b.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   }
+  function nextStep(d){
+    const A = active().map((s) => s.n), i = A.indexOf(step);
+    if (i < 0) return d > 0 ? A[0] : A[A.length - 1];
+    return A[(i + d + A.length) % A.length];
+  }
+  // a flow's legend entry: the BLOX's heat pair has its own; the flue gas's paler tones are the flue gas
+  function legendKey(id){
+    const f = MODEL.flows.find((x) => x.id === id);
+    if (/^bloxheat/.test(id)) return 'bloxheat';
+    if (!f) return id === 'plume' ? 'flue' : null;
+    return { flue_mid: 'flue', flue_clean: 'flue', heat_pale: 'bloxheat' }[f.k] || f.k;
+  }
+  const legend = (keys, dashed) => keys.map((k) => '<span><i' + (dashed && dashed.has(k) ? ' class="d"' : '') + ' style="background:' + KEY[k][0] + '"></i>' + KEY[k][1] + '</span>').join('');
+  function flowOn(id, s){
+    const f = flows[id];
+    if (!flowsOn || !f || (f.prop && !proposal)) return 0;
+    if (s) return s.flows.includes(id) ? 1 : 0;
+    return (id === 'plume' || id === 'air') ? 0 : 1;
+  }
   function applyStep(){
-    const s = step ? STEPS[step - 1] : null;
+    const s = step ? STEPS[step - 1] : null, N = active().length;
     strip.querySelectorAll('.step').forEach((b) => { b.setAttribute('aria-current', +b.dataset.n === step ? 'true' : 'false'); b.tabIndex = +b.dataset.n === step || (!step && +b.dataset.n === 1) ? 0 : -1; });
     // the caption
     const cap = $('caption');
     if (s) {
       cap.style.setProperty('--kcol', KEY[s.key][0]);
-      $('cap-k').lastElementChild.textContent = 'Step ' + s.n + ' of ' + STEPS.length + (s.blox ? ' · RenewaBlox' : ' · the developer’s process');
+      $('cap-k').lastElementChild.textContent = 'Step ' + s.n + ' of ' + N + (s.blox ? ' · RenewaBlox proposal' : ' · the developer’s process');
       $('cap-h').innerHTML = s.h; $('cap-p').innerHTML = s.p;
-      const keys = [...new Set(s.flows.map((f) => (flows[f] && flows[f].key) || KEY[f] && f).filter(Boolean))];
-      $('cap-flows').innerHTML = keys.map((k) => '<span><i style="background:' + KEY[k][0] + '"></i>' + KEY[k][1] + '</span>').join('');
+      const keys = [...new Set(s.flows.map(legendKey).filter(Boolean))];
+      const dashed = new Set(MODEL.flows.filter((f) => s.flows.includes(f.id) && f.d != null).map((f) => legendKey(f.id)));
+      $('cap-flows').innerHTML = legend(keys, dashed);
     } else {
-      const v = CAMERAS[view] || CAMERAS.overview;
+      const v = CAMERAS[view] || CAMERAS.overview, off = !proposal && v.offH;
       cap.style.setProperty('--kcol', 'var(--accent)');
-      $('cap-k').lastElementChild.textContent = 'Camera · ' + v.k; $('cap-h').innerHTML = v.h; $('cap-p').innerHTML = v.p;
-      $('cap-flows').innerHTML = Object.keys(KEY).filter((k) => k !== 'air').map((k) => '<span><i style="background:' + KEY[k][0] + '"></i>' + KEY[k][1] + '</span>').join('');
+      $('cap-k').lastElementChild.textContent = 'Camera · ' + v.k; $('cap-h').innerHTML = off ? v.offH : v.h; $('cap-p').innerHTML = off ? v.offP : v.p;
+      $('cap-flows').innerHTML = legend(['waste', 'fuel', 'flue', 'steam', 'heat', 'dh', 'elec', 'ash', 'water'].concat(proposal ? ['bloxheat'] : []), new Set(['bloxheat']));
     }
     cap.classList.remove('more'); clampCaption();
-    if (!loaded) { drawSchem(); return; }
+    drawSchem();
+    if (!loaded) return;
     // the flows: those of the step, or all of them in the overview
-    for (const id in flows) flows[id].target = flowsOn ? (s ? (s.flows.includes(id) ? 1 : 0) : (id === 'plume' || id === 'air' ? 0 : 1)) : 0;
-    // the parts: the step's in colour, the rest of the plant standing back; the halls see-through where the step looks inside
-    const hi = s ? new Set(s.hi) : null, xr = new Set(xrayOn ? ['boiler', 'turbine', 'reception'] : (s && s.xray) || []);
-    plantRoot.traverse((o) => {
-      if (!o.isMesh) return;
-      if (!o.userData.orig) o.userData.orig = o.material;
-      const part = o.userData.part;
-      if (o.userData.shell && xr.has(o.userData.shell)) { o.material = xrayMat; o.castShadow = false; o.renderOrder = 10; }
-      else if (hi && part && !hi.has(part)) { o.material = dimMat; o.castShadow = true; o.renderOrder = 0; }
-      else { o.material = o.userData.orig; o.castShadow = true; o.renderOrder = 0; }
-      o.children.forEach((c) => { if (c.userData.edges) c.visible = o.material === xrayMat; });
-      // what is inside a hall shows only when the hall is see-through
-      if (o.userData.inside) { const shellOf = part === 'reception' ? 'reception' : part === 'turbine' ? 'turbine' : 'boiler'; o.visible = xr.has(shellOf); }
-    });
-    if (parts.blox) parts.blox.objs.forEach((g) => g.traverse((o) => {
-      if (!o.isMesh) return;
-      if (!o.userData.orig) o.userData.orig = o.material;
-      o.material = (hi && !hi.has('blox')) ? dimMat : o.userData.orig; o.castShadow = !(hi && !hi.has('blox'));
-    }));
-    ['bloxline', 'gridline', 'dhline', 'units'].forEach((k) => parts[k] && parts[k].objs.forEach((g) => g.traverse((o) => {
-      if (!o.isMesh) return;
-      if (!o.userData.orig) o.userData.orig = o.material;
-      o.material = (hi && !hi.has(k)) ? dimMat : o.userData.orig;
-    })));
-    updateLabels(); drawSchem(); run();
+    for (const id in flows) flows[id].target = flowOn(id, s);
+    if (REDUCED) for (const id in flows) flows[id].level = flows[id].target;
+    // the parts: the step's in colour, the rest of the plant in clay; the halls see-through where the step looks inside,
+    // and what is inside a hall only while it is; RenewaBlox's parts only with the proposal
+    const hi = s ? new Set(s.hi) : null, xr = new Set([...(xrayOn ? XRAY_ALL : []), ...((s && s.xray) || [])]);
+    for (const g of groups) {
+      const dim = !!hi && g.part !== 'site' && !hi.has(g.part);
+      if (g.cls === 'S' && xr.has(g.part)) {
+        g.m.material = xrayMat; g.m.castShadow = false; g.m.renderOrder = 10;
+        if (!g.edges) { g.edges = new THREE.LineSegments(new THREE.EdgesGeometry(g.m.geometry, 28), edgeMat); g.edges.matrixAutoUpdate = false; g.edges.renderOrder = 11; g.m.add(g.edges); }
+        g.edges.visible = true;
+      } else {
+        g.m.material = dim ? (g.orig.transparent ? dimMatT : dimMat) : g.orig; g.m.castShadow = g.cast; g.m.renderOrder = 0;
+        if (g.edges) g.edges.visible = false;
+      }
+      g.m.visible = (proposal || !g.prop) && (g.cls !== 'I' || xr.has(g.part));
+    }
+    if (REDUCED) flowFrame(0, 0);
+    updateLabels(); run();
   }
   // Play: each step holds for a while, then the next
   const HOLD = 9000;
@@ -1346,47 +1223,64 @@ body.moved .hint{opacity:0!important}
     playing = on; $('s-play').setAttribute('aria-pressed', on ? 'true' : 'false');
     $('s-play').querySelector('.pl').hidden = on; $('s-play').querySelector('.pa').hidden = !on;
     $('s-play').setAttribute('aria-label', on ? 'Pause' : 'Play the process');
-    if (on) { if (!step) setStep(1, true); playT = 0; }
+    if (on) { if (!step) setStep(nextStep(1), true); playT = 0; }
     else strip.querySelectorAll('.step').forEach((b) => b.style.setProperty('--pr', 0));
     run();
   }
   $('s-play').addEventListener('click', () => setPlay(!playing));
-  $('s-prev').addEventListener('click', () => setStep(step <= 1 ? STEPS.length : step - 1));
-  $('s-next').addEventListener('click', () => setStep(step >= STEPS.length ? 1 : step + 1));
+  $('s-prev').addEventListener('click', () => setStep(nextStep(-1)));
+  $('s-next').addEventListener('click', () => setStep(nextStep(1)));
   document.addEventListener('keydown', (e) => {
-    if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
-    if (!$('as-sheet').hidden) return;
-    if (e.key === 'ArrowRight' && !e.target.closest('#ptabs')) { e.preventDefault(); setStep(step >= STEPS.length ? 1 : step + 1); }
-    else if (e.key === 'ArrowLeft' && !e.target.closest('#ptabs')) { e.preventDefault(); setStep(step <= 1 ? STEPS.length : step - 1); }
+    if (e.target && /^(INPUT|TEXTAREA|SELECT|VIDEO)$/.test(e.target.tagName)) return;
+    if (!$('as-sheet').hidden || !$('lb').hidden || tab === 'media') return;
+    if (e.key === 'ArrowRight' && !e.target.closest('#ptabs')) { e.preventDefault(); setStep(nextStep(1)); }
+    else if (e.key === 'ArrowLeft' && !e.target.closest('#ptabs')) { e.preventDefault(); setStep(nextStep(-1)); }
     else if (e.key === ' ' && !e.target.closest('button')) { e.preventDefault(); setPlay(!playing); }
     else if (e.key === 'Escape' && step) { setStep(0); }
   });
 
   /* ---------------------------------------------------------- toggles */
-  function pressed(id, on){ $(id).setAttribute('aria-pressed', on ? 'true' : 'false'); }
-  function setFlows(on){ flowsOn = on; pressed('b-flows', on); applyStep(); }
-  function setXray(on){ xrayOn = on; pressed('b-xray', on); applyStep(); }
-  function setLabels(on){ labelsOn = on; pressed('b-labels', on); if (loaded) { updateLabels(); draw(); } }
+  function setFlows(on){ flowsOn = !!on; pressed('b-flows', flowsOn); applyStep(); }
+  function setXray(on){ xrayOn = !!on; pressed('b-xray', xrayOn); applyStep(); }
+  function setLabels(on){ labelsOn = !!on; pressed('b-labels', labelsOn); if (loaded) { updateLabels(); draw(); } }
   function setDusk(on){
-    dusk = on; pressed('b-dusk', on);
+    dusk = !!on; pressed('b-dusk', dusk);
     if (!loaded) return;
-    const k = on ? 1 : 0;
-    skyCol.setHex(on ? 0x1c2a3a : 0xc9dcec); fogCol.setHex(on ? 0x25303f : 0xd9e6ef);
-    if (skyDome) { skyDome.material.map.dispose(); skyDome.material.map = skyTexture(on); skyDome.material.needsUpdate = true; }
-    sun.color.setHex(on ? 0xffb070 : 0xfff2dc); sun.intensity = on ? 0.55 : 2.4;
-    sun.position.copy(on ? P(-520, -200, 90) : P(-280, -360, 420));
-    hemi.intensity = on ? 0.32 : 0.85; hemi.color.setHex(on ? 0x5a6f8a : 0xd6e6f4); hemi.groundColor.setHex(on ? 0x2a2a28 : 0x7b7a5a);
-    renderer.toneMappingExposure = on ? 0.9 : 1.12; scene.environmentIntensity = on ? 0.12 : 0.55;
-    glowMats.forEach((m) => { m.emissiveIntensity = 2.6 * k; });
-    lampMats.forEach((m) => { m.emissiveIntensity = 2.2 * k; });
-    windowMats.forEach((m) => { m.emissiveIntensity = 0.9 * k; });
-    for (const id in flows) flows[id].points.material.size *= 1; // sizes keep; the dark ground shows them better
-    draw();
+    skyCol.setHex(dusk ? 0x1c2a3a : 0xc9dcec); fogCol.setHex(dusk ? 0x25303f : 0xd9e6ef);
+    if (skyDome) { skyDome.material.map.dispose(); skyDome.material.map = skyTexture(dusk); skyDome.material.needsUpdate = true; }
+    sun.color.setHex(dusk ? 0xffb070 : 0xfff2dc); sun.intensity = dusk ? 0.55 : 2.4; placeSun(dusk ? SUN_DUSK : SUN_DAY);
+    hemi.intensity = dusk ? 0.32 : 0.85; hemi.color.setHex(dusk ? 0x5a6f8a : 0xd6e6f4); hemi.groundColor.setHex(dusk ? 0x2a2a28 : 0x7b7a5a);
+    renderer.toneMappingExposure = dusk ? 0.9 : 1.12; scene.environmentIntensity = dusk ? 0.12 : 0.55;
+    DUSK.glaze.forEach((m) => { m.emissive.setHex(0xffd9a0); m.emissiveIntensity = dusk ? 0.9 : 0; });
+    DUSK.lamp.forEach((m) => { m.emissive.setHex(0xfff0d2); m.emissiveIntensity = dusk ? 2.4 : 0; });
+    DUSK.glow.forEach(([m, day]) => { m.emissiveIntensity = dusk ? 3.4 : day; });
+    DUSK.warm.forEach(([m, k]) => { m.emissiveIntensity = dusk ? k : 0; });
+    DUSK.obst.forEach((m) => { m.emissive.setHex(0xff2a2a); m.emissiveIntensity = dusk ? 2.2 : 0; });
+    draw(); run();
+  }
+  // the proposal switch: RenewaBlox's parts, flows, labels, step 13, the schematic's BLOX branch, the BLOX stills and the
+  // sheet's proposal card all come and go together; the address keeps the choice (?proposal=0)
+  function setProposal(on){
+    proposal = !!on; pressed('b-prop', proposal);
+    document.body.classList.toggle('noprop', !proposal);
+    PROP_ATTRS.forEach(([sel, attr, a, b]) => { const e = document.querySelector(sel); if (e) e.setAttribute(attr, proposal ? a : b); });
+    const u = new URL(location.href);
+    if (proposal) u.searchParams.delete('proposal'); else u.searchParams.set('proposal', '0');
+    history.replaceState(null, '', u);
+    if (!proposal && $('lb') && !$('lb').hidden) closeLb();
+    if (!proposal && ((step && STEPS[step - 1].blox) || (!step && view === 'blox'))) {
+      if (loaded) setView('overview'); else { step = 0; view = 'overview'; }
+    }
+    if (playing && !proposal && step && STEPS[step - 1].blox) setStep(nextStep(1), true);
+    buildKey();
+    applyStep(); railEdges();
+    if (loaded) draw();
   }
   $('b-flows').addEventListener('click', () => setFlows(!flowsOn));
   $('b-xray').addEventListener('click', () => setXray(!xrayOn));
   $('b-labels').addEventListener('click', () => setLabels(!labelsOn));
   $('b-dusk').addEventListener('click', () => setDusk(!dusk));
+  $('b-prop').addEventListener('click', () => setProposal(!proposal));
   $('b-rot').addEventListener('click', () => { if (!loaded) return; controls.autoRotate = !controls.autoRotate; pressed('b-rot', controls.autoRotate); if (controls.autoRotate) setPlay(false); run(); });
 
   /* -------------------------------------------------------------- loop */
@@ -1399,7 +1293,7 @@ body.moved .hint{opacity:0!important}
   }
   function anyFlow(){ for (const id in flows) if (flows[id].level > 0.01 || flows[id].target > 0) return true; return false; }
   function moving(){
-    return !!tween || playing || controls.autoRotate || performance.now() - lastMove < 1500 || (!REDUCED && (anyFlow() || fans.length));
+    return !!tween || playing || controls.autoRotate || performance.now() - lastMove < 1500 || (!REDUCED && (anyFlow() || fanSets.length > 0));
   }
   function frame(now){
     raf = 0;
@@ -1407,20 +1301,28 @@ body.moved .hint{opacity:0!important}
     if (tween) {
       const tt = Math.min(1, (now - tween.start) / tween.ms), e = tt < 0.5 ? 2 * tt * tt : 1 - Math.pow(-2 * tt + 2, 2) / 2;
       camera.position.lerpVectors(tween.p0, tween.p1, e); controls.target.lerpVectors(tween.t0, tween.t1, e);
+      if (tween.f1 !== tween.f0) { camera.fov = tween.f0 + (tween.f1 - tween.f0) * e; camera.updateProjectionMatrix(); }
       if (tt >= 1) tween = null;
     }
     if (playing && !document.hidden) {
       playT += dt * 1000;
       const b = strip.querySelector('.step[aria-current="true"]'); if (b) b.style.setProperty('--pr', Math.min(1, playT / HOLD).toFixed(3));
-      if (playT >= HOLD) { setStep(step >= STEPS.length ? 1 : step + 1, true); }
+      if (playT >= HOLD) { setStep(nextStep(1), true); }
     }
     if (!REDUCED) {
-      for (const f of fans) f.rotation.y += dt * 2 * Math.PI * 0.9;
-      const s = step ? STEPS[step - 1] : null, bloxOn = !s || s.hi.includes('blox');
-      for (const f of bloxFans) f.rotation.y += dt * 2 * Math.PI * (bloxOn ? 2.2 : 0.4);
-      // the peaker step: the power alternates between the grid and the BLOX every few seconds
-      if (s && s.alternate && flowsOn) { const toBlox = Math.floor(tAcc / 4) % 2 === 0; flows.bloxpower.target = toBlox ? 1 : 0; flows.grid.target = toBlox ? 0 : 1; }
-      if (dusk && stackLamp) stackLamp.material.emissiveIntensity = 1.4 + 1.4 * Math.max(0, Math.sin(tAcc * 3));
+      const s = step ? STEPS[step - 1] : null;
+      // the peaker step: the power alternates between the grid and the BLOX every few seconds, and the BLOX's heat pair
+      // runs only while the BLOX does
+      bloxRunning = proposal && (!s || s.hi.includes('blox'));
+      if (s && s.alternate && flowsOn) {
+        const toBlox = Math.floor(now / 4000) % 2 === 0;
+        ['bloxpower', 'bloxheat', 'bloxheat_cool'].forEach((id) => { if (flows[id]) flows[id].target = toBlox ? 1 : 0; });
+        if (flows.grid) flows.grid.target = toBlox ? 0 : 1;
+        bloxRunning = toBlox;
+      }
+      bloxAng += dt * 2 * Math.PI * (bloxRunning ? 2.2 : 0.35); coolAng += dt * 2 * Math.PI * 0.9;
+      placeFans();
+      DUSK.obst.forEach((m) => { if (dusk) m.emissiveIntensity = 1.2 + 1.6 * Math.max(0, Math.sin(tAcc * 3)); });
       flowFrame(dt, tAcc);
     }
     draw(dt);
@@ -1433,19 +1335,27 @@ body.moved .hint{opacity:0!important}
   }
   document.addEventListener('visibilitychange', () => { run(); if (!document.hidden && loaded && !raf) draw(); });
 
-  /* ------------------------------------------------------- the caption */
+  /* ------------------------------------------------- caption and rail */
   function clampCaption(){
     const p = $('cap-p'), more = $('caption').classList.contains('more');
     $('capmore').hidden = !more && p.scrollHeight <= p.clientHeight + 1;
     $('capmore').textContent = more ? 'Less' : 'More';
   }
   $('capmore').addEventListener('click', () => { $('caption').classList.toggle('more'); clampCaption(); });
-  addEventListener('resize', () => { clampCaption(); });
-  if (document.fonts) document.fonts.ready.then(() => { clampCaption(); });
+  // the rail along a phone's top edge scrolls: fade the edge that has more beyond it
+  function railEdges(){
+    const r = $('rail'), wide = r.scrollWidth > r.clientWidth + 1;
+    r.classList.toggle('more-l', wide && r.scrollLeft > 1);
+    r.classList.toggle('more-r', wide && r.scrollLeft + r.clientWidth < r.scrollWidth - 1);
+  }
+  $('rail').addEventListener('scroll', railEdges, { passive: true });
+  addEventListener('resize', () => { clampCaption(); railEdges(); });
+  if (document.fonts) document.fonts.ready.then(() => { clampCaption(); railEdges(); });
 
   /* ======================================================== the schematic */
-  // The developer's process flow diagram redrawn: one node per step, the flows between them in the key colours, and
-  // the BLOX branch at the electricity node. The same step state lights the node and its flows.
+  // The developer's process flow diagram redrawn: one node per step, the flows between them in the key colours, and the
+  // proposed BLOX branch at the electricity node, with its heat link to the heat node drawn lighter. The same step state
+  // lights the node and its flows; the BLOX branch carries data-proposal and goes with the switch.
   const SN = 'http://www.w3.org/2000/svg';
   const NODES = {   // id: [x, y, w, h, step, title, subtitle]
     reception: [20, 210, 250, 80, 1, 'Waste reception and processing', 'Shredding, recovery, fuel'],
@@ -1457,10 +1367,10 @@ body.moved .hint{opacity:0!important}
     scrub: [960, 40, 235, 64, 7, 'Heat recovery and scrubbing', 'Heat, water, particulates'],
     stack: [1210, 40, 120, 64, 8, 'Stack', 'Clean, cool gas'],
     export: [970, 210, 200, 80, 9, 'Transformer and export', 'To customers'],
-    heat: [940, 430, 230, 64, 10, 'Heat and district heating', 'For the town'],
+    heat: [940, 430, 230, 64, 10, 'Heat and district heating', 'For the planned heat network'],
     coolers: [720, 430, 170, 64, 11, 'Coolers', 'No visible plume'],
     water: [1345, 40, 125, 64, 12, 'Water re-use', 'Stored, recycled'],
-    blox: [1210, 210, 240, 80, 13, 'BLOX peaker · 28 MW', 'RenewaBlox flexible demand'],
+    blox: [1210, 210, 240, 80, 13, 'BLOX peaker · 28 MW', 'RenewaBlox proposal'],
   };
   // each edge: key, from, to, and an optional route through waypoints; the step(s) it lights for
   const EDGES = [
@@ -1481,8 +1391,9 @@ body.moved .hint{opacity:0!important}
     ['dh', 'heat', null, [[1170, 462], [1470, 462]], [10]],
     ['heat', 'turbine', 'coolers', [[770, 290], [770, 430]], [11]],
     ['water', 'scrub', 'water', [[1120, 104], [1120, 130], [1410, 130], [1410, 104]], [7, 12]],
+    ['bloxheat', 'blox', 'heat', [[1222, 290], [1222, 446], [1172, 446]], [13]],
   ];
-  const KEY_ORDER = ['waste', 'fuel', 'steam', 'elec', 'heat', 'dh', 'flue', 'ash', 'water'];
+  const KEY_ORDER = ['waste', 'fuel', 'steam', 'elec', 'heat', 'dh', 'flue', 'ash', 'water', 'bloxheat'];
   let schemBuilt = false;
   function el(tag, attrs, parent){ const e = document.createElementNS(SN, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
   function edgePath(e){
@@ -1490,10 +1401,8 @@ body.moved .hint{opacity:0!important}
     const pts = [];
     const c = (n) => { const [x, y, w, h] = NODES[n]; return [x + w / 2, y + h / 2]; };
     if (via) pts.push(...via);
-    else { const a = c(from), b = c(to); const [ax, ay, aw] = NODES[from], [bx, by] = NODES[to]; pts.push([ax + aw, a[1]], [bx, a[1] === b[1] ? b[1] : b[1]]); }
-    // trim into the node edges when the route starts or ends at a node centre line
-    let d = 'M' + pts.map((p) => p.join(' ')).join(' L');
-    return d;
+    else { const a = c(from), b = c(to); const [ax, ay, aw] = NODES[from], [bx] = NODES[to]; pts.push([ax + aw, a[1]], [bx, b[1]]); }
+    return 'M' + pts.map((p) => p.join(' ')).join(' L');
   }
   function buildSchem(){
     const svg = $('schem'); svg.innerHTML = '';
@@ -1507,18 +1416,21 @@ body.moved .hint{opacity:0!important}
     const t = el('text', { x: 30, y: 176, fill: '#5a6a73', 'font-size': 10.5, 'font-weight': 750, 'letter-spacing': '.16em' }, svg); t.textContent = 'WASTE IN · ENERGY OUT';
     const gE = el('g', { class: 'edges' }, svg);
     EDGES.forEach((e, i) => {
-      const p = el('path', { d: edgePath(e), class: 'flow dash', stroke: KEY[e[0]][0], 'marker-end': 'url(#ar-' + e[0] + ')', 'data-steps': e[4].join(' ') }, gE);
+      const p = el('path', { d: edgePath(e), class: 'flow dash' + (e[0] === 'bloxheat' ? ' lite' : ''), stroke: KEY[e[0]][0], 'marker-end': 'url(#ar-' + e[0] + ')', 'data-steps': e[4].join(' ') }, gE);
       p.dataset.i = i;
+      if (e[4].length === 1 && e[4][0] === 13) p.dataset.proposal = '1';
     });
     // the off-page ends
     const gX = el('g', { class: 'ext' }, svg);
-    const lab = (x, y, txt, anchor) => { const tx = el('text', { x, y, 'text-anchor': anchor || 'start' }, gX); tx.textContent = txt; };
-    lab(20, 312, 'Residual waste, by road: up to 200,000 tonnes a year', 'start'); lab(1468, 140, 'To the grid', 'end'); lab(1468, 452, 'District heating, to the town', 'end');
-    lab(1450, 318, 'To the grid when prices are high; to the BLOX when they are low', 'end');
+    const lab = (x, y, txt, anchor, prop) => { const tx = el('text', { x, y, 'text-anchor': anchor || 'start' }, gX); tx.textContent = txt; if (prop != null) tx.dataset.proposal = String(prop); };
+    lab(20, 312, 'Residual waste, by road: up to 200,000 tonnes a year', 'start'); lab(1468, 140, 'To the grid', 'end'); lab(1468, 480, 'District heating, to the planned network', 'end');
+    lab(1238, 314, 'Proposed: to the grid when prices', 'start', 1); lab(1238, 329, 'are high, to the BLOX when low', 'start', 1);
+    lab(1232, 400, 'BLOX heat, proposed', 'start', 1);
     const gN = el('g', { class: 'nodes' }, svg);
     for (const id in NODES) {
       const [x, y, w, h, n, title, sub] = NODES[id], s = STEPS[n - 1];
       const g = el('g', { class: 'node' + (s.blox ? ' blox' : ''), 'data-step': n, tabindex: 0, role: 'button', 'aria-label': 'Step ' + n + ': ' + title }, gN);
+      if (s.blox) g.dataset.proposal = '1';
       el('rect', { x, y, width: w, height: h, rx: 12 }, g);
       el('rect', { x, y, width: 6, height: h, rx: 3, fill: KEY[s.key][0] }, g);
       el('circle', { cx: x + 22, cy: y + 20, r: 11, fill: s.blox ? '#12475e' : KEY[s.key][0] }, g);
@@ -1526,17 +1438,23 @@ body.moved .hint{opacity:0!important}
       const tt = el('text', { x: x + 40, y: y + 25, class: 'nt' }, g); tt.textContent = title;
       const ss = el('text', { x: x + 16, y: y + 47, class: 'ns' }, g); ss.textContent = sub;
       if (id === 'furnace') { const extra = el('text', { x: x + 16, y: y + 66, class: 'ns' }, g); extra.textContent = 'BAT: dioxins, NOx and CO minimised'; const e2 = el('text', { x: x + 16, y: y + 84, class: 'ns' }, g); e2.textContent = 'Steam raised in the boiler'; }
-      if (s.blox) { const extra = el('text', { x: x + 16, y: y + 66, class: 'ns' }, g); extra.textContent = '16 hydro-cooled containers, behind the meter'; }
+      if (s.blox) { const extra = el('text', { x: x + 16, y: y + 66, class: 'ns' }, g); extra.textContent = 'Proposed: 16 containers, behind the meter'; }
       if (id === 'turbine' || id === 'export') { const extra = el('text', { x: x + 16, y: y + 66, class: 'ns' }, g); extra.textContent = id === 'turbine' ? 'Heat recovered at the condenser' : 'Circa 30 MW'; }
       g.addEventListener('click', () => setStep(n));
       g.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); setStep(n); } });
     }
-    // the key
-    const gK = el('g', { class: 'key' }, svg);
-    let kx = 40;
-    KEY_ORDER.forEach((k) => { el('rect', { x: kx, y: 535, width: 16, height: 5, fill: KEY[k][0] }, gK); const tx = el('text', { x: kx + 22, y: 541 }, gK); tx.textContent = KEY[k][1]; kx += 22 + KEY[k][1].length * 6.6 + 26; });
-    const cr = el('text', { x: 1460, y: 541, 'text-anchor': 'end', fill: '#93a2aa', 'font-size': 10 }, gK); cr.textContent = 'After the developer’s process flow diagram · the BLOX branch is RenewaBlox’s';
+    el('g', { class: 'key', id: 'schem-key' }, svg);
+    buildKey();
+    const cr = el('text', { x: 1460, y: 521, 'text-anchor': 'end', fill: '#93a2aa', 'font-size': 10, 'data-proposal': '1' }, svg); cr.textContent = 'After the developer’s process flow diagram · the BLOX branch is RenewaBlox’s proposal';
+    const c0 = el('text', { x: 1460, y: 521, 'text-anchor': 'end', fill: '#93a2aa', 'font-size': 10, 'data-proposal': '0' }, svg); c0.textContent = 'After the developer’s process flow diagram';
     schemBuilt = true;
+  }
+  // the key along the foot: the BLOX's heat joins it with the proposal
+  function buildKey(){
+    const gK = $('schem-key'); if (!gK) return;
+    gK.innerHTML = '';
+    let kx = 40;
+    KEY_ORDER.filter((k) => proposal || k !== 'bloxheat').forEach((k) => { el('rect', { x: kx, y: 535, width: 16, height: 5, fill: KEY[k][0] }, gK); const tx = el('text', { x: kx + 22, y: 541 }, gK); tx.textContent = KEY[k][1]; kx += 22 + KEY[k][1].length * 6.6 + 26; });
   }
   function drawSchem(){
     if (!schemBuilt) return;
@@ -1545,6 +1463,38 @@ body.moved .hint{opacity:0!important}
     svg.querySelectorAll('.node').forEach((g) => g.classList.toggle('on', +g.dataset.step === step));
     svg.querySelectorAll('.flow').forEach((p) => p.classList.toggle('on', !!step && p.dataset.steps.split(' ').includes(String(step))));
   }
+
+  /* --------------------------------------------------------- lightbox */
+  // The stills on show (the BLOX editions go with the proposal), one at a time over the page; the arrows step through them.
+  const allStills = [...document.querySelectorAll('#gallery .still')];
+  const shown = () => allStills.filter((s) => proposal || s.dataset.proposal !== '1');
+  let at0 = 0, opener = null, lbList = [];
+  function openLb(i){
+    if ($('lb').hidden) lbList = shown();
+    if (!lbList.length) return;
+    at0 = (i + lbList.length) % lbList.length;
+    const s = lbList[at0];
+    $('lb-img').src = s.dataset.full; $('lb-img').alt = s.querySelector('img').alt;
+    $('lb-cap').innerHTML = s.querySelector(':scope > span').innerHTML;
+    $('lb-chip').hidden = s.dataset.proposal !== '1';
+    if ($('lb').hidden) { opener = document.activeElement; $('lb').hidden = false; $('lb-x').focus(); }
+  }
+  function closeLb(){ $('lb').hidden = true; $('lb-img').removeAttribute('src'); if (opener && opener.focus) opener.focus(); }
+  allStills.forEach((s) => s.addEventListener('click', () => { lbList = shown(); openLb(lbList.indexOf(s)); }));
+  $('lb-x').addEventListener('click', closeLb);
+  $('lb-pv').addEventListener('click', () => openLb(at0 - 1));
+  $('lb-nx').addEventListener('click', () => openLb(at0 + 1));
+  $('lb').addEventListener('click', (e) => { if (e.target === $('lb')) closeLb(); });
+  document.addEventListener('keydown', (e) => {
+    if ($('lb').hidden) return;
+    if (e.key === 'Escape') closeLb();
+    else if (e.key === 'ArrowLeft') openLb(at0 - 1);
+    else if (e.key === 'ArrowRight') openLb(at0 + 1);
+    else if (e.key === 'Tab') {   // keep focus inside the dialog
+      const f = [$('lb-x'), $('lb-pv'), $('lb-nx')], i = f.indexOf(document.activeElement);
+      e.preventDefault(); f[(i + (e.shiftKey ? -1 : 1) + f.length) % f.length].focus();
+    }
+  });
 
   /* ------------------------------------------------------ assumptions */
   let asFrom = null;
@@ -1570,13 +1520,22 @@ body.moved .hint{opacity:0!important}
     else if (e.key === 'Tab') { e.preventDefault(); $('as-x').focus(); }
   });
 
-  // last: the schematic, the scene, and the tab and step the address asks for
+  // last: the schematic, the proposal as the address has it, the scene, and the tab and step the address asks for
   buildSchem();
+  hooks();
+  setProposal(proposal);
   start();
   const q = new URLSearchParams(location.search), want = q.get('tab') || location.hash.slice(1);
   setTab(want);
-  if (want === 'assumptions') openAs();
+  if (want === 'assumptions' || want === 'facts') openAs();
+  else if (want === 'stills') $('stills').scrollIntoView();
   const st = parseInt(q.get('step'), 10); if (st) setStep(st);
+  // a new #hash typed or followed on the open page goes to its tab too
+  addEventListener('hashchange', () => {
+    const h = location.hash.slice(1);
+    if (h === 'assumptions' || h === 'facts') openAs();
+    else if (h) { setTab(h); if (h === 'stills') $('stills').scrollIntoView(); }
+  });
 })();
 </script>
 </body>
