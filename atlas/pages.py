@@ -131,8 +131,8 @@ CLIENT_MAPS = {
                        # BLOX Dispatch on the proposed BLOX compound, east of the reception hall (61 m E, 129 m S of the furnace)
                        {"at": [57.26149, -2.36209], "label": "BLOX Dispatch", "short": "Dispatch", "view": "dispatch", "side": "right"}]},
     "lpf": {"title": "LPF Atlas — Little Pengethley AD", "kick": "BLOX Bitcoin mining data centre · LPF Atlas",
-            "place": "Little Pengethley AD plant, Peterstow, Ross-on-Wye HR9 6NB", "at": [51.92393, -2.66883], "zoom": 18,
-            "badges": [{"at": [51.9239708, -2.6686638], "label": "BLOX 3D", "short": "3D", "view": "compute"}]},
+            "place": "Little Pengethley AD plant, Peterstow, Ross-on-Wye HR9 6NB", "at": [51.92408, -2.66878], "zoom": 18,
+            "badges": [{"at": [51.9242539, -2.6687147], "label": "BLOX 3D", "short": "3D", "view": "compute"}]},
 }
 
 
