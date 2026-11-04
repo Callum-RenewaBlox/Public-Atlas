@@ -21,7 +21,9 @@ site's entry in `CLIENT_MAPS` in `atlas/pages.py` and served by `client_map("<co
 - The RenewaBlox bar: `kick` is "<what is proposed, or the scheme> · <CODE> Atlas" ("Proposed compute load bank ·
   SRV Atlas", "999 kW run-of-river hydro · KLD Atlas"); `place` is "<site>, <place>[, <postcode>]".
 - The site on Esri satellite imagery, opening on the site itself (SRV: zoom 18.5 on the yard; KLD: 17 on the
-  powerhouse). Prefer a whole zoom: in-between zooms leave hairline seams between imagery tiles.
+  powerhouse). Prefer a whole zoom: in-between zooms leave hairline seams between imagery tiles. Where the current
+  World Imagery is poor at the site (THN's blooms white over bright roofs), `"tiles"` in the site's entry may name
+  another Esri World Imagery Wayback release, on the same terms and credit; nothing else.
 - One BLOX badge per view, named by what the view is, the same on every site: **BLOX Dispatch** for the dispatch
   model (a 3D sim with a dispatch or revenue simulation: SRV's, KLD's, IHN's Heat Network 3D, BRY's 3D site model,
   WLD's), `short` "Dispatch"; **BLOX 3D** for a 3D render (a compute render, a siting render, BLN 3D), `short` "3D"
@@ -140,6 +142,7 @@ the client atlas markers. It comes after the existing site cards and before the 
 | KLD | shared | yes |
 | IHN | its own three.js scene, by the owner's word, under the shared bar and badge | yes |
 | WLD | shared. Its Compute Render (`?view=compute`) is written in this repository, `atlas/wld/compute.html` with `atlas/wld/assets/`, in the BRY Compute Render's shape; BLOX Dispatch (`?view=dispatch`) is `atlas/wld/dispatch.html`, on the same bar and tabs | yes |
+| THN | shared, on Esri's Wayback release of 27 March 2025 (`"tiles"` in `CLIENT_MAPS`), as the current imagery blooms over the mill roofs. Its Process Render (`?view=3d`) is written in this repository, `atlas/thn/process.html` with `atlas/thn/assets/`, in WLD's shape, the scene loaded from the model's web GLB: the developer's twelve process steps and the proposed BLOX peaker as a thirteenth, a proposal switch (`?proposal=0`), a schematic tab and a Flythrough & stills tab | yes |
 
 BRY and BLN are off the standard and wait on the owner's word. A site whose source opens on something other than
 a map gets the shared map unless the owner says otherwise (as for IHN); ask. Update this table when a site changes.

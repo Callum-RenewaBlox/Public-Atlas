@@ -71,7 +71,7 @@ import site_inputs  # the list of what the site is built from (inputs.txt), chec
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "site"
 ROOT = HERE / "root"
-CLIENTS = ["bln", "bry", "wld"]
+CLIENTS = ["bln", "bry", "wld", "thn"]
 ON_NETLIFY = os.environ.get("NETLIFY") == "true"
 
 # The words that would name or place a client's site (the site, the places around it, the firms on
@@ -88,7 +88,7 @@ TEXT_SUFFIXES = {".html", ".css", ".js", ".json", ".txt", ".md", ".svg"}
 
 # The only place a page may load from: the satellite imagery under the map. www.w3.org appears as
 # the SVG namespace in data images and is never fetched.
-ALLOWED_HOSTS = {"server.arcgisonline.com"}
+ALLOWED_HOSTS = {"server.arcgisonline.com", "wayback.maptiles.arcgis.com"}
 NAMESPACE_HOSTS = {"www.w3.org"}
 
 # The front page's Client Atlas section: front/clients.html, and the images beside it, which go to

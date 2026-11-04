@@ -42,6 +42,7 @@ points at a `streamlit.app` address.
 | `/clients/ihn/` | `ihn_atlas.html` + `ihn_heat_chrome.html` + `heat_network_3d.html` | IHN Atlas (code IHN, by which the public front page names it) — the IHN heat network, the one site that keeps its own opening page, by the owner's word, under the shared RenewaBlox bar and with the shared badge (`ihn_atlas` in `atlas/pages.py`): a still, daytime three.js satellite atlas of the district with the network main, the existing and proposed connections, the 11 kV route and the HNES blocks drawn on the imagery, and the 76 × 25 m plant room cut away under the block; four camera views (Overview, the Plant room as an amber call to action, EC1, EC2) with a caption that follows the view, a key, layers, a Council site-map overlay and "How it works" (moved from the page's own header into the view strip). A pulsing BLOX badge over the plant room opens the dispatch model, Heat Network 3D, full-screen — a view of the same address, `?view=3d`, with the same model file the investor pack serves, all data included, so the atlas page carries none of the model's weight |
 | `/clients/wld/` | `atlas/client_map/` (`CLIENT_MAPS["wld"]`) + `atlas/wld/` | WLD Atlas (code WLD, by which the public front page names it) — the client view of the Wildmore Renewables AD plant (Langrick, Boston PE22 7AN), on the shared opening map: the plant on satellite imagery under the RenewaBlox bar, with nothing on it but two pulsing BLOX badges: one on the proposed pad, BLOX 3D, which opens the Compute Render full-screen, and one at the transformer's estimated position, which opens BLOX Dispatch (row below). The Compute Render (`?view=compute`, `atlas/wld/compute.html`, written for the Atlas in the shape of Bryn's) shows the BLOX Bitcoin mining data centre, a Winchain 20 ft hydro-cooling container with three racks and its ExaDC410 dry cooler on the roof, on a fenced pad beside the CHP. **Model** is the three.js scene of the site, built in Blender from government open data (Environment Agency LiDAR, OS OpenMap Local and the Crop Map of England), with seven camera views (Overview, Container, Dry cooler, Power, Inside, Plant, Poultry) and toggles for X-ray, the doors, the cooler's fans, the labels and a slow turn; **Flythrough & stills** is the 48-second flythrough and six stills; the **Assumptions** button opens what is measured from the open data, what comes from documents and what is assumed. A view of the same address, so the map page carries none of the model's weight |
 | `/clients/wld/?view=dispatch` | `atlas/wld/dispatch.html` | BLOX Dispatch: every half hour of Wildmore's metered 2025, power to the BLOX or the grid against the strike, over Cycles plates (day, dusk, night) with the BLOX and grid layers and the power flow drawn live along routes projected through the plate's camera. The page is generated from `Wildmore-Dispatch\model\dispatch_src.html` by `build_page.py`, and its year from `build_page_data.py`, outside this repository |
+| `/clients/thn/` | `atlas/client_map/` (`CLIENT_MAPS["thn"]`) + `atlas/thn/` | THN Atlas (code THN, by which the public front page names it) — the client view of the Thainstone Energy Park energy from waste plant on the former paper mill ground at Kirkwood Commercial Park (Port Elphinstone, Inverurie), on the shared opening map: the site on satellite imagery under the RenewaBlox bar, with one pulsing BLOX badge, BLOX 3D, which opens the Process Render full-screen. The map takes Esri's World Imagery Wayback release of 27 March 2025 (`"tiles"` in its `CLIENT_MAPS` entry; the current release blooms white over the mill's roofs), so `wayback.maptiles.arcgis.com` is an allowed host and in the map's policy. The Process Render (`?view=3d`, `atlas/thn/process.html`) loads `atlas/thn/assets/thn_site_web.glb`, the Thainstone-3D Blender model (built from the developer's planning drawings and open data) exported with flat colours, Y-up and uncompressed, as WLD's is: the plant on the mill ground between the estate road and the Don (reception hall, silos and covered conveyor, boiler house and stack, turbine hall, flue gas cleaning, coolers, transformer, ash, water and the heat station and stores), with RenewaBlox's proposed 28 MW BLOX peaker compound (sixteen hydro-cooled containers) inside the gabion wall east of the reception hall. **Model** carries the developer's twelve process steps and the proposed BLOX as a thirteenth, along the foot of the page: each flies the camera to its part, keeps that part in colour while the rest of the plant stands back as clay, makes a hall see-through where the step looks inside, and runs the step's flows as streams of points in the developer's own key colours (proposed and future links dashed, the BLOX's heat link lighter than the network main and running only while the BLOX does); Play walks them, the arrow keys step, and the toggles are Flows, X-ray, Labels, Dusk, a slow turn and **Proposal**, which holds all of RenewaBlox's parts (the compound, its power and heat links, step 13, the schematic's BLOX node and the BLOX stills): off, or with `?proposal=0` or `__atlas.setProposal(false)`, the page shows the developer's plant alone in twelve steps. **Schematic** is the developer's process flow diagram redrawn as an SVG with the proposed BLOX branch at the electricity node, in step with the model. **Flythrough & stills** has the process film (`thn_process_720p.mp4`, so the page's policy allows `media-src 'self'`) and the model's stills, each BLOX still marked as RenewaBlox's proposal. **Assumptions** separates the developer's published material, RenewaBlox's proposal and the modelling choices. The steps' cameras, the flows' routes and the labels' positions come from the model's own data, embedded in the page's script. No costs or revenue anywhere on the page |
 | `/clients/reabold/west-newton/`, `/clients/reabold/reservoirs/` | `atlas/vendor/wn_infrastructure_map.html`, `atlas/vendor/reservoir_map.html`, copies of Reabold-Atlas's | Reabold's two maps: the West Newton infrastructure map and the UKCS reservoir atlas (a prototype; its gas flows show the bundled snapshot, as data.nationalgas.com's live feed can't be read from another site) |
 | `/clients/citygate/` | `atlas/vendor/citygate_electricity.html`, a copy of Electricity-Analysis's | Citygate Church · Electricity Portrait |
 | `/clients/bln/`, `/clients/bln/3d/` | `atlas/bln/` | BLN Atlas — the BLN powerhouse on the satellite imagery with the BLOX badge (BLOX 3D), and BLN 3D, the 3D render it opens (the model, a cutaway and the flythrough). Its public cover on the Atlas front page names it by its code only; behind the sign-in the pages may carry the site's details in full |
@@ -489,7 +490,7 @@ security), add a row for the address they sign in with in Supabase's SQL editor:
     insert into public.atlas_access (email, client, note)
     values ('name@example.com', 'srv', 'SRV Atlas for the farm manager');
 
-The codes are `srv`, `srv-contractor`, `bry`, `kld`, `ihn`, `wld`, `reabold` (both
+The codes are `srv`, `srv-contractor`, `bry`, `kld`, `ihn`, `wld`, `thn`, `reabold` (both
 Reabold maps), `citygate`, `bln` and `investors` (the Investor Atlas, below); the address is stored in lower case. A client
 signs in with Google (a Gmail or Google Workspace address) or Microsoft (a
 personal Outlook, Hotmail or Live address, or a Microsoft 365 work one); either
@@ -639,6 +640,29 @@ GLB, the flythrough and stills from the Wildmore-3D build); to update the
 render, replace those files (the labels' positions and the camera views are in
 the page's script, in metres from the pad centre, true north up).
 
+**THN** (`/clients/thn/`, client code `thn`) is the seventh card, named THN only,
+so its words (the energy park, the developer, the commercial park, the village,
+the town, the postcode district and the nearby places) belong in `ATLAS_NAMES`
+too; the river's name is too short a word for the list (it sits inside "don't").
+It had no Streamlit app, so it has no old address to forward. Its card gives
+the plant's public scale (about 30 MW) and the BLOX's load (28 MW), both of
+which the developer's own pages and RenewaBlox's proposal carry; take them out
+if the owner would rather. Its cover, `thn-cover.jpg`, is a frame of the page's
+own scene, the model's web GLB (`window.__atlas.cover(pos, tgt, 1280, 720, fov)`
+on `atlas/thn/process.html`, served locally, in Playwright's Chromium on the
+laptop's GPU), from the stills' hero camera south-east of the plant, over the
+proposed BLOX compound towards the boiler house and stack, with the flows and
+labels off and the containers' livery and the signs hidden, saved as a
+1280 × 720 progressive JPEG with no metadata. The Process Render is written
+here in the shape of WLD's Compute Render: `atlas/thn/process.html` with
+`atlas/thn/assets/` (the site GLB, the film and its poster, the stills and
+their thumbnails, and the three.js bundle, the font and the wordmark, shared
+with WLD). To update the render, replace the GLB, film and stills from the
+Thainstone-3D build; the steps' cameras, the flows' routes and the labels'
+positions are embedded in the page's script from the model's data file (in
+site metres from the centre of the boiler house, true north up), and the
+Thainstone-3D folder's `wip\page_data.py --write` re-embeds them.
+
 Build and look at it locally:
 
     python atlas/build.py
@@ -647,7 +671,7 @@ Build and look at it locally:
 
 A plain server doesn't run the edge functions, so locally the gated pages open
 without a sign-in and their views are files of their own
-(`/clients/srv/3d.html`, `/clients/bry/bryn_3d_sim.html`, `/clients/bry/compute.html`, `/clients/wld/compute.html`, `/clients/wld/dispatch.html`).
+(`/clients/srv/3d.html`, `/clients/bry/bryn_3d_sim.html`, `/clients/bry/compute.html`, `/clients/wld/compute.html`, `/clients/wld/dispatch.html`, `/clients/thn/process.html`).
 
 ## ai.renewablox.com — RenewaBlox's AI tools
 
