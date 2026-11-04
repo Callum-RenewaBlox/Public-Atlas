@@ -81,7 +81,7 @@ the client atlas markers. It comes after the existing site cards and before the 
 - If the owner supplies the cover, use it as given: trim only empty margin, frame it whole at 16:9 (carry its own
   ground out to the sides rather than crop the subject), save it as above and look for text or metadata all the same.
 - Four bullets on what the visitor finds: the map with its badge(s) first, then each view.
-- Buttons: "Open <CODE>" → `/clients/<code>/`, and "3D model" → `/clients/<code>/?view=3d`.
+- Buttons: "Open <CODE>" → `/clients/<code>/`, and "3D model" → `/clients/<code>/?view=<the BLOX 3D view>` (`?view=3d` on most sites, `?view=compute` on WLD and LPF).
 - The grid is three across. The invitation card stretches to fill its row when it would sit short of one (the
   rules are in the `<style>` at the top of `clients.html`); check that the last row looks right.
 
@@ -143,6 +143,7 @@ the client atlas markers. It comes after the existing site cards and before the 
 | IHN | its own three.js scene, by the owner's word, under the shared bar and badge | yes |
 | WLD | shared. Its Compute Render (`?view=compute`) is written in this repository, `atlas/wld/compute.html` with `atlas/wld/assets/`, in the BRY Compute Render's shape; BLOX Dispatch (`?view=dispatch`) is `atlas/wld/dispatch.html`, on the same bar and tabs | yes |
 | THN | shared, on Esri's Wayback release of 27 March 2025 (`"tiles"` in `CLIENT_MAPS`), as the current imagery blooms over the mill roofs. Its Process Render (`?view=3d`) is written in this repository, `atlas/thn/process.html` with `atlas/thn/assets/`, in WLD's shape, the scene loaded from the model's web GLB: the developer's twelve process steps and the proposed BLOX peaker as a thirteenth, a proposal switch (`?proposal=0`), a schematic tab and a Flythrough & stills tab | yes |
+| LPF | shared. Its Compute Render (`?view=compute`) is `atlas/lpf/compute.html` with `atlas/lpf/assets/`, WLD's page with this site's model; one badge (BLOX Dispatch waits for the site's export data) | yes |
 
 BRY and BLN are off the standard and wait on the owner's word. A site whose source opens on something other than
 a map gets the shared map unless the owner says otherwise (as for IHN); ask. Update this table when a site changes.
