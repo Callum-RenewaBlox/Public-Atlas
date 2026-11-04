@@ -338,7 +338,11 @@ header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2.5
   .days{flex:1 1 100%;order:-1}
   .days button{flex:1 1 0;min-width:0;text-align:center}
   .days button b,.days button span{overflow:hidden;text-overflow:ellipsis}
+  /* the days take a row of their own, 44 px more than WLD's controls: the plate gives it up, so in a short window
+     the sticky controls never cover its foot and the desk's button */
+  #plate{max-height:calc(100dvh - var(--hdr,60px) - 116px)}
 }
+@media (max-width:620px){ #plate{max-height:calc(100dvh - var(--hdr,60px) - 142px)} }
 @media (max-width:420px){ .days button span{display:none} .days button{padding:6px 4px} .days button b{font-size:11px} }
 
 /* the day in the read-out: what kind of day it was */
@@ -878,12 +882,14 @@ details.more[open] summary::before{transform:rotate(45deg)}
       t.el.style.left = x + 'px'; t.el.style.top = y + 'px';
       t.el.hidden = x < 20 || x > r.width - 20 || y < 20 || y > r.height;
     }
-    // on a small plate the labels meet: each gives way to those before it (the BLOX, then the way to the grid)
-    const kept = [];
+    // on a small plate the labels meet: each gives way to those before it (the BLOX, then the way to the grid), and
+    // to the clock, the day's total and the desk's button on the plate; one the plate's edge would cut goes too
+    const kept = ['clock', 'chip', 'dock-open', 'dock-min'].map((id) => $(id)).filter((el) => el && el.offsetParent && getComputedStyle(el).visibility !== 'hidden').map((el) => el.getBoundingClientRect()).filter((b) => b.width > 0);
     for (const t of tags){
       if (t.el.hidden) continue;
       const a = t.el.getBoundingClientRect();
-      if (kept.some((b) => a.left < b.right + 4 && a.right > b.left - 4 && a.top < b.bottom + 3 && a.bottom > b.top - 3)) t.el.hidden = true;
+      if (a.top < r.top + 2 || a.left < r.left + 2 || a.right > r.right - 2 || a.bottom > r.bottom - 2 ||
+          kept.some((b) => a.left < b.right + 4 && a.right > b.left - 4 && a.top < b.bottom + 3 && a.bottom > b.top - 3)) t.el.hidden = true;
       else kept.push(a);
     }
     if (R.grid) paint(0);                                     // resizing the canvas cleared it
@@ -948,7 +954,7 @@ details.more[open] summary::before{transform:rotate(45deg)}
   let R = {};
 
   // lv is 0 to 1: how much of the 28 MW takes this route, eased as the half hours change. Behind a building the
-  // flow shows as a ghost, stronger than WLD's: most of the way to the grid lies behind the reception hall here
+  // flow shows as a ghost, as WLD's: in the Cycles plates the export runs in view from the pens to the fence
   function drawRoute(rt, lv, spr, dt){
     if (lv < 0.01) return;
     const frac = lv, spacing = 130 - 86*frac, speed = 80 + 230*frac;
@@ -959,7 +965,7 @@ details.more[open] summary::before{transform:rotate(45deg)}
         const at = s - k*spacing*0.09; if (at < 0) continue;
         const pt = rt.p[Math.min(rt.p.length - 1, Math.floor(at/rt.step))];
         const edge = Math.min(1, s/50, (rt.len - s)/50);
-        fx.globalAlpha = Math.max(0, edge)*(pt[2] ? 0.3 : 1)*[1, 0.5, 0.3, 0.15][k]*(0.55 + 0.45*frac);
+        fx.globalAlpha = Math.max(0, edge)*(pt[2] ? 0.14 : 1)*[1, 0.5, 0.3, 0.15][k]*(0.55 + 0.45*frac);
         const z = size*[1, 0.8, 0.65, 0.5][k];
         fx.drawImage(spr, pt[0]*q - z/2, box.oy*dpr + pt[1]*q - z/2, z, z);
       }
