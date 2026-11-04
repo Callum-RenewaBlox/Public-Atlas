@@ -382,7 +382,7 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
           <h3>Assumed: please check</h3>
           <p class="src">Each is one setting in the model, so a measurement or a decision replaces it directly</p>
           <ul>
-            <li><b>Position</b>: the pad on the gravel yard above the retaining wall, alongside the CHP to its north, its long axis east&ndash;west and the services end to the west, chosen from the LiDAR and not surveyed. Its north-west corner is about 2 m from the top of the lagoon&rsquo;s inner bank, and it narrows the yard behind the kit row (to about half a metre at the west end of its south side, if the low object the 2019 LiDAR shows north of the CHP is still there), so access past it and the bank&rsquo;s stand-off are to be checked; subject to the site&rsquo;s gas-safety (DSEAR) zoning and its insurer&rsquo;s separation distances</li>
+            <li><b>Position</b>: the pad on the gravel yard above the retaining wall, alongside the CHP to its north, its long axis east&ndash;west and the services end to the west, chosen from the LiDAR and not surveyed. Its north-west corner is about 1.7 m from the top of the lagoon&rsquo;s inner bank, and it narrows the yard behind the kit row (to about half a metre at the west end of its south side, if the low object the 2019 LiDAR shows north of the CHP is still there), so access past it and the bank&rsquo;s stand-off are to be checked; subject to the site&rsquo;s gas-safety (DSEAR) zoning and its insurer&rsquo;s separation distances</li>
             <li><b>Pad</b>: 10 &times; 7 m concrete, 0.15 m thick, with a 2 m mesh fence and a double gate at the west end; the LV pillar at its south-west corner, beside the door</li>
             <li><b>Interior layout</b>: the racks along the south wall facing a 1.2 m aisle, the services end to the west, free floor at the cargo end for more racks; the pump, vessels and panel positions</li>
             <li><b>Cable</b>: from the LV pillar through a draw pit, out through the pad&rsquo;s south fence and across the yard in a trench to a cable entry on the CHP enclosure&rsquo;s north face, about 3.6 m beyond the pad; the route and the entry point are indicative</li>
@@ -658,9 +658,11 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
     for (const piv of pivots) {
       const parentM = piv.parent.matrixWorld.clone();
       piv.removeFromParent(); piv.applyMatrix4(parentM); world.add(piv);
-      // the BLOX turns on the site (its services end due north here): a door's swing is added to the yaw its pivot carries
+      // the BLOX turns on the site (its services end due west here): a door's swing is a turn about the vertical added to the
+      // pivot's own orientation, kept as a quaternion (v02: the root's 180-degree yaw reads back as Euler (pi, 0, pi), so
+      // adding to rotation.y would swing the doors the wrong way, into the container)
       const d = DOORS[piv.name.replace(/\.\d+$/, '')];
-      if (/^fan_pivot_/.test(piv.name)) fans.push(piv); else if (d) doors.push({ piv, y0: piv.rotation.y, sign: d[0], deg: d[1] });
+      if (/^fan_pivot_/.test(piv.name)) fans.push(piv); else if (d) doors.push({ piv, q0: piv.quaternion.clone(), sign: d[0], deg: d[1] });
       piv.traverse((c) => {
         if (!c.isMesh) return;
         c.castShadow = true; c.receiveShadow = true;
@@ -769,7 +771,8 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
     if (REDUCED) { doorOpen = doorTarget; placeDoors(); draw(); } else run();
   }
   function placeDoors(){
-    for (const d of doors) d.piv.rotation.y = d.y0 + d.sign * THREE.MathUtils.degToRad(d.deg) * (1 - Math.pow(1 - doorOpen, 2));
+    const up = new THREE.Vector3(0, 1, 0), q = new THREE.Quaternion();
+    for (const d of doors) d.piv.quaternion.copy(d.q0).premultiply(q.setFromAxisAngle(up, d.sign * THREE.MathUtils.degToRad(d.deg) * (1 - Math.pow(1 - doorOpen, 2))));
   }
   $('b-xray').addEventListener('click', () => { if (loaded) setXray(!xray); });
   $('b-doors').addEventListener('click', () => {
@@ -808,7 +811,7 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
       else if (doorOpen > doorTarget) doorOpen = Math.max(doorTarget, doorOpen - dt / 1.4);
     }
     placeDoors();
-    if (fansOn && !REDUCED) for (const f of fans) f.rotation.y += dt * 2 * Math.PI * 300 / 60;
+    if (fansOn && !REDUCED) for (const f of fans) f.rotateY(dt * 2 * Math.PI * 300 / 60);
     draw(dt);
     run();
   }
