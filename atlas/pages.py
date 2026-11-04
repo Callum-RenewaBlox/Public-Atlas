@@ -132,7 +132,12 @@ CLIENT_MAPS = {
                        {"at": [57.26149, -2.36209], "label": "BLOX Dispatch", "short": "Dispatch", "view": "dispatch", "side": "right"}]},
     "lpf": {"title": "LPF Atlas — Little Pengethley AD", "kick": "BLOX Bitcoin mining data centre · LPF Atlas",
             "place": "Little Pengethley AD plant, Peterstow, Ross-on-Wye HR9 6NB", "at": [51.92408, -2.66878], "zoom": 18,
-            "badges": [{"at": [51.9242539, -2.6687147], "label": "BLOX 3D", "short": "3D", "view": "compute"}]},
+            # both badges on the BLOX beside the CHP, sharing its point as KLD's do: BLOX Dispatch's chip sits off to the
+            # right of BLOX 3D's and its pill on the right; 33 px lower, not KLD's 19, so on a phone, where each pill
+            # hangs under its chip, the two pills clear each other
+            "badges": [{"at": [51.9242539, -2.6687147], "label": "BLOX 3D", "short": "3D", "view": "compute"},
+                       {"at": [51.9242539, -2.6687147], "label": "BLOX Dispatch", "short": "Dispatch", "view": "dispatch",
+                        "side": "right", "anchor": [-37, -10]}]},
 }
 
 
@@ -295,9 +300,9 @@ def client_pages():
     # which build.py copies into the same folder (CLIENTS).
     out["clients/thn/index.html"] = client_map("thn")
 
-    # LPF: Little Pengethley AD. The map's badge opens BLOX 3D, the Compute Render (?view=compute), written for the Atlas
-    # in WLD's shape: lpf/compute.html with its files in lpf/assets/, which build.py copies into the same folder (CLIENTS).
-    # BLOX Dispatch follows when the site's half-hourly export is in hand.
+    # LPF: Little Pengethley AD. The map's badges open BLOX 3D, the Compute Render (?view=compute), and BLOX Dispatch
+    # (?view=dispatch), both written for the Atlas: lpf/compute.html in WLD's shape and lpf/dispatch.html in THN's, with
+    # their files in lpf/assets/, which build.py copies into the same folder (CLIENTS).
     out["clients/lpf/index.html"] = client_map("lpf")
 
     # IHN: the heat network. Its opening page keeps its own scene (ihn_atlas below); the 3D view is the shared Heat
@@ -349,7 +354,7 @@ CLIENT_PAGES = {
     "/clients/ihn/": {"client": "ihn", "title": "IHN Atlas — Islington heat network", "list": True, "views": {"3d": "3d.html"}},
     "/clients/wld/": {"client": "wld", "title": "WLD Atlas — Wildmore Renewables AD", "list": True, "views": {"compute": "compute.html", "dispatch": "dispatch.html"}},
     "/clients/thn/": {"client": "thn", "title": "THN Atlas — Thainstone Energy Park", "list": True, "views": {"3d": "process.html", "dispatch": "dispatch.html"}},
-    "/clients/lpf/": {"client": "lpf", "title": "LPF Atlas — Little Pengethley AD", "list": True, "views": {"compute": "compute.html"}},
+    "/clients/lpf/": {"client": "lpf", "title": "LPF Atlas — Little Pengethley AD", "list": True, "views": {"compute": "compute.html", "dispatch": "dispatch.html"}},
     "/clients/reabold/west-newton/": {"client": "reabold", "title": "West Newton infrastructure map", "list": True},
     "/clients/reabold/reservoirs/": {"client": "reabold", "title": "UKCS reservoir atlas (prototype)", "list": True},
     "/clients/citygate/": {"client": "citygate", "title": "Citygate Church · Electricity Portrait", "list": True},
@@ -420,6 +425,10 @@ CLIENT_CSP = {
     "/clients/lpf/compute.html": ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
                                   "img-src 'self' data: blob:; font-src 'self'; connect-src 'self' blob:; media-src 'self'; "
                                   "worker-src 'none'; frame-src 'none'; " + _END),
+    # BLOX Dispatch (?view=dispatch), as THN's: its script, plates, four days of data and font from the folder
+    "/clients/lpf/dispatch.html": ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
+                                   "img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'none'; "
+                                   "worker-src 'none'; frame-src 'none'; " + _END),
     "/clients/reabold/west-newton/": ("default-src 'none'; script-src 'unsafe-inline' https://cdnjs.cloudflare.com; "
                                       "style-src 'unsafe-inline' https://cdnjs.cloudflare.com; "
                                       f"img-src data: https://cdnjs.cloudflare.com https://server.arcgisonline.com {_OSM}; " + _END),

@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>LPF Atlas — BLOX Dispatch</title>
+<meta name="description" content="BLOX Dispatch: four real GB days at Little Pengethley AD, half hour by half hour, the decision to send the CHP's power to the BLOX or export it."/>
+<meta name="robots" content="noindex, nofollow"/>
+<meta name="theme-color" content="#12475e"/>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%2312475e'/%3E%3Cpath%20d='M17.8%204.5L9%2017.6h5.6l-1.3%209.9L23%2014.1h-6.2z'%20fill='%23fff'/%3E%3C/svg%3E"/>
+<!-- The page is served at /clients/lpf/?view=dispatch (the sign-in serves this file there) and, locally, as
+     /clients/lpf/dispatch.html: both are in the folder its files sit in, so every address below is assets/… -->
+<link rel="preload" href="assets/dispatch_days.json" as="fetch" crossorigin="anonymous"/>
+<style>
+/* ===================================================================
+   RenewaBlox design system — LPF BLOX Dispatch
+   THN's BLOX Dispatch (itself WLD's), house for house: the bar, tabs and
+   glass panels around a plate of the plant. Day, dusk and night plates
+   crossfade with the half hour's daylight, the BLOX and grid layers add
+   over them, and the power flows along routes projected through the
+   plate's camera. Four weather days instead of a metered year, at the
+   CHP's kW scale, and the dispatch alone.
+   =================================================================== */
+@font-face{font-family:"Inter";font-style:normal;font-display:swap;font-weight:100 900;src:url(assets/inter.woff2) format("woff2")}
+:root{
+  --brand:#12475e; --accent:#1f5f7f; --accent-l:#3a89ae;
+  --ink:#0d1b23; --ink-2:#33454f; --muted:#5a6a73; --muted-2:#93a2aa;
+  --surface:#ffffff; --tint:#f4f8fa; --tint-2:#eaf1f5; --line:#dfe8ed;
+  --glass:rgba(251,253,254,.94); --teal:#0f9d77; --wind:#7d9fb3; --solar:#e0a82e;
+  --compute:#1f97c9; --compute-d:#1578a3; --export:#4a55b0;
+  --sh-1:0 1px 2px rgba(9,26,35,.09), 0 4px 14px rgba(9,26,35,.12);
+  --sh-2:0 2px 6px rgba(9,26,35,.12), 0 14px 44px rgba(9,26,35,.22);
+  --font:"Inter","Inter var",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --ease:cubic-bezier(.2,.8,.3,1);
+  --r-s:8px; --r-m:12px; --r-l:16px; --r-pill:999px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden}
+body{display:flex;flex-direction:column;height:100dvh;font-family:var(--font);color:var(--ink-2);background:var(--tint);
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
+*:focus{outline:none}
+*:focus-visible{outline:2px solid var(--accent-l);outline-offset:2px}
+button{font-family:inherit}
+[hidden]{display:none!important}
+
+/* ================================================================ header == */
+header{position:relative;flex:0 0 auto;z-index:5;padding:11px 20px;background:linear-gradient(180deg,#fff,#f8fbfc);
+  border-bottom:1px solid var(--line);display:flex;align-items:center;gap:15px;flex-wrap:nowrap}
+header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2.5px;background:linear-gradient(90deg,var(--brand),var(--accent-l) 48%,var(--teal))}
+#backatlas{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--tint);color:var(--accent);
+  font:650 11.3px var(--font);padding:7px 12px 7px 10px;border-radius:var(--r-pill);text-decoration:none;transition:background .15s,border-color .15s,color .15s}
+#backatlas:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+#backatlas svg{width:12px;height:12px;display:block}
+.logo{flex:0 0 auto}
+.logo img{height:21px;width:auto;display:block}
+.divider{flex:0 0 auto;width:1px;height:30px;background:var(--line)}
+.title{flex:1 1 auto;min-width:0}
+.title h1{margin:0;font-size:14.5px;font-weight:700;letter-spacing:-.005em;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.title p{margin:2px 0 0;font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ptabs{flex:0 0 auto;display:flex;gap:3px;padding:3px;background:var(--tint-2);border:1px solid var(--line);border-radius:13px}
+.ptabs button{border:0;background:transparent;font:650 12.2px var(--font);color:var(--muted);padding:6px 14px;border-radius:10px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:7px;white-space:nowrap;transition:background .16s,color .16s,box-shadow .16s}
+.ptabs button svg{width:14px;height:14px;display:block;flex:0 0 auto}
+.ptabs button:hover{color:var(--brand);background:rgba(255,255,255,.7)}
+.ptabs button[aria-selected="true"]{background:var(--brand);color:#fff;box-shadow:0 1px 2px rgba(9,26,35,.18),0 3px 10px rgba(18,71,94,.28)}
+@media (max-width:860px){
+  header{flex-wrap:wrap;row-gap:9px;padding:9px 12px 10px;gap:10px}
+  .logo img{height:16px}
+  .divider{height:24px}
+  .title h1{font-size:13px}
+  .title p{display:none}
+  .ptabs{order:5;margin-left:0;flex:1 1 100%;overflow-x:auto;scrollbar-width:none}
+  .ptabs::-webkit-scrollbar{display:none}
+  .ptabs button{flex:1 0 auto;justify-content:center;padding:6px 11px;font-size:12px}
+}
+@media (min-width:861px) and (max-width:1140px){ .logo,.divider{display:none} .ptabs button svg{display:none} }
+@media (max-width:520px){ .logo,.divider{display:none} }
+@media (max-width:480px){ .ptabs button svg{display:none} }
+@media (max-width:400px){ .ptabs button{padding:6px 7px;font-size:11.5px} #backatlas span{display:none} #backatlas{padding:7px 9px} }
+/* a phone on its side: one header row, so the model keeps the height */
+@media (max-height:500px) and (orientation:landscape){
+  header{flex-wrap:nowrap;padding:6px 12px} .title,.logo,.divider{display:none} .ptabs{order:0;flex:0 1 auto;margin-left:auto}
+}
+.ptabs a{font:650 12.2px var(--font);color:var(--muted);padding:6px 14px;border-radius:10px;text-decoration:none;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.ptabs a svg{width:14px;height:14px;display:block;flex:0 0 auto}
+.ptabs a:hover{color:var(--brand);background:rgba(255,255,255,.7)}
+@media (max-width:860px){ .ptabs a{flex:1 0 auto;justify-content:center;padding:6px 11px;font-size:12px} }
+@media (max-width:480px){ .ptabs a svg{display:none} }
+@media (max-width:400px){ .ptabs a{padding:6px 7px;font-size:11.5px} }
+
+
+/* ================================================================= stage == */
+#stage{position:relative;flex:1 1 auto;min-height:0}
+.view{position:absolute;inset:0}
+.page{overflow:auto;background:var(--tint);-webkit-overflow-scrolling:touch}
+.wrap{max-width:1180px;margin:0 auto;padding:26px 24px 48px}
+.page h2,#as-sheet h2{margin:0;font-size:20px;letter-spacing:-.01em;color:var(--ink)}
+.page .sub,#as-sheet .sub{margin:6px 0 18px;color:var(--muted);font-size:13.5px;line-height:1.55;max-width:760px}
+.page h2.sec{margin-top:34px}
+@media (max-width:620px){ .wrap{padding:18px 14px 40px} .page h2,#as-sheet h2{font-size:18px} }
+
+/* --------------------------------------------------------------- dispatch -- */
+/* the desk and the see-saw take the height the plate gives up: its aspect crops the sky-ward slice off the render */
+#p-dispatch{display:grid;grid-template-columns:minmax(0,1fr) 322px;grid-template-rows:auto minmax(0,1fr) auto;gap:10px;padding:10px}
+#plate{grid-column:1;grid-row:1;position:relative;overflow:hidden;isolation:isolate;border-radius:var(--r-l);background:var(--brand);box-shadow:var(--sh-1);
+  width:100%;aspect-ratio:2.58;max-height:calc(100dvh - var(--hdr,60px) - 310px);min-height:150px}
+/* minimised: the plate takes the whole column, as deep as the render plus a band for the call to action */
+@media (min-width:1041px){ #p-dispatch.min #plate{grid-row:1/span 2;aspect-ratio:auto;max-height:calc((100vw - 352px)*9/16 + 200px)} }
+#p-dispatch.min #dock,#p-dispatch.min #dock-min,#p-dispatch:not(.min) #dock-open{display:none}
+#p-dispatch.glide{user-select:none;-webkit-user-select:none}
+#p-dispatch.glide #dock,#p-dispatch.glide #dock-min,#p-dispatch.glide #dock-open{pointer-events:none}
+#plate.noplates #dock-open,#plate.noplates #dock-min{z-index:10}
+#pl{position:absolute;left:0}
+#pl img{position:absolute;inset:0;width:100%;height:100%;display:block;user-select:none;-webkit-user-drag:none}
+#pl img.lay{mix-blend-mode:screen;mix-blend-mode:plus-lighter}
+#flow{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#clock{position:absolute;left:12px;top:12px;z-index:3;background:rgba(9,26,35,.62);color:#fff;border-radius:var(--r-pill);padding:6px 13px;font-size:12.5px;font-weight:650;
+  font-variant-numeric:tabular-nums;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.tag{position:absolute;z-index:2;transform:translate(-50%,calc(-100% - 11px));background:rgba(251,253,254,.92);color:var(--ink);border-radius:9px;padding:4px 9px;font-size:11px;font-weight:650;white-space:nowrap;
+  box-shadow:0 1px 6px rgba(9,26,35,.3);pointer-events:none}
+.tag::after{content:"";position:absolute;left:50%;top:100%;width:1.5px;height:9px;margin-left:-.75px;background:rgba(255,255,255,.8)}
+
+#chip{display:none;position:absolute;right:12px;top:12px;z-index:3;align-items:baseline;gap:6px;background:rgba(9,26,35,.62);color:#fff;border-radius:var(--r-pill);padding:6px 13px;font-size:12.5px;font-weight:600;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+#chip b{font-weight:800;font-variant-numeric:tabular-nums}
+#loading{position:absolute;inset:0;z-index:9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#0d1b23;color:#dfe8ed;font-size:13px;font-weight:600;transition:opacity .5s ease}
+#loading.hide{opacity:0;pointer-events:none}
+#loading::before{content:"";width:34px;height:34px;border-radius:50%;border:2.5px solid rgba(255,255,255,.2);border-top-color:#6fb3d6;animation:spin .85s linear infinite}
+#loading.failed::before{display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+#readout{grid-column:2;grid-row:1/span 2;min-height:0;background:var(--surface);border-radius:var(--r-l);box-shadow:var(--sh-1);padding:15px 16px;overflow:auto;display:flex;flex-direction:column;gap:11px}
+.bx-head{display:flex;align-items:center;gap:10px}
+.bx-logo{flex:0 0 44px;height:44px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font-size:11.5px;font-weight:600;color:var(--accent)}
+#r-time{font-size:clamp(28px,3.9dvh,34px);font-weight:800;line-height:1;letter-spacing:-.02em;color:var(--ink);font-variant-numeric:tabular-nums}
+#r-date{font-size:12.5px;font-weight:600;color:var(--muted);margin-top:3px;white-space:nowrap}
+#r-pill{margin-left:auto;align-self:flex-start;flex:0 0 auto;display:flex;align-items:center;gap:6px;border-radius:var(--r-pill);padding:7px 11px;color:#fff;font-size:11px;font-weight:750;letter-spacing:.07em;text-transform:uppercase;transition:background .25s}
+#r-pill::before{content:"";width:6px;height:6px;border-radius:50%;background:#fff}
+#r-sp{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.bx-calc{font-size:13.5px;line-height:1.55;color:var(--ink-2)}
+.bx-calc b{font-size:15px;font-weight:750;color:var(--ink);font-variant-numeric:tabular-nums}
+.bx-grid{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:1fr;border:1.5px solid var(--line);border-radius:var(--r-m);overflow:hidden}
+.bx-grid>div{display:flex;flex-direction:column;justify-content:center;padding:9px 12px;min-width:0}
+.bx-grid>div:nth-child(odd){border-right:1.5px solid var(--line)}
+.bx-grid>div:nth-child(-n+2){border-bottom:1.5px solid var(--line)}
+.bx-grid span{font-size:10.2px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.bx-grid b{font-size:clamp(21px,3.2dvh,28px);font-weight:760;letter-spacing:-.01em;line-height:1.2;color:var(--ink);font-variant-numeric:tabular-nums;margin-top:2px}
+.bx-grid small{font-size:12px;font-weight:550;color:var(--muted);letter-spacing:0}
+#c-cell-b b{color:var(--compute-d)} #c-cell-g b{color:var(--export)}
+#c-cell-b.idle b,#c-cell-g.idle b{color:var(--muted)}
+#hero{background:var(--brand);color:#fff;border-radius:var(--r-m);padding:12px 16px 11px;display:flex;flex-direction:column;justify-content:center}
+#hero .lab{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:#c6dbe6}
+#y-tot{font-size:clamp(34px,5.2dvh,46px);font-weight:800;letter-spacing:-.02em;line-height:1.12;font-variant-numeric:tabular-nums;margin-top:2px}
+#hero-add{font-size:12px;font-weight:600;color:#dbe9f0;margin-top:1px;font-variant-numeric:tabular-nums}
+#readout:not(.full){justify-content:space-between}
+#readout:not(.full) .bx-grid{flex:1 1 auto;max-height:300px}
+#readout:not(.full) #hero{flex:1 1 auto;max-height:220px}
+#readout.full .c-only,#readout:not(.full) .f-only{display:none}
+#readout.full .bx-head,#readout.full #r-sp{order:-2}
+#readout.full #hero{order:-1;padding:9px 14px}
+#readout.full #y-tot{font-size:36px}
+#readout.full #r-time{font-size:28px}
+#board-btn{flex:0 0 auto;position:sticky;bottom:0;box-shadow:0 15px 0 var(--surface);border:1.5px solid var(--accent);background:var(--surface);color:var(--accent);border-radius:var(--r-pill);padding:10px 14px;font:700 13px var(--font);cursor:pointer}
+#board-btn:hover{background:var(--accent);color:#fff}
+.test{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.test>div{background:var(--tint);border:1.5px solid var(--line);border-radius:var(--r-s);padding:7px 10px;min-width:0}
+.test span{display:block;font-size:10.2px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.test b{display:block;font-size:23px;font-weight:760;letter-spacing:-.01em;line-height:1.2;color:var(--muted);font-variant-numeric:tabular-nums}
+.test>div.win{background:var(--surface);border-color:var(--accent)}
+.test>div.win b{color:var(--brand)}
+#r-dec{display:flex;align-items:center;gap:9px;border-radius:var(--r-m);padding:9px 12px;color:#fff;font-weight:720;font-size:15px;transition:background .25s}
+#r-dec small{display:block;font-weight:520;font-size:11px;opacity:.9;margin-top:1px}
+.rows{display:grid;gap:5px}
+.row{display:flex;justify-content:space-between;gap:12px;font-size:12.5px;color:var(--muted)}
+.row b{color:var(--ink);font-weight:650;font-variant-numeric:tabular-nums;white-space:nowrap}
+.row.key{font-size:14px;font-weight:650;color:var(--ink)}
+.row.key b{font-size:15px;font-weight:750}
+.split .lab{display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:3px}
+.split .lab b{color:var(--ink);font-weight:650;font-variant-numeric:tabular-nums}
+.split{display:grid;gap:7px}
+.bar{height:6px;border-radius:3px;background:var(--tint-2);overflow:hidden}
+.bar i{display:block;height:100%;width:0;border-radius:3px;transition:width .2s linear}
+.btn-as{flex:0 0 auto;margin-top:auto;border:1px solid var(--line);background:var(--tint);color:var(--accent);border-radius:var(--r-pill);padding:7px 12px;font:650 11.8px var(--font);cursor:pointer}
+.btn-as:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+
+#dock{grid-column:1;grid-row:2;display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:10px;min-height:0;container-type:size}
+#dock-open{position:absolute;left:12px;bottom:12px;z-index:4;display:flex;align-items:center;gap:16px;width:max-content;max-width:calc(100% - 24px);min-height:64px;border:0;border-radius:var(--r-m);padding:10px 14px 10px 18px;
+  background:var(--brand);color:#fff;font-family:inherit;text-align:left;cursor:pointer;box-shadow:var(--sh-2);transition:background .2s}
+#dock-open:hover{background:var(--accent)}
+#dock-open:focus-visible,#dock-min:focus-visible{outline-color:#fff}
+#dock-open .mini{flex:0 0 auto;width:92px;height:44px;display:block}
+#dock-open .txt{flex:1 1 auto;min-width:0}
+#dock-open .txt b{display:block;font-size:15px;font-weight:700;letter-spacing:-.01em}
+#dock-open .txt span{display:block;font-size:12px;color:rgba(255,255,255,.82);margin-top:2px}
+#dock-open .go{flex:0 0 auto;display:flex;align-items:center;gap:8px;background:#fff;color:var(--brand);border-radius:var(--r-pill);padding:11px 18px;font-size:14px;font-weight:720;white-space:nowrap}
+#dock-open .go svg{width:14px;height:14px;display:block}
+@keyframes invite{0%{box-shadow:0 0 0 0 rgba(111,179,214,.75)}70%,100%{box-shadow:0 0 0 13px rgba(111,179,214,0)}}
+@keyframes dockin{from{opacity:0;transform:translateY(8px)}}
+@media (prefers-reduced-motion:no-preference){
+  #dock-open.invite .go{animation:invite 2.4s ease-out 4}
+  #p-dispatch.glide #dock{overflow:clip;animation:dockin .32s var(--ease)}
+  #p-dispatch.glide #dock-open{animation:dockin .32s var(--ease)}
+}
+#ctl{grid-column:1/-1;grid-row:3;display:flex;align-items:center;gap:10px;background:var(--surface);border-radius:var(--r-m);box-shadow:var(--sh-1);padding:6px 10px}
+#play{flex:0 0 auto;width:34px;height:34px;border:0;border-radius:50%;background:var(--brand);color:#fff;cursor:pointer;display:grid;place-items:center}
+#play:hover{background:var(--accent)}
+#play svg{width:14px;height:14px;display:block}
+.speeds{flex:0 0 auto;display:flex;gap:2px;padding:2px;background:var(--tint-2);border-radius:9px}
+.speeds button{border:0;background:transparent;color:var(--muted);font:650 11px var(--font);padding:5px 9px;border-radius:7px;cursor:pointer;white-space:nowrap}
+.speeds button[aria-pressed="true"]{background:var(--surface);color:var(--brand);box-shadow:0 1px 2px rgba(9,26,35,.14)}
+#scrub{flex:1 1 auto;min-width:60px;accent-color:var(--brand);height:22px;margin:0;cursor:pointer}
+#dock-min{position:absolute;left:12px;bottom:12px;z-index:4;display:flex;align-items:center;gap:6px;border:0;background:rgba(9,26,35,.62);color:#fff;border-radius:var(--r-pill);padding:7px 13px;font:650 12.5px var(--font);cursor:pointer;
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+#dock-min:hover{background:var(--accent)}
+#dock-min svg{width:12px;height:12px;display:block}
+.card{background:var(--surface);border-radius:var(--r-m);box-shadow:var(--sh-1);padding:10px 13px 9px;min-width:0;min-height:0;position:relative;display:flex;flex-direction:column}
+.card h3{margin:0;font-size:11.8px;font-weight:680;color:var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:3px 11px;font-size:10.8px;color:var(--muted);margin-top:2px}
+.legend i{display:inline-block;width:11px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-0.5px}
+.legend i.line{height:2.5px;border-radius:1px;vertical-align:2.5px}
+.legend i.dash{height:0;border-top:2px dashed var(--ink-2);background:none!important;border-radius:0;vertical-align:2.5px}
+#daychart{display:block;width:100%;flex:1 1 auto;min-height:0;margin-top:4px;touch-action:pan-y;cursor:crosshair}
+
+/* the see-saw: the value of compute against the total export value */
+#see{text-align:center}
+#see h3{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+.vs{display:flex;justify-content:space-between;gap:10px;margin-top:6px}
+.vs>div{flex:1 1 0;min-width:0;transition:opacity .25s}
+.vs .u{font-size:10px;color:var(--muted)}
+.vs .n{font-size:12.5px;font-weight:680;color:var(--ink);white-space:nowrap}
+.vs .x{font-size:19px;font-weight:750;letter-spacing:-.01em;color:var(--brand);font-variant-numeric:tabular-nums;line-height:1.15}
+.vs>div.dim .n,.vs>div.dim .x{color:var(--muted)}
+#seesaw{display:block;width:100%;flex:1 1 auto;min-height:44px;margin:2px 0}
+.ways{display:grid;grid-template-columns:1fr 1fr;gap:8px;text-align:left}
+.way{border:2px solid var(--line);border-radius:var(--r-m);padding:7px 10px;background:var(--tint);transition:border-color .25s,background .25s,box-shadow .25s;min-width:0}
+.way .h{display:block;font-size:15px;font-weight:800;letter-spacing:-.01em;color:var(--muted);line-height:1.15}
+.way .h svg{width:16px;height:16px;display:block;margin-bottom:0}
+.way .t{display:block;font-size:9.8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:2px}
+.way .d{display:block;font-size:10.8px;line-height:1.3;color:var(--muted);margin-top:1px}
+.way.on{background:var(--surface);box-shadow:var(--sh-1)}
+.way.on .h{color:var(--brand)}
+#way-blox.on{border-color:var(--compute)} #way-blox.on .t{color:var(--accent)}
+#way-grid.on{border-color:var(--export)} #way-grid.on .t{color:var(--export)}
+#see-foot{margin-top:6px;font-size:9.8px;font-weight:650;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+@container (max-height:300px){ #see-foot,.way .d{display:none} }
+@media (max-height:680px){ .vs .u{display:none} #p-dispatch{gap:7px;padding:7px} #plate{max-height:calc(100dvh - var(--hdr,60px) - 300px)} }
+#tip{position:fixed;z-index:20;pointer-events:none;background:var(--ink);color:#fff;font-size:11.5px;line-height:1.45;border-radius:8px;padding:6px 9px;box-shadow:var(--sh-2);max-width:240px;font-variant-numeric:tabular-nums}
+#tip b{font-weight:680}
+
+@media (max-width:1040px){
+  /* one column; the controls stay on screen, along the bottom of whatever is showing */
+  #p-dispatch{display:flex;flex-direction:column;gap:8px;overflow:auto;-webkit-overflow-scrolling:touch;scroll-padding-bottom:64px}
+  #plate{order:1;flex:0 0 auto;aspect-ratio:16/9;max-height:calc(100dvh - var(--hdr,60px) - 72px)}
+  #p-dispatch:not(.min) #plate{aspect-ratio:2560/1255}
+  #dock{display:contents}
+  #chip{display:flex}
+  #see{order:2;flex:0 0 auto;min-height:250px;scroll-margin-top:50px}
+  #desk{order:3;flex:0 0 auto;height:220px}
+  #readout{order:4;flex:0 0 auto;overflow:visible}
+  #ctl{order:5;flex:0 0 auto;position:sticky;bottom:0;z-index:4}
+  .btn-as{margin-top:4px}
+  #board-btn{position:static;margin-top:4px;box-shadow:none}
+  .vs .u{display:block}
+}
+/* the call to action is the pill alone wherever the card would sit on the plant or the route */
+@media (max-width:1040px),(max-height:619px){
+  #dock-open,#dock-open:hover{left:8px;bottom:8px;min-height:0;padding:0;background:none;box-shadow:none}
+  #dock-open .mini,#dock-open .txt{display:none}
+  #dock-open .go{box-shadow:0 2px 10px rgba(9,26,35,.45)}
+  #dock-min{left:8px;bottom:8px}
+}
+/* one column in a short window: the see-saw's card fits between the plate's foot and the controls */
+@media (max-width:1040px) and (max-height:620px){
+  #see{min-height:0}
+  #seesaw{max-height:110px}
+  #see-foot,.way .d{display:none}
+}
+@media (min-width:1041px) and (max-width:1240px){ #dock-open .mini{display:none} }
+@media (max-width:700px){ .tag{font-size:9.5px;padding:2px 6px} }
+@media (max-width:620px){
+  #p-dispatch{padding:7px;scroll-padding-bottom:90px}
+  #plate{max-height:calc(100dvh - var(--hdr,60px) - 98px)}
+  #clock{left:7px;top:7px;font-size:11px;padding:4px 9px}
+  #chip{right:7px;top:7px;font-size:11px;padding:4px 9px}
+  #ctl{flex-wrap:wrap;gap:6px 8px}
+  #scrub{flex:1 1 100%;order:3}
+}
+
+/* ------------------------------------------------- the assumptions' cards -- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:6px}
+.kpi{background:var(--surface);border-radius:var(--r-m);box-shadow:var(--sh-1);padding:14px 16px}
+.kpi .v{font-size:24px;font-weight:750;color:var(--brand);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.kpi .k{font-size:12px;color:var(--muted);margin-top:2px}
+.foot{margin-top:22px;font-size:11.5px;color:var(--muted);line-height:1.6}
+
+/* ----------------------------------------------------------- assumptions -- */
+/* the button in the bottom corner, clear of the control strip on a phone */
+#as-open{position:fixed;z-index:10;right:16px;bottom:16px;display:inline-flex;align-items:center;gap:7px;
+  border:1px solid var(--line);background:var(--glass);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:var(--brand);
+  font:650 12px var(--font);padding:7px 13px 7px 11px;border-radius:var(--r-pill);box-shadow:var(--sh-1);cursor:pointer;
+  transition:background .15s,color .15s,border-color .15s}
+#as-open:hover{background:var(--brand);border-color:var(--brand);color:#fff}
+#as-open svg{width:14px;height:14px;display:block;flex:0 0 auto}
+@media (max-width:860px){ .tab-model #as-open{right:10px;bottom:66px} }
+/* the sheet, over a dimmed page; it scrolls on its own */
+#as-sheet{position:fixed;inset:0;z-index:40;background:rgba(9,20,26,.5);display:flex;align-items:flex-start;justify-content:center;
+  padding:24px 16px;overflow:auto;overscroll-behavior:contain}
+#as-sheet .sheet{position:relative;width:100%;max-width:1180px;margin:auto 0;background:var(--tint);border-radius:var(--r-l);box-shadow:var(--sh-2)}
+/* Close stays in view as the sheet scrolls (a touch screen has no Escape) */
+#as-x{position:sticky;top:12px;float:right;margin:14px 14px 0 0;z-index:2;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);cursor:pointer;
+  font:650 12px var(--font);padding:7px 12px;border-radius:var(--r-pill);transition:background .15s,color .15s}
+#as-x:hover{background:var(--brand);color:#fff}
+#as-sheet .wrap{padding-top:22px}
+#as-sheet h2{padding-right:96px}
+@media (max-width:620px){ #as-sheet{padding:10px} #as-sheet h2{padding-right:84px} }
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
+
+
+/* ------------------------------------------------------------- the four days -- */
+/* the days sit with the other time controls: one of four, then play, speed and the half hour */
+.days{flex:0 0 auto;display:flex;gap:2px;padding:2px;background:var(--tint-2);border-radius:10px}
+.days button{border:0;background:transparent;border-radius:8px;padding:3px 10px 4px;cursor:pointer;text-align:left;color:var(--muted);font-family:inherit;
+  display:grid;line-height:1.25;transition:background .15s,color .15s,box-shadow .15s}
+.days button b{font-size:11.8px;font-weight:700;white-space:nowrap}
+.days button span{font-size:9.8px;font-weight:600;color:var(--muted-2);white-space:nowrap}
+.days button:hover{color:var(--brand)}
+.days button[aria-checked="true"]{background:var(--surface);color:var(--brand);box-shadow:0 1px 2px rgba(9,26,35,.14)}
+.days button[aria-checked="true"] span{color:var(--muted)}
+@media (max-width:1240px){ .days button{padding:3px 8px 4px} }
+@media (max-width:860px){
+  #ctl{flex-wrap:wrap;gap:6px 8px}
+  .days{flex:1 1 100%;order:-1}
+  .days button{flex:1 1 0;min-width:0;text-align:center}
+  .days button b,.days button span{overflow:hidden;text-overflow:ellipsis}
+  /* the days take a row of their own, 44 px more than WLD's controls: the plate gives it up, so in a short window
+     the sticky controls never cover its foot and the desk's button */
+  #plate{max-height:calc(100dvh - var(--hdr,60px) - 116px)}
+}
+@media (max-width:620px){ #plate{max-height:calc(100dvh - var(--hdr,60px) - 142px)} }
+@media (max-width:420px){ .days button span{display:none} .days button{padding:6px 4px} .days button b{font-size:11px} }
+
+/* the day in the read-out: what kind of day it was */
+.daycard{border:1.5px solid var(--line);border-radius:var(--r-m);padding:8px 12px 9px;background:var(--tint)}
+.daycard .dk{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.daycard .dk b{font-size:13.5px;font-weight:750;color:var(--ink)}
+.daycard .dk span{font-size:11.5px;font-weight:600;color:var(--muted)}
+.daycard p{margin:3px 0 0;font-size:11.8px;line-height:1.45;color:var(--ink-2)}
+#readout:not(.full) .daycard p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+@media (max-height:760px) and (min-width:1041px){ #readout:not(.full) .daycard p{display:none} }
+.legend i.area{opacity:.55}
+</style>
+</head>
+<body>
+<header>
+  <a id="backatlas" href="/clients/lpf/" title="Back to the LPF Atlas">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.6L4.6 8 10 13.4"/></svg>
+    <span>Atlas</span>
+  </a>
+  <div class="logo"><img alt="RenewaBlox" src="assets/renewablox-wordmark.png"/></div>
+  <div class="divider"></div>
+  <div class="title">
+    <h1>BLOX Dispatch: four days at Little Pengethley</h1>
+    <p>Proposed 444 kW BLOX beside the CHP · Little Pengethley AD, Peterstow · concept, November 2026</p>
+  </div>
+  <nav class="ptabs" id="ptabs" aria-label="What the page shows">
+    <div role="tablist" aria-label="Views" style="display:contents">
+    <button type="button" role="tab" id="t-dispatch" data-tab="dispatch" aria-selected="true" aria-controls="p-dispatch"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.8 1.8L3.6 9.2h3.6l-.9 5 5.6-7.6H8.2z"/></svg>Dispatch</button>
+    </div>
+    <a id="t-3d" href="compute.html"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.8l5.6 3.1v6.2L8 14.2l-5.6-3.1V4.9z"/><path d="M2.4 4.9L8 8l5.6-3.1M8 8v6.2"/></svg>Explore in 3D</a>
+  </nav>
+</header>
+
+<main id="stage">
+  <section class="view min" id="p-dispatch" role="tabpanel" aria-labelledby="t-dispatch">
+    <div id="plate">
+      <div id="pl">
+      <img id="b-night" alt=""/><img id="b-dusk" alt=""/><img id="b-day" alt="The AD plant from the air: the CHP, the transformer and the proposed BLOX beside the CHP"/>
+      <img class="lay" id="l-day-blox" alt=""/><img class="lay" id="l-dusk-blox" alt=""/><img class="lay" id="l-night-blox" alt=""/>
+      <img class="lay" id="l-day-grid" alt=""/><img class="lay" id="l-dusk-grid" alt=""/><img class="lay" id="l-night-grid" alt=""/>
+      </div>
+      <canvas id="flow" aria-hidden="true"></canvas>
+      <div id="clock"></div>
+      <div id="chip">Day so far <b id="chip-v"></b></div>
+      <button type="button" id="dock-open" aria-expanded="false" aria-controls="dock" inert>
+        <svg class="mini" viewBox="0 -10 360 84" aria-hidden="true">
+          <path d="M180 34 L201 70 L159 70 Z" fill="#6fb3d6"/>
+          <g id="beam-mini"><rect x="34" y="30" width="292" height="9" rx="4.5" fill="#fff"/><rect x="46" y="12" width="46" height="19" rx="3" fill="#6fb3d6"/><rect x="268" y="12" width="46" height="19" rx="3" fill="#fff"/></g>
+        </svg>
+        <span class="txt"><b>See why each half hour went to the BLOX or the grid</b><span>The day's market price against the strike, and the see-saw between mining and export</span></span>
+        <span class="go">Open the dispatch desk<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 10.4L8 5.4l5 5"/></svg></span>
+      </button>
+      <button type="button" id="dock-min" aria-expanded="true" aria-controls="dock" inert><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 5.6l5 5 5-5"/></svg>Minimise the desk</button>
+      <div id="loading" role="status"><span id="loadmsg">Loading the four days</span></div>
+    </div>
+
+    <aside id="readout" aria-label="This half hour">
+      <div class="bx-head">
+        <div class="bx-logo" aria-hidden="true">BLOX.</div>
+        <div><div id="r-time"></div><div id="r-date"></div></div>
+        <div id="r-pill"></div>
+      </div>
+      <div id="r-sp" class="f-only"></div>
+      <div class="daycard"><div class="dk"><b id="d-k"></b><span id="d-t"></span></div><p id="d-s"></p></div>
+
+      <div class="bx-calc c-only">Market price <b id="c-px"></b>/MWh<br>GB wind <b id="c-wind"></b> GW · solar <b id="c-sol"></b> GW</div>
+      <div class="bx-grid c-only">
+        <div><span>Net output</span><b id="c-kw"></b></div>
+        <div><span>Strike, per MWh</span><b id="c-st"></b></div>
+        <div id="c-cell-b"><span>To mining</span><b id="c-b"></b></div>
+        <div id="c-cell-g"><span>To grid</span><b id="c-g"></b></div>
+      </div>
+
+      <div id="r-dec" class="f-only"><div><span id="r-dec-t"></span><small id="r-dec-s"></small></div></div>
+      <div class="test f-only">
+        <div id="t-v"><span>Market price</span><b id="r-v"></b></div>
+        <div id="t-s"><span>Strike</span><b id="r-strike"></b></div>
+      </div>
+      <div class="rows f-only">
+        <div class="row"><span>GB wind generation</span><b id="r-wind"></b></div>
+        <div class="row"><span>GB solar generation</span><b id="r-sol"></b></div>
+        <div class="row"><span>Net output</span><b id="r-kw"></b></div>
+      </div>
+      <div class="split f-only">
+        <div><div class="lab"><span>To the BLOX</span><b id="r-blox"></b></div><div class="bar"><i id="bar-blox" style="background:var(--compute)"></i></div></div>
+        <div><div class="lab"><span>To the grid</span><b id="r-grid"></b></div><div class="bar"><i id="bar-grid" style="background:var(--export)"></i></div></div>
+      </div>
+      <div class="row key f-only"><span>This half hour earned</span><b id="r-earn"></b></div>
+
+      <div id="hero">
+        <div class="lab" id="hero-lab">Revenue so far</div>
+        <div id="y-tot"></div>
+        <div id="hero-add"></div>
+      </div>
+      <div class="rows f-only">
+        <div class="row"><span>Grid revenue</span><b id="y-grid"></b></div>
+        <div class="row"><span>BLOX revenue, at the strike</span><b id="y-bgbp"></b></div>
+        <div class="row"><span>Hours exporting</span><b id="y-exp"></b></div>
+        <div class="row"><span>Hours mining</span><b id="y-blox"></b></div>
+        <div class="row"><span>Against exporting every half hour</span><b id="y-up"></b></div>
+      </div>
+      <button type="button" class="btn-as f-only" id="as-btn">Assumptions</button>
+      <button type="button" id="board-btn" aria-expanded="false">Open the full board</button>
+    </aside>
+
+    <div id="dock">
+      <div class="card" id="desk">
+        <h3 id="day-title">The day: market price against the strike</h3>
+        <svg id="daychart" role="img" aria-label="The day's market price against the strike, half hour by half hour, with GB wind and solar generation below"></svg>
+        <div class="legend"><span><i class="line" style="background:var(--export)"></i>Market price</span><span><i class="dash"></i>Strike</span><span><i style="background:var(--compute)"></i>Mining</span><span><i style="background:var(--export)"></i>Export</span><span><i class="area" style="background:var(--wind)"></i>GB wind</span><span><i class="area" style="background:var(--solar)"></i>GB solar</span></div>
+      </div>
+      <div class="card" id="see">
+        <h3>Market prices change every half hour</h3>
+        <div class="vs">
+          <div id="vs-c"><div class="n">Value of mining</div><div class="x" id="vs-cv"></div><div class="u">per MWh</div></div>
+          <div id="vs-e"><div class="n">Market price</div><div class="x" id="vs-ev"></div><div class="u">per MWh</div></div>
+        </div>
+        <svg id="seesaw" viewBox="0 -10 360 84" preserveAspectRatio="xMidYMid meet" role="img" aria-label="A see-saw tipping towards whichever is worth more this half hour: the value of mining or the market price">
+          <line x1="20" x2="340" y1="70" y2="70" stroke="#dfe8ed" stroke-width="1.5"/>
+          <path d="M180 34 L201 70 L159 70 Z" fill="#1f5f7f"/>
+          <g id="beam">
+            <rect x="34" y="31" width="292" height="7" rx="3.5" fill="#12475e"/>
+            <rect x="46" y="12" width="46" height="19" rx="3" fill="#1f97c9"/>
+            <rect x="268" y="12" width="46" height="19" rx="3" fill="#4a55b0"/>
+          </g>
+          <circle cx="180" cy="34.5" r="4.5" fill="#fff" stroke="#12475e" stroke-width="2"/>
+        </svg>
+        <div class="ways">
+          <div class="way" id="way-blox"><span class="h">BLOX.</span><span class="t">Use it on site</span><span class="d">Mined by the BLOX's three racks of hydro-cooled miners, behind the plant's meter</span></div>
+          <div class="way" id="way-grid"><span class="h"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.2L5 14.8M8 1.2l3 13.6M4.2 4.6h7.6M3 8h10M6.2 9.6l4.8 3.4M9.8 9.6L5 13"/></svg></span><span class="t">Export to grid</span><span class="d">Sold at the half hour's market price</span></div>
+        </div>
+        <div id="see-foot">Decided every half hour</div>
+      </div>
+    </div>
+
+    <div id="ctl">
+      <div class="days" id="days" role="radiogroup" aria-label="The day shown"></div>
+      <button type="button" id="play" aria-label="Pause" title="Play or pause (space bar)"><svg viewBox="0 0 16 16" fill="currentColor"><path id="play-i" d="M4 2.5h3v11H4zM9 2.5h3v11H9z"/></svg></button>
+      <div class="speeds" role="group" aria-label="Speed">
+        <button type="button" data-speed="0.6" aria-pressed="false">Slow</button>
+        <button type="button" data-speed="1.2" aria-pressed="true">Normal</button>
+        <button type="button" data-speed="3" aria-pressed="false">Fast</button>
+      </div>
+      <input type="range" id="scrub" min="0" max="47" step="1" value="0" aria-label="The half hour shown, through the day"/>
+    </div>
+  </section>
+
+</main>
+
+<div id="tip" hidden></div>
+
+<div id="as-sheet" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="as-title" tabindex="-1">
+    <button type="button" id="as-x" aria-label="Close the assumptions">Close ✕</button>
+    <div class="wrap">
+      <h2 id="as-title">Assumptions</h2>
+      <p class="sub">What the four days are built from, so the engineering and commercial reviews know what to trust.</p>
+      <div class="kpis" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr))">
+        <div class="kpi"><b>Measured</b><ul>
+          <li>Market price: Elexon Market Index Data (APX), half-hourly, for each of the four days. A short-term market index, not a day-ahead auction price</li>
+          <li>GB wind (onshore and offshore) and solar generation: Elexon's actual generation by type, half-hourly</li>
+        </ul></div>
+        <div class="kpi"><b>Set for this model</b><ul>
+          <li>The strike, £87.51/MWh, is the value of mining per MWh used across RenewaBlox's November 2026 models</li>
+          <li>The CHP's whole net output goes one way each half hour: to the grid when the market price beats the strike, otherwise to the BLOX. 444 kW, 0.222 MWh a half hour</li>
+          <li>BLOX revenue is valued at the strike; grid revenue at the half hour's market price</li>
+        </ul></div>
+        <div class="kpi"><b>Assumed</b><ul>
+          <li>The plant runs at a steady 444 kW net through each of the four days: the consented 499 kW less about 11 % for its own load (assumed; metered data would replace it)</li>
+          <li>Each half hour is decided with hindsight of its own price</li>
+          <li>The cable routes and the lights in the plates, which are rendered from the concept model</li>
+          <li>The transformer and the grid route are indicative</li>
+        </ul></div>
+        <div class="kpi"><b>Not in the four days</b><ul>
+          <li>Export is valued at the market price alone. Embedded benefits such as gDUoS credits and triad payments, and route-to-market uplifts, are left out</li>
+        </ul></div>
+      </div>
+      <p class="foot">Concept model, November 2026. Market price and generation by type: Elexon BMRS. Contains BMRS data © Elexon Limited copyright and database right 2026. Sunrise and sunset for Ross-on-Wye. Each half hour is decided with hindsight of its own price: an operating record would differ.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  /* The Dispatch tab: four real GB days, half hour by half hour. Each half hour the CHP's 444 kW net goes to the BLOX
+     when the market price is below the strike (the five-year mining value per MWh) and to the grid when it is above.
+     assets/dispatch_days.json holds the days (Elexon MID and wind and solar outturn), the net output (kw for the
+     page's figures; mw and mwh_sp for the arithmetic) and the plate: its size, the rows the desk may crop, the
+     routes of the power in plate pixels ([x, y, hidden]) and the labels, the BLOX's first. */
+  const $ = (id) => document.getElementById(id);
+  const LOOKS = ['day', 'dusk', 'night'];
+  const N = 48;                                                 // all four days have 48 settlement periods
+  let D, P, day, cum;
+  const S = { d: 0, i: 0, playing: false, speed: 1.2, dock: false, tilt: 0, shown: -1, shownDay: -1, lvB: 0, lvG: 0, lookDay: 1, lookDusk: 0, lookNight: 0 };
+  const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const MINUS = '−';
+  const gbp = (x) => (x < -0.5 ? MINUS : '') + '£' + Math.round(Math.abs(x)).toLocaleString('en-GB');
+  const gbp2 = (x) => (x < 0 ? MINUS : '') + '£' + Math.abs(x).toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const mwh = (x) => (x < 0 ? MINUS : '') + '£' + Math.abs(x).toFixed(2);       // £/MWh
+  const gw = (x) => x.toFixed(1);
+  const kw = (x) => Math.round(x).toLocaleString('en-GB');
+  const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const DOW = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const two = (n) => String(n).padStart(2, '0');
+  const hhmm = (m) => two(Math.floor(m/60) % 24) + ':' + two(m % 60);
+  const minute = (k) => k*30;
+  const dateOf = (dy) => new Date(dy.date + 'T12:00:00Z');
+
+  function useDay(k){
+    S.d = k; day = D.days[k];
+    cum = { e: new Float32Array(N + 1), b: new Float32Array(N + 1), g: new Float64Array(N + 1), c: new Float64Array(N + 1) };
+    for (let j = 0; j < N; j++){
+      const B = day.dec[j] === 'B';
+      cum.e[j + 1] = cum.e[j] + (B ? 0 : 0.5); cum.b[j + 1] = cum.b[j] + (B ? 0.5 : 0);
+      cum.g[j + 1] = cum.g[j] + (B ? 0 : D.mwh_sp*day.px[j]); cum.c[j + 1] = cum.c[j] + (B ? D.mwh_sp*D.strike : 0);
+    }
+    document.querySelectorAll('#days button').forEach((b) => { const on = +b.dataset.k === k; b.setAttribute('aria-checked', on); b.tabIndex = on ? 0 : -1; });
+    const dt = dateOf(day);
+    $('d-k').textContent = day.k; $('d-t').textContent = `${day.dow} ${day.label}`; $('d-s').textContent = day.s;
+    $('hero-lab').textContent = `Revenue on ${day.dow} ${dt.getUTCDate()} ${MON[dt.getUTCMonth()]}, so far`;
+    try { const u = new URL(location.href); u.searchParams.set('day', day.id); history.replaceState(history.state, '', u); } catch (e) {}
+  }
+  function setDay(k, play){
+    useDay(k); S.i = 0; S.shown = -1; S.shownDay = -1;
+    const w = weights(0); S.lookDay = w[0]; S.lookDusk = w[1]; S.lookNight = w[2];
+    if (D) { show(0); drawDay(); }
+    if (play != null) setPlay(play);
+  }
+
+  /* ---------------------------------------------------- the plate and light */
+  const plate = $('plate');
+  let box = { w: 1, h: 1, s: 1, oy: 0 }, dpr = 1;
+  const flow = $('flow'), fx = flow.getContext('2d');
+  let tags = [];
+
+  function setSrc(width){
+    const wait = LOOKS.map((l) => {
+      const im = $(`b-${l}`); im.src = `assets/dispatch/plate_${l}_${width}.webp`;
+      return im.decode();
+    });
+    for (const l of LOOKS) for (const st of ['blox', 'grid']) $(`l-${l}-${st}`).src = `assets/dispatch/layer_${l}_${st}_${width}.webp`;
+    return Promise.all(wait);
+  }
+
+  function layout(){
+    const r = plate.getBoundingClientRect();
+    if (!r.width) return;
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // the plate fills the box's width. A box too shallow for all of it loses rows from both ends until it shows
+    // crop[0] to crop[1]; shallower still, it slides down the plate and keeps crop[1]. A deeper box shows its own colour
+    const [rw, rh] = P.res, [CROP_TOP, CROP_END] = P.crop, s = r.width/rw, see = r.height/s;
+    let top = Math.max(CROP_TOP*Math.min(1, (rh - see)/(rh - CROP_END + CROP_TOP)), CROP_END - see);
+    // but never so far down that the BLOX's label loses its place above the BLOX, or meets the clock
+    const clk = $('clock'), near = tags[0].x*s - 26 < clk.offsetLeft + clk.offsetWidth + 14;
+    top = Math.max(0, Math.min(top, tags[0].y - (near ? 80 : 38)/s));
+    box = { w: r.width, h: r.height, s, oy: -top*s };
+    const cta = $('dock-open'), band = r.height - (rh - top)*s, tall = cta.offsetHeight;
+    cta.style.bottom = tall && band > tall - 1 ? Math.max(0, band - tall)/2 + 'px' : '';
+    const pl = $('pl').style;
+    pl.width = rw*s + 'px'; pl.height = rh*s + 'px'; pl.top = box.oy + 'px';
+    flow.width = Math.round(r.width*dpr); flow.height = Math.round(r.height*dpr);
+    for (const t of tags){
+      const x = t.x*s, y = box.oy + t.y*s;
+      t.el.style.left = x + 'px'; t.el.style.top = y + 'px';
+      t.el.hidden = x < 20 || x > r.width - 20 || y < 20 || y > r.height;
+    }
+    // on a small plate the labels meet: each gives way to those before it (the BLOX, then the way to the grid), and
+    // to the clock, the day's total and the desk's button on the plate; one the plate's edge would cut goes too
+    const kept = ['clock', 'chip', 'dock-open', 'dock-min'].map((id) => $(id)).filter((el) => el && el.offsetParent && getComputedStyle(el).visibility !== 'hidden').map((el) => el.getBoundingClientRect()).filter((b) => b.width > 0);
+    for (const t of tags){
+      if (t.el.hidden) continue;
+      const a = t.el.getBoundingClientRect();
+      if (a.top < r.top + 2 || a.left < r.left + 2 || a.right > r.right - 2 || a.bottom > r.bottom - 2 ||
+          kept.some((b) => a.left < b.right + 4 && a.right > b.left - 4 && a.top < b.bottom + 3 && a.bottom > b.top - 3)) t.el.hidden = true;
+      else kept.push(a);
+    }
+    if (R.grid) paint(0);                                     // resizing the canvas cleared it
+    drawDay();
+  }
+
+  function setOp(id, v){
+    const el = $(id); const on = v > 0.004;
+    el.style.visibility = on ? 'visible' : 'hidden';
+    if (on) el.style.opacity = v.toFixed(3);
+  }
+
+  // day, dusk and night weights for a clock minute: dusk peaks at sunrise and sunset, 70 minutes from full day or full night
+  function weights(m){
+    const [sr, ss] = day.sun, tw = 70;
+    let dy, nt;
+    if (m < sr - tw || m > ss + tw){ dy = 0; nt = 1; }
+    else if (m < sr){ dy = 0; nt = (sr - m)/tw; }
+    else if (m < sr + tw){ dy = (m - sr)/tw; nt = 0; }
+    else if (m < ss - tw){ dy = 1; nt = 0; }
+    else if (m < ss){ dy = (ss - m)/tw; nt = 0; }
+    else { dy = 0; nt = (m - ss)/tw; }
+    return [dy, 1 - dy - nt, nt];
+  }
+
+  function light(dt){
+    const idx = Math.floor(S.i), f = S.i - idx;
+    const w = weights(minute(idx) + f*30);
+    const k = 1 - Math.exp(-dt/0.22);
+    S.lookDay += (w[0] - S.lookDay)*k; S.lookDusk += (w[1] - S.lookDusk)*k; S.lookNight += (w[2] - S.lookNight)*k;
+    const wy = S.lookDay, wd = S.lookDusk, wn = S.lookNight;
+    // the night plate lies beneath; dusk over it; day over that
+    setOp('b-dusk', Math.min(1, wd + wy)); setOp('b-day', wy);
+    const B = day.dec[idx] === 'B';
+    S.lvB += ((B ? 1 : 0) - S.lvB)*k; S.lvG += ((B ? 0 : 1) - S.lvG)*k;
+    for (const [l, v] of [['day', wy], ['dusk', wd], ['night', wn]]){ setOp(`l-${l}-blox`, v*S.lvB); setOp(`l-${l}-grid`, v*S.lvG); }
+    // the see-saw leans to whichever is worth more, up to 9 degrees: £10/MWh apart leans it 2.2 degrees
+    const gap = (day.px[idx] - D.strike)/10, lean = Math.max(-9, Math.min(9, gap*2.2));
+    S.tilt = REDUCED ? lean : S.tilt + (lean - S.tilt)*k;
+    const lean_ = `rotate(${S.tilt.toFixed(2)} 180 34.5)`;
+    $('beam').setAttribute('transform', lean_); $('beam-mini').setAttribute('transform', lean_);
+  }
+
+  /* ---------------------------------------------------- the flow of power */
+  function route(pts){
+    const step = 4, out = []; let carry = 0;
+    for (let k = 1; k < pts.length; k++){
+      const [x0, y0, h0] = pts[k - 1], [x1, y1, h1] = pts[k]; const L = Math.hypot(x1 - x0, y1 - y0);
+      let t = carry;
+      while (t < L){ const u = t/L; out.push([x0 + (x1 - x0)*u, y0 + (y1 - y0)*u, (h0 || h1) ? 1 : 0]); t += step; }
+      carry = t - L;
+    }
+    return { p: out, step, len: out.length*step, phase: 0 };
+  }
+  function sprite(rgb){
+    const c = document.createElement('canvas'); c.width = c.height = 48;
+    const g = c.getContext('2d'), r = g.createRadialGradient(24, 24, 0, 24, 24, 24);
+    r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(0.16, `rgba(${rgb},0.95)`); r.addColorStop(0.42, `rgba(${rgb},0.3)`); r.addColorStop(1, `rgba(${rgb},0)`);
+    g.fillStyle = r; g.fillRect(0, 0, 48, 48); return c;
+  }
+  const SPR = { b: sprite('111,179,214'), g: sprite('255,255,255') };
+  let R = {};
+
+  // lv is 0 to 1: how much of the net output takes this route, eased as the half hours change. Behind a building
+  // the flow shows as a ghost, as WLD's and THN's
+  function drawRoute(rt, lv, spr, dt){
+    if (lv < 0.01) return;
+    const frac = lv, spacing = 130 - 86*frac, speed = 80 + 230*frac;
+    if (!REDUCED) rt.phase = (rt.phase + speed*dt) % spacing;
+    const q = box.s*dpr, size = (15 + 15*frac)*Math.max(0.6, box.s*1.5)*dpr;
+    for (let s = rt.phase; s < rt.len; s += spacing){
+      for (let k = 0; k < 4; k++){
+        const at = s - k*spacing*0.09; if (at < 0) continue;
+        const pt = rt.p[Math.min(rt.p.length - 1, Math.floor(at/rt.step))];
+        const edge = Math.min(1, s/50, (rt.len - s)/50);
+        fx.globalAlpha = Math.max(0, edge)*(pt[2] ? 0.14 : 1)*[1, 0.5, 0.3, 0.15][k]*(0.55 + 0.45*frac);
+        const z = size*[1, 0.8, 0.65, 0.5][k];
+        fx.drawImage(spr, pt[0]*q - z/2, box.oy*dpr + pt[1]*q - z/2, z, z);
+      }
+    }
+  }
+
+  function paint(dt){
+    fx.clearRect(0, 0, flow.width, flow.height);
+    fx.globalCompositeOperation = 'lighter';
+    drawRoute(R.grid, S.lvG, SPR.g, dt);
+    drawRoute(R.blox, S.lvB, SPR.b, dt);
+    fx.globalAlpha = 1;
+  }
+
+  function frame(t){
+    const dt = Math.min(0.1, (t - (frame.t || t))/1000); frame.t = t;
+    if (D){
+      if (S.playing){ S.i += S.speed*dt; if (S.i >= N){ S.i = N - 1; setPlay(false); } }
+      light(dt);
+      paint(dt);
+      const idx = Math.floor(S.i);
+      if (idx !== S.shown) show(idx);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  /* --------------------------------------------------------- the read-out */
+  function show(i){
+    S.shown = i;
+    const dt = dateOf(day), m = minute(i);
+    const when = `${DOW[dt.getUTCDay()]} ${dt.getUTCDate()} ${MON[dt.getUTCMonth()]} ${dt.getUTCFullYear()}`;
+    const span = `${hhmm(m)}–${hhmm(m + 30)}`;
+    $('clock').textContent = `${when}  ·  ${hhmm(m)}`;
+    $('r-time').textContent = hhmm(m);
+    $('r-date').textContent = `${DOW[dt.getUTCDay()]} ${dt.getUTCDate()} ${MON[dt.getUTCMonth()]} ${String(dt.getUTCFullYear()).slice(2)}`;
+    $('r-sp').textContent = `${span}  ·  settlement period ${i + 1}`;
+    const B = day.dec[i] === 'B', px = day.px[i], bk = B ? D.kw : 0, gk = B ? 0 : D.kw;
+    const col = B ? 'var(--compute-d)' : 'var(--export)';
+    $('r-dec').style.background = $('r-pill').style.background = col;
+    $('r-pill').textContent = B ? 'Mining' : 'Exporting';
+    $('r-dec-t').textContent = B ? 'Mine' : 'Export';
+    $('r-dec-s').textContent = B ? 'Market price below the strike' : 'Market price above the strike';
+    const kws = (v) => `${kw(v)} <small>kW</small>`;
+    $('c-kw').innerHTML = kws(D.kw); $('c-b').innerHTML = kws(bk); $('c-g').innerHTML = kws(gk);
+    $('c-cell-b').classList.toggle('idle', !B); $('c-cell-g').classList.toggle('idle', B);
+    $('r-kw').textContent = kw(D.kw) + ' kW';
+    $('c-px').textContent = $('r-v').textContent = $('vs-ev').textContent = mwh(px);
+    $('c-st').textContent = '£' + D.strike.toFixed(2);
+    $('r-strike').textContent = $('vs-cv').textContent = '£' + D.strike.toFixed(2);
+    $('c-wind').textContent = gw(day.wind[i]); $('c-sol').textContent = gw(day.solar[i]);
+    $('r-wind').textContent = gw(day.wind[i]) + ' GW'; $('r-sol').textContent = gw(day.solar[i]) + ' GW';
+    $('t-v').classList.toggle('win', !B); $('t-s').classList.toggle('win', B);
+    $('vs-c').classList.toggle('dim', !B); $('vs-e').classList.toggle('dim', B);
+    $('way-blox').classList.toggle('on', B); $('way-grid').classList.toggle('on', !B);
+    $('r-blox').textContent = kw(bk) + ' kW'; $('r-grid').textContent = kw(gk) + ' kW';
+    $('bar-blox').style.width = (bk/D.kw*100) + '%'; $('bar-grid').style.width = (gk/D.kw*100) + '%';
+    const earn = (cum.g[i + 1] - cum.g[i]) + (cum.c[i + 1] - cum.c[i]);
+    $('r-earn').textContent = gbp2(earn);
+    $('hero-add').textContent = earn < 0 ? `${gbp2(earn)} this half hour` : `+${gbp2(earn)} this half hour`;
+    $('y-exp').textContent = cum.e[i + 1].toLocaleString('en-GB');
+    $('y-blox').textContent = cum.b[i + 1].toLocaleString('en-GB');
+    $('y-grid').textContent = gbp(cum.g[i + 1]); $('y-bgbp').textContent = gbp(cum.c[i + 1]);
+    $('y-tot').textContent = $('chip-v').textContent = gbp(cum.g[i + 1] + cum.c[i + 1]);
+    let all = 0; for (let j = 0; j <= i; j++) all += D.mwh_sp*day.px[j];
+    const up = cum.g[i + 1] + cum.c[i + 1] - all;
+    $('y-up').textContent = (up > 0.5 ? '+' : '') + gbp(up);
+    const sc = $('scrub'); if (document.activeElement !== sc || S.playing) sc.value = i;
+    sc.setAttribute('aria-valuetext', `${when} ${hhmm(m)}, ${B ? 'mining' : 'exporting'}`);
+    if (S.d !== S.shownDay){ S.shownDay = S.d; drawDay(); } else markDay();
+  }
+
+  /* -------------------------------------------------- the day against the strike */
+  let DC = null;
+  function drawDay(){
+    if (!D || !S.dock) return;
+    const svg = $('daychart'), W = svg.clientWidth || 300, H = svg.clientHeight || 112;
+    const px = day.px, lo = Math.min(0, ...px), hi = Math.max(D.strike*1.5, ...px)*1.05;
+    // the price panel on top; under it the day's decisions, then GB wind and solar on a scale of their own
+    const L = 34, Rr = 6, T = 5, ribbon = 5, WX = Math.max(16, Math.min(34, Math.round(H*0.2))), FOOT = 18, B = FOOT + WX + 12 + ribbon;
+    if (H - T - B < 16) return;                               // mid-glide, the card is not yet tall enough to draw in
+    const x = (k) => L + (W - L - Rr)*(k + 0.5)/N, y = (v) => T + (H - T - B)*(1 - (v - lo)/(hi - lo));
+    const step = hi - lo > 240 ? 100 : hi - lo > 100 ? 50 : hi - lo > 50 ? 25 : 10;
+    let s = '';
+    if (lo < 0) s += `<rect x="${L}" y="${y(0)}" width="${W - L - Rr}" height="${y(lo) - y(0)}" fill="#f4f8fa"/>`;
+    for (let v = Math.ceil(lo/step)*step; v <= hi; v += step){
+      s += `<line x1="${L}" x2="${W - Rr}" y1="${y(v)}" y2="${y(v)}" stroke="${v === 0 ? '#c9d3d8' : '#edf3f6'}"/><text x="${L - 5}" y="${y(v) + 3}" font-size="9.5" fill="#5a6a73" text-anchor="end">${v < 0 ? MINUS : ''}£${Math.abs(v)}</text>`;
+    }
+    let p = ''; for (let k = 0; k < N; k++) p += (k ? 'L' : 'M') + x(k).toFixed(1) + ' ' + y(px[k]).toFixed(1);
+    s += `<line x1="${L}" x2="${W - Rr}" y1="${y(D.strike)}" y2="${y(D.strike)}" stroke="#33454f" stroke-width="1.4" stroke-dasharray="4 3"/>`;
+    s += `<path d="${p}" fill="none" stroke="#4a55b0" stroke-width="2" stroke-linejoin="round"/>`;
+    const rb = H - B + 4;
+    for (let k = 0; k < N; k++){
+      const col = day.dec[k] === 'B' ? '#1f97c9' : '#4a55b0';
+      s += `<rect x="${L + (W - L - Rr)*k/N + 0.5}" y="${rb}" width="${Math.max(1, (W - L - Rr)/N - 1)}" height="${ribbon}" fill="${col}"/>`;
+    }
+    // GB wind and solar, GW, on their own scale: top tick at the next 5 GW
+    const wy0 = H - FOOT, wy1 = wy0 - WX, gmax = Math.max(5, Math.ceil(Math.max(...day.wind, ...day.solar)/5)*5);
+    const gy = (v) => wy0 - (wy0 - wy1)*v/gmax;
+    const area = (a) => { let q = `M${x(0).toFixed(1)} ${wy0}`; for (let k = 0; k < N; k++) q += `L${x(k).toFixed(1)} ${gy(a[k]).toFixed(1)}`; return q + `L${x(N - 1).toFixed(1)} ${wy0}Z`; };
+    s += `<line x1="${L}" x2="${W - Rr}" y1="${wy0}" y2="${wy0}" stroke="#dfe8ed"/><line x1="${L}" x2="${W - Rr}" y1="${wy1}" y2="${wy1}" stroke="#edf3f6"/>`;
+    s += `<path d="${area(day.wind)}" fill="#7d9fb3" fill-opacity=".45"/><path d="${area(day.solar)}" fill="#e0a82e" fill-opacity=".5"/>`;
+    s += `<text x="${L - 5}" y="${wy1 + 3}" font-size="9" fill="#5a6a73" text-anchor="end">${gmax} GW</text><text x="${L - 5}" y="${wy0 + 1}" font-size="9" fill="#5a6a73" text-anchor="end">0</text>`;
+    for (const h of [0, 6, 12, 18, 24]){
+      const k = h*2;
+      s += `<text x="${L + (W - L - Rr)*k/N}" y="${H - 5}" font-size="9.5" fill="#5a6a73" text-anchor="${h === 0 ? 'start' : h === 24 ? 'end' : 'middle'}">${two(h)}:00</text>`;
+    }
+    s += `<line id="dayhead" y1="${T}" y2="${wy0}" stroke="#0d1b23" stroke-width="1.2"/>`;
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.innerHTML = s;
+    DC = { x, L, W, Rr };
+    $('day-title').textContent = `${day.dow} ${day.label} · ${day.k}: the market price against the strike`;
+    markDay();
+  }
+  function markDay(){
+    if (!DC) return; const l = $('dayhead'); if (!l) return;
+    const v = DC.x(Math.floor(S.i)); l.setAttribute('x1', v); l.setAttribute('x2', v);
+  }
+
+  /* -------------------------------------------------------------- the controls */
+  const tip = $('tip');
+  function showTip(e, html){ tip.innerHTML = html; tip.hidden = false; const w = tip.offsetWidth; tip.style.left = Math.min(innerWidth - w - 8, e.clientX + 12) + 'px'; tip.style.top = Math.max(8, e.clientY - tip.offsetHeight - 10) + 'px'; }
+  const hideTip = () => { tip.hidden = true; };
+  function seek(i, keep){ S.i = Math.max(0, Math.min(N - 1, i)); S.shown = -1; if (!keep) setPlay(false); }
+  const playPause = () => { if (!S.playing && S.i >= N - 1) S.i = 0; setPlay(!S.playing); };
+  function setPlay(on){
+    S.playing = on; $('play').setAttribute('aria-label', on ? 'Pause' : 'Play');
+    $('play-i').setAttribute('d', on ? 'M4 2.5h3v11H4zM9 2.5h3v11H9z' : 'M4.5 2.4l9 5.6-9 5.6z');
+  }
+  function setBoard(on){
+    const b = $('board-btn'); $('readout').classList.toggle('full', on); $('readout').scrollTop = 0;
+    b.setAttribute('aria-expanded', on); b.textContent = on ? 'Back to the summary' : 'Open the full board';
+  }
+  function setDock(open, byKey){
+    const page = $('p-dispatch'); if (page.classList.contains('glide')) return;       // a double click is one click
+    const from = plate.getBoundingClientRect().height;
+    S.dock = open; page.classList.toggle('min', !open); page.classList.add('glide');
+    $('dock-open').classList.remove('invite'); hideTip();
+    $('dock-open').setAttribute('aria-expanded', open); $('dock-min').setAttribute('aria-expanded', open);
+    if (byKey) (open ? $('dock-min') : $('dock-open')).focus({ preventScroll: true });
+    drawDay();
+    if (!REDUCED){
+      // the plate glides to its new height and the rest of the page follows it
+      const to = plate.getBoundingClientRect().height;
+      plate.style.maxHeight = 'none'; plate.style.height = from + 'px'; plate.getBoundingClientRect();
+      plate.style.transition = 'height .32s var(--ease)'; plate.style.height = to + 'px';
+    }
+    setTimeout(() => {
+      plate.style.cssText = ''; page.classList.remove('glide');
+      // one column: bring the desk up from behind the controls, and for the keyboard, the call to action back
+      if ((open || byKey) && matchMedia('(max-width:1040px)').matches) $(open ? 'see' : 'dock-open').scrollIntoView({ block: 'nearest', behavior: REDUCED ? 'auto' : 'smooth' });
+    }, 360);
+  }
+  function hoverRow(k){
+    const B = day.dec[k] === 'B';
+    return `<b>${day.dow} ${day.label}, ${hhmm(minute(k))}</b><br>${B ? 'Mining' : 'Export'}<br>Market price ${mwh(day.px[k])}/MWh<br>GB wind ${gw(day.wind[k])} GW · solar ${gw(day.solar[k])} GW`;
+  }
+  function wireShell(){
+    const sheet = $('as-sheet'), behind = [document.querySelector('header'), $('stage')];
+    const openAs = () => { sheet.hidden = false; behind.forEach((el) => { el.inert = true; }); sheet.querySelector('.sheet').focus(); };
+    const closeAs = () => { sheet.hidden = true; behind.forEach((el) => { el.inert = false; }); $('as-btn').focus(); };
+    $('as-btn').addEventListener('click', openAs); $('as-x').addEventListener('click', closeAs);
+    sheet.addEventListener('click', (e) => { if (e.target === sheet) closeAs(); });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !sheet.hidden) closeAs();
+      if (e.key !== ' ' || !sheet.hidden || !D) return;
+      // space keeps its own meaning on a control that has one; the scrubber has none
+      if (document.activeElement.closest && document.activeElement.closest('#play,[role=tab],[role=radio],a,.speeds button,#as-btn,#board-btn,#dock-open,#dock-min')) return;
+      e.preventDefault(); playPause();
+    });
+    const hdr = () => document.documentElement.style.setProperty('--hdr', document.querySelector('header').offsetHeight + 'px');
+    hdr(); addEventListener('resize', hdr);
+  }
+  function buildDays(){
+    $('days').innerHTML = D.days.map((dy, k) => `<button type="button" role="radio" aria-checked="false" data-k="${k}" title="${dy.dow} ${dy.label}: ${dy.t.toLowerCase()}"><b>${dy.k}</b><span>${dy.dow} ${dy.label.replace(/ \d{4}$/, '')}</span></button>`).join('');
+    const bs = [...document.querySelectorAll('#days button')];
+    bs.forEach((b, k) => {
+      b.addEventListener('click', () => setDay(k, !REDUCED));
+      b.addEventListener('keydown', (e) => {
+        const d = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0; if (!d) return;
+        e.preventDefault(); const n = (k + d + bs.length) % bs.length; setDay(n, S.playing); bs[n].focus();
+      });
+    });
+  }
+  function wire(){
+    $('play').addEventListener('click', playPause);
+    document.querySelectorAll('.speeds button').forEach((b) => b.addEventListener('click', () => {
+      S.speed = +b.dataset.speed; document.querySelectorAll('.speeds button').forEach((x) => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+    }));
+    $('scrub').addEventListener('input', (e) => seek(+e.target.value));
+    // a mouse click leaves the focus free, so the space bar still pauses
+    $('board-btn').addEventListener('click', (e) => { setBoard(!$('readout').classList.contains('full')); if (e.detail) e.currentTarget.blur(); });
+    $('dock-open').addEventListener('click', (e) => setDock(true, e.detail === 0));
+    $('dock-min').addEventListener('click', (e) => setDock(false, e.detail === 0));
+    const dc = $('daychart');
+    const dk = (e) => { const r = dc.getBoundingClientRect(), f = (e.clientX - r.left - DC.L)/(DC.W - DC.L - DC.Rr); return Math.max(0, Math.min(N - 1, Math.floor(f*N))); };
+    dc.addEventListener('pointermove', (e) => { if (DC) showTip(e, hoverRow(dk(e))); });
+    dc.addEventListener('pointerleave', hideTip);
+    dc.addEventListener('click', (e) => { if (DC && e.detail < 2) seek(dk(e)); });
+    new ResizeObserver(layout).observe(plate);
+    new ResizeObserver(drawDay).observe(dc);
+  }
+
+  const failed = (msg) => { $('loading').classList.remove('hide'); $('loading').classList.add('failed'); $('loadmsg').textContent = msg; };
+  async function start(){
+    wireShell();
+    try {
+      const r = await fetch('assets/dispatch_days.json', { credentials: 'same-origin' });
+      if (!r.ok) throw new Error(r.status);
+      D = await r.json(); P = D.plate;
+    } catch (e) {
+      failed('The four days could not be loaded here. Please reload the page.');
+      return;
+    }
+    buildDays();
+    const want = new URLSearchParams(location.search).get('day'), k0 = Math.max(0, D.days.findIndex((dy) => dy.id === want));
+    useDay(k0);
+    // each label stands above what it names, so it never sits over it
+    for (const t of P.tags){
+      const el = document.createElement('div'); el.className = 'tag'; el.textContent = t.t; plate.insertBefore(el, $('clock'));
+      tags.push({ el, x: t.at[0], y: t.at[1] });
+    }
+    R = { blox: route(P.routes.blox), grid: route(P.routes.grid) };
+    const width = (plate.clientWidth*(window.devicePixelRatio || 1)) > 1700 ? 2560 : 1600;
+    S.i = 0;                                                  // each day opens at midnight
+    const first = weights(0); S.lookDay = first[0]; S.lookDusk = first[1]; S.lookNight = first[2];
+    setPlay(false);
+    wire(); layout(); show(0);
+    requestAnimationFrame(frame);
+    window.__dispatch = { get state(){ return { d: S.d, day: day.id, i: S.i, shown: S.shown, playing: S.playing, dock: S.dock }; }, setDay, seek, setPlay, setDock };
+    // the day starts when the plates show, not behind the loader
+    const ready = () => { $('dock-open').inert = false; $('dock-min').inert = false; };
+    try { await setSrc(width); } catch (e) { failed('The plates could not be loaded here. Please reload the page.'); plate.classList.add('noplates'); ready(); return; }
+    $('loading').classList.add('hide'); $('dock-open').classList.add('invite'); ready(); setPlay(!REDUCED);
+  }
+  start();
+})();
+</script>
+</body>
+</html>
