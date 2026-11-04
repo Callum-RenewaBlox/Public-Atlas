@@ -119,8 +119,8 @@ CLIENT_MAPS = {
     # Esri's current World Imagery of the mill is a saturated capture (the bright roofs bloom white with red fringes),
     # so this map takes Esri's World Imagery Wayback release of 27 March 2025, the last clean capture, on the same
     # terms and credit; every release still shows the paper mill standing
-    "thn": {"title": "THN Atlas — Thainstone Energy Park", "kick": "28 MW BLOX peaker at a 200,000 tpa energy from waste plant · THN Atlas",
-            "place": "Thainstone Energy Park, Kirkwood Commercial Park, Port Elphinstone, Inverurie AB51",
+    "thn": {"title": "THN Atlas — Thainstone Energy Park", "kick": "Proposed 28 MW BLOX peaker · THN Atlas",
+            "place": "Thainstone Energy Park, Inverurie AB51",
             "at": [57.26194, -2.36286], "zoom": 17,
             "tiles": "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/WMTS/1.0.0/default028mm/MapServer/tile/6543/{z}/{y}/{x}",
             "badges": [{"at": [57.26265, -2.36311], "label": "BLOX 3D", "short": "3D", "view": "3d"}]},

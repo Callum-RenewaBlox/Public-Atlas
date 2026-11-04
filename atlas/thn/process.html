@@ -348,7 +348,7 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
   <nav class="ptabs" id="ptabs" role="tablist" aria-label="What the page shows">
     <button type="button" role="tab" id="t-model" data-tab="model" aria-selected="true" aria-controls="p-model"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.8l5.6 3.1v6.2L8 14.2l-5.6-3.1V4.9z"/><path d="M2.4 4.9L8 8l5.6-3.1M8 8v6.2"/></svg>Model</button>
     <button type="button" role="tab" id="t-schem" data-tab="schem" aria-selected="false" aria-controls="p-schem" tabindex="-1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.8" y="2.4" width="4.4" height="3.6" rx=".9"/><rect x="9.8" y="2.4" width="4.4" height="3.6" rx=".9"/><rect x="5.8" y="10" width="4.4" height="3.6" rx=".9"/><path d="M4 6v2.2h8V6M8 8.2V10"/></svg>Schematic</button>
-    <button type="button" role="tab" id="t-media" data-tab="media" aria-selected="false" aria-controls="p-media" tabindex="-1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.8" y="3.2" width="12.4" height="9.6" rx="1.6"/><path d="M6.6 6v4l3.6-2z"/></svg>Flythrough &amp; stills</button>
+    <button type="button" role="tab" id="t-media" data-tab="media" aria-selected="false" aria-controls="p-media" tabindex="-1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.8" y="3.2" width="12.4" height="9.6" rx="1.6"/><path d="M6.6 6v4l3.6-2z"/></svg><span data-proposal="1">Flythrough &amp; stills</span><span data-proposal="0">Stills</span></button>
   </nav>
 </header>
 
@@ -358,7 +358,7 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
     <nav class="panel" id="rail" aria-label="Camera and model" inert>
       <div class="rail-h">Camera</div>
       <button type="button" data-v="overview" aria-current="true" title="The whole plant from over the Don to the south-east, with the proposed BLOX compound by the river (click again to reset the view)"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.8 11.4l6.2-3.4 6.2 3.4"/><path d="M1.8 11.4V5.2L8 1.8l6.2 3.4v6.2"/><path d="M8 8V1.8"/></svg><span>Overview</span></button>
-      <button type="button" data-v="site" title="The site in its setting: the river, the estate road, the railway, the A96, Port Elphinstone and Inverurie"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.2"/><path d="M1.8 8h12.4M8 1.8c2.2 2.3 2.2 10.1 0 12.4M8 1.8c-2.2 2.3-2.2 10.1 0 12.4"/></svg><span>Setting</span></button>
+      <button type="button" data-v="site" title="The site in its setting: the river, the estate road and the railway"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.2"/><path d="M1.8 8h12.4M8 1.8c2.2 2.3 2.2 10.1 0 12.4M8 1.8c-2.2 2.3-2.2 10.1 0 12.4"/></svg><span>Setting</span></button>
       <button type="button" data-v="blox" data-proposal="1" title="The proposed BLOX compound, east of the reception hall"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.8" y="4.2" width="12.4" height="8.4" rx="1"/><path d="M8 4.2v8.4M4.6 7h1.2M10.2 7h1.2"/></svg><span>BLOX</span></button>
       <div class="sep"></div>
       <div class="rail-h">Show</div>
@@ -391,14 +391,15 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
   <!-- ============================================== flythrough & stills -->
   <section class="view page" id="p-media" role="tabpanel" aria-labelledby="t-media" tabindex="0" hidden>
     <div class="wrap">
+      <div data-proposal="1">
       <h2>Flythrough</h2>
-      <p class="sub" data-proposal="1">99 seconds, rendered from the same model as the 3D view: in over the plant and the proposed BLOX compound beside it, the roofs coming off into the cutaway, then the developer&rsquo;s twelve steps in order, each with its flows in the key colours, and RenewaBlox&rsquo;s proposed BLOX as a thirteenth, where the export gives way to the BLOX; the close shows the whole process lit. Each step is captioned; the film gives no figures.</p>
-      <p class="sub" data-proposal="0">99 seconds, rendered from the same model as the 3D view, with the developer&rsquo;s twelve steps in order. The film was made with RenewaBlox&rsquo;s proposal in it: the proposed BLOX compound is in view from the opening, and is the thirteenth step. Each step is captioned; the film gives no figures.</p>
+      <p class="sub">99 seconds, rendered from the same model as the 3D view: in over the plant and the proposed BLOX compound beside it, the roofs coming off into the cutaway, then the developer&rsquo;s twelve steps in order, each with its flows in the key colours, and RenewaBlox&rsquo;s proposed BLOX as a thirteenth, where the export gives way to the BLOX; the close shows the whole process lit. Each step is captioned; the film gives no figures.</p>
       <div class="vidcard">
         <video id="fly" controls preload="none" playsinline poster="assets/flythrough_poster.jpg" aria-label="The process film: the plant&rsquo;s twelve steps, then the proposed BLOX">
           <source src="assets/thn_process_720p.mp4" type="video/mp4"/>
           This browser cannot play the video. <a href="assets/thn_process_720p.mp4">Download the MP4</a>.
         </video>
+      </div>
       </div>
 
       <h2 id="stills" class="sec">Stills</h2>
@@ -482,7 +483,7 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
             <li><b>The setting</b>: the ground near the site from LiDAR; beyond it, the town&rsquo;s buildings as simple forms on Ordnance Survey footprints with assumed heights, roofs and colours; the field pattern invented, as Scotland has no open crop map; the container yard as on the March 2025 imagery</li>
             <li><b>The light</b>: one sun for the page and the film, from the south and a little higher than an October noon, so the open halls are lit</li>
             <li data-proposal="1"><b>Branding</b>: the RenewaBlox livery and the BLOX marks on the containers and coolers</li>
-            <li><b>The cutaway</b>: the stills and the film cut the halls at 8 m and keep some far walls standing; the page makes the halls see-through instead</li>
+            <li><b>The cutaway</b>: the film and the three cutaway stills cut the halls at 8 m, and the cutaway stills keep some far walls standing; the page makes the halls see-through instead</li>
           </ul>
         </div>
       </div>
@@ -573,7 +574,7 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
       p: 'Treated process water and recovered rainwater are retained and stored so that water can be re-used, minimising the plant&rsquo;s draw on local resources.',
       hi: ['watertanks', 'heatstation', 'pond'], xray: ['heatstation'] },
     { n: 13, id: 'blox', key: 'elec', t: 'The proposed BLOX peaker', h: 'Proposed: 28 MW of flexible demand, behind the plant&rsquo;s meter', blox: true,
-      p: 'RenewaBlox&rsquo;s proposal, not part of the consented scheme: sixteen hydro-cooled Bitcoin mining containers, 28 MW in all, in a compound inside the gabion wall east of the reception hall, fed at 13.5 kV from the plant&rsquo;s switchroom. The plant runs at full load either way: when export prices are high its power would go to the grid, and when they are low the same power could run the BLOX instead. If the plant&rsquo;s heat balance allows, the BLOX&rsquo;s heat could preheat the water returning from the planned heat network at the heat station, and the dry coolers on the containers&rsquo; roofs would take the rest. In the model the power switches between the grid and the proposed BLOX every few seconds, and the heat link runs only while the BLOX does.',
+      p: 'RenewaBlox&rsquo;s proposal, not part of the consented scheme: sixteen hydro-cooled Bitcoin mining containers, 28 MW in all, in a compound inside the gabion wall east of the reception hall, fed at 13.5 kV from the plant&rsquo;s switchroom. The plant runs at full load either way: when export prices are high its power would go to the grid, and when they are low the same power could run the BLOX instead. If the plant&rsquo;s heat balance allows, the BLOX&rsquo;s heat could preheat the water returning from the planned heat network at the heat station, and the dry coolers on the containers&rsquo; roofs would take the rest. In the model the power switches every few seconds between the grid, whose export line is out of this view, and the proposed BLOX, and the heat link runs only while the BLOX does.',
       hi: ['blox', 'bloxline', 'bloxheat', 'transformer', 'heatstation', 'dhline'], xray: ['transformer', 'office', 'heatstation'], alternate: true },
   ];
   // each step's camera and flows from the model: S01 to S13, and every route the model files under the step; step 8 adds the
@@ -589,7 +590,7 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
       offH: 'The energy from waste plant',
       offP: 'The developer&rsquo;s energy from waste plant on the former paper mill ground between the estate road and the River Don, from over the river to the south-east. From the south: the twin fuel silos, the waste reception and processing halls, the turbine hall and the boiler house, its roofline after the profile of Bennachie, with the stack at the north end; on the river side, the office, the heat station under its coolers, the water tanks and the two heat stores. The numbered steps along the foot walk the developer&rsquo;s twelve-step process; the flows run in its key colours.' },
     site: { cam: MODEL.cams.S14, k: 'Setting', h: 'The site in its setting',
-      p: 'The plant on the west bank of the Don, on the former paper mill ground at Kirkwood Commercial Park: the estate road, the Kirkwood office and sheds and a container yard to the west, then the Aberdeen&ndash;Inverness railway and the A96; the retained mill sheds to the north, and Port Elphinstone about a kilometre beyond them, with Inverurie past it. The ground near the site is the Scottish LiDAR survey; the buildings beyond it are simple forms on Ordnance Survey footprints, not surveyed.' },
+      p: 'The plant on the west bank of the Don, on the former paper mill ground at Kirkwood Commercial Park: the estate road, the Kirkwood office and sheds and a container yard to the west, then the Aberdeen&ndash;Inverness railway; the retained mill sheds to the north. The ground near the site is the Scottish LiDAR survey and coarser open data beyond it; the buildings around the site are simple forms on Ordnance Survey footprints, not surveyed.' },
     blox: { cam: MODEL.cams.S15, k: 'BLOX', h: 'The proposed BLOX compound', prop: true,
       p: 'RenewaBlox&rsquo;s proposal, inside the gabion wall east of the reception hall: sixteen 40 ft hydro-cooled containers in two banks of eight, the dry coolers on their roofs, either side of a spine of eight transformers, the 13.5 kV switchgear house and the control container. The power would come at 13.5 kV from the plant&rsquo;s switchroom, buried along the footway, and the heat recovery skid in the north-east corner, nearest, would send the heat along a pipe pair to the heat station. The proposed layout keeps the apron at the reception hall&rsquo;s east lorry door clear and leaves the developer&rsquo;s reserved plot free.' },
   };
@@ -925,8 +926,9 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
   // a dashed flow's lengths (m): the points show only well inside a dash, so a gap stays clear of their glow
   const DASH = 3.5, GAP = 4.5;
   function addFlow(def){
-    const rt = route(def.p), Lr = rt.len;
     const lite = /^bloxheat/.test(def.id), plume = def.id === 'plume';
+    // the BLOX's heat pair runs at its pipes' centres on a low rack: drawn 1.2 m higher, over the pipes, so it shows
+    const rt = route(lite ? def.p.map((v, i) => (i % 3 === 2 ? v + 1.2 : v)) : def.p), Lr = rt.len;
     const base = new THREE.Color(def.c);
     if (lite) base.lerp(new THREE.Color(0xffffff), 0.25);
     const r = def.r, size = (plume ? 9 : 7 * r) * (lite ? 0.8 : 1);
@@ -1169,9 +1171,14 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
     return { flue_mid: 'flue', flue_clean: 'flue', heat_pale: 'bloxheat' }[f.k] || f.k;
   }
   const legend = (keys, dashed) => keys.map((k) => '<span><i' + (dashed && dashed.has(k) ? ' class="d"' : '') + ' style="background:' + KEY[k][0] + '"></i>' + KEY[k][1] + '</span>').join('');
+  // the plant's power goes to the grid or to the proposed BLOX, never both: with the proposal on, the overview and step 13
+  // switch between them every few seconds (with reduced motion, the BLOX's hours only)
+  const ALT = ['bloxpower', 'bloxheat', 'bloxheat_cool'];
+  const toBloxNow = () => REDUCED || Math.floor(performance.now() / 4000) % 2 === 0;
   function flowOn(id, s){
     const f = flows[id];
     if (!flowsOn || !f || (f.prop && !proposal)) return 0;
+    if (proposal && (!s || s.alternate) && (id === 'grid' || ALT.includes(id)) && (!s || s.flows.includes(id))) return (id === 'grid') !== toBloxNow() ? 1 : 0;
     if (s) return s.flows.includes(id) ? 1 : 0;
     return (id === 'plume' || id === 'air') ? 0 : 1;
   }
@@ -1268,6 +1275,7 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
     if (proposal) u.searchParams.delete('proposal'); else u.searchParams.set('proposal', '0');
     history.replaceState(null, '', u);
     if (!proposal && $('lb') && !$('lb').hidden) closeLb();
+    if (!proposal && $('fly') && !$('fly').paused) $('fly').pause();   // the film shows the proposal, so it goes with it
     if (!proposal && ((step && STEPS[step - 1].blox) || (!step && view === 'blox'))) {
       if (loaded) setView('overview'); else { step = 0; view = 'overview'; }
     }
@@ -1314,9 +1322,9 @@ video{display:block;width:100%;height:auto;max-height:calc(100dvh - 260px);aspec
       // the peaker step: the power alternates between the grid and the BLOX every few seconds, and the BLOX's heat pair
       // runs only while the BLOX does
       bloxRunning = proposal && (!s || s.hi.includes('blox'));
-      if (s && s.alternate && flowsOn) {
-        const toBlox = Math.floor(now / 4000) % 2 === 0;
-        ['bloxpower', 'bloxheat', 'bloxheat_cool'].forEach((id) => { if (flows[id]) flows[id].target = toBlox ? 1 : 0; });
+      if ((!s || s.alternate) && proposal && flowsOn) {
+        const toBlox = toBloxNow();
+        ALT.forEach((id) => { if (flows[id]) flows[id].target = toBlox ? 1 : 0; });
         if (flows.grid) flows.grid.target = toBlox ? 0 : 1;
         bloxRunning = toBlox;
       }
