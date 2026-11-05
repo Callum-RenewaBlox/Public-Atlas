@@ -1157,7 +1157,7 @@ details.more[open] summary::before{transform:rotate(45deg)}
     if (q.get('tab') === 'finance') setTab('fin');
   }
   function buildDays(){
-    $('days').innerHTML = D.days.map((dy, k) => `<button type="button" role="radio" aria-checked="false" data-k="${k}" title="${dy.dow} ${dy.label}: ${dy.t.toLowerCase()}"><b>${dy.k}</b><span>${dy.dow} ${dy.label.replace(/ \d{4}$/, '')}</span></button>`).join('');
+    $('days').innerHTML = D.days.map((dy, k) => `<button type="button" role="radio" aria-checked="false" data-k="${k}" title="${dy.dow} ${dy.label}: ${dy.t.charAt(0).toLowerCase() + dy.t.slice(1)}"><b>${dy.k}</b><span>${dy.dow} ${dy.label.replace(/ \d{4}$/, '')}</span></button>`).join('');
     const bs = [...document.querySelectorAll('#days button')];
     bs.forEach((b, k) => {
       b.addEventListener('click', () => setDay(k, !REDUCED));
