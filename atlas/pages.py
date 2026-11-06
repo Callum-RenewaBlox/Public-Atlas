@@ -141,7 +141,7 @@ CLIENT_MAPS = {
                         "side": "right", "anchor": [-37, -10]}]},
     # WIS: British Sugar's Wissington factory on the fen by the River Wissey, with RenewaBlox's proposed BLOX Peaker Plant
     # in the field west of its 33 kV substation. The map opens on the factory; the badge sits on the proposed plot's centre
-    # (ENU -170 m E, -192 m N of the CHP stack A62, 52.5517503 N 0.4458997 E: Wissington-3D eartheatures.json plots[0])
+    # (ENU -170 m E, -192 m N of the CHP stack A62, 52.5517503 N 0.4458997 E: Wissington-3D earth\features.json plots[0])
     "wis": {"title": "WIS Atlas — British Sugar Wissington", "kick": "Proposed BLOX Peaker Plant · WIS Atlas",
             "place": "Wissington, Norfolk", "at": [52.5503, 0.4472], "zoom": 17,
             "badges": [{"at": [52.5500251, 0.4433937], "label": "BLOX 3D", "short": "3D", "view": "3d"}]},

@@ -192,6 +192,7 @@ body.moved .hint{opacity:0!important}
   #day .dn{display:none}
 }
 @media (max-height:640px) and (min-width:861px){ #day-svg{height:44px} #day .dn{display:none} }
+@media (min-width:861px) and (max-width:1300px){ #day-svg{height:44px} #day .dn{display:none} }
 @media (max-height:500px) and (orientation:landscape){ #day{width:300px;right:auto;bottom:56px} #day-svg{display:none} }
 
 /* --------------------------------------------------------------- the steps -- */
@@ -260,7 +261,13 @@ body.moved .hint{opacity:0!important}
 #p-schem #caption p{display:block;-webkit-line-clamp:unset}
 @media (min-width:1301px){ body.tab-schem.dayon #p-schem #caption{margin-left:368px;margin-right:auto;width:min(860px,calc(100% - 400px));margin-bottom:76px} }
 @media (min-width:861px) and (max-width:1300px){ body.tab-schem.dayon #p-schem #caption{margin-bottom:206px} }
-@media (max-width:860px){ #p-schem #caption{margin-bottom:80px} body.tab-schem.dayon #p-schem #caption{margin-bottom:150px} #schem-wrap{padding:8px 10px 0;overflow-x:auto;justify-content:flex-start;scrollbar-width:thin} #schem{min-width:1040px;height:auto} }
+@media (max-width:860px){ #p-schem #caption{margin-bottom:80px} body.tab-schem.dayon #p-schem #caption{margin-bottom:222px}
+  #p-schem #caption p{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden} #p-schem #caption.more p{display:block;-webkit-line-clamp:unset}
+  #schem-wrap{padding:8px 10px 0;overflow:auto;justify-content:flex-start;align-items:flex-start;scrollbar-width:thin} #schem-wrap #schem{min-width:1040px;width:1040px;height:394px;flex:0 0 auto} }
+@media (max-height:500px) and (orientation:landscape){ #p-schem #caption p,#p-schem #capmore{display:none}
+  body.tab-schem #p-schem #caption{margin:4px 150px 66px 16px;width:auto}
+  body.tab-schem.dayon #p-schem #caption{margin:4px 150px 132px 16px;width:auto}
+  #schem-wrap{overflow:auto;justify-content:safe center;align-items:safe center;padding:4px 10px 0} #schem-wrap #schem{min-width:1110px;width:1110px;height:420px;flex:0 0 auto} }
 #schem{width:100%;height:100%;max-width:1480px;display:block}
 #schem text{font-family:var(--font)}
 #schem .node rect{fill:var(--surface);stroke:var(--line);stroke-width:1.2;transition:stroke .2s,fill .2s}
@@ -367,7 +374,7 @@ body.moved .hint{opacity:0!important}
   <div class="divider"></div>
   <div class="title">
     <h1>Process Render: British Sugar&rsquo;s Wissington factory<span data-proposal="1"> and the proposed BLOX Peaker Plant</span></h1>
-    <p><span data-proposal="1">Wissington, Norfolk · British Sugar&rsquo;s process in nine steps · up to about 18 MW of the CHP&rsquo;s export · BLOX Peaker Plant, RenewaBlox&rsquo;s proposal · concept, November 2026</span><span data-proposal="0">Wissington, Norfolk · British Sugar&rsquo;s process in eight steps · about 18 MW of the CHP&rsquo;s output exported · concept, November 2026</span></p>
+    <p><span data-proposal="1">Wissington, Norfolk · British Sugar&rsquo;s process in eight steps · up to about 18 MW of the CHP&rsquo;s export · BLOX Peaker Plant, RenewaBlox&rsquo;s proposal · concept, November 2026</span><span data-proposal="0">Wissington, Norfolk · British Sugar&rsquo;s process in eight steps · about 18 MW of the CHP&rsquo;s output exported · concept, November 2026</span></p>
   </div>
   <nav class="ptabs" id="ptabs" role="tablist" aria-label="What the page shows">
     <button type="button" role="tab" id="t-model" data-tab="model" aria-selected="true" aria-controls="p-model"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.8l5.6 3.1v6.2L8 14.2l-5.6-3.1V4.9z"/><path d="M2.4 4.9L8 8l5.6-3.1M8 8v6.2"/></svg>Model</button>
@@ -418,18 +425,18 @@ body.moved .hint{opacity:0!important}
       <p class="sub" data-proposal="1">Path-traced views of the model, with the light and materials the browser cannot show, and no lettering. The views tagged <i class="chip">RenewaBlox proposal</i> show the proposed BLOX Peaker Plant or its feed; the overview has a twin with British Sugar&rsquo;s factory alone. Click one to see it full size; the arrow keys step through them.</p>
       <p class="sub" data-proposal="0">Path-traced views of British Sugar&rsquo;s factory, with the light and materials the browser cannot show, and no lettering. Click one to see it full size; the arrow keys step through them.</p>
       <div class="grid" id="gallery">
-        <button type="button" class="still" data-proposal="1" data-full="assets/st_hero.jpg"><img src="assets/st_hero_thumb.jpg" alt="The factory from the south-west, with the proposed BLOX Peaker Plant on its pad in the field in front" loading="lazy"/><i class="chip">RenewaBlox proposal</i><span><b>The factory from the south-west</b>From over the field west of the factory: the CHP and its stack, the main building, the silo row and silo 7, the domed thick-juice tanks and the lime kiln, with the proposed BLOX Peaker Plant on its raised pad in the foreground and the Wissey&rsquo;s lagoons beyond</span></button>
+        <button type="button" class="still" data-proposal="1" data-full="assets/st_hero.jpg"><img src="assets/st_hero_thumb.jpg" alt="The factory from the south-west, with the proposed BLOX Peaker Plant on its pad in the field in front" loading="lazy"/><i class="chip">RenewaBlox proposal</i><span><b>The factory from the south-west</b>From over the field west of the factory: the CHP and its stack, the main building, the silo row and silo 7, the domed thick-juice tanks and the lime kiln, with the proposed BLOX Peaker Plant on its raised pad in the foreground and the factory&rsquo;s lagoons beyond</span></button>
         <button type="button" class="still" data-proposal="1" data-full="assets/st_overview.jpg"><img src="assets/st_overview_thumb.jpg" alt="The factory and the proposed BLOX Peaker Plant from high in the south-west" loading="lazy"/><i class="chip">RenewaBlox proposal</i><span><b>The overview</b>The model&rsquo;s opening view, path-traced: the factory on the fen with the Wissey through the site, the beet pad on the east side, and the proposed BLOX Peaker Plant in the field west of the factory</span></button>
         <button type="button" class="still" data-full="assets/st_plant.jpg"><img src="assets/st_plant_thumb.jpg" alt="The factory from high in the south-west" loading="lazy"/><span><b>The overview, the factory alone</b><span data-proposal="1">The factory-only twin of &ldquo;The overview&rdquo;: British Sugar&rsquo;s factory as it stands, the field west of it left as it is</span><span data-proposal="0">British Sugar&rsquo;s factory on the fen with the Wissey through the site and the beet pad on the east side</span></span></button>
         <button type="button" class="still" data-proposal="1" data-full="assets/st_switch_export.jpg"><img src="assets/st_switch_export_thumb.jpg" alt="The CHP&rsquo;s surplus going up the 33 kV line to the west, the proposed BLOX idle" loading="lazy"/><i class="chip">RenewaBlox proposal</i><span><b>The switch: export hours</b>When export prices are high: the CHP&rsquo;s surplus (blue) runs to British Sugar&rsquo;s own switchroom and export meter, then through UK Power Networks&rsquo; 33 kV substation and up the 33 kV line to the west (white), as it does today; the proposed BLOX stands idle</span></button>
         <button type="button" class="still" data-proposal="1" data-full="assets/st_switch_blox.jpg"><img src="assets/st_switch_blox_thumb.jpg" alt="The CHP&rsquo;s surplus going to the proposed BLOX Peaker Plant, the 33 kV line resting" loading="lazy"/><i class="chip">RenewaBlox proposal</i><span><b>The switch: the BLOX&rsquo;s hours</b>The same view when prices are low: from British Sugar&rsquo;s switchroom, behind the export meter, the surplus runs along the buried feed to the proposed BLOX (light blue), and the 33 kV line rests. Never both at once</span></button>
-        <button type="button" class="still" data-proposal="1" data-full="assets/st_process.jpg"><img src="assets/st_process_thumb.jpg" alt="The factory from high in the north, with the process drawn as one path over the roofs" loading="lazy"/><i class="chip">RenewaBlox proposal</i><span><b>The process as one path</b>From high over the north: British Sugar&rsquo;s process as one path over the roofs, from the beet pad to the silos, with a disc at each station, and the CHP&rsquo;s power and the proposed BLOX&rsquo;s feed</span></button>
+        <button type="button" class="still" data-proposal="1" data-full="assets/st_process.jpg"><img src="assets/st_process_thumb.jpg" alt="The factory from high in the north, with the process drawn as one path over the roofs" loading="lazy"/><i class="chip">RenewaBlox proposal</i><span><b>The process as one path</b>From high over the north: British Sugar&rsquo;s process as one path over the roofs, from the beet pad to the silos, with a disc at each station; the proposed BLOX Peaker Plant in the field to the west</span></button>
         <button type="button" class="still" data-proposal="1" data-full="assets/st_blox.jpg"><img src="assets/st_blox_thumb.jpg" alt="The proposed BLOX Peaker Plant: two banks of containers on a raised pad in the field west of the factory" loading="lazy"/><i class="chip">RenewaBlox proposal</i><span><b>The proposed BLOX Peaker Plant</b>Ten 40 ft hydro-cooled containers in two banks of five with their dry coolers on the roofs, five transformer kiosks, the HV switchgear house and the control container, on a pad raised to the factory&rsquo;s yard level, fed from British Sugar&rsquo;s switchroom behind the export meter</span></button>
         <button type="button" class="still" data-full="assets/st_chp.jpg"><img src="assets/st_chp_thumb.jpg" alt="The CHP and its stack at the factory&rsquo;s north-west corner, with its steam and power flows" loading="lazy"/><span><b>The CHP</b>British Sugar&rsquo;s CHP at the factory&rsquo;s north-west corner, with its 60 m stack: steam (magenta) to the evaporators and the new steam dryers, power (blue) to the factory, and the surplus towards the 33 kV substation</span></button>
         <button type="button" class="still" data-proposal="1" data-full="assets/st_dusk.jpg"><img src="assets/st_dusk_thumb.jpg" alt="The factory at dusk in the campaign, exporting up the 33 kV line, the proposed BLOX idle" loading="lazy"/><i class="chip">RenewaBlox proposal</i><span><b>At dusk in the campaign</b>The overview on a campaign evening in export hours: the yard lights and lit windows, the surplus going up the 33 kV line (white), and the proposed BLOX idle in the field. The lighting is assumed</span></button>
-        <button type="button" class="still" data-full="assets/st_setting.jpg"><img src="assets/st_setting_thumb.jpg" alt="The factory from across the River Wissey to the north" loading="lazy"/><span><b>Across the Wissey</b>From the north bank, low across the river: the factory along the south bank, its silos, kiln and stacks, as the factory elevations draw it</span></button>
+        <button type="button" class="still" data-proposal="1" data-full="assets/st_setting.jpg"><img src="assets/st_setting_thumb.jpg" alt="The factory from across the River Wissey to the north, with the proposed BLOX Peaker Plant in the distance to the right" loading="lazy"/><i class="chip">RenewaBlox proposal</i><span><b>Across the Wissey</b>From the north bank, low across the river: the factory along the south bank, its silos, kiln and stacks, as the factory elevations draw it, with the proposed BLOX Peaker Plant in the distance to the west</span></button>
         <button type="button" class="still" data-proposal="1" data-full="assets/st_aerial.jpg"><img src="assets/st_aerial_thumb.jpg" alt="The factory from high above the south, with the proposed BLOX Peaker Plant to its west" loading="lazy"/><i class="chip">RenewaBlox proposal</i><span><b>From above</b>The factory from high over the south: the thick-juice tank farm, the silos, the main building and the beet pad, with the proposed BLOX Peaker Plant in the field to the west</span></button>
-        <button type="button" class="still" data-full="assets/st_step1.jpg"><img src="assets/st_step1_thumb.jpg" alt="A beet field on the fen with a field clamp, the factory beyond" loading="lazy"/><span><b>Step 1: Grown</b>&ldquo;Grown in East Anglia and the East Midlands, harvested in autumn and winter&rdquo;: a beet field on the fen with a field clamp waiting for collection, the factory beyond</span></button>
+        <button type="button" class="still" data-proposal="1" data-full="assets/st_step1.jpg"><img src="assets/st_step1_thumb.jpg" alt="A beet field on the fen with a field clamp, the factory beyond, and the proposed BLOX Peaker Plant just visible behind the factory&rsquo;s left end" loading="lazy"/><i class="chip">RenewaBlox proposal</i><span><b>Step 1: Grown</b>&ldquo;Grown in East Anglia and the East Midlands, harvested in autumn and winter&rdquo;: a beet field on the fen with a field clamp waiting for collection, the factory beyond, and the proposed BLOX Peaker Plant just visible behind the factory&rsquo;s left end</span></button>
         <button type="button" class="still" data-full="assets/st_step2.jpg"><img src="assets/st_step2_thumb.jpg" alt="Beet lorries arriving at the beet pad" loading="lazy"/><span><b>Step 2: To the factory</b>&ldquo;Travels to one of our advanced manufacturing plants&rdquo;: the beet by lorry up College Road and in to the beet pad and the reception</span></button>
         <button type="button" class="still" data-full="assets/st_step3.jpg"><img src="assets/st_step3_thumb.jpg" alt="The beet reception and the flume to the washer" loading="lazy"/><span><b>Step 3: Washed</b>&ldquo;When it arrives on site, the sugar beet is washed&rdquo;: from the reception along the flume to the washer</span></button>
         <button type="button" class="still" data-full="assets/st_step4.jpg"><img src="assets/st_step4_thumb.jpg" alt="The slicer building" loading="lazy"/><span><b>Step 4: Sliced</b>&ldquo;Sliced into thin strips called cossettes&rdquo;: the slicer building, and the cossettes on to the diffuser</span></button>
@@ -590,7 +597,7 @@ body.moved .hint{opacity:0!important}
       p: 'British Sugar&rsquo;s CHP at the factory&rsquo;s north-west corner: a gas turbine and a heat recovery steam generator, exhausting through the 60 m stack. Its steam heats the evaporators and, from the 2026/27 campaign, the new steam dryers, which replace the gas-fired pulp dryers; its electricity runs the factory. What the factory does not use, up to about 18 MW by British Sugar&rsquo;s figure, is exported through UK Power Networks&rsquo; 33 kV substation on the factory&rsquo;s west side.',
       hi: ['chp', 'steamdryers', 'sub', 'bsswitch'] },
     { n: 9, id: 'blox', key: 'blox', t: 'BLOX Peaker Plant', h: 'The BLOX Peaker Plant: RenewaBlox&rsquo;s proposal', blox: true, alternate: true,
-      p: 'RenewaBlox&rsquo;s proposal, not British Sugar&rsquo;s plan: ten hydro-cooled data centre containers on a raised pad in the field west of the factory, fed from British Sugar&rsquo;s own switchroom behind the export meter. The CHP runs for the factory&rsquo;s heat as it does today; only the surplus, up to about 18 MW, changes course. When export prices are high it goes up the 33 kV line as now; when they are low the BLOX takes it instead. It never imports from the grid and adds no generating capacity: the peaker is the export. The card at the lower left plays one real campaign day&rsquo;s prices through the switch.',
+      p: 'RenewaBlox&rsquo;s proposal, not British Sugar&rsquo;s plan: ten hydro-cooled data centre containers on a raised pad in the field west of the factory, fed from British Sugar&rsquo;s own switchroom behind the export meter. The CHP runs for the factory&rsquo;s heat as it does today; only the surplus, up to about 18 MW, changes course. When export prices are high it goes up the 33 kV line as now; when they are low the BLOX takes it instead. It never imports from the grid and adds no generating capacity: the peaker is the export. The day card plays one real campaign day&rsquo;s prices through the switch.',
       hi: ['blox', 'bloxline', 'bsswitch', 'sub', 'chp'] },
   ];
   // each step's camera and flows from the model: S01 to S09, and every route the model files under the step
@@ -606,7 +613,7 @@ body.moved .hint{opacity:0!important}
     site: { cam: MODEL.cams.S10, k: 'Setting', h: 'Across the Wissey from the north',
       p: 'The factory from across the River Wissey, which runs east to west through the site: the factory on its south bank, the wastewater lagoons and settlement ponds to the north, and the glasshouse to the north-west. The ground is the Environment Agency&rsquo;s LiDAR survey of 13 November 2018, in the middle of that campaign; the fields are coloured by the 2025 crop map.' },
     switch: { cam: MODEL.cams.S11, k: 'The switch', h: 'The surplus: up the 33 kV line or into the BLOX', prop: true,
-      p: 'The CHP, British Sugar&rsquo;s own switchroom and export metering just outside UK Power Networks&rsquo; 33 kV substation, and the proposed BLOX in the field beyond. The CHP&rsquo;s surplus runs to British Sugar&rsquo;s switchroom; from there it goes either through UK Power Networks&rsquo; substation and up the 33 kV line, or, behind the export meter, along the buried feed to the BLOX: never both at once. Here the switch follows the day on the card at the lower left.' },
+      p: 'The CHP, British Sugar&rsquo;s own switchroom and export metering (where they sit is assumed) by UK Power Networks&rsquo; 33 kV substation, and the proposed BLOX in the field beyond. The CHP&rsquo;s surplus runs to British Sugar&rsquo;s switchroom; from there it goes either through UK Power Networks&rsquo; substation and up the 33 kV line, or, behind the export meter, along the buried feed to the BLOX: never both at once. Here the switch follows the day on the day card.' },
   };
   // the steps the strip, Play and the arrows walk: all nine, or British Sugar's eight with the proposal off
   const active = () => STEPS.filter((s) => proposal || !s.blox);
@@ -651,6 +658,7 @@ body.moved .hint{opacity:0!important}
     (t === 'schem' ? $('p-schem') : $('p-model')).appendChild($('caption'));
     if (t === 'model') { clampCaption(); railEdges(); }
     showDay();
+    if (t === 'schem') { $('caption').classList.remove('more'); clampCaption(); drawSchem(); }
     run();
     const u = new URL(location.href);
     u.searchParams.delete('tab');
@@ -1178,6 +1186,16 @@ body.moved .hint{opacity:0!important}
     if (s) return s.flows.includes(id) ? 1 : 0;
     return 1;
   }
+  // reduced motion: levels jump to their targets; as a side of the switch comes on only once the other is out, re-aim
+  // and jump again until nothing changes (two passes at most)
+  function settleReduced(s){
+    for (let k = 0; k < 3; k++) {
+      let c = false;
+      for (const id in flows) if (flows[id].level !== flows[id].target) { flows[id].level = flows[id].target; c = true; }
+      if (!c) return;
+      for (const id in flows) flows[id].target = flowOn(id, s);
+    }
+  }
   function applyStep(){
     const s = step ? STEPS[step - 1] : null, N = active().length;
     strip.querySelectorAll('.step').forEach((b) => { b.setAttribute('aria-current', +b.dataset.n === step ? 'true' : 'false'); b.tabIndex = +b.dataset.n === step || (!step && +b.dataset.n === 1) ? 0 : -1; });
@@ -1202,7 +1220,7 @@ body.moved .hint{opacity:0!important}
     // the flows: those of the step, or all of them in the overview
     for (const id in flows) flows[id].target = flowOn(id, s);
     switchState(true);
-    if (REDUCED) for (const id in flows) flows[id].level = flows[id].target;
+    if (REDUCED) settleReduced(s);
     // the parts: the step's in colour, the rest of the factory in clay; RenewaBlox's parts only with the proposal
     const hi = s && s.hi ? new Set(s.hi) : null;
     for (const g of groups) {
@@ -1212,12 +1230,13 @@ body.moved .hint{opacity:0!important}
     }
     if (REDUCED) flowFrame(0, 0);
     updateLabels(); run();
+    if (!raf) draw();
   }
   // Play: each step holds for a while, then the next
   const HOLD = 9000;
   function setPlay(on){
     playing = on; $('s-play').setAttribute('aria-pressed', on ? 'true' : 'false');
-    $('s-play').querySelector('.pl').hidden = on; $('s-play').querySelector('.pa').hidden = !on;
+    $('s-play').querySelector('.pl').toggleAttribute('hidden', on); $('s-play').querySelector('.pa').toggleAttribute('hidden', !on);
     $('s-play').setAttribute('aria-label', on ? 'Pause' : 'Play the process');
     if (on) { if (!step) setStep(nextStep(1), true); playT = 0; }
     else strip.querySelectorAll('.step').forEach((b) => b.style.setProperty('--pr', 0));
@@ -1280,7 +1299,7 @@ body.moved .hint{opacity:0!important}
   }
   function dayButton(){
     pressed('d-play', dayRun);
-    $('d-play').querySelector('.pl').hidden = dayRun; $('d-play').querySelector('.pa').hidden = !dayRun;
+    $('d-play').querySelector('.pl').toggleAttribute('hidden', dayRun); $('d-play').querySelector('.pa').toggleAttribute('hidden', !dayRun);
     $('d-play').lastElementChild.textContent = dayRun ? 'Pause' : 'Play the day';
   }
   // the hook and the scrub: a time of day in half-hours (0 to 48), and whether the day plays on from there
@@ -1288,6 +1307,7 @@ body.moved .hint{opacity:0!important}
     if (t != null && isFinite(t)) dayT = ((+t % 48) + 48) % 48;
     if (runOn != null) dayRun = !!runOn;
     dayButton(); drawDay(); switchState(); altSchem(); run();
+    if (loaded && !raf && tab === 'model') draw();
   }
   $('d-play').addEventListener('click', () => setDay(null, !dayRun));
   function showDay(){
@@ -1361,7 +1381,8 @@ body.moved .hint{opacity:0!important}
   }
   function anyFlow(){ for (const id in flows) if (flows[id].level > 0.01 || flows[id].target > 0) return true; return false; }
   function moving(){
-    return !!tween || playing || controls.autoRotate || performance.now() - lastMove < 1500 || (dayVis && dayRun) || (!REDUCED && (anyFlow() || fanSets.length > 0));
+    return !!tween || playing || controls.autoRotate || performance.now() - lastMove < 1500 || (dayVis && dayRun) || (!REDUCED && (anyFlow() || fanSets.length > 0))
+      || (REDUCED && Object.values(flows).some((f) => f.level !== f.target));
   }
   function frame(now){
     raf = 0;
@@ -1372,11 +1393,7 @@ body.moved .hint{opacity:0!important}
       if (tween.f1 !== tween.f0) { camera.fov = tween.f0 + (tween.f1 - tween.f0) * e; camera.updateProjectionMatrix(); }
       if (tt >= 1) tween = null;
     }
-    if (playing && !document.hidden) {
-      playT += dt * 1000;
-      const b = strip.querySelector('.step[aria-current="true"]'); if (b) b.style.setProperty('--pr', Math.min(1, playT / HOLD).toFixed(3));
-      if (playT >= HOLD) { setStep(nextStep(1), true); }
-    }
+    playTick(dt);
     if (dayVis && dayRun && !document.hidden) { dayT = (dayT + dt * 48 / DAY.secs) % 48; drawDay(); }
     switchState();
     if (!REDUCED) {
@@ -1384,11 +1401,18 @@ body.moved .hint{opacity:0!important}
       placeFans();
       flowFrame(dt, tAcc);
     } else {
-      let ch = false; for (const id in flows) if (flows[id].level !== flows[id].target) { flows[id].level = flows[id].target; ch = true; }
-      if (ch) flowFrame(0, 0);
+      let ch = false; for (const id in flows) if (flows[id].level !== flows[id].target) { ch = true; break; }
+      if (ch) { settleReduced(step ? STEPS[step - 1] : null); flowFrame(0, 0); }
     }
     draw(dt);
     run();
+  }
+  // Play: the hold runs on whichever clock is going, the model's frames or the schematic's timer
+  function playTick(dt){
+    if (!playing || document.hidden) return;
+    playT += dt * 1000;
+    const b = strip.querySelector('.step[aria-current="true"]'); if (b) b.style.setProperty('--pr', Math.min(1, playT / HOLD).toFixed(3));
+    if (playT >= HOLD) setStep(nextStep(1), true);
   }
   function run(){
     const want = loaded && tab === 'model' && !document.hidden && moving();
@@ -1401,6 +1425,7 @@ body.moved .hint{opacity:0!important}
   setInterval(() => {
     const now = performance.now(), dt = Math.min(0.5, (now - schemLast) / 1000); schemLast = now;
     if (tab !== 'schem' || document.hidden) return;
+    playTick(dt);
     if (dayVis && dayRun) { dayT = (dayT + dt * 48 / DAY.secs) % 48; drawDay(); }
     altSchem();
   }, 100);
@@ -1545,6 +1570,14 @@ body.moved .hint{opacity:0!important}
     const svg = $('schem');
     svg.classList.toggle('focus', !!step);
     svg.querySelectorAll('.node').forEach((g) => g.classList.toggle('on', +g.dataset.step === step));
+    // a phone scrolls the drawing sideways: bring the lit step into view
+    const wrap = $('schem-wrap'), lit = svg.querySelector('.node.on');
+    if (tab === 'schem' && !lit && wrap.scrollHeight > wrap.clientHeight + 1) wrap.scrollTop = (wrap.scrollHeight - wrap.clientHeight) / 2;   // no step lit: the row of steps, mid-height
+    if (tab === 'schem' && lit && (wrap.scrollWidth > wrap.clientWidth + 1 || wrap.scrollHeight > wrap.clientHeight + 1)) {
+      const r = lit.getBoundingClientRect(), w = wrap.getBoundingClientRect();
+      wrap.scrollLeft += (r.left + r.width / 2) - (w.left + w.width / 2);
+      wrap.scrollTop += (r.top + r.height / 2) - (w.top + w.height / 2);
+    }
     svg.querySelectorAll('.flow').forEach((p) => p.classList.toggle('on', !!step && p.dataset.steps.split(' ').includes(String(step))));
     altSchem();
   }
