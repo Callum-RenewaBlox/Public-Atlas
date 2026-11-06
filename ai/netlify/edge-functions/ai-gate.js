@@ -35,9 +35,15 @@
    Netlify's custom headers (netlify.toml's [[headers]]) don't reach a response that passes through an edge function,
    so build.py copies them into ../edge-lib/site.js and this function sets them on each page it lets through.
 
-   Once production relies on this function alone (project visibility Private, previews only), two Netlify actions would
-   serve the private pages without it: publishing (rolling back to) a deploy from before it, and turning on Split
-   Testing, under which Netlify runs no edge functions. Do neither. */
+   A private page shares its origin with the open ones (and the Atlas's pages behind the /atlas/ proxy, with their
+   third-party scripts), so it is served only as a page in its own right: never to a fetch or a frame (Sec-Fetch-*,
+   frame-ancestors 'none', X-Frame-Options DENY), and in a browsing context of its own (Cross-Origin-Opener-Policy), so
+   an open page can't read it through a signed-in visitor's browser. An origin of its own would be the complete answer.
+
+   Once production relies on this function alone (project visibility Private, previews only), turning on Split Testing
+   would serve the private pages without it, as Netlify runs no edge functions under it: don't. Production deploys from
+   before the sign-in have no /eunice/, but once another folder joins PRIVATE, publishing (rolling back to) a deploy
+   from before that change would serve the folder without the sign-in: don't do that either. */
 
 import { HEADERS, WORDMARK } from '../edge-lib/site.js';
 
@@ -57,7 +63,8 @@ const PRIVATE = ['eunice'];
 const GATED_HEADERS = {
   'x-robots-tag': 'noindex, nofollow',
   'x-content-type-options': 'nosniff',
-  'x-frame-options': 'SAMEORIGIN',
+  'x-frame-options': 'DENY',
+  'cross-origin-opener-policy': 'same-origin',
   'permissions-policy': 'camera=(), microphone=(), geolocation=()'
 };
 const PAGE_HEADERS = {
@@ -93,6 +100,9 @@ export default async (request, context) => {
 
   const session = await unseal(readCookie(request, SESSION_COOKIE), 'session', cfg, url.host);
   if (!session) return signedOut(request, url);
+  // a private page opens only as a page in its own right, never fetched or framed by another page of this site
+  // (Eunice loads nothing of its own; a private page that fetched its own files would need them let through here)
+  if (!openedDirectly(request)) return text(403, 'Open this page directly.');
 
   const out = withHeaders(await context.next(), { ...headersFor(path), ...GATED_HEADERS });
   // a page is never kept (a shared computer's Back button can't show it after sign-out); a file is checked each time
@@ -104,9 +114,11 @@ export default async (request, context) => {
 // serves a file under more than one spelling, so which addresses are private is decided here, not by this path.
 export const config = { path: '/*', onError: 'fail' };
 
-// Whether an address needs a session: any address with a private folder's name anywhere in it, looked for in lower case
-// with every %-escape undone (and undone again, for one escaped twice), so no spelling of a private address that a
-// server might still map to its files is let through. A false alarm costs only a sign-in.
+// Whether an address needs a session: any address with a private folder's name anywhere in it, looked for with every
+// %-escape undone (and undone again, for one escaped twice), read both byte by byte and as UTF-8, and folded the way a
+// server might fold it (case, accents and other marks dropped, so the Turkish İ is an i, and full-width letters made
+// plain), so no spelling of a private address that a server might still map to its files is let through. A false alarm
+// costs only a sign-in.
 export function isPrivate(path) {
   let p = String(path);
   for (let i = 0; i < 5; i++) {
@@ -114,8 +126,12 @@ export function isPrivate(path) {
     if (d === p) break;
     p = d;
   }
-  p = p.toLowerCase();
-  return PRIVATE.some(name => p.includes(name));
+  let utf8 = p;
+  if (/^[\x00-\xff]*$/.test(p)) utf8 = new TextDecoder().decode(Uint8Array.from(p, c => c.charCodeAt(0)));
+  return [p, utf8].some(form => {
+    const folded = form.normalize('NFKD').replace(/\p{M}/gu, '').toUpperCase().toLowerCase();
+    return PRIVATE.some(name => folded.includes(name));
+  });
 }
 
 // An address's one spelling, as the Atlas's sign-in has it: no run of slashes, %2F as the slash it stands for, the
@@ -181,16 +197,16 @@ async function callback(request, url, cfg, context) {
   if (q.get('error')) {
     console.error('RenewaBlox AI sign-in: the sign-in answered', q.get('error'), q.get('error_code'), q.get('error_description'));
     const said = SIGN_IN_ERRORS.get(q.get('error_code')) || SIGN_IN_ERRORS.get(q.get('error')) || 'Google didn&rsquo;t complete the sign-in.';
-    return page(401, 'Sign-in didn&rsquo;t finish', said, retry, '', null, [clearState]);
+    return page(401, 'Sign-in didn&rsquo;t finish', said, retry, '', HOME, [clearState]);
   }
   if (!st || !q.get('code')) {
-    return page(400, 'That sign-in has expired', 'Sign-ins have ten minutes to finish, in the browser they started in.', retry, '', null, [clearState]);
+    return page(400, 'That sign-in has expired', 'Sign-ins have ten minutes to finish, in the browser they started in.', retry, '', HOME, [clearState]);
   }
   const tokens = await post(`${cfg.supabaseUrl}/auth/v1/token?grant_type=pkce`, { auth_code: q.get('code'), code_verifier: st.v },
     { apikey: cfg.supabaseKey });
   if (!tokens || !tokens.access_token) {
     // the state stays: this code may be another tab's, and that tab's own sign-in can still finish with it
-    return page(400, 'That sign-in couldn&rsquo;t be completed', 'It may have expired or been used already. Try again.', retry);
+    return page(400, 'That sign-in couldn&rsquo;t be completed', 'It may have expired or been used already. Try again.', retry, '', HOME);
   }
   // Supabase's session for this sign-in is never used: end it, whatever the answer below
   const ended = endSupabaseSession(cfg, tokens.access_token);
@@ -288,15 +304,15 @@ function settings() {
   const cfg = { supabaseUrl: env('SUPABASE_URL').replace(/\/+$/, ''), supabaseKey: env('SUPABASE_PUBLISHABLE_KEY'), secret: env('AI_SESSION_SECRET') };
   const missing = [!/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(cfg.supabaseUrl) && 'SUPABASE_URL', !cfg.supabaseKey && 'SUPABASE_PUBLISHABLE_KEY',
     cfg.secret.length < 32 && 'AI_SESSION_SECRET (32 characters or more)'].filter(Boolean);
-  if (missing.length) { console.error('RenewaBlox AI is locked until these are set:', missing.join(', ')); return null; }
+  if (missing.length) { console.error('RenewaBlox AI\'s sign-in, and so its private pages, are locked until these are set:', missing.join(', ')); return null; }
   return cfg;
 }
 
 // Where to go back to after signing in: an address on this site, with a plain query, never the sign-in itself, so the
-// round trip can't be turned into a redirect elsewhere. It is checked in its one spelling (canonical, as every address
+// round trip can't be turned into a redirect elsewhere; without one, the first private page (Eunice). It is checked in its one spelling (canonical, as every address
 // is served), so an escaped /access/ is refused too; a path that changes when resolved (dot segments) is refused.
 export function safeReturn(r) {
-  const fallback = '/';
+  const fallback = `/${PRIVATE[0]}/`;
   if (typeof r !== 'string' || r.length > 400) return fallback;
   let [path, query = '', extra] = r.split('?');
   if (extra !== undefined || !/^\/[A-Za-z0-9._~%\-\/]*$/.test(path) || path.includes('//')) return fallback;
@@ -365,6 +381,12 @@ function readCookie(request, name) {
 // __Host- cookies: Secure, Path=/ and no Domain, so no other renewablox.com site can set or shadow them.
 function cookie(name, value, maxAge) {
   return `${name}=${value}; Path=/; Max-Age=${maxAge}; Secure; SameSite=Lax; HttpOnly`;
+}
+// Opened as a page in its own right (a navigation to a document), by the Sec-Fetch headers every current browser sends
+// and no page's script can change; a request without them (an older browser) is let through.
+function openedDirectly(request) {
+  const dest = request.headers.get('sec-fetch-dest'), mode = request.headers.get('sec-fetch-mode');
+  return (dest === null || dest === 'document') && (mode === null || mode === 'navigate');
 }
 function isPageRequest(request) {
   return request.method === 'GET' && (request.headers.get('sec-fetch-dest') === 'document' || request.headers.get('sec-fetch-dest') === 'iframe' ||

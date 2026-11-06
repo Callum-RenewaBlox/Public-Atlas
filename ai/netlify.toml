@@ -83,12 +83,13 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     X-Robots-Tag = "noindex"
 
-# Eunice Dispatch, the team explainer: one self-contained page (its data and wordmark inlined), loading and
-# calling nothing; its links to the offtakers' sites are followed, not loaded.
+# Eunice Dispatch, the team explainer, behind the sign-in: one self-contained page (its data and wordmark inlined),
+# loading and calling nothing; its links to the offtakers' sites are followed, not loaded. No page may frame it,
+# this site's own included (the sign-in adds the rest of its protection).
 [[headers]]
   for = "/eunice/*"
   [headers.values]
-    Content-Security-Policy = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'; frame-ancestors 'self'"
+    Content-Security-Policy = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "no-referrer"
     X-Robots-Tag = "noindex"

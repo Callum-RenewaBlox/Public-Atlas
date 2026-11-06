@@ -745,10 +745,16 @@ when the CAPEX comes back:
 
 **The sign-in** (`ai/netlify/edge-functions/ai-gate.js`). Every request to the site, whatever its
 address, passes through it first and is sent to its one spelling. Only `/eunice/` needs a session
-(any address with `eunice` anywhere in it, %-escapes undone, so no other spelling of it gets
-through; `PRIVATE` in the file lists the private folders, so adding one puts it behind the sign-in
-too); the home page, OSCAR, the `/atlas/` proxy and the site's files are served as they are, to
-anyone, with their own headers. It is the Atlas's sign-in cut down: the same Supabase project (`renewablox-crm`) and PKCE
+(any address with `eunice` anywhere in it, %-escapes undone and folded as a server might fold them,
+so no other spelling of it gets through; `PRIVATE` in the file lists the private folders, so adding
+one puts it behind the sign-in too); the home page, OSCAR, the `/atlas/` proxy and the site's files
+are served as they are, to anyone, with their own headers. Eunice shares its origin with those open
+pages (and the Atlas's pages behind the proxy, with their third-party scripts), so it is served only
+as a page in its own right: never to another page's fetch or frame (by the `Sec-Fetch-*` headers
+every current browser sends, `frame-ancestors 'none'` and `X-Frame-Options: DENY`), and in a browsing
+context of its own (`Cross-Origin-Opener-Policy: same-origin`), so an open page can't read it through
+a signed-in visitor's browser; an origin of its own would be the complete answer. A sign-in started
+at `/access/` itself goes on to `/eunice/`. It is the Atlas's sign-in cut down: the same Supabase project (`renewablox-crm`) and PKCE
 round trip, the same sealed cookies, the same one spelling for every address, and a `#fragment`
 kept across the round trip (so a link to `/eunice/#scenario-3` opens scenario 3 after signing in,
 "Try again" included). It offers Google only, and lets in only an account of RenewaBlox's Google
@@ -785,9 +791,11 @@ being checked, that preview's own `https://deploy-preview-<n>--renewablox-ai.net
 (removed afterwards; a wildcard would let any preview receive sign-in codes). Google needs nothing
 new: it only ever sends the browser back to Supabase, whose callback it already allows.
 
-Keep production deploys made before the sign-in out of use: publishing one (a rollback) would serve
-`/eunice/` without it. Don't turn on Split Testing for this project: Netlify doesn't run edge
-functions on a site that has it.
+Don't turn on Split Testing for this project: Netlify doesn't run edge functions on a site that has
+it, so `/eunice/` would be served to anyone. Production deploys from before the sign-in have no
+`/eunice/`, so publishing one (a rollback) only drops it; but once another folder joins `PRIVATE`,
+keep the deploys from before that change out of use, as publishing one would serve that folder
+without the sign-in.
 
 Deploy: the Netlify project is `renewablox-ai` (renewablox-ai.netlify.app). Link it to this
 repository with production branch `live` and its **base directory set to `ai`** (it then reads
@@ -800,7 +808,12 @@ sign-in in place, production can drop that login (Project configuration → Gene
 Project visibility: **Private**, with **Preview access** set to **Previews only**, so deploy previews
 keep Netlify's login on top of the sign-in), but only once a production deploy with the sign-in has
 been seen to work: until then Netlify's login is what keeps `/eunice/` private. Once it is dropped,
-the home page, OSCAR and the `/atlas/` proxy are open to anyone.
+the home page, OSCAR and the `/atlas/` proxy are open to anyone. Then check from outside that every
+spelling of `/eunice/` is refused: each should answer 303 (to the sign-in) or 301 (to its one
+spelling, which then answers 303), never 200:
+
+    for p in /eunice/ /eunice/index.html //eunice/ /EUNICE/ /%65unice/ /eun%C4%B0ce/; do
+      curl -s --path-as-is -o /dev/null -w "%{http_code} %{redirect_url} $p\n" "https://ai.renewablox.com$p"; done
 
 Build and look at it locally (`ai/oscar.html` also works opened straight from the folder; the
 home page needs the build's brand files):
