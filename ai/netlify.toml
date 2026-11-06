@@ -7,10 +7,10 @@
 # (tools/netlify-ignore.sh).
 #
 # Every address passes through the sign-in first, the edge function in netlify/edge-functions/ (ai-gate.js;
-# its settings are described at the top of the file): only RenewaBlox staff, signed in with their
-# @renewablox.com Google account, get past it. After the build its tests run (tests/gate.test.mjs); a sign-in
-# that fails them is never deployed. An edge function's responses don't get the [[headers]] below from
-# Netlify, so build.py hands them to the sign-in, which sets them.
+# its settings are described at the top of the file). It keeps /eunice/ to RenewaBlox staff, signed in with
+# their @renewablox.com Google account, and serves the rest of the site to anyone. After the build its tests
+# run (tests/gate.test.mjs); a sign-in that fails them is never deployed. An edge function's responses don't
+# get the [[headers]] below from Netlify, so build.py hands them to the sign-in, which sets them.
 
 [build]
   command = "python3 build.py && node tests/gate.test.mjs"

@@ -3,10 +3,12 @@
     /           the home page (index.html)
     /oscar/     OSCAR, the site model (oscar.html), served exactly as the team's own file
     /eunice/    Eunice Dispatch, the team explainer (eunice.html), a copy of the page built in the Eunice-Platform
-                repository (docs/eunice-web/eunice.html, by its tools/build_page.py), served exactly as it is
+                repository (docs/eunice-web/eunice.html, by its tools/build_page.py), served exactly as it is, to
+                RenewaBlox staff only
     404.html    for any other address
 
-Every address passes through the sign-in first (netlify/edge-functions/ai-gate.js). Netlify's [[headers]] rules
+Every address passes through the sign-in first (netlify/edge-functions/ai-gate.js), which keeps /eunice/ to
+RenewaBlox staff and serves the rest to anyone. Netlify's [[headers]] rules
 don't reach a response that passes through an edge function, so the build writes them, with the wordmark the
 sign-in's pages show, to netlify/edge-lib/site.js (git-ignored), and the sign-in sets them itself.
 
