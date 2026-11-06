@@ -11,6 +11,7 @@ a regenerated source that loses it fails the build instead of shipping a page th
     /clients/srv-contractor/  SRV Contractor Atlas, the electrical survey for the LV connection RFQ
     /clients/bry/             Bryn Atlas, code BRY (?view=3d BLOX Dispatch, ?view=compute BLOX 3D)
     /clients/kld/             KLD Atlas (?view=3d BLOX Dispatch; its BLOX 3D badge opens /twins/kld/)
+    /clients/wis/             WIS Atlas (?view=3d BLOX 3D, the Process Render)
     /clients/ihn/             IHN Atlas (?view=3d BLOX Dispatch)
     /clients/reabold/west-newton/, /clients/reabold/reservoirs/   Reabold's two maps
     /clients/citygate/        Citygate Church's electricity portrait
@@ -138,6 +139,12 @@ CLIENT_MAPS = {
             "badges": [{"at": [51.9242539, -2.6687147], "label": "BLOX 3D", "short": "3D", "view": "compute"},
                        {"at": [51.9242539, -2.6687147], "label": "BLOX Dispatch", "short": "Dispatch", "view": "dispatch",
                         "side": "right", "anchor": [-37, -10]}]},
+    # WIS: British Sugar's Wissington factory on the fen by the River Wissey, with RenewaBlox's proposed BLOX Peaker Plant
+    # in the field west of its 33 kV substation. The map opens on the factory; the badge sits on the proposed plot's centre
+    # (ENU -170 m E, -192 m N of the CHP stack A62, 52.5517503 N 0.4458997 E: Wissington-3D eartheatures.json plots[0])
+    "wis": {"title": "WIS Atlas — British Sugar Wissington", "kick": "Proposed BLOX Peaker Plant · WIS Atlas",
+            "place": "Wissington, Norfolk", "at": [52.5503, 0.4472], "zoom": 17,
+            "badges": [{"at": [52.5500251, 0.4433937], "label": "BLOX 3D", "short": "3D", "view": "3d"}]},
 }
 
 
@@ -305,6 +312,11 @@ def client_pages():
     # their files in lpf/assets/, which build.py copies into the same folder (CLIENTS).
     out["clients/lpf/index.html"] = client_map("lpf")
 
+    # WIS: British Sugar's Wissington factory. The map's badge opens BLOX 3D, the Process Render (?view=3d), written for
+    # the Atlas in THN's shape: wis/process.html with its files in wis/assets/, which build.py copies into the same folder
+    # (CLIENTS).
+    out["clients/wis/index.html"] = client_map("wis")
+
     # IHN: the heat network. Its opening page keeps its own scene (ihn_atlas below); the 3D view is the shared Heat
     # Network 3D with the IHN chrome spliced in.
     out["clients/ihn/index.html"] = noindex(top_level_nav(ihn_atlas(source("ihn_atlas.html")), "ihn_atlas.html"), "ihn_atlas.html")
@@ -355,6 +367,7 @@ CLIENT_PAGES = {
     "/clients/wld/": {"client": "wld", "title": "WLD Atlas — Wildmore Renewables AD", "list": True, "views": {"compute": "compute.html", "dispatch": "dispatch.html"}},
     "/clients/thn/": {"client": "thn", "title": "THN Atlas — Thainstone Energy Park", "list": True, "views": {"3d": "process.html", "dispatch": "dispatch.html"}},
     "/clients/lpf/": {"client": "lpf", "title": "LPF Atlas — Little Pengethley AD", "list": True, "views": {"compute": "compute.html", "dispatch": "dispatch.html"}},
+    "/clients/wis/": {"client": "wis", "title": "WIS Atlas — British Sugar Wissington", "list": True, "views": {"3d": "process.html"}},
     "/clients/reabold/west-newton/": {"client": "reabold", "title": "West Newton infrastructure map", "list": True},
     "/clients/reabold/reservoirs/": {"client": "reabold", "title": "UKCS reservoir atlas (prototype)", "list": True},
     "/clients/citygate/": {"client": "citygate", "title": "Citygate Church · Electricity Portrait", "list": True},
@@ -429,6 +442,11 @@ CLIENT_CSP = {
     "/clients/lpf/dispatch.html": ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
                                    "img-src 'self' data:; font-src 'self'; connect-src 'self'; media-src 'none'; "
                                    "worker-src 'none'; frame-src 'none'; " + _END),
+    "/clients/wis/": CLIENT_MAP_CSP,
+    # the Process Render (?view=3d), as THN's: its script, model, stills, font and wordmark from the folder, nothing else
+    "/clients/wis/process.html": ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
+                                  "img-src 'self' data: blob:; font-src 'self'; connect-src 'self' blob:; media-src 'self'; "
+                                  "worker-src 'none'; frame-src 'none'; " + _END),
     "/clients/reabold/west-newton/": ("default-src 'none'; script-src 'unsafe-inline' https://cdnjs.cloudflare.com; "
                                       "style-src 'unsafe-inline' https://cdnjs.cloudflare.com; "
                                       f"img-src data: https://cdnjs.cloudflare.com https://server.arcgisonline.com {_OSM}; " + _END),

@@ -71,7 +71,7 @@ import site_inputs  # the list of what the site is built from (inputs.txt), chec
 HERE = Path(__file__).resolve().parent
 OUT = HERE / "site"
 ROOT = HERE / "root"
-CLIENTS = ["bln", "bry", "wld", "thn", "lpf"]
+CLIENTS = ["bln", "bry", "wld", "thn", "lpf", "wis"]
 ON_NETLIFY = os.environ.get("NETLIFY") == "true"
 
 # The words that would name or place a client's site (the site, the places around it, the firms on
