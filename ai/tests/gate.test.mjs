@@ -34,6 +34,7 @@ globalThis.fetch = async (url, init) => {
   sb.calls.push({ url: String(url), init });
   if (String(url) === ENV.SUPABASE_URL + '/auth/v1/token?grant_type=pkce') return sb.token(JSON.parse(init.body));
   if (String(url) === 'https://openidconnect.googleapis.com/v1/userinfo') return sb.google(init.headers.authorization);
+  if (String(url) === ENV.SUPABASE_URL + '/auth/v1/logout?scope=local') { sb.logouts = (sb.logouts || 0) + 1; return new Response(null, { status: 204 }); }
   throw new Error('unexpected fetch ' + url);
 };
 
@@ -111,7 +112,8 @@ let r = await gate(req('/access/?r=%2Feunice%2F'), ctx);
 assert.equal(r.status, 401);
 let html = await r.text();
 assert.ok(html.includes('href="/access/start?r=%2Feunice%2F"'));
-assert.ok(html.includes("sessionStorage.setItem('rbx.ai.hash',location.hash"));
+assert.ok(html.includes("r=\"/eunice/\"") && html.includes("if(location.hash||p.r!==r)sessionStorage.setItem(k,JSON.stringify({r:r,h:location.hash||''}))"),
+  'the #fragment is kept with the address it belongs to, and coming back without one keeps it');
 assert.ok(html.includes('@renewablox.com'));
 assert.match(r.headers.get('content-security-policy'), /frame-ancestors 'none'/);
 assert.equal(r.headers.get('cache-control'), 'no-store');
@@ -123,7 +125,9 @@ ok('the sign-in page offers Google, keeps the #fragment, and loads nothing gated
 for (const [given, want] of [['/eunice/', '/eunice/'], ['/oscar/?s=abc', '/oscar/?s=abc'], ['/', '/'],
   ['//evil.example.com', '/'], ['/\\evil.example.com', '/'], ['https://evil.example.com/', '/'], ['evil', '/'], ['', '/'], [null, '/'],
   ['/access/', '/'], ['/access/callback', '/'], ['/ACCESS/start', '/'], ['/./eunice/', '/'], ['/a/../eunice/', '/'],
-  ['/eunice/?a=<script>', '/'], ['/eunice/?a=1?b', '/'], ['javascript:alert(1)', '/'], ['/' + 'x'.repeat(400), '/']]) {
+  ['/eunice/?a=<script>', '/'], ['/eunice/?a=1?b', '/'], ['javascript:alert(1)', '/'], ['/' + 'x'.repeat(400), '/'],
+  ['/access%2Fsign-out', '/'], ['/acc%65ss/sign-out', '/'], ['/%61ccess/start', '/'], ['/%2Faccess/sign-out', '/'], ['/%65unice/', '/eunice/'],
+  ['/%2F%2Fevil.example', '/evil.example']]) {
   assert.equal(safeReturn(given), want, `safeReturn(${JSON.stringify(given)})`);
 }
 ok('the address to return to stays on this site and never loops back to the sign-in');
@@ -155,14 +159,16 @@ async function signIn(u, g = u && userinfo(u.email.toLowerCase()), { origin = O,
 r = await signIn(user('Ann.Smith@RenewaBlox.com', google('ann.smith@renewablox.com')), userinfo('Ann.Smith@renewablox.com'));
 assert.equal(r.status, 200);
 html = await r.text();
-assert.ok(html.includes('location.replace("/eunice/"'), 'back to the page asked for');
-assert.ok(html.includes("sessionStorage.getItem('rbx.ai.hash')"), 'with its #fragment put back');
+assert.ok(html.includes('r="/eunice/"') && html.includes('location.replace(r+'), 'back to the page asked for');
+assert.ok(html.includes("sessionStorage.getItem('rbx.ai.hash')") && html.includes('if(p.r===r)h=p.h'), 'with its #fragment put back, if it was kept for this page');
 const session = cookieVal(r, SESSION);
 assert.ok(session && session.includes('.'));
 const ck = setCookies(r).find(c => c.startsWith(SESSION + '='));
 assert.ok(ck.includes('Path=/;') && ck.includes('HttpOnly') && ck.includes('Secure') && ck.includes('SameSite=Lax') && ck.includes('Max-Age=43200') && !/domain=/i.test(ck));
 assert.ok(setCookies(r).some(c => c.startsWith(STATE + '=;')), 'the sign-in state is cleared');
 assert.equal(sb.calls.find(c => c.url.includes('/auth/v1/token')).init.headers.apikey, ENV.SUPABASE_PUBLISHABLE_KEY);
+const lo = sb.calls.findLast(c => c.url.includes('/auth/v1/logout'));
+assert.ok(lo && lo.init.headers.authorization === 'Bearer at' && lo.init.headers.apikey === ENV.SUPABASE_PUBLISHABLE_KEY, 'Supabase\'s own session for the sign-in is ended');
 ok('an account of RenewaBlox\'s Workspace, confirmed by Google, signs in for 12 hours and goes back to the page with its #fragment');
 
 // on a deploy preview the round trip comes back to the preview, and its session is the preview's alone
@@ -212,6 +218,18 @@ assert.equal((await gate(req('/eunice/', { cookie: `${SESSION}=${session}` }), c
 Date.now = realNow;
 ok('a session runs out after 12 hours');
 
+// ---- Google's answer decides, whatever Supabase stored from earlier sign-ins ----
+for (const [what, u, g] of [
+  ['a Workspace account renamed since (Supabase still has the old address)', user('ann@renewablox.com', google('ann@renewablox.com')), userinfo('ann.smith@renewablox.com')],
+  ['someone who once picked a personal Google account on the same address', user('ann@renewablox.com', google('ann@renewablox.com', true, null), google('ann@renewablox.com')), userinfo('ann@renewablox.com')],
+  ['an account Supabase also links to Microsoft', user('ann@renewablox.com', google('ann@renewablox.com'), { provider: 'azure', identity_data: { email: 'ann@outlook.com', email_verified: true } }), userinfo('ann@renewablox.com')],
+  ['a capital in the hd claim', user('ann@renewablox.com'), { ...userinfo('ann@renewablox.com'), hd: 'RenewaBlox.com' }]]) {
+  r = await signIn(u, g);
+  assert.equal(r.status, 200, what);
+  assert.ok(cookieVal(r, SESSION), `${what}: a session`);
+}
+ok('staff are let in on Google\'s own answer: a renamed account, a linked personal account or another provider on the same person doesn\'t lock them out');
+
 // ---- anyone else: a clear "not authorised", and no session ----
 const NOT = [
   ['a Gmail account', user('bob@gmail.com', google('bob@gmail.com', true, null)), userinfo('bob@gmail.com', true, null)],
@@ -222,13 +240,12 @@ const NOT = [
   ['a subdomain', user('ann@mail.renewablox.com'), userinfo('ann@mail.renewablox.com')],
   ['an unverified address', user('ann@renewablox.com', google('ann@renewablox.com', false)), userinfo('ann@renewablox.com', false)],
   ['Google unverified, whatever Supabase stored', user('ann@renewablox.com'), userinfo('ann@renewablox.com', false)],
-  ['an identity for another address', user('ann@renewablox.com', google('bob@renewablox.com')), userinfo('ann@renewablox.com')],
   ['a Microsoft sign-in on an account with a stored Google identity (Google\'s token is for someone else)', user('ann@renewablox.com'), userinfo('eve@outlook.com', true, null)],
   ['no Google token handed back (a sign-in that wasn\'t Google\'s)', user('ann@renewablox.com'), NO_TOKEN],
-  ['Google refusing the token', user('ann@renewablox.com'), null],
-  ['a Microsoft account only', user('ann@renewablox.com', { provider: 'azure', identity_data: { email: 'ann@renewablox.com', email_verified: true, custom_claims: { tid: '9188040d-6c67-4c5b-b112-36a304b66dad' } } }), userinfo('ann@renewablox.com')],
-  ['a second identity that disagrees', user('ann@renewablox.com', google('ann@renewablox.com'), { provider: 'azure', identity_data: { email: 'eve@outlook.com', email_verified: true } }), userinfo('ann@renewablox.com')],
-  ['no address', { identities: [google('ann@renewablox.com')] }, userinfo('ann@renewablox.com')],
+  ['Google refusing the token (a Microsoft token, say)', user('ann@renewablox.com'), null],
+  ['Google giving no address', user('ann@renewablox.com'), { sub: '1', email_verified: true, hd: 'renewablox.com' }],
+  ['Google\'s email_verified as a string', user('ann@renewablox.com'), { ...userinfo('ann@renewablox.com'), email_verified: 'true' }],
+  ['the right hd with someone else\'s address', user('ann@renewablox.com'), userinfo('eve@example.com')],
 ];
 for (const [what, u, g] of NOT) {
   r = await signIn(u, g);
@@ -241,18 +258,28 @@ for (const [what, u, g] of NOT) {
 }
 r = await signIn(user('<b>x</b>@gmail.com', google('<b>x</b>@gmail.com', true, null)), userinfo('<b>x</b>@gmail.com', true, null));
 assert.ok((await r.text()).includes('&lt;b&gt;x&lt;/b&gt;@gmail.com'), 'the address shown is escaped');
-assert.equal(staff('ann@renewablox.com', user('ann@renewablox.com')), true);
-assert.equal(staff('ann@renewablox.com', user('ann@renewablox.com', google('ann@renewablox.com', true, null))), false);
+assert.equal(staff(userinfo('ann@renewablox.com')), true);
+assert.equal(staff(userinfo('ann@renewablox.com', true, null)), false);
+assert.equal(staff(null), false);
 ok(`${NOT.length} kinds of account or sign-in that aren't RenewaBlox staff signing in with Google get "Not authorised" and no session`);
 
 // ---- a sign-in that goes wrong ----
-assert.equal((await signIn(null)).status, 400);
+r = await signIn(null);
+assert.equal(r.status, 400);
+assert.ok(!setCookies(r).some(c => c.startsWith(STATE + '=')), 'a failed exchange keeps the sign-in state (another tab\'s sign-in may still need it)');
+assert.ok((await r.text()).includes('href="/access/start?r=%2Feunice%2F"'), '"Try again" goes back into the sign-in for the same page');
 r = await gate(req('/access/callback?error=access_denied&error_description=Your+RenewaBlox+account+is+locked.+Restore+it+at+evil.example'), ctx);
 assert.equal(r.status, 401);
 html = await r.text();
 assert.ok(html.includes('You cancelled the Google sign-in.') && !html.includes('evil.example'), 'Google\'s error code in our words, never the address\'s text');
 r = await gate(req('/access/callback?error=server_error&error_description=Visit+evil.example'), ctx);
 assert.ok(!(await r.text()).includes('evil.example'));
+for (const code of ['constructor', '__proto__', 'toString', 'hasOwnProperty', 'valueOf']) {
+  html = await (await gate(req(`/access/callback?error=${code}`), ctx)).text();
+  assert.ok(html.includes('Google didn&rsquo;t complete the sign-in.') && !/native code|\[object/.test(html), `error=${code} in our words`);
+}
+html = await (await gate(req('/access/callback?error=access_denied&error_code=signup_disabled'), ctx)).text();
+assert.ok(html.includes('That Google account can&rsquo;t be used here.'), 'Supabase refusing the account isn\'t called a cancelled sign-in');
 assert.equal((await gate(req('/access/callback?code=x'), ctx)).status, 400, 'no state cookie');
 assert.equal((await gate(req('/access/callback?code=x', { cookie: `${STATE}=abc.def` }), ctx)).status, 400, 'a state cookie of another secret');
 const prevState = cookieVal(await gate(req('/access/start?r=%2F', { origin: PREVIEW }), ctx), STATE);

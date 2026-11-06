@@ -4,11 +4,13 @@
    and Google's hd claim renewablox.com).
 
    It is the Atlas's sign-in (atlas/netlify/edge-functions/atlas-gate.js), cut down: the same Supabase project
-   (renewablox-crm, whose Google sign-in the CRM and the Atlas use), the same PKCE round trip, the same check that every
-   Google and Microsoft identity on the account vouches for its address, the same sealed cookies, the same one spelling
-   for every address, and the same way of keeping a #fragment across the round trip. What differs: it covers the whole
-   site, it offers Google only, and who may come in is decided here, by Google's own answer for the account that has just
-   signed in (its userinfo, asked with the Google token Supabase hands back), rather than by public.atlas_my_access().
+   (renewablox-crm, whose Google sign-in the CRM and the Atlas use), the same PKCE round trip, the same sealed cookies,
+   the same one spelling for every address, and the same way of keeping a #fragment across the round trip. What differs:
+   it covers the whole site, it offers Google only, and who may come in is decided by Google's own answer for the account
+   that has just signed in (its userinfo, asked with the Google token Supabase hands back from this sign-in): a verified
+   @renewablox.com address in RenewaBlox's Workspace. What Supabase has stored about the person from earlier sign-ins
+   (another provider, an old address) plays no part, so a sign-in with another provider gets no Google token and no
+   session, and a renamed Workspace account still gets in. Supabase's own session for the sign-in is ended at once.
 
    A session holds only the address and lasts SESSION_SECONDS (12 hours), so leaving RenewaBlox's Workspace shuts someone
    out by the next working day: Google refuses a suspended account. To shut everyone out at once, change
@@ -29,7 +31,11 @@
    new: it only ever sends the browser back to Supabase.
 
    Netlify's custom headers (netlify.toml's [[headers]]) don't reach a response that passes through an edge function,
-   so build.py copies them into ../edge-lib/site.js and this function sets them on each page it lets through. */
+   so build.py copies them into ../edge-lib/site.js and this function sets them on each page it lets through.
+
+   Once production relies on this function alone (project visibility Private, previews only), two Netlify actions would
+   serve the site without it: publishing (rolling back to) a deploy from before it, and turning on Split Testing, under
+   which Netlify runs no edge functions. Do neither. */
 
 import { HEADERS, WORDMARK } from '../edge-lib/site.js';
 
@@ -72,7 +78,7 @@ export default async (request, context) => {
   const path = url.pathname;
   if (path === '/access' || path === '/access/') return signInPage(url);
   if (path === '/access/start') return start(url, cfg);
-  if (path === '/access/callback') return callback(request, url, cfg);
+  if (path === '/access/callback') return callback(request, url, cfg, context);
   if (path === '/access/sign-out') return signOut();
   if (path.startsWith('/access/')) return page(404, 'That page isn&rsquo;t here', 'Head back to RenewaBlox AI.', { href: '/', label: 'RenewaBlox AI' });
 
@@ -112,13 +118,15 @@ function signedOut(request, url) {
 }
 
 // The sign-in page. A #fragment on the page that sent the visitor here (#scenario-3 on /eunice/, say) survives the
-// redirect, so it is kept in sessionStorage and put back on the address once they are in.
+// redirect, so it is kept in sessionStorage with the address it belongs to, and put back once they are in. Coming back
+// to this page without one (after "Try again", say) keeps the one already kept for the same address.
 function signInPage(url) {
-  const r = encodeURIComponent(safeReturn(url.searchParams.get('r')));
+  const back = safeReturn(url.searchParams.get('r'));
   return page(401, 'Sign in to RenewaBlox AI',
     'RenewaBlox&rsquo;s in-house tools are for RenewaBlox staff. Sign in with your <b>@renewablox.com</b> Google account.',
-    { href: `/access/start?r=${r}`, label: 'Sign in with Google' },
-    `<script>try{sessionStorage.setItem('rbx.ai.hash',location.hash||'')}catch(e){}</script>`);
+    { href: `/access/start?r=${encodeURIComponent(back)}`, label: 'Sign in with Google' },
+    `<script>try{var k='rbx.ai.hash',r=${JSON.stringify(back)},p=JSON.parse(sessionStorage.getItem(k)||'{}');` +
+    `if(location.hash||p.r!==r)sessionStorage.setItem(k,JSON.stringify({r:r,h:location.hash||''}))}catch(e){}</script>`);
 }
 
 async function start(url, cfg) {
@@ -133,37 +141,47 @@ async function start(url, cfg) {
   return redirect(auth.toString(), [cookie(STATE_COOKIE, sealed, STATE_SECONDS)]);
 }
 
-// What Google's error codes mean, in our words: the page never shows text the address carries.
-const SIGN_IN_ERRORS = { access_denied: 'You cancelled the Google sign-in.' };
+// What the sign-in's error codes mean, in our words: the page never shows text the address carries. Supabase sends
+// error=access_denied with an error_code saying why (a cancelled sign-in has none).
+const SIGN_IN_ERRORS = new Map([
+  ['signup_disabled', 'That Google account can&rsquo;t be used here.'],
+  ['user_banned', 'That Google account can&rsquo;t be used here.'],
+  ['access_denied', 'You cancelled the Google sign-in.']]);
 
-async function callback(request, url, cfg) {
+async function callback(request, url, cfg, context) {
   const q = url.searchParams;
   const clearState = cookie(STATE_COOKIE, '', 0);
-  const retry = { href: '/access/', label: 'Try again' };
-  if (q.get('error')) {
-    console.error('RenewaBlox AI sign-in: the sign-in answered', q.get('error'), q.get('error_description'));
-    return page(401, 'Sign-in didn&rsquo;t finish', SIGN_IN_ERRORS[q.get('error')] || 'Google didn&rsquo;t complete the sign-in.', retry, '', null, [clearState]);
-  }
   const st = await unseal(readCookie(request, STATE_COOKIE), 'state', cfg, url.host);
+  // back into the sign-in for the same page (and its #fragment) when the state still says which page that was
+  const retry = { href: st ? `/access/start?r=${encodeURIComponent(st.r)}` : '/access/', label: 'Try again' };
+  if (q.get('error')) {
+    console.error('RenewaBlox AI sign-in: the sign-in answered', q.get('error'), q.get('error_code'), q.get('error_description'));
+    const said = SIGN_IN_ERRORS.get(q.get('error_code')) || SIGN_IN_ERRORS.get(q.get('error')) || 'Google didn&rsquo;t complete the sign-in.';
+    return page(401, 'Sign-in didn&rsquo;t finish', said, retry, '', null, [clearState]);
+  }
   if (!st || !q.get('code')) {
     return page(400, 'That sign-in has expired', 'Sign-ins have ten minutes to finish, in the browser they started in.', retry, '', null, [clearState]);
   }
   const tokens = await post(`${cfg.supabaseUrl}/auth/v1/token?grant_type=pkce`, { auth_code: q.get('code'), code_verifier: st.v },
     { apikey: cfg.supabaseKey });
   if (!tokens || !tokens.access_token) {
-    return page(400, 'That sign-in couldn&rsquo;t be completed', 'It may have expired or been used already. Try again.', retry, '', null, [clearState]);
+    // the state stays: this code may be another tab's, and that tab's own sign-in can still finish with it
+    return page(400, 'That sign-in couldn&rsquo;t be completed', 'It may have expired or been used already. Try again.', retry);
   }
+  // Supabase's session for this sign-in is never used: end it, whatever the answer below
+  const ended = endSupabaseSession(cfg, tokens.access_token);
+  if (context && typeof context.waitUntil === 'function') context.waitUntil(ended); else await ended;
   const other = { href: `/access/start?r=${encodeURIComponent(st.r)}`, label: 'Use a different Google account' };
-  const email = verifiedEmail(tokens.user, 'google');
-  // Google's own answer for the account that has just signed in, asked with the Google token from this sign-in: the
-  // visitor can't swap the provider in Supabase's address, or lean on a Google identity stored from an earlier sign-in.
+  // Google's own answer for the account that has just signed in, asked with the Google token from this sign-in: a
+  // sign-in with another provider, or one Supabase finished without Google, has no Google token and gets no session
   const g = tokens.provider_token ? await googleUser(tokens.provider_token) : null;
-  if (!email || !g || g.email_verified !== true || String(g.email || '').toLowerCase() !== email) {
+  const email = g && g.email_verified === true ? String(g.email || '').toLowerCase() : '';
+  if (!email) {
     return page(403, 'Not authorised',
       'Google didn&rsquo;t confirm a verified address for that account, so it can&rsquo;t be used here. ' +
       'Sign in with your @renewablox.com Google account.', other, '', null, [clearState]);
   }
-  if (!staff(email, tokens.user) || String(g.hd || '').toLowerCase() !== DOMAIN) {
+  if (!staff(g)) {
     return page(403, 'Not authorised',
       `You&rsquo;re signed in to Google as <b>${esc(email)}</b>. RenewaBlox AI is for RenewaBlox staff only: ` +
       'sign in with your @renewablox.com Google account instead.', other, '', null, [clearState]);
@@ -171,9 +189,18 @@ async function callback(request, url, cfg) {
   const session = { t: 'session', e: email, x: now() + SESSION_SECONDS };
   // a page, not a redirect, so the #fragment kept at the sign-in page can be put back on the address
   return page(200, 'Signed in', 'Opening the page&hellip;', { href: st.r, label: 'Open it' },
-    `<script>var h='';try{h=sessionStorage.getItem('rbx.ai.hash')||'';sessionStorage.removeItem('rbx.ai.hash')}catch(e){}` +
-    `location.replace(${JSON.stringify(st.r)}+(/^#[\\w\\-.~%=&,;:+\\/?!]*$/.test(h)?h:''))</script>`, null,
+    `<script>var h='',r=${JSON.stringify(st.r)};try{var p=JSON.parse(sessionStorage.getItem('rbx.ai.hash')||'{}');` +
+    `if(p.r===r)h=p.h||'';sessionStorage.removeItem('rbx.ai.hash')}catch(e){}` +
+    `location.replace(r+(/^#[\\w\\-.~%=&,;:+\\/?!]*$/.test(h)?h:''))</script>`, null,
     [clearState, cookie(SESSION_COOKIE, await seal(session, cfg, url.host), SESSION_SECONDS)]);
+}
+
+// End Supabase's session for a finished sign-in (the gate keeps only its own cookie). Failures don't matter.
+async function endSupabaseSession(cfg, accessToken) {
+  try {
+    await fetch(`${cfg.supabaseUrl}/auth/v1/logout?scope=local`, { method: 'POST',
+      headers: { apikey: cfg.supabaseKey, authorization: `Bearer ${accessToken}` }, signal: AbortSignal.timeout(TIMEOUT_MS) });
+  } catch (e) { /* the session runs out on its own */ }
 }
 
 function signOut() {
@@ -183,13 +210,12 @@ function signOut() {
   return res;
 }
 
-// RenewaBlox staff: an @renewablox.com address (already checked as verified by every identity on the account) whose
-// every Google identity Google places in RenewaBlox's Workspace (its hd claim).
-export function staff(email, user) {
-  const at = email.lastIndexOf('@');
-  if (at < 1 || email.slice(at + 1) !== DOMAIN) return false;
-  const google = ((user && user.identities) || []).filter(i => i && i.provider === 'google');
-  return google.length > 0 && google.every(i => String((((i.identity_data || {}).custom_claims) || {}).hd || '').toLowerCase() === DOMAIN);
+// RenewaBlox staff, by Google's answer: a verified @renewablox.com address in RenewaBlox's Workspace (Google's hd
+// claim, which a personal Google account made on a work address doesn't have).
+export function staff(g) {
+  if (!g || g.email_verified !== true) return false;
+  const email = String(g.email || '').toLowerCase(), at = email.lastIndexOf('@');
+  return at > 0 && email.slice(at + 1) === DOMAIN && String(g.hd || '').toLowerCase() === DOMAIN;
 }
 
 // Google's userinfo for a Google access token: { email, email_verified, hd, ... }, or null.
@@ -219,25 +245,6 @@ async function post(endpoint, body, headers = {}) {
   }
 }
 
-// The account's address, if it holds an identity of the provider just signed in with and every Google and Microsoft
-// identity on it vouches for that address; else ''. (As the Atlas's sign-in: Supabase joins identities that share an
-// address into one account, so the check can't rest on one identity.)
-const MICROSOFT_CONSUMER_TENANT = '9188040d-6c67-4c5b-b112-36a304b66dad';
-export function verifiedEmail(user, provider) {
-  const email = String((user && user.email) || '').toLowerCase();
-  const ids = ((user && user.identities) || []).filter(i => i && (i.provider === 'google' || i.provider === 'azure'));
-  if (!email || !ids.some(i => i.provider === provider)) return '';
-  return ids.every(i => vouches(i, email)) ? email : '';
-}
-function vouches(id, email) {
-  const claims = id.identity_data || {};
-  const verified = claims.email_verified === true || claims.email_verified === 'true';
-  if (!verified || String(claims.email || '').toLowerCase() !== email) return false;
-  if (id.provider !== 'azure') return true;
-  const custom = claims.custom_claims || {};
-  return custom.tid === MICROSOFT_CONSUMER_TENANT || [true, 'true', '1', 1].includes(custom.xms_edov);
-}
-
 /* ---- the site's own headers (netlify.toml's [[headers]], via build.py) ---- */
 
 // Netlify's rules: "/x/*" covers everything under /x/, any other rule its own address only; later rules win.
@@ -262,12 +269,15 @@ function settings() {
 }
 
 // Where to go back to after signing in: an address on this site, with a plain query, never the sign-in itself, so the
-// round trip can't be turned into a redirect elsewhere. A path that changes when resolved (dot segments) is refused.
+// round trip can't be turned into a redirect elsewhere. It is checked in its one spelling (canonical, as every address
+// is served), so an escaped /access/ is refused too; a path that changes when resolved (dot segments) is refused.
 export function safeReturn(r) {
   const fallback = '/';
   if (typeof r !== 'string' || r.length > 400) return fallback;
-  const [path, query = '', extra] = r.split('?');
-  if (extra !== undefined || !/^\/[A-Za-z0-9._~%\-\/]*$/.test(path) || path.includes('//') || /^\/access(\/|$)/i.test(path)) return fallback;
+  let [path, query = '', extra] = r.split('?');
+  if (extra !== undefined || !/^\/[A-Za-z0-9._~%\-\/]*$/.test(path) || path.includes('//')) return fallback;
+  path = canonical(path);
+  if (path.includes('//') || /^\/access(\/|$)/i.test(path) || !/^\/[A-Za-z0-9._~%\-\/]*$/.test(path)) return fallback;
   if (!/^[A-Za-z0-9._~%\-=&,+]*$/.test(query)) return fallback;
   try { if (new URL(path, 'https://ai.invalid').pathname !== path) return fallback; } catch (e) { return fallback; }
   return query ? `${path}?${query}` : path;

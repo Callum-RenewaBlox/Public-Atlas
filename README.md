@@ -746,14 +746,16 @@ when the CAPEX comes back:
 **The sign-in** (`ai/netlify/edge-functions/ai-gate.js`). Every request to the site, whatever its
 address, passes through it first; only its own round trip under `/access/` is answered without a
 session. It is the Atlas's sign-in cut down: the same Supabase project (`renewablox-crm`) and PKCE
-round trip, the same check that every Google and Microsoft identity on the account vouches for its
-address, the same sealed cookies, the same one spelling for every address, and a `#fragment`
-kept across the round trip (so a link to `/eunice/#scenario-3` opens scenario 3 after signing in).
-It offers Google only, and lets in only an account of RenewaBlox's Google Workspace: after the
-round trip it asks Google itself, with the Google token from that sign-in, who signed in, and
-needs a verified **@renewablox.com** address with Google's `hd` claim `renewablox.com` (a personal
-Google account made on a work address has no `hd`, so it is refused). Anyone else gets a "Not
-authorised" page and no session. A sign-in lasts 12 hours, so someone suspended in the Workspace
+round trip, the same sealed cookies, the same one spelling for every address, and a `#fragment`
+kept across the round trip (so a link to `/eunice/#scenario-3` opens scenario 3 after signing in,
+"Try again" included). It offers Google only, and lets in only an account of RenewaBlox's Google
+Workspace, on Google's own answer: after the round trip it asks Google, with the Google token from
+that sign-in, who signed in, and needs a verified **@renewablox.com** address with Google's `hd`
+claim `renewablox.com` (a personal Google account made on a work address has no `hd`, so it is
+refused; a sign-in with another provider has no Google token, so it is refused too). What Supabase
+has stored about the person from earlier sign-ins plays no part, so a renamed Workspace account
+still gets in, and Supabase's own session for the sign-in is ended at once. Anyone else gets a
+"Not authorised" page and no session. A sign-in lasts 12 hours, so someone suspended in the Workspace
 is out by the next working day; to shut everyone out at once, change `AI_SESSION_SECRET` and
 redeploy. A session is sealed for the host that made it, so a deploy preview's opens nothing in
 production. Nothing is served without a session: not a page, an asset or the `/atlas/` proxy, and
