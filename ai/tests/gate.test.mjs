@@ -38,15 +38,15 @@ globalThis.fetch = async (url, init) => {
   throw new Error('unexpected fetch ' + url);
 };
 
-const { default: gate, config, safeReturn, staff, headersFor, canonical, seal } =
+const { default: gate, config, safeReturn, staff, headersFor, canonical, seal, isPrivate } =
   await import(pathToFileURL(join(TMP, 'edge-functions', 'ai-gate.js')).href);
 
 const O = 'https://ai.renewablox.com', HOST = 'ai.renewablox.com';
 const SESSION = '__Host-rbx_ai', STATE = '__Host-rbx_ai_signin';
 let nexts = 0;
 const ctx = { next: async () => { nexts++; return new Response('STATIC', { status: 200, headers: { 'content-type': 'text/html', 'content-security-policy': 'from-origin' } }); } };
-const req = (path, { cookie = '', page = true, method = 'GET', origin = O } = {}) =>
-  new Request(origin + path, { method, headers: { cookie, ...(page ? { 'sec-fetch-dest': 'document', accept: 'text/html' } : { accept: '*/*' }) } });
+const req = (path, { cookie = '', page = true, method = 'GET', origin = O, headers = {} } = {}) =>
+  new Request(origin + path, { method, headers: { cookie, ...(page ? { 'sec-fetch-dest': 'document', 'sec-fetch-mode': 'navigate', accept: 'text/html' } : { accept: '*/*' }), ...headers } });
 const setCookies = res => res.headers.getSetCookie();
 const cookieVal = (res, name) => { const c = setCookies(res).find(c => c.startsWith(name + '=')); return c ? c.split(';')[0].slice(name.length + 1) : null; };
 const google = (email, verified = true, hd = 'renewablox.com') => ({ provider: 'google', identity_data: { email, email_verified: verified, ...(hd ? { custom_claims: { hd } } : {}) } });
@@ -56,16 +56,36 @@ const userinfo = (email, verified = true, hd = 'renewablox.com') => ({ sub: '1',
 // ---- the route: every address, failing closed ----
 assert.equal(config.path, '/*'); assert.equal(config.onError, 'fail');
 assert.ok(!('excludedPath' in config) && !('pattern' in config) && !('excludedPattern' in config));
-ok('the sign-in runs on every address, and fails closed');
+ok('the sign-in runs on every address (it decides which are private), and fails closed');
+
+// the private addresses: Eunice, under any spelling a server might still map to its files
+const PRIVATE = ['/eunice', '/eunice/', '/eunice/index.html', '/eunice/?x=1', '/eunice/x.js', '/eunice-2/', '/eunice.html',
+  '/eunice/../eunice/', '/oscar/../eunice/', '/x/eunice/', '/%5Ceunice/', '/%5Ceunice%5Cindex.html', '/%2565unice/', '/%252565unice/',
+  '/e%55nice/', '/eunice%00/', '/eunice;x/', '/eunice./', '/a%20b/eunice', '/atlas/eunice/',
+  // other ways a server might fold or decode: the Turkish İ and dotless ı, a full-width e, an accented e, escapes escaped
+  '/eun%c4%b0ce/', '/eun%c4%b1ce/', '/%ef%bd%85unice/', '/%c3%a9unice/', '/eu%256eice/',
+  '/%25252565unice/', '/%ff/e%2575nice/', '/x/eu%256Eice/'];
+// the open part of the site
+const OPEN = ['/', '/index.html', '/oscar/', '/oscar/index.html', '/oscar', '/atlas', '/atlas/', '/atlas/clients/srv/', '/investors/x/',
+  '/assets/atlas.css', '/assets/fonts/garet-book.woff2', '/assets/logos/renewablox-wordmark-light.png', '/robots.txt', '/404.html',
+  '/favicon.ico', '/nope/', '/accessx', '/access-x/', '/accessibility/', '/oscar/access/', '/.netlify/functions/x', '/a%20b/',
+  '/eunic/', '/e-unice/', '/oscar/%E2%82%AC'];
+for (const p of PRIVATE) assert.equal(isPrivate(new URL(p, O).pathname), true, `${p} is private`);
+for (const p of OPEN) assert.equal(isPrivate(p), false, `${p} is open`);
+ok(`${PRIVATE.length} spellings of Eunice's addresses are private, and ${OPEN.length} addresses of the rest of the site aren't`);
 
 for (const bad of [{}, { ...ENV, AI_SESSION_SECRET: 'short' }, { ...ENV, SUPABASE_URL: 'https://evil.example.com' }, { ...ENV, SUPABASE_PUBLISHABLE_KEY: '' }]) {
   env = bad;
-  for (const p of ['/', '/eunice/', '/access/', '/access/start', '/access/callback?code=x']) {
+  for (const p of ['/eunice/', '/eunice/index.html', '/eunice', '/access', '/access/', '/access/start', '/access/callback?code=x']) {
     const r = await gate(req(p), ctx); assert.equal(r.status, 503, `${p} locked without settings`);
+    assert.ok((await r.text()).includes('href="/"'), `${p}: the locked page leads back to the open site`);
   }
+  assert.equal(nexts, 0);
+  for (const p of ['/', '/oscar/', '/assets/atlas.css']) assert.equal((await gate(req(p), ctx)).status, 200, `${p} open without settings`);
+  nexts = 0;
 }
-env = { ...ENV }; assert.equal(nexts, 0);
-ok('locked, every address included, until all three settings are right');
+env = { ...ENV };
+ok('Eunice and the sign-in stay locked until all three settings are right; the rest of the site doesn\'t need them');
 
 // ---- one spelling for every address, before anything else ----
 for (const [given, want] of [['//eunice/', '/eunice/'], ['///oscar/', '/oscar/'], ['/%65unice/', '/eunice/'], ['/EUNICE/', '/eunice/'],
@@ -78,11 +98,9 @@ for (const p of ['/eunice/', '/assets/atlas.css', '/a%20b/', '/oscar/%E2%82%AC']
 assert.equal(nexts, 0);
 ok('every other spelling of an address is sent to its one spelling, so the checks and headers below always apply');
 
-// ---- without a session, nothing of the site is served ----
-const GATED = ['/', '/index.html', '/oscar/', '/oscar/index.html', '/oscar', '/eunice', '/eunice/', '/eunice/index.html',
-  '/eunice/../oscar/', '/atlas', '/atlas/', '/atlas/clients/srv/', '/investors/x/', '/assets/atlas.css', '/assets/fonts/garet-book.woff2',
-  '/assets/logos/renewablox-wordmark-light.png', '/robots.txt', '/404.html', '/favicon.ico', '/nope/', '/accessx', '/access-x/',
-  '/.netlify/functions/x', '/eunice/?x=1', '/a%20b/'];
+// ---- without a session, nothing private is served ----
+const GATED = PRIVATE.filter(p => canonical(new URL(p, O).pathname) === new URL(p, O).pathname);
+assert.ok(GATED.length >= 15);
 for (const p of GATED) {
   let r = await gate(req(p), ctx);
   assert.equal(r.status, 303, `${p}: a page asks to sign in`);
@@ -93,12 +111,43 @@ for (const p of GATED) {
   assert.equal(r.status, 401, `${p}: nor is a POST`);
   r = await gate(req(p, { method: 'HEAD' }), ctx);
   assert.equal(r.status, 401, `${p}: nor a HEAD`);
+  for (const method of ['OPTIONS', 'PUT', 'DELETE', 'PATCH']) assert.equal((await gate(req(p, { method }), ctx)).status, 401, `${p}: nor ${method}`);
 }
-assert.equal(nexts, 0, 'nothing reached the site');
+assert.equal(nexts, 0, 'nothing private reached the site');
 assert.equal((await gate(req('/eunice/?x=1'), ctx)).headers.get('location'), '/access/?r=%2Feunice%2F%3Fx%3D1');
-ok(`without a session none of ${GATED.length} addresses (pages, files, assets, the proxied Atlas, odd ones) reaches the site`);
+for (const p of PRIVATE.filter(p => !GATED.includes(p))) {
+  const r = await gate(req(p), ctx), to = r.headers.get('location');
+  assert.equal(r.status, 301, `${p}: sent to its one spelling first`); assert.ok(isPrivate(new URL(to, O).pathname), `${p}: still private there`);
+}
+assert.equal(nexts, 0);
+ok(`without a session none of ${GATED.length} private addresses (the page, its files, odd spellings) reaches the site, and other spellings are sent to one of them`);
+
+// the rest of the site is served as it is, with netlify.toml's headers for it, session or not
+for (const [p, policy] of [['/', 'home-policy'], ['/index.html', 'home-policy'], ['/oscar/', 'oscar-policy'], ['/oscar/index.html', 'oscar-policy'],
+  ['/atlas/market/', 'from-origin'], ['/404.html', 'from-origin'], ['/nope/', 'from-origin'], ['/accessx', 'from-origin'],
+  ['/access-x/', 'from-origin'], ['/accessibility/', 'from-origin'], ['/oscar/access/', 'oscar-policy']]) {
+  for (const opts of [{}, { page: false }, { method: 'HEAD' }, { cookie: `${SESSION}=abc.def` }]) {
+    const before = nexts, r = await gate(req(p, opts), ctx);
+    assert.equal(r.status, 200, `${p} open`); assert.equal(nexts, before + 1, `${p} served by the site`);
+    assert.equal(r.headers.get('content-security-policy'), policy, `${p}: its own policy`);
+    assert.equal(r.headers.get('cache-control'), null, `${p}: Netlify's own caching`);
+    assert.equal(r.headers.get('x-frame-options'), null, `${p}: nothing of the private pages' headers`);
+    assert.equal(r.headers.get('cross-origin-opener-policy'), null);
+    assert.equal(r.headers.getSetCookie().length, 0, `${p}: no cookie`);
+  }
+}
+assert.equal((await gate(req('/oscar/'), ctx)).headers.get('referrer-policy'), 'no-referrer');
+const open = { next: async () => { nexts++; return new Response('x', { status: 404, headers: { 'content-type': 'text/html', 'cache-control': 'public, max-age=0, must-revalidate' } }); } };
+let r = await gate(req('/nope/'), open);
+assert.equal(r.status, 404); assert.equal(r.headers.get('cache-control'), 'public, max-age=0, must-revalidate');
+for (const [given, want] of [['/OSCAR/', '/oscar/'], ['//', '/'], ['/%6Fscar/', '/oscar/']]) {
+  r = await gate(req(given), ctx); assert.equal(r.status, 301); assert.equal(r.headers.get('location'), want);
+}
+assert.equal((await gate(req('/access'), ctx)).status, 401, '/access itself is the sign-in page');
+ok('the home page, OSCAR, the proxied Atlas, the files and the 404 page are open to anyone, with their own headers and caching');
 
 // a cookie that isn't a session of ours: tampered with, empty, the Atlas's, the old name, the sign-in state
+nexts = 0;
 for (const cookie of [`${SESSION}=abc.def`, `${SESSION}=`, 'rbx_atlas=abc.def', 'rbx_ai=abc.def', `${SESSION}=a.b.c`]) {
   assert.equal((await gate(req('/eunice/', { cookie }), ctx)).status, 303);
 }
@@ -108,7 +157,7 @@ assert.equal(nexts, 0);
 ok('a cookie that isn\'t a session of this site\'s opens nothing');
 
 // ---- the sign-in page keeps the #fragment ----
-let r = await gate(req('/access/?r=%2Feunice%2F'), ctx);
+r = await gate(req('/access/?r=%2Feunice%2F'), ctx);
 assert.equal(r.status, 401);
 let html = await r.text();
 assert.ok(html.includes('href="/access/start?r=%2Feunice%2F"'));
@@ -118,19 +167,23 @@ assert.ok(html.includes('@renewablox.com'));
 assert.match(r.headers.get('content-security-policy'), /frame-ancestors 'none'/);
 assert.equal(r.headers.get('cache-control'), 'no-store');
 assert.ok(!html.match(/(src|href)="(https?:)?\/\//), 'the page loads nothing from elsewhere');
-assert.ok(!html.match(/(src|href)="\/(?!access)/), 'nor anything from this site beyond the sign-in');
-ok('the sign-in page offers Google, keeps the #fragment, and loads nothing gated');
+assert.ok(!html.match(/src="\//), 'nor anything from this site');
+assert.deepEqual([...html.matchAll(/href="([^"]*)"/g)].map(m => m[1]), ['/access/start?r=%2Feunice%2F', '/'], 'its links: Google, and back to the open site');
+assert.ok((await (await gate(req('/access/'), ctx)).text()).includes('href="/access/start?r=%2Feunice%2F"'), 'signing in from /access/ itself leads to Eunice');
+assert.ok(html.includes('This page is for RenewaBlox staff.'));
+ok('the sign-in page offers Google, keeps the #fragment, loads nothing and leads back to the open site');
 
 // ---- where to go back to: only this site, never the sign-in ----
+const F = '/eunice/';   // where an address that is refused (or none) leads: the first private page
 for (const [given, want] of [['/eunice/', '/eunice/'], ['/oscar/?s=abc', '/oscar/?s=abc'], ['/', '/'],
-  ['//evil.example.com', '/'], ['/\\evil.example.com', '/'], ['https://evil.example.com/', '/'], ['evil', '/'], ['', '/'], [null, '/'],
-  ['/access/', '/'], ['/access/callback', '/'], ['/ACCESS/start', '/'], ['/./eunice/', '/'], ['/a/../eunice/', '/'],
-  ['/eunice/?a=<script>', '/'], ['/eunice/?a=1?b', '/'], ['javascript:alert(1)', '/'], ['/' + 'x'.repeat(400), '/'],
-  ['/access%2Fsign-out', '/'], ['/acc%65ss/sign-out', '/'], ['/%61ccess/start', '/'], ['/%2Faccess/sign-out', '/'], ['/%65unice/', '/eunice/'],
+  ['//evil.example.com', F], ['/\\evil.example.com', F], ['https://evil.example.com/', F], ['evil', F], ['', F], [null, F],
+  ['/access/', F], ['/access/callback', F], ['/ACCESS/start', F], ['/./eunice/', F], ['/a/../eunice/', F],
+  ['/eunice/?a=<script>', F], ['/eunice/?a=1?b', F], ['javascript:alert(1)', F], ['/' + 'x'.repeat(400), F],
+  ['/access%2Fsign-out', F], ['/acc%65ss/sign-out', F], ['/%61ccess/start', F], ['/%2Faccess/sign-out', F], ['/%65unice/', '/eunice/'],
   ['/%2F%2Fevil.example', '/evil.example']]) {
   assert.equal(safeReturn(given), want, `safeReturn(${JSON.stringify(given)})`);
 }
-ok('the address to return to stays on this site and never loops back to the sign-in');
+ok('the address to return to stays on this site and never loops back to the sign-in; without one it is Eunice');
 
 // ---- the round trip: start, Google through Supabase, callback ----
 // u: the Supabase user the exchange answers with; g: Google's userinfo for this sign-in (null: Google refuses the
@@ -181,23 +234,46 @@ assert.equal((await gate(req('/eunice/', { cookie: `${SESSION}=${previewSession}
 assert.equal((await gate(req('/eunice/', { cookie: `${SESSION}=${session}`, origin: PREVIEW }), ctx)).status, 303, 'nor production\'s on a preview');
 ok('a deploy preview signs in on its own address, and its sessions and production\'s don\'t open each other');
 
-// ---- with a session: the site, with its own headers ----
+// ---- with a session: the private pages, with their own headers ----
 const before = nexts;
-for (const [p, policy] of [['/eunice/', 'eunice-policy'], ['/eunice/index.html', 'eunice-policy'], ['/oscar/', 'oscar-policy'],
-  ['/', 'home-policy'], ['/index.html', 'home-policy'], ['/atlas/market/', 'from-origin'], ['/404.html', 'from-origin']]) {
+for (const [p, policy] of [['/eunice/', 'eunice-policy'], ['/eunice/index.html', 'eunice-policy'], ['/eunice', 'from-origin'], ['/x/eunice/', 'from-origin']]) {
   r = await gate(req(p, { cookie: `${SESSION}=${session}` }), ctx);
   assert.equal(r.status, 200, `${p} served`);
   assert.equal(r.headers.get('content-security-policy'), policy, `${p}: its own policy`);
   assert.equal(r.headers.get('x-robots-tag'), 'noindex, nofollow'); assert.equal(r.headers.get('cache-control'), 'private, no-store');
-  assert.equal(r.headers.get('x-frame-options'), 'SAMEORIGIN');
+  assert.equal(r.headers.get('x-frame-options'), 'DENY'); assert.equal(r.headers.get('cross-origin-opener-policy'), 'same-origin');
 }
-assert.equal(nexts, before + 7);
-r = await gate(req('/oscar/', { cookie: `${SESSION}=${session}` }), ctx); assert.equal(r.headers.get('referrer-policy'), 'no-referrer');
+assert.equal(nexts, before + 4);
 const css = { next: async () => { nexts++; return new Response('x', { headers: { 'content-type': 'text/css' } }); } };
-r = await gate(req('/assets/atlas.css', { cookie: `foo=1; ${SESSION}=${session}`, page: false }), css);
-assert.equal(r.status, 200); assert.equal(r.headers.get('cache-control'), 'private, no-cache');
+r = await gate(req('/eunice/x.css', { cookie: `foo=1; ${SESSION}=${session}`, page: false }), css);
+assert.equal(r.status, 200, 'a request without Sec-Fetch headers (an older browser)'); assert.equal(r.headers.get('cache-control'), 'private, no-cache');
 assert.deepEqual(headersFor('/eunice/x'), { 'content-security-policy': 'eunice-policy', 'x-robots-tag': 'noindex' });
-ok('signed in, every page and file is served with netlify.toml\'s headers for it, and no page is kept by the browser');
+// never to another page's fetch, frame or embed, even with the visitor's session: only as a page in its own right
+const n0 = nexts;
+for (const headers of [{ 'sec-fetch-dest': 'empty', 'sec-fetch-mode': 'cors' }, { 'sec-fetch-dest': 'empty', 'sec-fetch-mode': 'same-origin' },
+  { 'sec-fetch-dest': 'iframe', 'sec-fetch-mode': 'navigate' }, { 'sec-fetch-dest': 'embed', 'sec-fetch-mode': 'no-cors' },
+  { 'sec-fetch-dest': 'object', 'sec-fetch-mode': 'no-cors' }, { 'sec-fetch-dest': 'script', 'sec-fetch-mode': 'no-cors' },
+  { 'sec-fetch-dest': 'document', 'sec-fetch-mode': 'cors' }, { 'sec-fetch-mode': 'cors' }, { 'sec-fetch-dest': 'empty' }]) {
+  r = await gate(req('/eunice/', { cookie: `${SESSION}=${session}`, page: false, headers }), ctx);
+  assert.equal(r.status, 403, `refused: ${JSON.stringify(headers)}`);
+}
+assert.equal(nexts, n0, 'nothing private reached another page');
+for (const headers of [{ 'sec-fetch-dest': 'document', 'sec-fetch-mode': 'navigate', 'sec-fetch-site': 'none' },
+  { 'sec-fetch-dest': 'document', 'sec-fetch-mode': 'navigate', 'sec-fetch-site': 'same-origin' }, {}]) {
+  assert.equal((await gate(req('/eunice/', { cookie: `${SESSION}=${session}`, page: false, headers }), ctx)).status, 200, `opened: ${JSON.stringify(headers)}`);
+}
+ok('signed in, every private page and file is served with netlify.toml\'s headers for it, only as a page in its own right (never fetched, framed or embedded by another page), in a browsing context of its own, and never kept by the browser');
+
+// the open site is the same with a session as without one
+for (const [p, policy] of [['/', 'home-policy'], ['/oscar/', 'oscar-policy'], ['/atlas/market/', 'from-origin'], ['/assets/atlas.css', 'from-origin']]) {
+  for (const opts of [{}, { page: false }]) {
+    const b = nexts; r = await gate(req(p, { cookie: `${SESSION}=${session}`, ...opts }), ctx);
+    assert.equal(r.status, 200); assert.equal(nexts, b + 1);
+    assert.equal(r.headers.get('content-security-policy'), policy); assert.equal(r.headers.get('cache-control'), null);
+    assert.equal(r.headers.get('x-frame-options'), null); assert.equal(r.headers.getSetCookie().length, 0);
+  }
+}
+ok('signed in, the open pages are served exactly as to anyone');
 
 // a session from another secret opens nothing; nor does one forged far ahead, or for an address outside RenewaBlox
 env = { ...ENV, AI_SESSION_SECRET: 'z'.repeat(40) };
@@ -255,6 +331,7 @@ for (const [what, u, g] of NOT) {
   assert.ok(html.includes('@renewablox.com Google account'), `${what}: says who may`);
   assert.equal(cookieVal(r, SESSION), null, `${what}: no session`);
   assert.ok(html.includes('/access/start?r=%2Feunice%2F'), `${what}: offers another account`);
+  assert.ok(html.includes('href="/"'), `${what}: and the way back to the open site`);
 }
 r = await signIn(user('<b>x</b>@gmail.com', google('<b>x</b>@gmail.com', true, null)), userinfo('<b>x</b>@gmail.com', true, null));
 assert.ok((await r.text()).includes('&lt;b&gt;x&lt;/b&gt;@gmail.com'), 'the address shown is escaped');
@@ -267,11 +344,14 @@ ok(`${NOT.length} kinds of account or sign-in that aren't RenewaBlox staff signi
 r = await signIn(null);
 assert.equal(r.status, 400);
 assert.ok(!setCookies(r).some(c => c.startsWith(STATE + '=')), 'a failed exchange keeps the sign-in state (another tab\'s sign-in may still need it)');
-assert.ok((await r.text()).includes('href="/access/start?r=%2Feunice%2F"'), '"Try again" goes back into the sign-in for the same page');
+html = await r.text();
+assert.ok(html.includes('href="/access/start?r=%2Feunice%2F"'), '"Try again" goes back into the sign-in for the same page');
+assert.ok(html.includes('href="/"'), 'and there is a way back to the open site');
 r = await gate(req('/access/callback?error=access_denied&error_description=Your+RenewaBlox+account+is+locked.+Restore+it+at+evil.example'), ctx);
 assert.equal(r.status, 401);
 html = await r.text();
 assert.ok(html.includes('You cancelled the Google sign-in.') && !html.includes('evil.example'), 'Google\'s error code in our words, never the address\'s text');
+assert.ok(html.includes('href="/"'));
 r = await gate(req('/access/callback?error=server_error&error_description=Visit+evil.example'), ctx);
 assert.ok(!(await r.text()).includes('evil.example'));
 for (const code of ['constructor', '__proto__', 'toString', 'hasOwnProperty', 'valueOf']) {
@@ -280,7 +360,8 @@ for (const code of ['constructor', '__proto__', 'toString', 'hasOwnProperty', 'v
 }
 html = await (await gate(req('/access/callback?error=access_denied&error_code=signup_disabled'), ctx)).text();
 assert.ok(html.includes('That Google account can&rsquo;t be used here.'), 'Supabase refusing the account isn\'t called a cancelled sign-in');
-assert.equal((await gate(req('/access/callback?code=x'), ctx)).status, 400, 'no state cookie');
+r = await gate(req('/access/callback?code=x'), ctx);
+assert.equal(r.status, 400, 'no state cookie'); assert.ok((await r.text()).includes('href="/"'));
 assert.equal((await gate(req('/access/callback?code=x', { cookie: `${STATE}=abc.def` }), ctx)).status, 400, 'a state cookie of another secret');
 const prevState = cookieVal(await gate(req('/access/start?r=%2F', { origin: PREVIEW }), ctx), STATE);
 assert.equal((await gate(req('/access/callback?code=x', { cookie: `${STATE}=${prevState}` }), ctx)).status, 400, 'a preview\'s state in production');
@@ -293,6 +374,7 @@ ok('a refused, cancelled, expired, foreign or unreachable sign-in ends on a page
 r = await gate(req('/access/sign-out'), ctx);
 assert.ok(setCookies(r).some(c => c.startsWith(SESSION + '=;') && c.includes('Max-Age=0')));
 assert.equal(r.headers.get('clear-site-data'), '"cache"');
+assert.ok((await r.text()).includes('href="/"'));
 assert.equal((await gate(req('/access/other'), ctx)).status, 404);
 ok('sign-out clears the session and the browser\'s copies of the pages; any other /access/ address is a 404 of the sign-in\'s own');
 

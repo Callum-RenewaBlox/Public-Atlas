@@ -7,10 +7,10 @@
 # (tools/netlify-ignore.sh).
 #
 # Every address passes through the sign-in first, the edge function in netlify/edge-functions/ (ai-gate.js;
-# its settings are described at the top of the file): only RenewaBlox staff, signed in with their
-# @renewablox.com Google account, get past it. After the build its tests run (tests/gate.test.mjs); a sign-in
-# that fails them is never deployed. An edge function's responses don't get the [[headers]] below from
-# Netlify, so build.py hands them to the sign-in, which sets them.
+# its settings are described at the top of the file). It keeps /eunice/ to RenewaBlox staff, signed in with
+# their @renewablox.com Google account, and serves the rest of the site to anyone. After the build its tests
+# run (tests/gate.test.mjs); a sign-in that fails them is never deployed. An edge function's responses don't
+# get the [[headers]] below from Netlify, so build.py hands them to the sign-in, which sets them.
 
 [build]
   command = "python3 build.py && node tests/gate.test.mjs"
@@ -83,12 +83,13 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     X-Robots-Tag = "noindex"
 
-# Eunice Dispatch, the team explainer: one self-contained page (its data and wordmark inlined), loading and
-# calling nothing; its links to the offtakers' sites are followed, not loaded.
+# Eunice Dispatch, the team explainer, behind the sign-in: one self-contained page (its data and wordmark inlined),
+# loading and calling nothing; its links to the offtakers' sites are followed, not loaded. No page may frame it,
+# this site's own included (the sign-in adds the rest of its protection).
 [[headers]]
   for = "/eunice/*"
   [headers.values]
-    Content-Security-Policy = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'; frame-ancestors 'self'"
+    Content-Security-Policy = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "no-referrer"
     X-Robots-Tag = "noindex"

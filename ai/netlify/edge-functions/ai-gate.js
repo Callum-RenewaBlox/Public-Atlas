@@ -1,12 +1,13 @@
-/* ai.renewablox.com's sign-in: every request to the site passes through here first, whatever its address, and only
-   the sign-in's own round trip under /access/ is answered without a session. Only RenewaBlox staff get in: someone who
-   has just signed in to Google with an account of RenewaBlox's Google Workspace (a verified @renewablox.com address,
-   and Google's hd claim renewablox.com).
+/* ai.renewablox.com's sign-in, in front of the pages the team keeps to itself (PRIVATE below: /eunice/ for now). Every
+   request to the site passes through here first, whatever its address: it is sent to its one spelling, then a private
+   address needs a session, and the rest of the site (the home page, OSCAR, the /atlas/ proxy, its files) is served as
+   it is, to anyone. Only RenewaBlox staff get a session: someone who has just signed in to Google with an account of
+   RenewaBlox's Google Workspace (a verified @renewablox.com address, and Google's hd claim renewablox.com).
 
    It is the Atlas's sign-in (atlas/netlify/edge-functions/atlas-gate.js), cut down: the same Supabase project
    (renewablox-crm, whose Google sign-in the CRM and the Atlas use), the same PKCE round trip, the same sealed cookies,
    the same one spelling for every address, and the same way of keeping a #fragment across the round trip. What differs:
-   it covers the whole site, it offers Google only, and who may come in is decided by Google's own answer for the account
+   it offers Google only, and who may come in is decided by Google's own answer for the account
    that has just signed in (its userinfo, asked with the Google token Supabase hands back from this sign-in): a verified
    @renewablox.com address in RenewaBlox's Workspace. What Supabase has stored about the person from earlier sign-ins
    (another provider, an old address) plays no part, so a sign-in with another provider gets no Google token and no
@@ -15,8 +16,9 @@
    A session holds only the address and lasts SESSION_SECONDS (12 hours), so leaving RenewaBlox's Workspace shuts someone
    out by the next working day: Google refuses a suspended account. To shut everyone out at once, change
    AI_SESSION_SECRET and redeploy. A session is sealed for the host that made it, so one made on a deploy preview opens
-   nothing in production. Anything missing or wrong fails closed: no page, asset or file of the site is served without a
-   valid session, and if this function errors Netlify shows its error page (onError: 'fail') rather than the site.
+   nothing in production. Anything missing or wrong fails closed: no private address is served without a valid session
+   (without the settings below, every private address and the sign-in say so), and if this function errors Netlify
+   shows its error page (onError: 'fail') rather than the site.
 
    Set in Netlify (renewablox-ai > Project configuration > Environment variables; on the Personal plan every variable reaches
    the edge functions; a change needs a redeploy):
@@ -33,9 +35,15 @@
    Netlify's custom headers (netlify.toml's [[headers]]) don't reach a response that passes through an edge function,
    so build.py copies them into ../edge-lib/site.js and this function sets them on each page it lets through.
 
-   Once production relies on this function alone (project visibility Private, previews only), two Netlify actions would
-   serve the site without it: publishing (rolling back to) a deploy from before it, and turning on Split Testing, under
-   which Netlify runs no edge functions. Do neither. */
+   A private page shares its origin with the open ones (and the Atlas's pages behind the /atlas/ proxy, with their
+   third-party scripts), so it is served only as a page in its own right: never to a fetch or a frame (Sec-Fetch-*,
+   frame-ancestors 'none', X-Frame-Options DENY), and in a browsing context of its own (Cross-Origin-Opener-Policy), so
+   an open page can't read it through a signed-in visitor's browser. An origin of its own would be the complete answer.
+
+   Once production relies on this function alone (project visibility Private, previews only), turning on Split Testing
+   would serve the private pages without it, as Netlify runs no edge functions under it: don't. Production deploys from
+   before the sign-in have no /eunice/, but once another folder joins PRIVATE, publishing (rolling back to) a deploy
+   from before that change would serve the folder without the sign-in: don't do that either. */
 
 import { HEADERS, WORDMARK } from '../edge-lib/site.js';
 
@@ -48,11 +56,15 @@ const TIMEOUT_MS = 8000;
 const GOOGLE_USERINFO = 'https://openidconnect.googleapis.com/v1/userinfo';
 // Google, through Supabase; hd asks Google's account chooser for RenewaBlox accounts (a hint only: the check is below)
 const GOOGLE = { provider: 'google', prompt: 'select_account', hd: DOMAIN };
+// The site's private folders: an address needs a session when one of these names is anywhere in it (isPrivate below).
+// Add a folder's name here to put it behind the sign-in too.
+const PRIVATE = ['eunice'];
 
 const GATED_HEADERS = {
   'x-robots-tag': 'noindex, nofollow',
   'x-content-type-options': 'nosniff',
-  'x-frame-options': 'SAMEORIGIN',
+  'x-frame-options': 'DENY',
+  'cross-origin-opener-policy': 'same-origin',
   'permissions-policy': 'camera=(), microphone=(), geolocation=()'
 };
 const PAGE_HEADERS = {
@@ -70,12 +82,16 @@ export default async (request, context) => {
   const url = new URL(request.url);
   const clean = canonical(url.pathname);
   if (clean !== url.pathname) return redirect(clean + url.search, [], 301);
+  const path = url.pathname;
+  const signIn = /^\/access(\/|$)/.test(path);
+  // the open part of the site, as it is, with netlify.toml's headers for it
+  if (!signIn && !isPrivate(path)) return withHeaders(await context.next(), headersFor(path));
+
   const cfg = settings();
   if (!cfg) {
     return page(503, 'The sign-in isn&rsquo;t set up yet',
-      'RenewaBlox AI opens once its sign-in has its settings. Until then it stays locked.');
+      'This page is for RenewaBlox staff, and opens once its sign-in has its settings. Until then it stays locked.', HOME);
   }
-  const path = url.pathname;
   if (path === '/access' || path === '/access/') return signInPage(url);
   if (path === '/access/start') return start(url, cfg);
   if (path === '/access/callback') return callback(request, url, cfg, context);
@@ -84,18 +100,39 @@ export default async (request, context) => {
 
   const session = await unseal(readCookie(request, SESSION_COOKIE), 'session', cfg, url.host);
   if (!session) return signedOut(request, url);
+  // a private page opens only as a page in its own right, never fetched or framed by another page of this site
+  // (Eunice loads nothing of its own; a private page that fetched its own files would need them let through here)
+  if (!openedDirectly(request)) return text(403, 'Open this page directly.');
 
-  const res = await context.next();
-  const out = new Response(res.body, res);
-  for (const [k, v] of Object.entries(headersFor(path))) out.headers.set(k, v);
-  for (const [k, v] of Object.entries(GATED_HEADERS)) out.headers.set(k, v);
+  const out = withHeaders(await context.next(), { ...headersFor(path), ...GATED_HEADERS });
   // a page is never kept (a shared computer's Back button can't show it after sign-out); a file is checked each time
   out.headers.set('cache-control', (out.headers.get('content-type') || '').includes('text/html') ? 'private, no-store' : 'private, no-cache');
   return out;
 };
 
-// Every request, whatever its spelling, comes here first.
+// Every request, whatever its spelling, comes here first: Netlify picks an edge function by the address as sent but
+// serves a file under more than one spelling, so which addresses are private is decided here, not by this path.
 export const config = { path: '/*', onError: 'fail' };
+
+// Whether an address needs a session: any address with a private folder's name anywhere in it, looked for with every
+// %-escape undone (and undone again, for one escaped twice), read both byte by byte and as UTF-8, and folded the way a
+// server might fold it (case, accents and other marks dropped, so the Turkish İ is an i, and full-width letters made
+// plain), so no spelling of a private address that a server might still map to its files is let through. A false alarm
+// costs only a sign-in.
+export function isPrivate(path) {
+  let p = String(path);
+  for (let i = 0; i < 5; i++) {
+    const d = p.replace(/%([0-9a-f]{2})/gi, (m, h) => String.fromCharCode(parseInt(h, 16)));
+    if (d === p) break;
+    p = d;
+  }
+  let utf8 = p;
+  if (/^[\x00-\xff]*$/.test(p)) utf8 = new TextDecoder().decode(Uint8Array.from(p, c => c.charCodeAt(0)));
+  return [p, utf8].some(form => {
+    const folded = form.normalize('NFKD').replace(/\p{M}/gu, '').toUpperCase().toLowerCase();
+    return PRIVATE.some(name => folded.includes(name));
+  });
+}
 
 // An address's one spelling, as the Atlas's sign-in has it: no run of slashes, %2F as the slash it stands for, the
 // unreserved characters (letters, digits, - . _ ~) unescaped, and the first folder in lower case, as the site's are.
@@ -117,16 +154,19 @@ function signedOut(request, url) {
   return redirect(`/access/?r=${encodeURIComponent(safeReturn(url.pathname + url.search))}`);
 }
 
+const HOME = { href: '/', label: 'RenewaBlox AI' };
+
 // The sign-in page. A #fragment on the page that sent the visitor here (#scenario-3 on /eunice/, say) survives the
 // redirect, so it is kept in sessionStorage with the address it belongs to, and put back once they are in. Coming back
 // to this page without one (after "Try again", say) keeps the one already kept for the same address.
 function signInPage(url) {
   const back = safeReturn(url.searchParams.get('r'));
   return page(401, 'Sign in to RenewaBlox AI',
-    'RenewaBlox&rsquo;s in-house tools are for RenewaBlox staff. Sign in with your <b>@renewablox.com</b> Google account.',
+    'This page is for RenewaBlox staff. Sign in with your <b>@renewablox.com</b> Google account.',
     { href: `/access/start?r=${encodeURIComponent(back)}`, label: 'Sign in with Google' },
     `<script>try{var k='rbx.ai.hash',r=${JSON.stringify(back)},p=JSON.parse(sessionStorage.getItem(k)||'{}');` +
-    `if(location.hash||p.r!==r)sessionStorage.setItem(k,JSON.stringify({r:r,h:location.hash||''}))}catch(e){}</script>`);
+    `if(location.hash||p.r!==r)sessionStorage.setItem(k,JSON.stringify({r:r,h:location.hash||''}))}catch(e){}</script>`,
+    { href: '/', label: 'Back to RenewaBlox AI' });
 }
 
 async function start(url, cfg) {
@@ -157,16 +197,16 @@ async function callback(request, url, cfg, context) {
   if (q.get('error')) {
     console.error('RenewaBlox AI sign-in: the sign-in answered', q.get('error'), q.get('error_code'), q.get('error_description'));
     const said = SIGN_IN_ERRORS.get(q.get('error_code')) || SIGN_IN_ERRORS.get(q.get('error')) || 'Google didn&rsquo;t complete the sign-in.';
-    return page(401, 'Sign-in didn&rsquo;t finish', said, retry, '', null, [clearState]);
+    return page(401, 'Sign-in didn&rsquo;t finish', said, retry, '', HOME, [clearState]);
   }
   if (!st || !q.get('code')) {
-    return page(400, 'That sign-in has expired', 'Sign-ins have ten minutes to finish, in the browser they started in.', retry, '', null, [clearState]);
+    return page(400, 'That sign-in has expired', 'Sign-ins have ten minutes to finish, in the browser they started in.', retry, '', HOME, [clearState]);
   }
   const tokens = await post(`${cfg.supabaseUrl}/auth/v1/token?grant_type=pkce`, { auth_code: q.get('code'), code_verifier: st.v },
     { apikey: cfg.supabaseKey });
   if (!tokens || !tokens.access_token) {
     // the state stays: this code may be another tab's, and that tab's own sign-in can still finish with it
-    return page(400, 'That sign-in couldn&rsquo;t be completed', 'It may have expired or been used already. Try again.', retry);
+    return page(400, 'That sign-in couldn&rsquo;t be completed', 'It may have expired or been used already. Try again.', retry, '', HOME);
   }
   // Supabase's session for this sign-in is never used: end it, whatever the answer below
   const ended = endSupabaseSession(cfg, tokens.access_token);
@@ -179,12 +219,12 @@ async function callback(request, url, cfg, context) {
   if (!email) {
     return page(403, 'Not authorised',
       'Google didn&rsquo;t confirm a verified address for that account, so it can&rsquo;t be used here. ' +
-      'Sign in with your @renewablox.com Google account.', other, '', null, [clearState]);
+      'Sign in with your @renewablox.com Google account.', other, '', HOME, [clearState]);
   }
   if (!staff(g)) {
     return page(403, 'Not authorised',
-      `You&rsquo;re signed in to Google as <b>${esc(email)}</b>. RenewaBlox AI is for RenewaBlox staff only: ` +
-      'sign in with your @renewablox.com Google account instead.', other, '', null, [clearState]);
+      `You&rsquo;re signed in to Google as <b>${esc(email)}</b>. This page is for RenewaBlox staff only: ` +
+      'sign in with your @renewablox.com Google account instead.', other, '', HOME, [clearState]);
   }
   const session = { t: 'session', e: email, x: now() + SESSION_SECONDS };
   // a page, not a redirect, so the #fragment kept at the sign-in page can be put back on the address
@@ -204,7 +244,7 @@ async function endSupabaseSession(cfg, accessToken) {
 }
 
 function signOut() {
-  const res = page(200, 'Signed out', 'You&rsquo;re signed out of RenewaBlox AI on this browser.', { href: '/access/', label: 'Sign in again' }, '', null,
+  const res = page(200, 'Signed out', 'You&rsquo;re signed out of RenewaBlox AI on this browser.', { href: '/access/', label: 'Sign in again' }, '', HOME,
     [cookie(SESSION_COOKIE, '', 0)]);
   res.headers.set('clear-site-data', '"cache"');
   return res;
@@ -264,15 +304,15 @@ function settings() {
   const cfg = { supabaseUrl: env('SUPABASE_URL').replace(/\/+$/, ''), supabaseKey: env('SUPABASE_PUBLISHABLE_KEY'), secret: env('AI_SESSION_SECRET') };
   const missing = [!/^https:\/\/[a-z0-9-]+\.supabase\.co$/.test(cfg.supabaseUrl) && 'SUPABASE_URL', !cfg.supabaseKey && 'SUPABASE_PUBLISHABLE_KEY',
     cfg.secret.length < 32 && 'AI_SESSION_SECRET (32 characters or more)'].filter(Boolean);
-  if (missing.length) { console.error('RenewaBlox AI is locked until these are set:', missing.join(', ')); return null; }
+  if (missing.length) { console.error('RenewaBlox AI\'s sign-in, and so its private pages, are locked until these are set:', missing.join(', ')); return null; }
   return cfg;
 }
 
 // Where to go back to after signing in: an address on this site, with a plain query, never the sign-in itself, so the
-// round trip can't be turned into a redirect elsewhere. It is checked in its one spelling (canonical, as every address
+// round trip can't be turned into a redirect elsewhere; without one, the first private page (Eunice). It is checked in its one spelling (canonical, as every address
 // is served), so an escaped /access/ is refused too; a path that changes when resolved (dot segments) is refused.
 export function safeReturn(r) {
-  const fallback = '/';
+  const fallback = `/${PRIVATE[0]}/`;
   if (typeof r !== 'string' || r.length > 400) return fallback;
   let [path, query = '', extra] = r.split('?');
   if (extra !== undefined || !/^\/[A-Za-z0-9._~%\-\/]*$/.test(path) || path.includes('//')) return fallback;
@@ -342,9 +382,21 @@ function readCookie(request, name) {
 function cookie(name, value, maxAge) {
   return `${name}=${value}; Path=/; Max-Age=${maxAge}; Secure; SameSite=Lax; HttpOnly`;
 }
+// Opened as a page in its own right (a navigation to a document), by the Sec-Fetch headers every current browser sends
+// and no page's script can change; a request without them (an older browser) is let through.
+function openedDirectly(request) {
+  const dest = request.headers.get('sec-fetch-dest'), mode = request.headers.get('sec-fetch-mode');
+  return (dest === null || dest === 'document') && (mode === null || mode === 'navigate');
+}
 function isPageRequest(request) {
   return request.method === 'GET' && (request.headers.get('sec-fetch-dest') === 'document' || request.headers.get('sec-fetch-dest') === 'iframe' ||
     (request.headers.get('accept') || '').includes('text/html'));
+}
+// A response from the site with these headers set on it.
+function withHeaders(res, headers) {
+  const out = new Response(res.body, res);
+  for (const [k, v] of Object.entries(headers)) out.headers.set(k, v);
+  return out;
 }
 function redirect(location, cookies = [], status = 303) {
   const headers = new Headers({ location, 'cache-control': 'no-store', 'x-robots-tag': 'noindex, nofollow' });
@@ -357,8 +409,8 @@ function text(status, body) {
 function esc(s) {
   return String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 }
-// A page of the sign-in: self-contained (inline style, the wordmark as a data image), as nothing else on the site can
-// be fetched before signing in.
+// A page of the sign-in: self-contained (inline style, the wordmark as a data image), so it shows whatever else the
+// site is doing.
 function page(status, title, textHtml, action, extra = '', secondary = null, cookies = []) {
   const headers = new Headers(PAGE_HEADERS);
   for (const c of cookies) headers.append('set-cookie', c);
