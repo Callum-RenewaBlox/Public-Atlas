@@ -1,0 +1,1633 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<title>WIS Atlas — BLOX 3D</title>
+<meta name="description" content="Wissington Process Render: British Sugar&rsquo;s Wissington factory and its CHP, with RenewaBlox&rsquo;s proposed BLOX Peaker Plant beside the 33 kV substation. A 3D model built from British Sugar&rsquo;s planning drawings and open data, with the process as a nine-step walkthrough, a day of half-hourly prices driving the switch between export and the BLOX, the process as a schematic, and stills."/>
+<meta name="robots" content="noindex, nofollow"/>
+<meta name="theme-color" content="#12475e"/>
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20viewBox='0%200%2032%2032'%3E%3Crect%20width='32'%20height='32'%20rx='7'%20fill='%2312475e'/%3E%3Cpath%20d='M17.8%204.5L9%2017.6h5.6l-1.3%209.9L23%2014.1h-6.2z'%20fill='%23fff'/%3E%3C/svg%3E"/>
+<!-- The page is served at /clients/wis/?view=3d (the sign-in serves this file there) and, locally, as
+     /clients/wis/process.html: both are in the folder its files sit in, so every address below is assets/… -->
+<link rel="preload" href="assets/wis_site_web.glb" as="fetch" crossorigin="anonymous"/>
+<style>
+/* ===================================================================
+   RenewaBlox design system — Wissington Process Render
+   Thainstone's Process Render with this site's model: the same house bar,
+   tabs, rail, caption and glass panels. The scene is the Blender model's
+   web export (assets/wis_site_web.glb), loaded with three.js
+   (assets/three-0.170.0.min.js).
+   =================================================================== */
+@font-face{font-family:"Inter";font-style:normal;font-display:swap;font-weight:100 900;src:url(assets/inter.woff2) format("woff2")}
+:root{
+  --brand:#12475e; --accent:#1f5f7f; --accent-l:#3a89ae;
+  --ink:#0d1b23; --ink-2:#33454f; --muted:#5a6a73; --muted-2:#93a2aa;
+  --surface:#ffffff; --tint:#f4f8fa; --tint-2:#eaf1f5; --line:#dfe8ed; --line-2:#edf3f6;
+  --glass:rgba(251,253,254,.94);
+  --teal:#0f9d77; --site:#2e9e4f; --amber:#b7791f; --amber-soft:#fbf1df; --slate:#7d8d96;
+  --blox:#6fb3d6; --export:#33454f;
+  --sh-1:0 1px 2px rgba(9,26,35,.09), 0 4px 14px rgba(9,26,35,.12);
+  --sh-2:0 2px 6px rgba(9,26,35,.12), 0 14px 44px rgba(9,26,35,.22);
+  --font:"Inter","Inter var",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --ease:cubic-bezier(.2,.8,.3,1);
+  --r-s:8px; --r-m:12px; --r-l:16px; --r-pill:999px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden}
+body{display:flex;flex-direction:column;height:100dvh;font-family:var(--font);color:var(--ink-2);background:var(--tint);
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility}
+*:focus{outline:none}
+*:focus-visible{outline:2px solid var(--accent-l);outline-offset:2px}
+::selection{background:rgba(31,95,127,.22)}
+button{font-family:inherit}
+[hidden]{display:none!important}
+/* the proposal layer: RenewaBlox's parts and words carry data-proposal="1", the plant-alone words data-proposal="0" */
+body.noprop [data-proposal="1"]{display:none!important}
+body:not(.noprop) [data-proposal="0"]{display:none!important}
+
+/* ================================================================ header == */
+header{position:relative;flex:0 0 auto;z-index:5;padding:11px 20px;background:linear-gradient(180deg,#fff,#f8fbfc);
+  border-bottom:1px solid var(--line);display:flex;align-items:center;gap:15px;flex-wrap:nowrap}
+header::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:2.5px;background:linear-gradient(90deg,var(--brand),var(--accent-l) 48%,var(--teal))}
+#backatlas{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--tint);color:var(--accent);
+  font:650 11.3px var(--font);padding:7px 12px 7px 10px;border-radius:var(--r-pill);text-decoration:none;transition:background .15s,border-color .15s,color .15s}
+#backatlas:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+#backatlas svg{width:12px;height:12px;display:block}
+.logo{flex:0 0 auto}
+.logo img{height:21px;width:auto;display:block}
+.divider{flex:0 0 auto;width:1px;height:30px;background:var(--line)}
+.title{flex:1 1 auto;min-width:0}
+.title h1{margin:0;font-size:14.5px;font-weight:700;letter-spacing:-.005em;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.title p{margin:2px 0 0;font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ptabs{flex:0 0 auto;display:flex;gap:3px;padding:3px;background:var(--tint-2);border:1px solid var(--line);border-radius:13px}
+.ptabs button{border:0;background:transparent;font:650 12.2px var(--font);color:var(--muted);padding:6px 14px;border-radius:10px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:7px;white-space:nowrap;transition:background .16s,color .16s,box-shadow .16s}
+.ptabs button svg{width:14px;height:14px;display:block;flex:0 0 auto}
+.ptabs button:hover{color:var(--brand);background:rgba(255,255,255,.7)}
+.ptabs button[aria-selected="true"]{background:var(--brand);color:#fff;box-shadow:0 1px 2px rgba(9,26,35,.18),0 3px 10px rgba(18,71,94,.28)}
+@media (max-width:860px){
+  header{flex-wrap:wrap;row-gap:9px;padding:9px 12px 10px;gap:10px}
+  .logo img{height:16px}
+  .divider{height:24px}
+  .title h1{font-size:13px}
+  .title p{display:none}
+  .ptabs{order:5;margin-left:0;flex:1 1 100%;overflow-x:auto;scrollbar-width:none}
+  .ptabs::-webkit-scrollbar{display:none}
+  .ptabs button{flex:1 0 auto;justify-content:center;padding:6px 11px;font-size:12px}
+}
+@media (min-width:861px) and (max-width:1240px){ .logo,.divider{display:none} .ptabs button svg{display:none} }
+@media (max-width:520px){ .logo,.divider{display:none} }
+@media (max-width:480px){ .ptabs button svg{display:none} }
+@media (max-width:400px){ .ptabs button{padding:6px 7px;font-size:11.5px} #backatlas span{display:none} #backatlas{padding:7px 9px} }
+@media (max-height:500px) and (orientation:landscape){
+  header{flex-wrap:nowrap;padding:6px 12px} .title,.logo,.divider{display:none} .ptabs{order:0;flex:0 1 auto;margin-left:auto}
+}
+
+/* ================================================================= stage == */
+#stage{position:relative;flex:1 1 auto;min-height:0}
+.view{position:absolute;inset:0}
+.page{overflow:auto;background:var(--tint);-webkit-overflow-scrolling:touch}
+.wrap{max-width:1180px;margin:0 auto;padding:26px 24px 48px}
+.page h2,#as-sheet h2{margin:0;font-size:20px;letter-spacing:-.01em;color:var(--ink)}
+.page .sub,#as-sheet .sub{margin:6px 0 18px;color:var(--muted);font-size:13.5px;line-height:1.55;max-width:760px}
+@media (max-width:620px){ .wrap{padding:18px 14px 40px} .page h2,#as-sheet h2{font-size:18px} }
+
+/* ------------------------------------------------------------------ model -- */
+#gl{position:absolute;inset:0;overflow:hidden;background:radial-gradient(130% 90% at 50% 18%,#fbfdfe 0%,#e9f0f4 52%,#d3e0e7 100%)}
+#gl canvas{display:block;width:100%;height:100%;touch-action:none}
+#labels{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:2}
+#labels *{pointer-events:none}
+.lab{position:absolute;width:0;height:0}
+#labels .lbl{pointer-events:auto}
+.lbl{position:absolute;left:0;bottom:0;transform:translate(-50%,-20px);cursor:pointer;white-space:nowrap;text-align:left;touch-action:none;
+  font:650 12px/1.2 var(--font);color:var(--brand);background:var(--glass);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  border:1px solid var(--line);padding:6px 11px;border-radius:var(--r-pill);box-shadow:var(--sh-1);transition:box-shadow .15s,border-color .15s}
+.lbl::after{content:"";position:absolute;left:50%;top:100%;width:2px;height:20px;margin-left:-1px;background:var(--glass);box-shadow:0 0 0 1px var(--line)}
+.lbl small{display:block;font-weight:500;color:var(--muted);font-size:10.5px;margin-top:2px}
+.lbl:hover,.lbl:focus-visible{border-color:var(--accent-l);box-shadow:var(--sh-2)}
+.lab.dim .lbl{color:var(--muted);font-weight:600;border-color:var(--line-2);box-shadow:none}
+.lab.dim .lbl small{display:none}
+.lab.dim .lbl:hover,.lab.dim .lbl:focus-visible{color:var(--brand);border-color:var(--accent-l);box-shadow:var(--sh-2)}
+@media (max-width:860px){ .lbl{font-size:11px;padding:5px 9px} .lbl small{display:none} }
+
+#loading{position:absolute;inset:0;z-index:9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;
+  background:linear-gradient(180deg,#f8fafb,#e4ecf1);font-size:12px;color:var(--muted);font-weight:600;transition:opacity .6s;text-align:center;padding:24px}
+#loading.hide{opacity:0;pointer-events:none}
+#loading::before{content:"";width:34px;height:34px;border-radius:50%;border:2.5px solid rgba(31,95,127,.18);border-top-color:var(--accent);animation:spin .85s linear infinite}
+#loading.failed::before{display:none}
+#loading .bar{width:180px;height:3px;border-radius:3px;background:rgba(31,95,127,.14);overflow:hidden}
+#loading .bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+#loading.failed .bar{display:none}
+#loading a{color:var(--accent);font-weight:700}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.panel{position:absolute;z-index:6;background:var(--glass);-webkit-backdrop-filter:blur(14px) saturate(1.7);backdrop-filter:blur(14px) saturate(1.7);
+  border-radius:var(--r-l);box-shadow:var(--sh-1)}
+.panel,.hint,#labels,#steps{opacity:0;transform:translateY(6px);transition:opacity .7s ease,transform .7s var(--ease)}
+body.ready .panel,body.ready .hint,body.ready #labels,body.ready #steps{opacity:1;transform:none}
+/* the schematic needs no model: its tab shows its panels and the strip at once */
+.tab-schem .panel,.tab-schem #steps{opacity:1;transform:none}
+
+/* the camera and model rail, down the left */
+#rail{left:16px;top:16px;width:198px;padding:8px;display:flex;flex-direction:column;gap:2px;max-height:calc(100% - 140px);overflow:auto;scrollbar-width:thin}
+body.dayon #rail{max-height:calc(100% - 262px)}
+.rail-h{font-size:9.6px;font-weight:750;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);padding:7px 9px 4px}
+.sep{height:1px;background:var(--line);margin:6px 4px}
+#rail button{display:flex;align-items:center;gap:9px;width:100%;border:0;background:transparent;border-radius:10px;padding:7.5px 9px;
+  font:620 12.4px var(--font);color:var(--ink-2);cursor:pointer;text-align:left;transition:background .14s,color .14s}
+#rail button:hover{background:var(--tint-2);color:var(--brand)}
+#rail button .ic{width:16px;height:16px;flex:0 0 auto;color:var(--accent)}
+#rail button[aria-current="true"]{background:var(--brand);color:#fff}
+#rail button[aria-current="true"] .ic{color:#fff}
+#rail button.tg::after{content:"";margin-left:auto;flex:0 0 auto;width:24px;height:14px;border-radius:9px;background:var(--slate);
+  box-shadow:inset 0 0 0 1px rgba(9,26,35,.06);transition:background .16s}
+#rail button.tg::before{content:"";order:3;position:relative;margin-left:-31px;margin-right:12px;width:10px;height:10px;border-radius:50%;background:#fff;
+  box-shadow:0 1px 2px rgba(9,26,35,.3);transition:transform .16s var(--ease);flex:0 0 auto}
+#rail button.tg{position:relative}
+#rail button.tg::after{order:2}
+#rail button.tg[aria-pressed="true"]::after{background:var(--teal)}
+#rail button.tg[aria-pressed="true"]::before{transform:translateX(10px)}
+
+/* the caption that follows the step, top right */
+#caption{right:16px;top:16px;width:min(360px,calc(100% - 246px));padding:13px 15px 13px}
+#caption .k{font-size:9.6px;font-weight:750;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:8px}
+#caption .k i{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--kcol,var(--accent));box-shadow:0 0 0 3px rgba(31,95,127,.12)}
+#caption h2{margin:4px 0 0;font-size:15px;line-height:1.3;color:var(--ink);letter-spacing:-.005em}
+#caption p{margin:6px 0 0;font-size:12px;line-height:1.55;color:var(--ink-2)}
+#capmore{display:none}
+#cap-flows{display:flex;flex-wrap:wrap;gap:5px 12px;margin-top:9px;font-size:10.5px;font-weight:650;color:var(--ink-2)}
+#cap-flows span{display:inline-flex;align-items:center;gap:5px}
+#cap-flows i{width:16px;height:4px;border-radius:2px;display:block}
+/* a pale key colour (sugar, the export) keeps a rim so it shows on the glass */
+#cap-flows i.l{box-shadow:0 0 0 1px rgba(13,27,35,.42)}
+
+.hint{position:absolute;z-index:5;left:50%;bottom:104px;translate:-50% 0;font-size:11px;font-weight:600;color:var(--muted);
+  background:rgba(251,253,254,.94);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);padding:5px 12px;border-radius:var(--r-pill);
+  box-shadow:0 1px 3px rgba(9,26,35,.1);white-space:nowrap;pointer-events:none}
+body.moved .hint{opacity:0!important}
+@media (max-width:1299px){ body.dayon .hint{opacity:0!important} }
+.hint .s{display:none}
+
+/* ------------------------------------------------------- a day at Wissington -- */
+/* one real campaign day's price shape, played in about twenty seconds: above the line the surplus is exported, below it
+   the proposed BLOX takes it. The card sits bottom left over the model and the schematic */
+#day{left:16px;bottom:70px;width:336px;padding:11px 13px 10px;z-index:7}
+.tab-media #day{display:none}
+#day .dh{display:flex;align-items:center;gap:8px}
+#day .dk{flex:1 1 auto;font-size:9.6px;font-weight:750;letter-spacing:.16em;text-transform:uppercase;color:var(--accent)}
+#d-play{flex:0 0 auto;display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);color:var(--brand);
+  font:650 11.5px var(--font);padding:5px 11px 5px 9px;border-radius:var(--r-pill);cursor:pointer;transition:background .15s,color .15s,border-color .15s}
+#d-play:hover{background:var(--brand);border-color:var(--brand);color:#fff}
+#d-play svg{width:11px;height:11px;display:block}
+#d-play[aria-pressed="true"]{background:var(--teal);border-color:var(--teal);color:#fff}
+#day-svg{display:block;width:100%;height:66px;margin-top:7px;cursor:pointer;touch-action:none}
+#d-state{display:flex;align-items:center;gap:7px;margin-top:6px;font:650 11.8px/1.3 var(--font);color:var(--ink)}
+#d-state i{flex:0 0 auto;width:16px;height:5px;border-radius:3px;background:var(--export)}
+#d-state.blox i{background:var(--blox)}
+#day .dn{margin-top:3px;font-size:10.5px;line-height:1.45;color:var(--muted)}
+@media (max-width:860px){
+  #day{left:10px;right:10px;width:auto;bottom:58px;padding:8px 11px 8px}
+  #day-svg{height:44px;margin-top:5px}
+  #day .dn{display:none}
+}
+@media (max-height:640px) and (min-width:861px){ #day-svg{height:44px} #day .dn{display:none} }
+@media (max-height:500px) and (orientation:landscape){ #day{width:300px;right:auto;bottom:56px} #day-svg{display:none} }
+
+/* --------------------------------------------------------------- the steps -- */
+/* the process as a strip along the bottom: the numbered chips, Play, and the arrows */
+#steps{position:absolute;z-index:7;left:16px;right:16px;bottom:14px;display:flex;align-items:center;gap:8px;pointer-events:none}
+#steps > *{pointer-events:auto}
+.tab-media #steps{display:none}
+.sbtn{flex:0 0 auto;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--glass);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  color:var(--brand);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;box-shadow:var(--sh-1);transition:background .15s,color .15s,border-color .15s}
+.sbtn svg{width:15px;height:15px;display:block}
+.sbtn:hover{background:var(--brand);border-color:var(--brand);color:#fff}
+.sbtn[aria-pressed="true"]{background:var(--teal);border-color:var(--teal);color:#fff}
+#strip{flex:1 1 auto;min-width:0;display:flex;gap:4px;padding:6px;background:var(--glass);-webkit-backdrop-filter:blur(14px) saturate(1.7);backdrop-filter:blur(14px) saturate(1.7);
+  border-radius:14px;box-shadow:var(--sh-1);overflow-x:auto;scrollbar-width:none}
+#strip::-webkit-scrollbar{display:none}
+.step{flex:1 1 0;min-width:0;border:0;background:transparent;border-radius:10px;padding:6px 6px 6px;cursor:pointer;text-align:left;color:var(--ink-2);
+  display:flex;align-items:center;gap:7px;position:relative;overflow:hidden}
+.step:hover{background:var(--tint-2);color:var(--brand)}
+.step .n{flex:0 0 auto;width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font:750 10.5px var(--font);
+  color:#fff;background:var(--kcol,var(--slate))}
+.step .t{font:620 11.2px/1.15 var(--font);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.step[aria-current="true"]{background:var(--brand);color:#fff}
+.step[aria-current="true"] .n{box-shadow:0 0 0 2px rgba(255,255,255,.75)}
+/* the progress of the current step while Play runs: a hairline that fills along the chip's foot */
+.step .pr{position:absolute;left:0;bottom:0;height:2px;width:100%;background:rgba(255,255,255,.65);transform-origin:left;transform:scaleX(0)}
+.step[aria-current="true"] .pr{transform:scaleX(var(--pr,0))}
+/* the BLOX chip stands out: it is the one step that is RenewaBlox's proposal */
+.step.blox .n{background:var(--brand);box-shadow:inset 0 0 0 1.5px var(--accent-l)}
+.step[aria-current="true"].blox .n{background:#fff;color:var(--brand)}
+@media (max-width:1180px){ .step .t{display:none} .step{flex:0 0 auto;justify-content:center;padding:6px 5px} .step .n{width:24px;height:24px} }
+@media (max-width:860px){
+  #rail{left:10px;top:10px;width:auto;flex-direction:row;align-items:center;overflow-x:auto;overflow-y:hidden;padding:5px;gap:3px;max-height:none;max-width:calc(100% - 20px);
+    scrollbar-width:none;border-radius:14px}
+  body.dayon #rail{max-height:none}
+  #rail::-webkit-scrollbar{display:none}
+  .rail-h{display:none}
+  .sep{width:1px;height:24px;margin:0 2px;flex:0 0 auto}
+  #rail button{width:auto;flex:0 0 auto;padding:6px 9px;font-size:11.5px;white-space:nowrap}
+  #rail button.tg::after,#rail button.tg::before{display:none}
+  #rail button.tg[aria-pressed="true"]{background:var(--brand);color:#fff}
+  #rail button.tg[aria-pressed="true"] .ic{color:#fff}
+  #caption{left:10px;right:10px;top:56px;width:auto;padding:10px 12px}
+  #caption h2{font-size:13.5px}
+  #caption p{font-size:11.5px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  #caption.more p{-webkit-line-clamp:unset;display:block}
+  #capmore{display:inline;border:0;background:none;padding:0;margin-top:4px;font:700 11px var(--font);color:var(--accent);cursor:pointer}
+  #cap-flows{display:none}
+  .hint{bottom:70px;left:10px;translate:none;max-width:calc(100% - 152px);white-space:normal;font-size:10.5px;line-height:1.35}
+  .hint .f{display:none} .hint .s{display:inline}
+  #steps{left:10px;right:10px;bottom:10px;gap:6px}
+  .sbtn{width:36px;height:36px}
+  /* the rail scrolls sideways: fade whichever edge has more beyond it */
+  #rail.more-r{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 40px),transparent)}
+  #rail.more-l{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px);mask-image:linear-gradient(90deg,transparent,#000 40px)}
+  #rail.more-l.more-r{-webkit-mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent);mask-image:linear-gradient(90deg,transparent,#000 40px,#000 calc(100% - 40px),transparent)}
+}
+@media (max-height:500px) and (orientation:landscape){
+  #caption{width:min(330px,45%);left:auto;top:10px} #caption p,#capmore{display:none} .hint{display:none}
+  #rail{top:10px;max-width:50%}
+}
+
+/* -------------------------------------------------------------- schematic -- */
+#p-schem{display:flex;flex-direction:column;align-items:stretch;background:var(--tint)}
+#schem-wrap{flex:1 1 auto;min-width:0;min-height:0;display:flex;align-items:center;justify-content:center;padding:12px 22px 0}
+#p-schem #caption{position:static;flex:0 0 auto;margin:6px auto 92px;width:min(860px,calc(100% - 32px))}
+#p-schem #caption p{display:block;-webkit-line-clamp:unset}
+@media (min-width:1301px){ body.tab-schem.dayon #p-schem #caption{margin-left:368px;margin-right:auto;width:min(860px,calc(100% - 400px));margin-bottom:76px} }
+@media (min-width:861px) and (max-width:1300px){ body.tab-schem.dayon #p-schem #caption{margin-bottom:206px} }
+@media (max-width:860px){ #p-schem #caption{margin-bottom:80px} body.tab-schem.dayon #p-schem #caption{margin-bottom:150px} #schem-wrap{padding:8px 10px 0;overflow-x:auto;justify-content:flex-start;scrollbar-width:thin} #schem{min-width:1040px;height:auto} }
+#schem{width:100%;height:100%;max-width:1480px;display:block}
+#schem text{font-family:var(--font)}
+#schem .node rect{fill:var(--surface);stroke:var(--line);stroke-width:1.2;transition:stroke .2s,fill .2s}
+#schem .node:hover rect{stroke:var(--accent-l)}
+#schem .node{cursor:pointer}
+#schem .node .nt{font-size:14px;font-weight:700;fill:var(--ink)}
+#schem .node .ns{font-size:11.5px;font-weight:500;fill:var(--muted)}
+#schem .node .nn{font-size:11px;font-weight:800;fill:#fff}
+#schem .node.on rect{stroke:var(--brand);stroke-width:2;fill:#fff}
+#schem .jn rect{fill:var(--tint-2);stroke:var(--line);stroke-width:1.2}
+#schem .jn .nt{font-size:12.5px;font-weight:700;fill:var(--ink-2)}
+#schem .jn .ns{font-size:11px;font-weight:500;fill:var(--muted)}
+#schem.focus .node:not(.on) rect,#schem.focus .node:not(.on) text,#schem.focus .jn{opacity:.42}
+#schem .flow{fill:none;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+#schem .flow.dash{stroke-dasharray:7 9;animation:flowdash 1.1s linear infinite}
+#schem .flow.rim{stroke-width:5.6}
+#schem .flow.rim.on{stroke-width:6.6}
+#schem.focus .flow:not(.on){opacity:.18;animation:none}
+#schem .flow.off{opacity:.12;animation:none}
+#schem .flow.on{stroke-width:4}
+#schem .ext text{font-size:11.5px;font-weight:650;fill:var(--muted)}
+#schem .key text{font-size:11.5px;font-weight:600;fill:var(--ink-2)}
+@keyframes flowdash{to{stroke-dashoffset:-16}}
+@media (prefers-reduced-motion:reduce){ #schem .flow.dash{animation:none} }
+
+/* ---------------------------------------------------------------- stills -- */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.still{position:relative;margin:0;padding:0;border:0;text-align:left;cursor:zoom-in;background:var(--surface);border-radius:var(--r-l);overflow:hidden;
+  box-shadow:var(--sh-1);font:inherit;color:inherit;transition:transform .18s var(--ease),box-shadow .18s;
+  display:flex;flex-direction:column;justify-content:flex-start;align-items:stretch}
+.still:hover{transform:translateY(-2px);box-shadow:var(--sh-2)}
+.still img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:var(--tint-2)}
+.still > span{display:block;padding:11px 14px 13px;font-size:12.5px;line-height:1.5;color:var(--muted)}
+.still > span b{display:block;color:var(--ink);font-size:13.5px;font-weight:700;margin-bottom:1px}
+/* the tag on a still that shows RenewaBlox's proposal: over the picture, which itself stays a clean copy of the render */
+.chip{position:absolute;left:10px;top:10px;z-index:1;font:750 9.6px/1 var(--font);font-style:normal;letter-spacing:.12em;text-transform:uppercase;
+  color:#fff;background:rgba(18,71,94,.88);padding:5px 8px 5px;border-radius:var(--r-pill);box-shadow:0 1px 3px rgba(0,0,0,.25);pointer-events:none;white-space:nowrap}
+.sub .chip{position:static;display:inline-block;vertical-align:1px;box-shadow:none;padding:3px 7px}
+#lb{position:fixed;inset:0;z-index:50;background:rgba(9,20,26,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;padding:56px 64px 22px}
+#lb-fig{position:relative;margin:0;max-width:100%;min-height:0}
+#lb-img{display:block;max-width:calc(100vw - 128px);max-height:calc(100dvh - 170px);border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.5);object-fit:contain}
+#lb .cap{color:#cfdbe2;font-size:13px;line-height:1.5;text-align:center;max-width:760px}
+#lb .cap b{display:block;color:#fff;margin-bottom:2px}
+#lb button{position:absolute;border:0;cursor:pointer;color:#fff;background:rgba(255,255,255,.12);border-radius:var(--r-pill);font:650 13px var(--font);
+  transition:background .15s}
+#lb button:hover{background:rgba(255,255,255,.24)}
+#lb .x{top:14px;right:16px;padding:8px 14px}
+#lb .pv,#lb .nx{top:50%;translate:0 -50%;width:42px;height:42px;font-size:18px}
+#lb .pv{left:12px} #lb .nx{right:12px}
+@media (max-width:620px){ #lb{padding:56px 10px 70px} #lb-img{max-width:calc(100vw - 20px);max-height:calc(100dvh - 230px)} #lb .pv,#lb .nx{top:auto;bottom:16px;translate:none} }
+
+/* ----------------------------------------------------------------- facts -- */
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.card{background:var(--surface);border-radius:var(--r-l);box-shadow:var(--sh-1);padding:18px 20px;border-top:3px solid var(--site)}
+.card.scaled{border-top-color:var(--accent-l)}
+.card.est{border-top-color:var(--amber)}
+.card h3{margin:0 0 4px;font-size:15px;color:var(--ink)}
+.card .src{margin:0 0 10px;font-size:12px;color:var(--muted)}
+.card ul{margin:0;padding-left:18px;color:var(--ink-2);font-size:13px;line-height:1.55}
+.card li{margin:7px 0}
+.card li b{color:var(--ink);font-weight:650}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-top:16px}
+.kpi{background:var(--surface);border-radius:var(--r-m);box-shadow:var(--sh-1);padding:14px 16px}
+.kpi .v{font-size:24px;font-weight:750;color:var(--brand);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.kpi .k{font-size:12px;color:var(--muted);margin-top:2px}
+.foot{margin-top:22px;font-size:11.5px;color:var(--muted);line-height:1.6}
+.page h2.sec{margin-top:38px}
+/* a page scrolls clear of the Assumptions button in the corner */
+.page .wrap{padding-bottom:84px}
+
+/* ----------------------------------------------------------- assumptions -- */
+#as-open{position:fixed;z-index:10;right:16px;bottom:70px;display:inline-flex;align-items:center;gap:7px;
+  border:1px solid var(--line);background:var(--glass);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);color:var(--brand);
+  font:650 12px var(--font);padding:7px 13px 7px 11px;border-radius:var(--r-pill);box-shadow:var(--sh-1);cursor:pointer;
+  transition:background .15s,color .15s,border-color .15s}
+#as-open:hover{background:var(--brand);border-color:var(--brand);color:#fff}
+#as-open svg{width:14px;height:14px;display:block;flex:0 0 auto}
+.tab-media #as-open{bottom:16px}
+@media (max-width:860px){ #as-open{right:10px;bottom:62px} .tab-media #as-open{bottom:10px} body.dayon:not(.tab-media) #as-open{bottom:176px} }
+@media (max-height:500px) and (orientation:landscape){ body.dayon:not(.tab-media) #as-open{bottom:62px} }
+#as-sheet{position:fixed;inset:0;z-index:40;background:rgba(9,20,26,.5);display:flex;align-items:flex-start;justify-content:center;
+  padding:24px 16px;overflow:auto;overscroll-behavior:contain}
+#as-sheet .sheet{position:relative;width:100%;max-width:1180px;margin:auto 0;background:var(--tint);border-radius:var(--r-l);box-shadow:var(--sh-2)}
+#as-x{position:sticky;top:12px;float:right;margin:14px 14px 0 0;z-index:2;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);cursor:pointer;
+  font:650 12px var(--font);padding:7px 12px;border-radius:var(--r-pill);transition:background .15s,color .15s}
+#as-x:hover{background:var(--brand);color:#fff}
+#as-sheet .wrap{padding-top:22px}
+#as-sheet h2{padding-right:96px}
+@media (max-width:620px){ #as-sheet{padding:10px} #as-sheet h2{padding-right:84px} }
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
+</style>
+</head>
+<body class="tab-model">
+<header>
+  <a id="backatlas" href="/clients/wis/" title="Back to the WIS Atlas">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.6L4.6 8 10 13.4"/></svg>
+    <span>Atlas</span>
+  </a>
+  <div class="logo"><img alt="RenewaBlox" src="assets/renewablox-wordmark.png"/></div>
+  <div class="divider"></div>
+  <div class="title">
+    <h1>Process Render: British Sugar&rsquo;s Wissington factory<span data-proposal="1"> and the proposed BLOX Peaker Plant</span></h1>
+    <p><span data-proposal="1">Wissington, Norfolk · British Sugar&rsquo;s process in nine steps · up to about 18 MW of the CHP&rsquo;s export · BLOX Peaker Plant, RenewaBlox&rsquo;s proposal · concept, November 2026</span><span data-proposal="0">Wissington, Norfolk · British Sugar&rsquo;s process in eight steps · about 18 MW of the CHP&rsquo;s output exported · concept, November 2026</span></p>
+  </div>
+  <nav class="ptabs" id="ptabs" role="tablist" aria-label="What the page shows">
+    <button type="button" role="tab" id="t-model" data-tab="model" aria-selected="true" aria-controls="p-model"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.8l5.6 3.1v6.2L8 14.2l-5.6-3.1V4.9z"/><path d="M2.4 4.9L8 8l5.6-3.1M8 8v6.2"/></svg>Model</button>
+    <button type="button" role="tab" id="t-schem" data-tab="schem" aria-selected="false" aria-controls="p-schem" tabindex="-1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.8" y="2.4" width="4.4" height="3.6" rx=".9"/><rect x="9.8" y="2.4" width="4.4" height="3.6" rx=".9"/><rect x="5.8" y="10" width="4.4" height="3.6" rx=".9"/><path d="M4 6v2.2h8V6M8 8.2V10"/></svg>Schematic</button>
+    <button type="button" role="tab" id="t-media" data-tab="media" aria-selected="false" aria-controls="p-media" tabindex="-1"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1.8" y="3.2" width="12.4" height="9.6" rx="1.6"/><circle cx="5.6" cy="6.6" r="1.2"/><path d="M14.2 10.4l-3.6-3.4-6.6 5.8"/></svg>Stills</button>
+  </nav>
+</header>
+
+<main id="stage">
+  <!-- ============================================================ model -->
+  <section class="view" id="p-model" role="tabpanel" aria-labelledby="t-model">
+    <nav class="panel" id="rail" aria-label="Camera and model" inert>
+      <div class="rail-h">Camera</div>
+      <button type="button" data-v="overview" aria-current="true" title="The whole factory from the south-west, with the proposed BLOX Peaker Plant in the field west of it (click again to reset the view)"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.8 11.4l6.2-3.4 6.2 3.4"/><path d="M1.8 11.4V5.2L8 1.8l6.2 3.4v6.2"/><path d="M8 8V1.8"/></svg><span>Overview</span></button>
+      <button type="button" data-v="site" title="The factory from across the Wissey to the north: the river, the lagoons and the fen"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.2"/><path d="M1.8 8h12.4M8 1.8c2.2 2.3 2.2 10.1 0 12.4M8 1.8c-2.2 2.3-2.2 10.1 0 12.4"/></svg><span>Setting</span></button>
+      <button type="button" data-v="switch" data-proposal="1" title="The CHP, British Sugar&rsquo;s switchroom, the 33 kV substation and the proposed BLOX in one view: the surplus goes up the 33 kV line or into the BLOX"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M1.8 8h4.4"/><path d="M6.2 8l3.6-3.6h4.4"/><path d="M9.8 11.6h4.4" stroke-dasharray="1.8 1.6"/><circle cx="6.2" cy="8" r="1.2"/></svg><span>The switch</span></button>
+      <div class="sep"></div>
+      <div class="rail-h">Show</div>
+      <button type="button" class="tg" id="b-flows" aria-pressed="true" title="The flows between the parts of the factory, beet to sugar, steam and power"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 11.5c2.5 0 2.5-7 5-7s2.5 7 5 7 2.5-7 5-7" transform="translate(-1.5 0) scale(.95 1)"/></svg><span>Flows</span></button>
+      <button type="button" class="tg" id="b-labels" aria-pressed="false" title="Show or hide the labels"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 14.4s4.6-4.2 4.6-7.6A4.6 4.6 0 0 0 3.4 6.8c0 3.4 4.6 7.6 4.6 7.6z"/><circle cx="8" cy="6.8" r="1.6"/></svg><span>Labels</span></button>
+      <button type="button" class="tg" id="b-dusk" aria-pressed="false" title="The factory after sunset, and the proposed BLOX&rsquo;s glow lines"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13.2 9.6A5.6 5.6 0 1 1 6.4 2.8a4.6 4.6 0 0 0 6.8 6.8z"/></svg><span>Dusk</span></button>
+      <button type="button" class="tg" id="b-rot" aria-pressed="false" title="Turn the view slowly round the factory; any camera button stops it"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13.4 8A5.4 5.4 0 1 1 11.8 4.2"/><path d="M13.6 2.2v3h-3"/></svg><span>Turn slowly</span></button>
+      <button type="button" class="tg" id="b-prop" aria-pressed="true" title="Show or hide RenewaBlox&rsquo;s proposal: the BLOX Peaker Plant, its feed, step 9 and the day of prices"><svg class="ic" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.8l6 3.2-6 3.2-6-3.2z"/><path d="M2 8.2l6 3.2 6-3.2"/><path d="M2 11.2l6 3.2 6-3.2" stroke-dasharray="1.8 1.6"/></svg><span>Proposal</span></button>
+    </nav>
+    <div id="gl" aria-label="3D model of British Sugar&rsquo;s Wissington factory on the fen by the River Wissey, with RenewaBlox&rsquo;s proposed BLOX Peaker Plant in the field west of it" role="img"></div>
+    <div id="labels"></div>
+    <div id="loading" role="status"><span id="loadmsg">Loading the factory</span><div class="bar"><i id="loadbar"></i></div></div>
+
+    <div class="panel" id="caption" aria-live="polite" inert>
+      <div class="k" id="cap-k"><i></i><span>Camera · Overview</span></div>
+      <h2 id="cap-h">The factory, and the proposed BLOX Peaker Plant beside it</h2>
+      <p id="cap-p"></p>
+      <div id="cap-flows"></div>
+      <button type="button" id="capmore">More</button>
+    </div>
+    <div class="hint"><span class="f">Drag to orbit · scroll or pinch to zoom · right-drag or two fingers to pan · the numbered steps walk the process · ← → step, space plays</span><span class="s">Drag to orbit · pinch to zoom · the numbers walk the process</span></div>
+  </section>
+
+  <!-- ========================================================= schematic -->
+  <section class="view" id="p-schem" role="tabpanel" aria-labelledby="t-schem" hidden>
+    <div id="schem-wrap"><svg id="schem" viewBox="0 0 1480 560" role="img" aria-label="Process schematic: British Sugar&rsquo;s seven steps, their CHP and the proposed BLOX Peaker Plant, and the flows between them"></svg></div>
+  </section>
+
+  <!-- ============================================================ stills -->
+  <section class="view page" id="p-media" role="tabpanel" aria-labelledby="t-media" tabindex="0" hidden>
+    <div class="wrap">
+      <h2 id="stills">Stills</h2>
+      <p class="sub" data-proposal="1">Path-traced views of the model, with the light and materials the browser cannot show, and no lettering. The views tagged <i class="chip">RenewaBlox proposal</i> show the proposed BLOX Peaker Plant or its feed; the overview has a twin with British Sugar&rsquo;s factory alone. Click one to see it full size; the arrow keys step through them.</p>
+      <p class="sub" data-proposal="0">Path-traced views of British Sugar&rsquo;s factory, with the light and materials the browser cannot show, and no lettering. Click one to see it full size; the arrow keys step through them.</p>
+      <div class="grid" id="gallery">
+        <button type="button" class="still" data-proposal="1" data-full="assets/st_hero.jpg"><img src="assets/st_hero_thumb.jpg" alt="The factory from the south-west, with the proposed BLOX Peaker Plant on its pad in the field in front" loading="lazy"/><i class="chip">RenewaBlox proposal</i><span><b>The factory from the south-west</b>From over the field west of the factory: the CHP and its stack, the main building, the silo row and silo 7, the domed thick-juice tanks and the lime kiln, with the proposed BLOX Peaker Plant on its raised pad in the foreground and the Wissey&rsquo;s lagoons beyond</span></button>
+        <button type="button" class="still" data-proposal="1" data-full="assets/st_overview.jpg"><img src="assets/st_overview_thumb.jpg" alt="The factory and the proposed BLOX Peaker Plant from high in the south-west" loading="lazy"/><i class="chip">RenewaBlox proposal</i><span><b>The overview</b>The model&rsquo;s opening view, path-traced: the factory on the fen with the Wissey through the site, the beet pad on the east side, and the proposed BLOX Peaker Plant in the field west of the factory</span></button>
+        <button type="button" class="still" data-full="assets/st_plant.jpg"><img src="assets/st_plant_thumb.jpg" alt="The factory from high in the south-west" loading="lazy"/><span><b>The overview, the factory alone</b><span data-proposal="1">The factory-only twin of &ldquo;The overview&rdquo;: British Sugar&rsquo;s factory as it stands, the field west of it left as it is</span><span data-proposal="0">British Sugar&rsquo;s factory on the fen with the Wissey through the site and the beet pad on the east side</span></span></button>
+        <button type="button" class="still" data-proposal="1" data-full="assets/st_switch_export.jpg"><img src="assets/st_switch_export_thumb.jpg" alt="The CHP&rsquo;s surplus going up the 33 kV line to the west, the proposed BLOX idle" loading="lazy"/><i class="chip">RenewaBlox proposal</i><span><b>The switch: export hours</b>When export prices are high: the CHP&rsquo;s surplus (blue) runs to British Sugar&rsquo;s switchroom by the 33 kV substation and on up the 33 kV line to the west (white), as it does today; the proposed BLOX stands idle</span></button>
+        <button type="button" class="still" data-proposal="1" data-full="assets/st_switch_blox.jpg"><img src="assets/st_switch_blox_thumb.jpg" alt="The CHP&rsquo;s surplus going to the proposed BLOX Peaker Plant, the 33 kV line resting" loading="lazy"/><i class="chip">RenewaBlox proposal</i><span><b>The switch: the BLOX&rsquo;s hours</b>The same view when prices are low: from the switchroom the surplus runs along the buried feed to the proposed BLOX (light blue), and the 33 kV line rests. Never both at once</span></button>
+        <button type="button" class="still" data-proposal="1" data-full="assets/st_process.jpg"><img src="assets/st_process_thumb.jpg" alt="The factory from high in the north, with the process drawn as one path over the roofs" loading="lazy"/><i class="chip">RenewaBlox proposal</i><span><b>The process as one path</b>From high over the north: British Sugar&rsquo;s process as one path over the roofs, from the beet pad to the silos, with a disc at each station, and the CHP&rsquo;s power and the proposed BLOX&rsquo;s feed</span></button>
+        <button type="button" class="still" data-proposal="1" data-full="assets/st_blox.jpg"><img src="assets/st_blox_thumb.jpg" alt="The proposed BLOX Peaker Plant: two banks of containers on a raised pad in the field west of the factory" loading="lazy"/><i class="chip">RenewaBlox proposal</i><span><b>The proposed BLOX Peaker Plant</b>Ten 40 ft hydro-cooled containers in two banks of five with their dry coolers on the roofs, five transformer kiosks, the HV switchgear house and the control container, on a pad raised to the factory&rsquo;s yard level, fed from British Sugar&rsquo;s switchroom behind the export meter</span></button>
+        <button type="button" class="still" data-full="assets/st_chp.jpg"><img src="assets/st_chp_thumb.jpg" alt="The CHP and its stack at the factory&rsquo;s north-west corner, with its steam and power flows" loading="lazy"/><span><b>The CHP</b>British Sugar&rsquo;s CHP at the factory&rsquo;s north-west corner, with its 60 m stack: steam (magenta) to the evaporators and the new steam dryers, power (blue) to the factory, and the surplus towards the 33 kV substation</span></button>
+        <button type="button" class="still" data-proposal="1" data-full="assets/st_dusk.jpg"><img src="assets/st_dusk_thumb.jpg" alt="The factory and the proposed BLOX Peaker Plant at dusk in the campaign" loading="lazy"/><i class="chip">RenewaBlox proposal</i><span><b>At dusk in the campaign</b>The overview at dusk: the yard lights and lit windows of a campaign evening, and the proposed BLOX&rsquo;s lights. The lighting is assumed</span></button>
+        <button type="button" class="still" data-full="assets/st_setting.jpg"><img src="assets/st_setting_thumb.jpg" alt="The factory from across the River Wissey to the north" loading="lazy"/><span><b>Across the Wissey</b>From the north bank, low across the river: the factory along the south bank, its silos, kiln and stacks, as the factory elevations draw it</span></button>
+        <button type="button" class="still" data-proposal="1" data-full="assets/st_aerial.jpg"><img src="assets/st_aerial_thumb.jpg" alt="The factory from high above the south, with the proposed BLOX Peaker Plant to its west" loading="lazy"/><i class="chip">RenewaBlox proposal</i><span><b>From above</b>The factory from high over the south: the thick-juice tank farm, the silos, the main building and the beet pad, with the proposed BLOX Peaker Plant in the field to the west</span></button>
+        <button type="button" class="still" data-full="assets/st_step1.jpg"><img src="assets/st_step1_thumb.jpg" alt="A beet field on the fen with a field clamp, the factory beyond" loading="lazy"/><span><b>Step 1: Grown</b>&ldquo;Grown in East Anglia and the East Midlands, harvested in autumn and winter&rdquo;: a beet field on the fen with a field clamp waiting for collection, the factory beyond</span></button>
+        <button type="button" class="still" data-full="assets/st_step2.jpg"><img src="assets/st_step2_thumb.jpg" alt="Beet lorries arriving at the beet pad" loading="lazy"/><span><b>Step 2: To the factory</b>&ldquo;Travels to one of our advanced manufacturing plants&rdquo;: the beet by lorry up College Road and in to the beet pad and the reception</span></button>
+        <button type="button" class="still" data-full="assets/st_step3.jpg"><img src="assets/st_step3_thumb.jpg" alt="The beet reception and the flume to the washer" loading="lazy"/><span><b>Step 3: Washed</b>&ldquo;When it arrives on site, the sugar beet is washed&rdquo;: from the reception along the flume to the washer</span></button>
+        <button type="button" class="still" data-full="assets/st_step4.jpg"><img src="assets/st_step4_thumb.jpg" alt="The slicer building" loading="lazy"/><span><b>Step 4: Sliced</b>&ldquo;Sliced into thin strips called cossettes&rdquo;: the slicer building, and the cossettes on to the diffuser</span></button>
+        <button type="button" class="still" data-full="assets/st_step5.jpg"><img src="assets/st_step5_thumb.jpg" alt="The main building and the lime kiln" loading="lazy"/><span><b>Step 5: Juice and lime</b>&ldquo;Mixed with hot water to extract the sugar; a lime solution removes impurities&rdquo;: the diffuser in the main building, and the lime kiln&rsquo;s milk of lime to carbonatation</span></button>
+        <button type="button" class="still" data-full="assets/st_step6.jpg"><img src="assets/st_step6_thumb.jpg" alt="The evaporators and the thick-juice tanks" loading="lazy"/><span><b>Step 6: Crystallised</b>&ldquo;Filtered, heated and seeded with tiny crystals; washed, dried and cooled&rdquo;: the evaporators, and the thick juice stored in the domed tanks for the juice run</span></button>
+        <button type="button" class="still" data-full="assets/st_step7.jpg"><img src="assets/st_step7_thumb.jpg" alt="The silos, the sugar store and the outloading" loading="lazy"/><span><b>Step 7: To customers</b>&ldquo;Delivered to our customers in a variety of formats&rdquo;: the silos, the sugar store and the bulk outloading</span></button>
+        <button type="button" class="still" data-full="assets/st_step8.jpg"><img src="assets/st_step8_thumb.jpg" alt="The CHP with its steam and power flows" loading="lazy"/><span><b>Step 8: The CHP</b>Steam and electricity from the combined heat and power plant: steam to the evaporators and the steam dryers, power to the factory and the surplus to the 33 kV substation</span></button>
+        <button type="button" class="still" data-proposal="1" data-full="assets/st_step9.jpg"><img src="assets/st_step9_thumb.jpg" alt="The proposed BLOX Peaker Plant and its feed from British Sugar&rsquo;s switchroom" loading="lazy"/><i class="chip">RenewaBlox proposal</i><span><b>Step 9: The BLOX Peaker Plant</b>RenewaBlox&rsquo;s proposal: the BLOX on its pad in the field west of the factory, fed from British Sugar&rsquo;s switchroom behind the export meter</span></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- a day at Wissington: serves the model and the schematic, with the proposal on, in the overview and at step 9 -->
+  <div class="panel" id="day" data-proposal="1" hidden>
+    <div class="dh"><span class="dk">A day at Wissington</span>
+      <button type="button" id="d-play" aria-pressed="false" title="Play one campaign day, midnight to midnight, in about twenty seconds"><svg viewBox="0 0 16 16" fill="currentColor" class="pl"><path d="M4.2 2.6v10.8L13 8z"/></svg><svg viewBox="0 0 16 16" fill="currentColor" class="pa" hidden><path d="M3.6 2.8h3.2v10.4H3.6zM9.2 2.8h3.2v10.4H9.2z"/></svg><span>Play the day</span></button>
+    </div>
+    <svg id="day-svg" viewBox="0 0 300 66" preserveAspectRatio="none" role="img" aria-label="The shape of one campaign day&rsquo;s half-hourly price, midnight to midnight, with the line the switch turns on; no prices are shown"></svg>
+    <div id="d-state"><i></i><span>Prices high: exporting up the 33 kV line</span></div>
+    <div class="dn">One real campaign weekday, midnight to midnight, half-hour by half-hour: the price&rsquo;s shape only. Above the line the surplus is exported; below it the BLOX takes it.</div>
+  </div>
+
+  <!-- the steps strip serves the model and the schematic -->
+  <div id="steps" aria-label="The process, step by step">
+    <button type="button" class="sbtn" id="s-prev" title="Previous step (←)" aria-label="Previous step"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.6L4.6 8 10 13.4"/></svg></button>
+    <button type="button" class="sbtn" id="s-play" title="Play the process, step by step (space)" aria-pressed="false" aria-label="Play the process"><svg viewBox="0 0 16 16" fill="currentColor" class="pl"><path d="M4.2 2.6v10.8L13 8z"/></svg><svg viewBox="0 0 16 16" fill="currentColor" class="pa" hidden><path d="M3.6 2.8h3.2v10.4H3.6zM9.2 2.8h3.2v10.4H9.2z"/></svg></button>
+    <div id="strip" role="tablist" aria-label="Process steps"></div>
+    <button type="button" class="sbtn" id="s-next" title="Next step (→)" aria-label="Next step"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2.6L11.4 8 6 13.4"/></svg></button>
+  </div>
+</main>
+
+<!-- the assumptions: a sheet over whichever tab is open, from the button in the corner -->
+<button type="button" id="as-open" aria-haspopup="dialog" aria-controls="as-sheet"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 2.4h7.2L13 5.2v8.4H3z"/><path d="M5.4 8.2l1.6 1.6 3-3.2"/></svg>Assumptions</button>
+<div id="as-sheet" role="dialog" aria-modal="true" aria-labelledby="as-h" hidden>
+  <div class="sheet">
+    <button type="button" id="as-x" aria-label="Close the assumptions">Close ✕</button>
+    <div class="wrap">
+      <h2 id="as-h"><span data-proposal="1">What comes from British Sugar, what RenewaBlox proposes, and what is assumed</span><span data-proposal="0">What comes from British Sugar, and what is assumed</span></h2>
+      <p class="sub">So the people who know the factory can see at once what to trust. The process steps are British Sugar&rsquo;s own, in their words; the buildings follow British Sugar&rsquo;s planning drawings, used as a reference for their sizes and layout and not reproduced here; the ground and the setting come from government open data.<span data-proposal="1"> The BLOX Peaker Plant and its feed are RenewaBlox&rsquo;s proposal, not British Sugar&rsquo;s plan.</span> Everything else is a modelling choice, and this sheet says which.</p>
+      <div class="cols">
+        <div class="card">
+          <h3>From British Sugar</h3>
+          <p class="src">British Sugar&rsquo;s website (how sugar is made; its factories), its news releases, its planning drawings for the steam drying plant (application 24/01844/F) and the Environment Agency&rsquo;s permit for the site, read in November 2026</p>
+          <ul>
+            <li><b>The process</b>: steps 1 to 7 are British Sugar&rsquo;s own seven steps from beet to sugar, in their words and their order, condensed; step 8 is their combined heat and power plant, as they list electricity among the factory&rsquo;s co-products</li>
+            <li><b>Layout and sizes</b>: the footprints from British Sugar&rsquo;s drawings WI 00 000 9500 and 9501 (the location and land ownership plan, both sides of the Wissey) and the heights of the named structures from WI 00 000 9502 (the factory elevations), all submitted with application 24/01844/F. The drawings are British Sugar&rsquo;s and marked confidential: they were used as a reference for sizes and layout only, and are not reproduced</li>
+            <li><b>The CHP</b>: a gas turbine and a heat recovery steam generator exhausting through the 60 m stack, with a 30 m bypass stack; its steam heats the evaporators and, from the 2026/27 campaign, the new steam dryers (the permit and British Sugar&rsquo;s news)</li>
+            <li><b>The surplus</b>: up to about 18 MW of the CHP&rsquo;s output is not used by the factory and is exported today. This is British Sugar&rsquo;s figure, given to RenewaBlox in November 2026; the page gives no other figure for the CHP</li>
+            <li><b>The journey</b>: the new first-effect and juice-run evaporators (2023), the CO&#8322; plant restarted with Air Liquide (2024), and the steam dryers for the 2026/27 campaign, which take steam from the CHP and replace the gas-fired pulp dryers; named, without figures</li>
+            <li><b>The grid</b>: UK Power Networks&rsquo; Wissington 33 kV substation stands inside the site, on its west side (UK Power Networks&rsquo; 2013 CIRED paper; OpenStreetMap as a cross-check); the export leaves on its 33 kV lines, within an export limit</li>
+          </ul>
+        </div>
+        <div class="card scaled" data-proposal="1">
+          <h3>RenewaBlox&rsquo;s proposal</h3>
+          <p class="src">The BLOX Peaker Plant as modelled for this site, November 2026: not part of British Sugar&rsquo;s plans</p>
+          <ul>
+            <li><b>Up to about 18 MW of flexible demand</b> behind the export meter: a data centre that would mine Bitcoin, in ten 40 ft Winchain hydro-cooled containers of about 1.75 MW each (about 17.5 MW of IT), with dry coolers on their roofs</li>
+            <li><b>Where</b>: on a pad raised to the factory&rsquo;s yard level, in the field just west of the factory&rsquo;s west fence, about 115 m from the 33 kV substation and at least 28 m clear of every overhead line. No plot inside the factory&rsquo;s ring flood bank near the substation fits it. Whether the field is British Sugar&rsquo;s, and its flood design outside the bank, are questions for British Sugar</li>
+            <li><b>Connection</b>: from British Sugar&rsquo;s own HV switchroom and export metering, not from UK Power Networks&rsquo; 33 kV, by a buried feed to five 4 MVA transformer kiosks, an HV switchgear house and a control container; the 33 kV lines carry the export only</li>
+            <li><b>Dispatch</b>: the CHP runs for the factory&rsquo;s heat as it does today. When export prices are high the surplus is exported as now; when they are low the BLOX takes it instead. It never imports from the grid and adds no generating capacity: the peaker is the export</li>
+            <li><b>A day at Wissington</b>: the shape of one real campaign weekday&rsquo;s half-hourly GB market index price (Elexon BMRS, autumn 2026), scaled so that no price can be read; the line is where the data centre would earn about the same as the export, from RenewaBlox&rsquo;s dispatch model (assumed). It shows how the switch would behave, not a forecast</li>
+            <li><b>Heat</b>: the containers&rsquo; heat goes to the dry coolers on their roofs; whether any of it could be offered on site is a question for British Sugar</li>
+            <li><b>Not claimed</b>: the page gives no price, revenue, cost or saving; those belong in a later BLOX Dispatch view</li>
+          </ul>
+        </div>
+        <div class="card est">
+          <h3>Assumed: please check</h3>
+          <p class="src">Each is one setting in the model, so a drawing or a decision replaces it directly</p>
+          <ul>
+            <li><b>Heights and roofs</b>: the named structures from the elevations; every other roof from the Environment Agency&rsquo;s LiDAR (November 2018), flat with a low parapet unless the LiDAR shows a ridge; no doors, windows or cladding detail beyond ribbed panels</li>
+            <li><b>Tanks and silos</b>: the thick-juice tanks in their two sizes, silos 1 to 6 with their gallery and head house, and silo 7, to the elevations&rsquo; heights; the lime kiln&rsquo;s head and hoist in an assumed form</li>
+            <li><b>Built since 2018</b>: the steam drying plant from the plan&rsquo;s planning hatch and the elevations&rsquo; height (the LiDAR predates it)</li>
+            <li><b>Colours</b>: by eye from imagery and varied per building; not British Sugar&rsquo;s own colour scheme</li>
+            <li><b>The beet pad</b>: the clamps, lorries and the field clamp placed as a campaign day might have them</li>
+            <li><b>The 33 kV lines and substation</b>: the lines on the plan&rsquo;s routes as wood poles about 11 m high; the substation&rsquo;s switchroom, its 2013 quadrature booster, the gantry and British Sugar&rsquo;s switchroom and export metering laid out by assumption</li>
+            <li><b>The flows</b>: a diagram of the process drawn over the roofs, not its pipework; routes and heights chosen so each flow can be seen; beet reception, washing and the flume placed on the factory&rsquo;s east side</li>
+            <li data-proposal="1"><b>The BLOX</b>: the container count, size and layout, the kiosks, the pad and its height, and the feed&rsquo;s route are RenewaBlox&rsquo;s working assumptions, to be confirmed with British Sugar and RenewaBlox&rsquo;s engineers</li>
+            <li><b>The setting</b>: the fields coloured by the 2025 crop map as an autumn day might show them; trees from the LiDAR as simple forms; buildings beyond the factory from Ordnance Survey footprints</li>
+            <li><b>The light</b>: one autumn sun for the page; the dusk lighting is assumed</li>
+            <li data-proposal="1"><b>Branding</b>: the RenewaBlox livery on the containers</li>
+          </ul>
+        </div>
+      </div>
+      <div class="kpis">
+        <div class="kpi"><div class="v">&asymp; 18 MW</div><div class="k">of the CHP&rsquo;s output not used on site and exported today, British Sugar&rsquo;s figure</div></div>
+        <div class="kpi" data-proposal="1"><div class="v">10 containers</div><div class="k">BLOX Peaker Plant, proposed: up to about 18 MW behind the export meter</div></div>
+        <div class="kpi" data-proposal="1"><div class="v">9 steps</div><div class="k">British Sugar&rsquo;s seven, their CHP, and the proposed BLOX</div></div>
+        <div class="kpi" data-proposal="0"><div class="v">8 steps</div><div class="k">British Sugar&rsquo;s seven, and their CHP</div></div>
+      </div>
+      <p class="foot">RenewaBlox · Wissington concept visualisation, November 2026: British Sugar&rsquo;s factory<span data-proposal="1">, with RenewaBlox&rsquo;s proposed BLOX Peaker Plant</span>. Built in Blender from British Sugar&rsquo;s planning drawings (WI 00 000 9500, 9501 and 9502, British Sugar&rsquo;s and marked confidential), used as a reference for sizes and layout and not reproduced, and from government open data; the stills are path-traced in Cycles. In the browser the finishes show as flat colours. Not a survey, and not for construction. The process steps are British Sugar&rsquo;s, quoted with light edits for length. Ground and surface: Environment Agency LiDAR Composite DTM and first-return DSM, 1 m, flown 13 November 2018. Terrain, buildings, roads, water and woodland: OS Terrain 50 and OS OpenMap Local; contains OS data &copy; Crown copyright and database right 2026. Crops: Rural Payments Agency, Crop Map of England (CROME) 2025. Flood zones: Environment Agency. Contains public sector information licensed under the Open Government Licence v3.0. The satellite imagery on the atlas map is Esri&rsquo;s, used under its terms and credited there; Esri&rsquo;s imagery was used only to check the model by eye and is not used in the 3D. No Google Earth or Google 3D content.</p>
+    </div>
+  </div>
+</div>
+
+<div id="lb" role="dialog" aria-modal="true" aria-label="Still" hidden>
+  <button type="button" class="x" id="lb-x">Close ✕</button>
+  <button type="button" class="pv" id="lb-pv" aria-label="Previous still">‹</button>
+  <figure id="lb-fig"><img id="lb-img" alt=""/><i class="chip" id="lb-chip" hidden>RenewaBlox proposal</i></figure>
+  <div class="cap" id="lb-cap"></div>
+  <button type="button" class="nx" id="lb-nx" aria-label="Next still">›</button>
+</div>
+
+<script src="assets/three-0.170.0.min.js"></script>
+<script>
+(function(){
+  const $ = (id) => document.getElementById(id);
+  const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // a fixed seed for the fans' phases, so the scene is the same on every load (and in every round's shots)
+  const rand = (() => { let s = 0x2545F491 >>> 0; return () => { s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; })();
+  // the proposal layer: RenewaBlox's parts, flow, step, day and words, on unless the address says ?proposal=0
+  let proposal = new URLSearchParams(location.search).get('proposal') !== '0';
+  document.body.classList.toggle('noprop', !proposal);
+
+  /* ========================================================== the model's data */
+  // The model's cameras ([position, target] in site metres, east, north and height (z = m ODN - 1.8) from the centre of the
+  // CHP stack A62, and the vertical field of view), its flows' routes and the 33 kV conductors, from the Blender scene's
+  // web export.
+  /*MODEL-BEGIN*/
+    const MODEL = /* from out_web/wis_web_data.json (wis_page_data.py): cameras [position, target, vertical fov], the routes of the flows and the 33 kV conductors (spans of 9 points), ENU metres from the CHP stack A62 */
+    {"cams":{"S00":[[-470.0,-700.0,270.0],[130.0,-120.0,12.0],41.97],"S01":[[720.0,-880.0,75.0],[478.0,-561.0,-30.0],27.11],"S02":[[512.2,5.6,180.2],[385.0,-165.0,14.0],29.84],"S03":[[458.0,28.1,125.3],[318.0,-82.0,14.0],28.41],"S04":[[307.5,161.1,114.7],[282.0,2.0,14.0],27.11],"S05":[[11.5,126.1,151.8],[95.0,-78.0,14.0],31.42],"S06":[[395.0,-255.0,150.0],[225.0,-100.0,14.0],29.84],"S07":[[18.5,-391.6,173.0],[215.0,-230.0,14.0],29.84],"S08":[[-200.0,80.0,85.0],[20.0,-35.0,24.0],28.41],"S09":[[-238.0,-262.0,48.0],[-160.0,-178.0,0.0],41.97],"S10":[[120.0,330.0,42.0],[140.0,-60.0,18.0],41.97],"S11":[[-300.0,-470.0,175.0],[-95.0,-150.0,0.0],41.97],"S12":[[-300.0,-470.0,175.0],[-95.0,-150.0,0.0],41.97],"S13":[[-470.0,-700.0,270.0],[130.0,-120.0,12.0],41.97],"S14":[[-470.0,-700.0,270.0],[130.0,-120.0,12.0],41.97],"hero":[[-380.0,-330.0,95.0],[60.0,-120.0,22.0],37.3],"aerial":[[40.0,-560.0,620.0],[120.0,-120.0,0.0],42.55]},"flows":[{"id":"beet_field","k":"beet","c":"#5b3a1c","s":[1],"r":1.9,"st":"e","d":null,"dim":0.0,"p":[600.0,-735.0,1.4,521.93,-647.1,1.4,519.29,-643.75,1.4,517.21,-640.86,1.4,493.0,-605.0,1.4]},{"id":"beet_in","k":"beet","c":"#5b3a1c","s":[2],"r":1.9,"st":"e","d":null,"dim":0.0,"p":[349.0,-987.0,3.4,382.35,-899.01,3.4,415.38,-807.98,3.4,454.63,-700.99,3.4,515.22,-532.05,3.4,517.03,-526.99,3.32,520.98,-515.96,2.93,534.9,-477.04,2.82,536.14,-472.93,2.81,536.88,-469.79,2.78,547.55,-418.56,2.5,555.13,-382.17,2.59,555.72,-379.03,2.6,556.16,-375.87,2.62,559.9,-335.1,2.95,561.14,-321.43,3.35,561.68,-315.49,3.4,561.66,-313.82,3.39,561.51,-313.03,3.38,561.27,-312.28,3.37,560.52,-310.89,3.34,559.41,-309.64,3.29,555.6,-306.16,3.17,541.59,-293.36,3.27,540.24,-292.33,3.27,539.52,-291.94,3.27,538.0,-291.37,3.27,536.36,-291.11,3.26,535.5,-291.09,3.25,505.27,-291.89,3.04,503.19,-291.77,3.02,501.22,-291.32,3.0,499.37,-290.52,2.97,497.62,-289.38,2.94,484.63,-279.32,2.71,472.56,-269.94,2.98,471.8,-269.23,3.04,470.42,-267.7,3.24,469.82,-266.87,3.38,468.76,-265.11,3.72,467.08,-261.37,4.55,465.82,-258.53,5.02,464.56,-255.68,5.33,462.92,-251.95,5.57,461.23,-248.13,5.57,458.33,-241.54,5.29,454.58,-233.04,5.09,440.0,-200.0,4.63]},{"id":"beet_reception","k":"beet","c":"#5b3a1c","s":[2,3],"r":1.9,"st":"e","d":null,"dim":0.0,"p":[440.0,-200.0,4.63,400.04,-180.02,4.23,387.61,-173.8,4.39,382.76,-171.37,4.36,380.05,-169.91,4.3,376.53,-167.81,4.19,364.57,-160.28,3.74,349.14,-150.57,3.71,339.69,-144.62,3.52,333.71,-140.86,3.34,326.0,-136.0,2.94]},{"id":"flume","k":"flume","c":"#1f8f6a","s":[3],"r":1.9,"st":"e","d":null,"dim":0.0,"p":[326.0,-136.0,1.84,324.61,-127.1,1.69,321.97,-110.2,1.95,320.98,-104.0,1.85,319.64,-96.64,1.69,317.89,-87.14,1.7,315.55,-74.43,2.07,314.55,-69.01,2.06,313.88,-66.03,2.03,312.8,-62.1,1.98,308.37,-47.69,1.79,306.9,-42.93,1.77,306.29,-40.99,1.85,305.05,-37.15,2.3,300.0,-22.0,5.25]},{"id":"cossettes","k":"beet","c":"#5b3a1c","s":[4],"r":1.9,"st":"e","d":null,"dim":0.0,"p":[300.0,-22.0,5.25,294.94,-10.34,11.94,293.77,-8.11,13.24,291.81,-4.85,15.16,285.9,3.79,20.33,285.13,4.75,20.93,284.29,5.53,21.49,283.37,6.14,22.0,282.37,6.56,22.45,281.3,6.8,22.86,280.14,6.87,23.22,279.52,6.81,23.38,277.59,6.46,23.79,266.05,3.15,25.78,263.35,2.36,26.13,260.64,1.53,26.37,256.58,0.24,26.5,225.0,-10.0,26.5]},{"id":"raw_juice","k":"rawjuice","c":"#a8551f","s":[5],"r":1.9,"st":"e","d":null,"dim":0.0,"p":[225.0,-10.0,26.0,175.36,-28.05,26.45,170.04,-30.1,26.48,164.81,-32.36,26.45,115.0,-55.0,26.0]},{"id":"lime","k":"lime","c":"#b9a782","s":[5],"r":1.25,"st":"e","d":null,"dim":0.0,"p":[14.0,-132.0,30.11,52.12,-100.39,27.22,55.78,-97.48,27.02,115.0,-55.0,26.5]},{"id":"thin_juice","k":"juice","c":"#f0941e","s":[6],"r":1.9,"st":"e","d":null,"dim":0.0,"p":[115.0,-55.0,26.0,169.36,-63.16,26.91,174.99,-64.06,26.95,180.59,-65.1,26.89,226.0,-74.0,26.0]},{"id":"thick_juice_store","k":"thick","c":"#d8641a","s":[6],"r":1.25,"st":"e","d":null,"dim":0.0,"p":[250.0,-116.0,22.0,192.67,-172.38,26.78,190.59,-174.25,26.9,189.13,-175.4,26.95,186.81,-176.97,26.94,60.0,-255.0,24.5]},{"id":"to_pans","k":"thick","c":"#d8641a","s":[7],"r":1.9,"st":"e","d":null,"dim":0.0,"p":[250.0,-116.0,22.0,211.62,-121.23,25.49,208.82,-121.48,25.71,206.03,-121.45,25.87,203.25,-121.14,25.97,200.49,-120.55,26.0,168.0,-112.0,26.0]},{"id":"sugar","k":"sugar","c":"#f6f1e6","s":[7],"r":1.9,"st":"e","d":null,"dim":0.0,"p":[168.0,-112.0,26.0,162.82,-144.8,39.81,161.78,-149.93,42.05,160.32,-154.9,44.38,150.0,-185.0,59.0]},{"id":"sugar_store","k":"sugar","c":"#f6f1e6","s":[7],"r":1.9,"st":"e","d":null,"dim":0.0,"p":[150.0,-185.0,59.0,230.14,-232.14,44.86,233.76,-234.24,44.05,236.74,-235.92,43.13,239.69,-237.54,42.0,296.0,-268.0,18.0]},{"id":"outloading","k":"sugar","c":"#f6f1e6","s":[7],"r":1.25,"st":"e","d":null,"dim":0.0,"p":[310.0,-282.0,14.0,348.63,-291.2,6.77,351.12,-291.91,6.37,352.76,-292.5,6.18,355.15,-293.57,6.0,380.0,-306.0,4.77]},{"id":"steam_process","k":"steam","c":"#d4368c","s":[8],"r":1.25,"st":"e","d":null,"dim":0.0,"p":[16.0,-46.0,15.53,56.48,-60.72,16.02,59.13,-61.58,16.16,61.81,-62.24,16.52,63.61,-62.58,16.89,106.39,-69.42,26.67,110.0,-70.12,27.3,113.59,-71.08,27.53,166.41,-86.92,27.97,169.09,-87.71,27.87,172.65,-88.71,27.37,222.0,-102.0,15.86]},{"id":"steam_dryers","k":"steam","c":"#d4368c","s":[8],"r":1.25,"st":"e","d":null,"dim":0.0,"p":[6.0,-8.0,15.55,37.02,15.72,15.91,38.55,16.79,15.92,40.15,17.73,15.94,41.81,18.52,15.95,43.56,19.19,15.95,88.0,34.0,16.06]},{"id":"power_site","k":"elec","c":"#2f55d4","s":[8],"r":1.25,"st":"e","d":null,"dim":0.0,"p":[26.0,-48.0,7.39,56.47,-58.75,8.14,60.05,-59.78,8.28,63.72,-60.37,8.54,100.0,-64.0,11.67]},{"id":"power_sub","k":"elec","c":"#2f55d4","s":[8,9],"r":1.9,"st":"e","d":null,"dim":0.0,"p":[-6.0,-46.0,7.85,-7.38,-50.83,8.05,-8.94,-56.28,8.42,-9.81,-59.34,8.5,-16.54,-82.89,8.41,-18.27,-88.94,8.09,-18.79,-90.76,8.21,-19.49,-93.15,8.62,-19.96,-94.31,8.76,-20.56,-95.41,8.79,-21.7,-96.93,8.65,-23.91,-99.46,8.27,-26.5,-102.41,8.04,-28.69,-104.9,8.13,-32.17,-108.87,8.65,-35.64,-112.82,8.75,-39.1,-116.77,8.59,-46.05,-124.68,8.01,-51.27,-130.64,7.97,-53.86,-133.59,7.83,-56.05,-136.08,7.5,-58.21,-138.54,6.95,-59.95,-140.52,6.36,-63.0,-144.0,5.08]},{"id":"export","k":"export","c":"#ffffff","s":[8,9],"r":1.9,"st":"e","d":null,"dim":0.0,"p":[-68.0,-146.0,2.24,-62.45,-144.31,4.86,-60.77,-143.8,5.46,-59.05,-143.28,5.87,-56.4,-142.47,6.16,-46.81,-139.54,6.33,-45.93,-139.15,6.38,-45.84,-139.01,6.42,-46.33,-138.86,6.54,-46.92,-138.84,6.61,-50.43,-138.98,6.91,-53.68,-139.13,6.83,-56.88,-139.27,6.3,-60.28,-139.42,5.36,-62.4,-139.51,4.93,-64.55,-139.61,4.67,-66.71,-139.7,4.58,-69.86,-139.84,4.7,-73.12,-139.99,5.0,-76.35,-140.13,5.52,-80.73,-140.32,6.41,-83.96,-140.46,6.82,-86.14,-140.56,6.96,-101.19,-141.22,7.27,-103.36,-141.32,7.17,-106.62,-141.46,6.84,-111.99,-141.7,6.07,-118.43,-141.98,4.95,-120.61,-142.08,4.79,-121.69,-142.13,4.8,-123.85,-142.22,5.02,-129.33,-142.47,6.35,-131.47,-142.56,6.7,-133.62,-142.65,6.89,-143.33,-143.08,6.88,-158.39,-143.75,7.22,-177.83,-144.6,7.94,-183.26,-144.82,8.06,-246.5,-147.07,8.35,-287.29,-148.53,8.41,-321.57,-149.76,8.44,-399.9,-152.55,8.26,-413.9,-153.05,8.36,-460.0,-154.7,8.43]},{"id":"bloxpower","k":"blox","c":"#6fb3d6","s":[9],"r":1.5,"st":"p","d":null,"dim":0.0,"p":[-70.0,-153.0,1.01,-74.32,-154.41,1.99,-77.4,-155.41,2.33,-85.97,-158.19,2.49,-95.78,-161.39,2.38,-103.8,-164.0,2.47,-106.84,-164.99,2.34,-108.67,-165.58,2.05,-110.44,-166.16,1.52,-112.63,-166.86,0.63,-114.31,-167.27,0.15,-115.47,-167.46,-0.04,-116.67,-167.59,-0.12,-119.65,-167.82,-0.15,-123.23,-168.1,-0.04,-124.42,-168.19,-0.12,-126.18,-168.33,-0.46,-129.33,-168.58,-1.56,-130.5,-168.67,-1.79,-131.69,-168.77,-1.87,-133.44,-168.91,-1.75,-135.25,-169.05,-1.47,-137.02,-169.19,-1.04,-140.12,-169.43,-0.08,-141.9,-169.57,0.16,-143.1,-169.67,0.15,-146.08,-169.9,-0.15,-148.51,-170.09,-0.26,-166.64,-171.55,-0.46,-167.54,-171.88,-0.42,-167.91,-172.13,-0.38,-168.51,-172.81,-0.24,-168.91,-173.73,-0.04,-169.63,-176.27,0.51]}],"wires":[[-306.3,-619.1,8.5,-303.2,-610.3,7.9,-300.2,-601.4,7.5,-297.1,-592.6,7.2,-294.0,-583.8,7.1,-290.9,-574.9,7.2,-287.9,-566.1,7.5,-284.8,-557.2,8.0,-281.7,-548.4,8.6],[-307.8,-618.6,8.5,-304.8,-609.8,7.9,-301.7,-600.9,7.5,-298.6,-592.1,7.2,-295.5,-583.2,7.1,-292.4,-574.4,7.2,-289.4,-565.5,7.5,-286.3,-556.7,8.0,-283.2,-547.8,8.6],[-309.3,-618.1,8.5,-306.3,-609.2,7.9,-303.2,-600.4,7.5,-300.1,-591.5,7.2,-297.0,-582.7,7.1,-293.9,-573.9,7.2,-290.9,-565.0,7.5,-287.8,-556.2,8.0,-284.7,-547.3,8.6],[-274.3,-527.1,8.6,-271.3,-518.3,8.0,-268.2,-509.4,7.5,-265.1,-500.6,7.2,-262.0,-491.8,7.1,-258.9,-482.9,7.2,-255.9,-474.1,7.4,-252.8,-465.2,7.8,-249.7,-456.4,8.4],[-275.9,-526.6,8.6,-272.8,-517.8,8.0,-269.7,-508.9,7.5,-266.6,-500.1,7.2,-263.5,-491.2,7.1,-260.5,-482.4,7.2,-257.4,-473.6,7.4,-254.3,-464.7,7.8,-251.2,-455.9,8.4],[-277.4,-526.1,8.6,-274.3,-517.2,8.0,-271.2,-508.4,7.5,-268.1,-499.5,7.2,-265.1,-490.7,7.1,-262.0,-481.9,7.2,-258.9,-473.0,7.4,-255.8,-464.2,7.8,-252.7,-455.3,8.4],[-242.3,-435.1,8.6,-239.2,-426.3,8.1,-236.2,-417.5,7.7,-233.1,-408.6,7.5,-230.0,-399.8,7.5,-226.9,-390.9,7.6,-223.8,-382.1,8.0,-220.8,-373.3,8.4,-217.7,-364.4,9.1],[-243.8,-434.6,8.6,-240.7,-425.8,8.1,-237.7,-416.9,7.7,-234.6,-408.1,7.5,-231.5,-399.3,7.5,-228.4,-390.4,7.6,-225.3,-381.6,8.0,-222.3,-372.7,8.4,-219.2,-363.9,9.1],[-245.3,-434.1,8.6,-242.2,-425.2,8.1,-239.2,-416.4,7.7,-236.1,-407.6,7.5,-233.0,-398.7,7.5,-229.9,-389.9,7.6,-226.9,-381.1,8.0,-223.8,-372.2,8.4,-220.7,-363.4,9.1],[-485.0,-173.0,8.4,-475.1,-171.9,7.7,-465.1,-170.7,7.3,-455.2,-169.5,7.0,-445.3,-168.4,6.9,-435.3,-167.2,7.0,-425.4,-166.1,7.3,-415.5,-164.9,7.7,-405.5,-163.7,8.3,-405.5,-163.7,8.3,-405.1,-163.7,7.7,-404.7,-163.6,7.2,-404.3,-163.6,7.0,-403.8,-163.5,6.9,-403.4,-163.5,7.0,-403.0,-163.4,7.2,-402.6,-163.4,7.7,-402.1,-163.3,8.3],[-485.2,-171.4,8.4,-475.2,-170.3,7.7,-465.3,-169.1,7.3,-455.4,-167.9,7.0,-445.4,-166.8,6.9,-435.5,-165.6,7.0,-425.6,-164.5,7.3,-415.6,-163.3,7.7,-405.7,-162.1,8.3,-405.7,-162.1,8.3,-405.3,-162.1,7.7,-404.9,-162.0,7.2,-404.4,-162.0,7.0,-404.0,-161.9,6.9,-403.6,-161.9,7.0,-403.2,-161.8,7.2,-402.8,-161.8,7.7,-402.3,-161.7,8.3],[-485.4,-169.8,8.4,-475.4,-168.7,7.7,-465.5,-167.5,7.3,-455.6,-166.4,7.0,-445.6,-165.2,6.9,-435.7,-164.0,7.0,-425.8,-162.9,7.3,-415.8,-161.7,7.7,-405.9,-160.6,8.3,-405.9,-160.6,8.3,-405.5,-160.5,7.7,-405.1,-160.4,7.2,-404.6,-160.4,7.0,-404.2,-160.3,6.9,-403.8,-160.3,7.0,-403.4,-160.2,7.2,-402.9,-160.2,7.7,-402.5,-160.2,8.3],[-379.8,-160.7,8.3,-370.5,-159.6,7.7,-361.2,-158.6,7.3,-351.9,-157.4,7.1,-342.6,-156.3,7.0,-333.4,-155.3,7.1,-324.1,-154.2,7.3,-314.8,-153.1,7.8,-305.4,-152.0,8.4],[-380.0,-159.2,8.3,-370.7,-158.1,7.7,-361.4,-157.0,7.3,-352.1,-155.9,7.1,-342.8,-154.8,7.0,-333.5,-153.7,7.1,-324.2,-152.6,7.3,-314.9,-151.5,7.8,-305.6,-150.4,8.4],[-380.2,-157.6,8.3,-370.9,-156.5,7.7,-361.6,-155.4,7.3,-352.3,-154.3,7.1,-343.0,-153.2,7.0,-333.7,-152.1,7.1,-324.4,-151.0,7.3,-315.1,-149.9,7.8,-305.8,-148.8,8.4],[-283.1,-149.4,8.4,-273.8,-148.3,7.8,-264.5,-147.2,7.3,-255.2,-146.1,7.0,-245.9,-145.0,6.9,-236.6,-143.9,7.0,-227.3,-142.8,7.2,-218.0,-141.8,7.6,-208.7,-140.7,8.2],[-283.3,-147.8,8.4,-274.0,-146.7,7.8,-264.7,-145.6,7.3,-255.4,-144.5,7.0,-246.1,-143.4,6.9,-236.8,-142.3,7.0,-227.5,-141.3,7.2,-218.2,-140.2,7.6,-208.9,-139.1,8.2],[-283.5,-146.2,8.4,-274.2,-145.1,7.8,-264.9,-144.0,7.3,-255.6,-142.9,7.0,-246.3,-141.8,6.9,-237.0,-140.8,7.0,-227.7,-139.7,7.2,-218.4,-138.6,7.6,-209.1,-137.5,8.2],[-186.4,-138.1,8.1,-176.5,-136.9,7.6,-166.6,-135.7,7.2,-156.6,-134.6,7.1,-146.7,-133.4,7.1,-136.8,-132.2,7.3,-126.8,-131.1,7.6,-116.9,-129.9,8.2,-107.0,-128.7,8.9,-107.0,-128.7,8.9,-106.5,-128.7,8.4,-106.1,-128.6,8.0,-105.7,-128.6,7.9,-105.3,-128.5,7.9,-104.8,-128.5,8.1,-104.4,-128.4,8.4,-104.0,-128.4,9.0,-103.6,-128.3,9.7],[-186.6,-136.5,8.1,-176.7,-135.3,7.6,-166.7,-134.2,7.2,-156.8,-133.0,7.1,-146.9,-131.8,7.1,-136.9,-130.7,7.3,-127.0,-129.5,7.6,-117.1,-128.3,8.2,-107.2,-127.2,8.9,-107.2,-127.2,8.9,-106.7,-127.1,8.4,-106.3,-127.0,8.0,-105.9,-127.0,7.9,-105.5,-127.0,7.9,-105.0,-126.9,8.1,-104.6,-126.8,8.4,-104.2,-126.8,9.0,-103.8,-126.8,9.7],[-186.8,-134.9,8.1,-176.9,-133.7,7.6,-166.9,-132.6,7.2,-157.0,-131.4,7.1,-147.1,-130.2,7.1,-137.1,-129.1,7.3,-127.2,-127.9,7.6,-117.3,-126.7,8.2,-107.3,-125.6,8.9,-107.3,-125.6,8.9,-106.9,-125.5,8.4,-106.5,-125.5,8.0,-106.1,-125.4,7.9,-105.6,-125.4,7.9,-105.2,-125.3,8.1,-104.8,-125.3,8.4,-104.4,-125.2,9.0,-103.9,-125.2,9.7],[-152.2,-267.4,8.3,-149.0,-258.5,7.7,-145.9,-249.7,7.3,-142.8,-240.9,7.0,-139.6,-232.1,6.9,-136.5,-223.3,7.0,-133.3,-214.4,7.3,-130.2,-205.6,7.7,-127.1,-196.8,8.3],[-153.7,-266.8,8.3,-150.5,-258.0,7.7,-147.4,-249.2,7.3,-144.3,-240.4,7.0,-141.1,-231.6,6.9,-138.0,-222.7,7.0,-134.8,-213.9,7.3,-131.7,-205.1,7.7,-128.6,-196.3,8.3],[-155.2,-266.3,8.3,-152.0,-257.5,7.7,-148.9,-248.7,7.3,-145.8,-239.8,7.0,-142.6,-231.0,6.9,-139.5,-222.2,7.0,-136.3,-213.4,7.3,-133.2,-204.6,7.7,-130.1,-195.7,8.3],[-232.7,-625.0,7.8,-229.7,-616.1,7.2,-226.7,-607.2,6.8,-223.7,-598.4,6.5,-220.7,-589.5,6.4,-217.7,-580.6,6.5,-214.7,-571.7,6.8,-211.7,-562.9,7.2,-208.7,-554.0,7.8],[-234.2,-624.5,7.8,-231.2,-615.6,7.2,-228.2,-606.7,6.8,-225.2,-597.8,6.5,-222.2,-589.0,6.4,-219.2,-580.1,6.5,-216.2,-571.2,6.8,-213.2,-562.3,7.2,-210.2,-553.5,7.8],[-235.7,-624.0,7.8,-232.7,-615.1,7.2,-229.7,-606.2,6.8,-226.7,-597.3,6.5,-223.7,-588.5,6.4,-220.7,-579.6,6.5,-217.7,-570.7,6.8,-214.7,-561.8,7.2,-211.7,-553.0,7.8],[-201.5,-532.7,7.9,-198.5,-523.9,7.3,-195.5,-515.0,6.9,-192.6,-506.1,6.6,-189.6,-497.2,6.5,-186.6,-488.4,6.7,-183.6,-479.5,6.9,-180.6,-470.6,7.4,-177.6,-461.7,8.0],[-203.1,-532.2,7.9,-200.1,-523.3,7.3,-197.1,-514.5,6.9,-194.1,-505.6,6.6,-191.1,-496.7,6.5,-188.1,-487.8,6.7,-185.1,-479.0,6.9,-182.1,-470.1,7.4,-179.1,-461.2,8.0],[-204.6,-531.7,7.9,-201.6,-522.8,7.3,-198.6,-514.0,6.9,-195.6,-505.1,6.6,-192.6,-496.2,6.5,-189.6,-487.3,6.7,-186.6,-478.5,6.9,-183.6,-469.6,7.4,-180.6,-460.7,8.0],[-170.4,-440.4,8.0,-167.4,-431.6,7.4,-164.4,-422.7,7.1,-161.4,-413.8,6.8,-158.4,-404.9,6.8,-155.4,-396.1,7.0,-152.4,-387.2,7.3,-149.4,-378.3,7.8,-146.4,-369.5,8.4],[-171.9,-439.9,8.0,-168.9,-431.0,7.4,-165.9,-422.2,7.1,-162.9,-413.3,6.8,-159.9,-404.4,6.8,-156.9,-395.6,7.0,-153.9,-386.7,7.3,-150.9,-377.8,7.8,-148.0,-369.0,8.4],[-173.4,-439.4,8.0,-170.4,-430.5,7.4,-167.4,-421.7,7.1,-164.4,-412.8,6.8,-161.4,-403.9,6.8,-158.4,-395.1,7.0,-155.5,-386.2,7.3,-152.5,-377.3,7.8,-149.5,-368.4,8.4],[-139.2,-348.2,8.2,-136.2,-339.3,7.7,-133.2,-330.4,7.3,-130.3,-321.6,7.2,-127.3,-312.7,7.2,-124.3,-303.8,7.4,-121.3,-295.0,7.8,-118.3,-286.1,8.3,-115.3,-277.2,9.1],[-140.8,-347.6,8.2,-137.8,-338.8,7.7,-134.8,-329.9,7.3,-131.8,-321.1,7.2,-128.8,-312.2,7.2,-125.8,-303.3,7.4,-122.8,-294.4,7.8,-119.8,-285.6,8.3,-116.8,-276.7,9.1],[-142.3,-347.1,8.2,-139.3,-338.3,7.7,-136.3,-329.4,7.3,-133.3,-320.5,7.2,-130.3,-311.7,7.2,-127.3,-302.8,7.4,-124.3,-293.9,7.8,-121.3,-285.1,8.3,-118.3,-276.2,9.1],[-108.1,-255.9,10.5,-105.1,-247.0,10.0,-102.1,-238.2,9.7,-99.1,-229.3,9.6,-96.1,-220.4,9.6,-93.1,-211.5,9.8,-90.1,-202.7,10.2,-87.1,-193.8,10.8,-84.2,-184.9,11.5],[-109.6,-255.4,10.5,-106.6,-246.5,10.0,-103.6,-237.7,9.7,-100.6,-228.8,9.6,-97.6,-219.9,9.6,-94.6,-211.0,9.8,-91.7,-202.2,10.2,-88.7,-193.3,10.8,-85.7,-184.4,11.5],[-111.1,-254.9,10.5,-108.1,-246.0,10.0,-105.1,-237.1,9.7,-102.1,-228.3,9.6,-99.2,-219.4,9.6,-96.2,-210.5,9.8,-93.2,-201.6,10.2,-90.2,-192.8,10.8,-87.2,-183.9,11.5],[-103.0,-215.4,9.8,-99.7,-205.9,9.3,-96.5,-196.5,9.0,-93.2,-187.0,8.9,-90.0,-177.6,9.0,-86.8,-168.1,9.2,-83.5,-158.6,9.6,-80.3,-149.2,10.2,-77.0,-139.7,10.9,-77.0,-139.7,10.9,-76.8,-138.8,10.1,-76.5,-137.9,9.5,-76.1,-137.1,9.0,-75.8,-136.2,8.8,-75.5,-135.3,8.7,-75.2,-134.4,8.7,-74.9,-133.5,9.0,-74.6,-132.6,9.4],[-104.5,-214.9,9.8,-101.2,-205.4,9.3,-98.0,-196.0,9.0,-94.8,-186.5,8.9,-91.5,-177.1,9.0,-88.3,-167.6,9.2,-85.0,-158.1,9.6,-81.8,-148.7,10.2,-78.6,-139.2,10.9,-78.6,-139.2,10.9,-78.3,-138.3,10.1,-78.0,-137.4,9.5,-77.7,-136.5,9.0,-77.3,-135.6,8.8,-77.0,-134.8,8.7,-76.7,-133.9,8.7,-76.4,-133.0,9.0,-76.1,-132.1,9.4],[-106.0,-214.4,9.8,-102.8,-204.9,9.3,-99.5,-195.4,9.0,-96.3,-186.0,8.9,-93.0,-176.5,9.0,-89.8,-167.1,9.2,-86.6,-157.6,9.6,-83.3,-148.2,10.2,-80.1,-138.7,10.9,-80.1,-138.7,10.9,-79.8,-137.8,10.1,-79.5,-136.9,9.5,-79.2,-136.0,9.0,-78.9,-135.1,8.8,-78.6,-134.2,8.7,-78.2,-133.3,8.7,-78.0,-132.4,9.0,-77.6,-131.6,9.4],[-87.0,235.4,12.8,-86.8,244.9,11.8,-86.5,254.4,11.0,-86.3,263.9,10.4,-86.1,273.4,9.9,-85.9,282.9,9.6,-85.7,292.4,9.6,-85.4,301.9,9.6,-85.2,311.4,9.9],[-88.6,235.4,12.8,-88.4,244.9,11.8,-88.2,254.4,11.0,-87.9,263.9,10.4,-87.7,273.4,9.9,-87.5,282.9,9.6,-87.3,292.4,9.6,-87.0,301.9,9.6,-86.8,311.4,9.9],[-90.2,235.4,12.8,-90.0,244.9,11.8,-89.8,254.5,11.0,-89.5,264.0,10.4,-89.3,273.5,9.9,-89.1,283.0,9.6,-88.9,292.5,9.6,-88.6,302.0,9.6,-88.4,311.5,9.9],[-90.2,235.1,12.8,-88.7,227.6,11.9,-87.3,220.0,11.2,-85.9,212.5,10.7,-84.5,204.9,10.3,-83.0,197.4,10.2,-81.6,189.8,10.2,-80.2,182.3,10.4,-78.8,174.7,10.7],[-88.6,235.4,12.8,-87.2,227.9,11.9,-85.7,220.3,11.2,-84.3,212.8,10.7,-82.9,205.2,10.3,-81.5,197.7,10.2,-80.1,190.1,10.2,-78.6,182.6,10.4,-77.2,175.0,10.7],[-87.0,235.7,12.8,-85.6,228.2,11.9,-84.2,220.6,11.2,-82.8,213.1,10.7,-81.3,205.5,10.3,-79.9,198.0,10.2,-78.5,190.4,10.2,-77.1,182.9,10.4,-75.6,175.3,10.7],[-74.7,152.6,11.3,-72.9,143.4,10.4,-71.2,134.2,9.7,-69.5,125.0,9.1,-67.7,115.8,8.7,-66.0,106.6,8.5,-64.3,97.4,8.5,-62.5,88.2,8.6,-60.8,79.0,8.9],[-73.1,152.9,11.3,-71.4,143.7,10.4,-69.6,134.5,9.7,-67.9,125.3,9.1,-66.2,116.1,8.7,-64.4,106.9,8.5,-62.7,97.7,8.5,-61.0,88.5,8.6,-59.2,79.3,8.9],[-71.5,153.2,11.3,-69.8,144.0,10.4,-68.1,134.8,9.7,-66.3,125.6,9.1,-64.6,116.4,8.7,-62.9,107.2,8.5,-61.1,98.0,8.5,-59.4,88.8,8.6,-57.7,79.6,8.9],[-56.7,56.9,9.9,-55.0,47.7,9.6,-53.2,38.5,9.4,-51.5,29.3,9.4,-49.8,20.1,9.5,-48.0,10.9,9.9,-46.3,1.7,10.4,-44.6,-7.5,11.1,-42.8,-16.7,11.9],[-55.1,57.2,9.9,-53.4,48.0,9.6,-51.6,38.8,9.4,-49.9,29.6,9.4,-48.2,20.4,9.5,-46.5,11.2,9.9,-44.7,2.0,10.4,-43.0,-7.2,11.1,-41.2,-16.4,11.9],[-53.5,57.5,9.9,-51.8,48.3,9.6,-50.1,39.1,9.4,-48.4,29.9,9.4,-46.6,20.7,9.5,-44.9,11.5,9.9,-43.1,2.3,10.4,-41.4,-6.9,11.1,-39.7,-16.1,11.9],[-38.7,-38.8,11.8,-37.3,-46.4,11.1,-35.9,-53.9,10.6,-34.4,-61.5,10.2,-33.0,-69.0,10.0,-31.6,-76.5,10.0,-30.2,-84.1,10.2,-28.8,-91.7,10.5,-27.3,-99.2,11.0],[-37.1,-38.5,11.8,-35.7,-46.1,11.1,-34.3,-53.6,10.6,-32.9,-61.2,10.2,-31.4,-68.7,10.0,-30.0,-76.3,10.0,-28.6,-83.8,10.2,-27.2,-91.3,10.5,-25.8,-98.9,11.0],[-35.6,-38.2,11.8,-34.1,-45.8,11.1,-32.7,-53.3,10.6,-31.3,-60.9,10.2,-29.9,-68.4,10.0,-28.5,-76.0,10.0,-27.0,-83.5,10.2,-25.6,-91.1,10.5,-24.2,-98.6,11.0]]};
+    /*MODEL-END*/
+
+  /* ========================================================== the process */
+  // British Sugar's seven steps in their words (the headline of each), their CHP as the eighth, and RenewaBlox's proposed
+  // BLOX Peaker Plant as the ninth. Each step has its key colour, the model's camera that shows it (S01 to S09), the parts
+  // that stay in colour while the rest of the factory stands back in clay, and (from the model) the flows that run.
+  const KEY = {
+    beet: ['#a8713c', 'Beet'], flume: ['#1f8f6a', 'Flume water'], rawjuice: ['#b45f2a', 'Raw juice'], juice: ['#f0941e', 'Thin juice'],
+    thick: ['#d8641a', 'Thick juice'], lime: ['#b9a782', 'Milk of lime'], sugar: ['#f6f1e6', 'Sugar'], steam: ['#d4368c', 'Steam'],
+    elec: ['#2f55d4', 'Electricity'], export: ['#ffffff', 'Export to the grid'], blox: ['#6fb3d6', 'To the BLOX, proposed'],
+  };
+  const LIGHT = new Set(['sugar', 'export']);          // pale on a light ground: drawn with a rim
+  const RIM = { sugar: '#c9a463', export: '#5a6a73' };
+  const kcol = (k) => (LIGHT.has(k) ? RIM[k] : KEY[k][0]);    // a step's colour on a light chip or node
+  const STEPS = [
+    { n: 1, id: 'grown', key: 'beet', t: 'Grown', h: 'Grown in East Anglia and the East Midlands, harvested in autumn and winter',
+      p: 'The beet is grown by farmers across the region and lifted from September to late February: the campaign, when the factory slices day and night. In the model, a beet field on the fen south-east of the factory, with a field clamp of lifted beet waiting for collection and the factory beyond.',
+      hi: null },
+    { n: 2, id: 'travels', key: 'beet', t: 'To the factory', h: 'Travels to one of our advanced manufacturing plants',
+      p: 'The beet comes by lorry up College Road and in at the factory&rsquo;s access road to the beet pad on its east side, where each load is sampled at the tarehouse and the beet is stacked in clamps for the reception. The clamps and lorries are placed as a campaign day might have them.',
+      hi: ['reception', 'beetpad', 'lorries', 'flume'] },
+    { n: 3, id: 'washed', key: 'flume', t: 'Washed', h: 'When it arrives on site, the sugar beet is washed',
+      p: 'From the reception the beet is carried in water along the flume to the washer, where stones and soil come off it; they become two of the factory&rsquo;s co-products, aggregate and topsoil.',
+      hi: ['reception', 'flume', 'beetpad'] },
+    { n: 4, id: 'sliced', key: 'beet', t: 'Sliced', h: 'Sliced into thin strips called cossettes',
+      p: 'The washed beet goes up into the slicer building and is cut into cossettes, which go on to the diffuser in the main building.',
+      hi: ['slicer', 'reception', 'flume'] },
+    { n: 5, id: 'juice', key: 'rawjuice', t: 'Juice and lime', h: 'Mixed with hot water to extract the sugar; a lime solution removes impurities',
+      p: 'In the diffuser, in the main building, hot water draws the sugar out of the cossettes as raw juice; the pulp left over is pressed and dried into animal feed. The lime kiln, the tall shaft with its skip hoist, makes the lime; as milk of lime it takes the impurities out of the juice in carbonatation.',
+      hi: ['kiln', 'lime', 'main'] },
+    { n: 6, id: 'crystal', key: 'juice', t: 'Crystallised', h: 'Filtered, heated and seeded with tiny crystals; washed, dried and cooled',
+      p: 'The cleaned thin juice is concentrated into thick juice in the evaporators, among them the first-effect and juice-run units added in 2023; in the pans it is seeded with tiny crystals and boiled into sugar, which is washed, dried and cooled. In the campaign some of the thick juice goes into the domed tanks, to be crystallised in the juice run, usually April to July.',
+      hi: ['evap', 'tanks', 'main'] },
+    { n: 7, id: 'customers', key: 'sugar', t: 'To customers', h: 'Delivered to our customers in a variety of formats',
+      p: 'The sugar is stored in the seven silos and the sugar store, screened, and leaves by road from the bulk outloading: in bulk tankers, in bags, and as blends and syrups.',
+      hi: ['silos', 'store', 'outload', 'main'] },
+    { n: 8, id: 'chp', key: 'steam', t: 'CHP: steam and power', h: 'Steam and electricity from the combined heat and power plant',
+      p: 'British Sugar&rsquo;s CHP at the factory&rsquo;s north-west corner: a gas turbine and a heat recovery steam generator, exhausting through the 60 m stack. Its steam heats the evaporators and, from the 2026/27 campaign, the new steam dryers, which replace the gas-fired pulp dryers; its electricity runs the factory. What the factory does not use, up to about 18 MW by British Sugar&rsquo;s figure, is exported through UK Power Networks&rsquo; 33 kV substation on the factory&rsquo;s west side.',
+      hi: ['chp', 'steamdryers', 'sub', 'bsswitch'] },
+    { n: 9, id: 'blox', key: 'blox', t: 'BLOX Peaker Plant', h: 'The BLOX Peaker Plant: RenewaBlox&rsquo;s proposal', blox: true, alternate: true,
+      p: 'RenewaBlox&rsquo;s proposal, not British Sugar&rsquo;s plan: ten hydro-cooled data centre containers on a raised pad in the field west of the factory, fed from British Sugar&rsquo;s own switchroom behind the export meter. The CHP runs for the factory&rsquo;s heat as it does today; only the surplus, up to about 18 MW, changes course. When export prices are high it goes up the 33 kV line as now; when they are low the BLOX takes it instead. It never imports from the grid and adds no generating capacity: the peaker is the export. The card at the lower left plays one real campaign day&rsquo;s prices through the switch.',
+      hi: ['blox', 'bloxline', 'bsswitch', 'sub', 'chp'] },
+  ];
+  // each step's camera and flows from the model: S01 to S09, and every route the model files under the step
+  STEPS.forEach((s) => {
+    s.cam = MODEL.cams['S' + String(s.n).padStart(2, '0')];
+    s.flows = MODEL.flows.filter((f) => f.s.includes(s.n)).map((f) => f.id);
+  });
+  const CAMERAS = {
+    overview: { cam: MODEL.cams.S00, k: 'Overview', h: 'The factory, and the proposed BLOX Peaker Plant beside it',
+      p: 'British Sugar&rsquo;s Wissington factory on the fen, from the south-west, with the River Wissey running through the site: the CHP and its stack at the north-west corner, the lime kiln, the main building, the silo row and silo 7, the domed thick-juice tanks, and the beet pad on the east side. In the field west of the factory, by the 33 kV substation, RenewaBlox&rsquo;s proposed BLOX Peaker Plant. The numbered steps along the foot walk British Sugar&rsquo;s process; the CHP&rsquo;s surplus goes up the 33 kV line or into the BLOX, never both, as the day&rsquo;s prices rise and fall.',
+      offH: 'British Sugar&rsquo;s Wissington factory',
+      offP: 'British Sugar&rsquo;s Wissington factory on the fen, from the south-west, with the River Wissey running through the site: the CHP and its stack at the north-west corner, the lime kiln, the main building, the silo row and silo 7, the domed thick-juice tanks, and the beet pad on the east side. The numbered steps along the foot walk British Sugar&rsquo;s process; the CHP&rsquo;s surplus is exported through the 33 kV substation on the west side.' },
+    site: { cam: MODEL.cams.S10, k: 'Setting', h: 'Across the Wissey from the north',
+      p: 'The factory from across the River Wissey, which runs east to west through the site: the factory on its south bank, the wastewater lagoons and settlement ponds to the north, and the glasshouse to the north-west. The ground is the Environment Agency&rsquo;s LiDAR survey of 13 November 2018, in the middle of that campaign; the fields are coloured by the 2025 crop map.' },
+    switch: { cam: MODEL.cams.S11, k: 'The switch', h: 'The surplus: up the 33 kV line or into the BLOX', prop: true,
+      p: 'The CHP, British Sugar&rsquo;s switchroom and export metering beside UK Power Networks&rsquo; 33 kV substation, and the proposed BLOX in the field beyond. The surplus runs from the CHP to the switchroom; from there it goes either on through the substation and up the 33 kV line, or along the buried feed to the BLOX, never both at once. Here the switch follows the day on the card at the lower left.' },
+  };
+  // the steps the strip, Play and the arrows walk: all nine, or British Sugar's eight with the proposal off
+  const active = () => STEPS.filter((s) => proposal || !s.blox);
+  // the attributes that change with the proposal (the words in the markup carry data-proposal instead)
+  const PROP_ATTRS = [
+    ['#rail [data-v="overview"]', 'title', 'The whole factory from the south-west, with the proposed BLOX Peaker Plant in the field west of it (click again to reset the view)', 'The whole factory from the south-west (click again to reset the view)'],
+    ['#b-dusk', 'title', 'The factory after sunset, and the proposed BLOX’s glow lines', 'The factory after sunset'],
+    ['#gl', 'aria-label', '3D model of British Sugar’s Wissington factory on the fen by the River Wissey, with RenewaBlox’s proposed BLOX Peaker Plant in the field west of it', '3D model of British Sugar’s Wissington factory on the fen by the River Wissey'],
+    ['#schem', 'aria-label', 'Process schematic: British Sugar’s seven steps, their CHP and the proposed BLOX Peaker Plant, and the flows between them', 'Process schematic: British Sugar’s seven steps and their CHP, and the flows between them'],
+  ];
+
+  /* ------------------------------------------------- a day at Wissington */
+  // One real campaign weekday's half-hourly GB market index price (Elexon BMRS, autumn 2026), scaled to 0..1 so that no
+  // price can be read, and the line where the data centre would earn about the same as the export (RenewaBlox's dispatch
+  // model, assumed). Above the line the surplus is exported; below it the BLOX takes it. The day plays in about twenty
+  // seconds, a half-hour at a time.
+  const DAY = { v: [0.054, 0.069, 0.058, 0.032, 0.017, 0.016, 0.008, 0, 0.005, 0.011, 0.025, 0.079, 0.23, 0.302, 0.399, 0.468, 0.49, 0.52,
+    0.362, 0.303, 0.242, 0.211, 0.159, 0.201, 0.234, 0.262, 0.412, 0.426, 0.461, 0.49, 0.736, 0.862, 0.935, 0.964, 0.979, 0.979, 1, 0.992,
+    0.966, 0.927, 0.855, 0.834, 0.771, 0.754, 0.741, 0.712, 0.631, 0.595], line: 0.288, secs: 20 };
+  let dayT = REDUCED ? 6.5 : 0, dayRun = !REDUCED, dayVis = false;
+  const dayPrice = (t) => DAY.v[Math.max(0, Math.min(47, Math.floor(t)))];
+  const bloxNow = () => proposal && dayPrice(dayT) < DAY.line;
+
+  /* ------------------------------------------------------------ the tabs */
+  const TABS = ['model', 'schem', 'media'];
+  const ALIAS = { schematic: 'schem', process: 'schem', flythrough: 'media', stills: 'media' };
+  const tabBtns = [...document.querySelectorAll('#ptabs [role=tab]')];
+  let tab = 'model';
+  function setTab(t, focus){
+    t = ALIAS[t] || t;
+    if (!TABS.includes(t)) t = 'model';
+    tab = t;
+    tabBtns.forEach((b) => {
+      const on = b.dataset.tab === t;
+      b.setAttribute('aria-selected', on ? 'true' : 'false');
+      b.tabIndex = on ? 0 : -1;
+      if (on && focus) b.focus();
+    });
+    TABS.forEach((k) => { $('p-' + k).hidden = k !== t; });
+    document.body.className = document.body.className.replace(/\btab-\w+/, '') + ' tab-' + t;
+    // the caption serves the model and the schematic: it moves to whichever shows
+    (t === 'schem' ? $('p-schem') : $('p-model')).appendChild($('caption'));
+    if (t === 'model') { clampCaption(); railEdges(); }
+    showDay();
+    run();
+    const u = new URL(location.href);
+    u.searchParams.delete('tab');
+    u.hash = t === 'model' ? '' : t;
+    history.replaceState(null, '', u);
+  }
+  tabBtns.forEach((b, i) => {
+    b.addEventListener('click', () => setTab(b.dataset.tab));
+    b.addEventListener('keydown', (e) => {
+      const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+      if (d) { e.preventDefault(); setTab(tabBtns[(i + d + tabBtns.length) % tabBtns.length].dataset.tab, true); }
+    });
+  });
+
+  /* ------------------------------------------------------------ the atlas */
+  $('backatlas').addEventListener('click', (e) => {
+    let r = null;
+    try { r = document.referrer ? new URL(document.referrer) : null; } catch (err) { r = null; }
+    if (r && r.origin === location.origin && r.pathname === location.pathname && !r.searchParams.has('view') && history.length > 1) {
+      e.preventDefault(); history.back();
+    }
+  });
+
+  /* ============================================================ the scene */
+  // The model is the Blender scene's web GLB, fetched from beside the page. Its frame is the page's: P(e, n, h) is three.js
+  // (e, h, -n), which is Blender's (x, y, z) exported to glTF's Y-up (x, z, -y). Every node is named <part>__<name> and
+  // carries its page part in its extras, with proposal (RenewaBlox's) and pivot (a fan that turns).
+  const L = window.RBX3D || null;
+  let THREE = null, renderer = null, labelR = null, scene = null, camera = null, controls = null, tween = null, raf = 0, clock = null, pmrem = null;
+  let loaded = false, lastMove = 0, view = 'overview', step = 0, playing = false, playT = 0, flowsOn = true, labelsOn = false, dusk = false;
+  const flows = {}, labelObjs = [], groups = [], fanSets = [];
+  let sun = null, hemi = null, skyCol = null, fogCol = null, skyDome = null, dimMat = null, dimMatT = null, FLOWDOT = null, wireMat = null;
+  let bloxAng = 0, bloxRunning = true, glowState = null;
+  const DUSK = { lamp: [], glow: [] };
+  // the parts a step never puts in clay: the ground, the fields, the lorries, the beet clamps and the 33 kV lines
+  const NODIM = new Set(['site', 'units', 'field', 'lorries', 'beetpad', 'ohl']);
+  const P = (e, n, h) => new THREE.Vector3(e, h, -n);
+  // an autumn sun from the south-south-west for the page, and a low one from the west-south-west for dusk
+  const sunDir = (az, el) => { const a = az * Math.PI / 180, b = el * Math.PI / 180; return [Math.sin(a) * Math.cos(b), Math.cos(a) * Math.cos(b), Math.sin(b)]; };
+  const SUN_DAY = sunDir(198, 27), SUN_DUSK = sunDir(240, 6), SUN_AT = [110, -150, 0];
+
+  function pressed(id, on){ $(id).setAttribute('aria-pressed', on ? 'true' : 'false'); }
+  function failed(msg, retry){
+    const l = $('loading'); l.classList.remove('hide'); l.classList.add('failed');
+    $('loadmsg').innerHTML = msg + (retry ? ' <a href="#retry">Try again</a>, or see the' : ' See the') + ' <a href="#schem">schematic</a> or the <a href="#media">stills</a>, which show the same process.';
+    l.querySelectorAll('a').forEach((a) => a.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (a.getAttribute('href') === '#retry') { l.classList.remove('failed'); $('loadmsg').textContent = 'Loading the factory'; bar(0); load(); }
+      else setTab(a.getAttribute('href').slice(1));
+    }));
+  }
+  function bar(f){ $('loadbar').style.width = Math.round(Math.max(0, Math.min(1, f)) * 100) + '%'; }
+
+  function skyTexture(night){
+    // the sky: a vertical gradient, pale at the horizon and deeper overhead, warm along the horizon after sunset
+    const c = document.createElement('canvas'); c.width = 4; c.height = 256;
+    const g = c.getContext('2d'), gr = g.createLinearGradient(0, 0, 0, 256);
+    if (night) { gr.addColorStop(0, '#0b1626'); gr.addColorStop(0.42, '#1b3250'); gr.addColorStop(0.5, '#4a4f6a'); gr.addColorStop(0.56, '#c97a4a'); gr.addColorStop(0.62, '#1c2a3a'); gr.addColorStop(1, '#141c26'); }
+    else { gr.addColorStop(0, '#6fa3d6'); gr.addColorStop(0.35, '#a9c9e6'); gr.addColorStop(0.5, '#dfeaf2'); gr.addColorStop(0.56, '#d9e6ef'); gr.addColorStop(1, '#cfdde6'); }
+    g.fillStyle = gr; g.fillRect(0, 0, 4, 256);
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+  }
+  function dot(){
+    const c = document.createElement('canvas'); c.width = c.height = 64;
+    const g = c.getContext('2d'), r = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+    r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(0.35, 'rgba(255,255,255,.9)'); r.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = r; g.fillRect(0, 0, 64, 64);
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+  }
+
+  function start(){
+    if (location.protocol === 'file:') { failed('Opened from a folder, the browser will not load the 3D model; serve the folder over http(s).'); return; }
+    if (!L || !L.THREE || !L.GLTFLoader) { failed('The 3D viewer did not load.'); return; }
+    THREE = L.THREE;
+    const probe = document.createElement('canvas');
+    if (!(probe.getContext('webgl2') || probe.getContext('webgl'))) { failed('This browser cannot show 3D (WebGL is off).'); return; }
+    const gl = $('gl');
+    try { renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance', preserveDrawingBuffer: true }); }
+    catch (e) { failed('This browser cannot show 3D (WebGL is off).'); return; }
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(gl.clientWidth, gl.clientHeight);
+    renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.18;
+    gl.appendChild(renderer.domElement);
+    labelR = new L.CSS2DRenderer({ element: $('labels') }); labelR.setSize(gl.clientWidth, gl.clientHeight);
+
+    scene = new THREE.Scene();
+    skyCol = new THREE.Color(0xc9dcec); fogCol = new THREE.Color(0xd5e1ea);
+    scene.background = skyCol; scene.fog = new THREE.Fog(fogCol, 1500, 7400);
+    skyDome = new THREE.Mesh(new THREE.SphereGeometry(9000, 32, 16), new THREE.MeshBasicMaterial({ map: skyTexture(false), side: THREE.BackSide, fog: false, depthWrite: false }));
+    skyDome.renderOrder = -1; scene.add(skyDome);
+    camera = new THREE.PerspectiveCamera(42, gl.clientWidth / Math.max(1, gl.clientHeight), 0.5, 20000);
+    controls = new L.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true; controls.dampingFactor = 0.08; controls.maxPolarAngle = Math.PI * 0.49;
+    controls.minDistance = 8; controls.maxDistance = 2600; controls.autoRotateSpeed = 0.5;
+    controls.addEventListener('start', () => { document.body.classList.add('moved'); tween = null; lastMove = performance.now(); if (playing) setPlay(false); run(); });
+    controls.addEventListener('change', () => { lastMove = performance.now(); run(); });
+
+    pmrem = new THREE.PMREMGenerator(renderer);
+    scene.environment = pmrem.fromScene(new L.RoomEnvironment(), 0.04).texture; scene.environmentIntensity = 0.55;
+    renderer.domElement.addEventListener('webglcontextrestored', () => { scene.environment = pmrem.fromScene(new L.RoomEnvironment(), 0.04).texture; if (loaded) draw(); });
+    hemi = new THREE.HemisphereLight(0xd6e6f4, 0x6f6a52, 0.9); scene.add(hemi);
+    sun = new THREE.DirectionalLight(0xfff0d8, 2.4);
+    placeSun(SUN_DAY);
+    sun.castShadow = true; sun.shadow.mapSize.set(4096, 4096); sun.shadow.bias = -0.0006; sun.shadow.normalBias = 0.08;
+    const sc = sun.shadow.camera; sc.near = 100; sc.far = 1800; sc.left = -470; sc.right = 470; sc.top = 470; sc.bottom = -470;
+    scene.add(sun); scene.add(sun.target);
+    // the fen beyond the model's 6 km of terrain: one flat field colour, lost in the haze
+    const far = new THREE.Mesh(new THREE.PlaneGeometry(40000, 40000), new THREE.MeshStandardMaterial({ color: 0x6b7350, roughness: 1 }));
+    far.rotation.x = -Math.PI / 2; far.position.y = -16; scene.add(far);
+    dimMat = new THREE.MeshStandardMaterial({ color: 0xd9e0e5, roughness: 1, metalness: 0, side: THREE.DoubleSide });
+    dimMatT = new THREE.MeshStandardMaterial({ color: 0xd9e0e5, roughness: 1, metalness: 0, side: THREE.DoubleSide, transparent: true, opacity: 0.3, depthWrite: false });
+    wireMat = new THREE.LineBasicMaterial({ color: 0x2b3034, transparent: true, opacity: 0.75 });
+    FLOWDOT = dot();
+    clock = new THREE.Clock();
+    new ResizeObserver(() => {
+      const w = gl.clientWidth, h = gl.clientHeight;
+      if (!w || !h) return;
+      camera.aspect = w / h; camera.updateProjectionMatrix(); renderer.setSize(w, h); labelR.setSize(w, h);
+      if (!raf && loaded) draw();
+    }).observe(gl);
+    load();
+  }
+  function placeSun(d){
+    sun.target.position.copy(P(...SUN_AT));
+    sun.position.copy(P(SUN_AT[0] + d[0] * 800, SUN_AT[1] + d[1] * 800, SUN_AT[2] + d[2] * 800));
+  }
+
+  // The model, fetched with its progress on the bar (the preload in the head has usually already brought it); a model
+  // that failed to arrive is asked for again under a new address, so a retry is a fresh request.
+  let tries = 0;
+  async function load(){
+    try {
+      const res = await fetch('assets/wis_site_web.glb' + (tries ? '?retry=' + tries : ''), { credentials: 'same-origin' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const total = +res.headers.get('content-length') || 0;
+      const chunks = []; let got = 0;
+      const reader = res.body.getReader();
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        chunks.push(value); got += value.length;
+        if (total) bar(0.85 * got / total);
+      }
+      const buf = new Uint8Array(got); let o = 0;
+      for (const c of chunks) { buf.set(c, o); o += c.length; }
+      bar(0.9); $('loadmsg').textContent = 'Building the scene';
+      // let the message paint before the parse holds the thread
+      await new Promise((ok) => setTimeout(ok, 30));
+      new L.GLTFLoader().parse(buf.buffer, '', (g) => {
+        try { build(g); } catch (err) { console.error(err); failed('The 3D model could not be read.', false); }
+      }, () => { tries++; failed('The 3D model could not be read.', true); });
+    } catch (e) {
+      tries++;
+      failed('The 3D model could not be loaded here.', true);
+    }
+  }
+
+  // The GLB holds about eight thousand nodes (the trees, hedges and fans share a few meshes). Parts that share a material
+  // and a role (part, proposal) are merged into one mesh each, so the scene draws in a couple of hundred calls and a step
+  // can still put any part in clay; the BLOX's fans are drawn as instances of their pivots, so that they turn.
+  function build(gltf){
+    const root = gltf.scene; root.updateMatrixWorld(true);
+    const up = (o, k) => { for (let p = o; p; p = p.parent) if (p.userData && p.userData[k] != null) return p.userData[k]; return null; };
+    const G = new Map(), pivots = new Map();
+    root.traverse((o) => {
+      if (!o.isMesh) return;
+      let piv = null;
+      for (let p = o.parent; p && p !== root; p = p.parent) if (p.userData && p.userData.pivot) { piv = p; break; }
+      if (piv) { if (!pivots.has(piv)) pivots.set(piv, []); pivots.get(piv).push(o); return; }
+      const part = up(o, 'part') || 'site', prop = up(o, 'proposal') ? 1 : 0, mat = o.material;
+      const key = mat.uuid + '|' + Object.keys(o.geometry.attributes).sort().join(',') + '|' + (o.geometry.index ? 'i' : 'n') + '|' + part + '|' + prop;
+      if (!G.has(key)) G.set(key, { mat, part, prop, geos: [] });
+      const g = o.geometry.clone(); g.applyMatrix4(o.matrixWorld); G.get(key).geos.push(g);
+    });
+    const world = new THREE.Group(); world.name = 'wis_model';
+    const ground = /^web_(ground|water|WIS_flume_water|road_white|gravel|BLOX_Slab|BLOX_TrenchCover|WIS_hv_strip|WIS_batter_grass)/;
+    const add = (geo, g) => {
+      const m = new THREE.Mesh(geo, g.mat);
+      m.matrixAutoUpdate = false;
+      const cast = !(geo.attributes.color || ground.test(g.mat.name || ''));
+      m.castShadow = cast; m.receiveShadow = true;
+      world.add(m);
+      groups.push({ m, part: g.part, prop: g.prop, orig: g.mat, cast });
+    };
+    for (const g of G.values()) {
+      const mt = g.mat;
+      mt.envMapIntensity = 0.7;
+      if (mt.transparent) mt.depthWrite = false;
+      if (g.geos[0].attributes.color) { mt.vertexColors = true; mt.color.set(0xffffff); }
+      let geo = null;
+      try { geo = g.geos.length > 1 ? L.mergeGeometries(g.geos, false) : g.geos[0]; } catch (e) { geo = null; }
+      if (geo) add(geo, g); else g.geos.forEach((one) => add(one, g));
+    }
+    // the fans: each pivot's place is kept and its blades turn about its own up axis
+    const sets = new Map();
+    for (const [piv, meshes] of pivots) {
+      const it = { base: piv.parent.matrixWorld.clone(), pos: piv.position.clone(), q0: piv.quaternion.clone(), scl: piv.scale.clone(), phase: rand() * Math.PI * 2 };
+      const inv = piv.matrixWorld.clone().invert(), part = up(piv, 'part') || 'site', prop = up(piv, 'proposal') ? 1 : 0;
+      for (const m of meshes) {
+        const k = m.geometry.uuid + '|' + m.material.uuid + '|' + part + '|' + prop;
+        if (!sets.has(k)) sets.set(k, { geo: m.geometry, mat: m.material, part, prop, list: [] });
+        sets.get(k).list.push([it, inv.clone().multiply(m.matrixWorld)]);
+      }
+    }
+    for (const s of sets.values()) {
+      s.mat.envMapIntensity = 0.7;
+      const im = new THREE.InstancedMesh(s.geo, s.mat, s.list.length);
+      im.instanceMatrix.setUsage(THREE.DynamicDrawUsage); im.castShadow = true; im.receiveShadow = true; im.frustumCulled = false;
+      world.add(im);
+      fanSets.push({ im, list: s.list });
+      groups.push({ m: im, part: s.part, prop: s.prop, orig: s.mat, cast: true });
+    }
+    placeFans();
+    // the 33 kV conductors: the model's spans (nine points each, pole top to pole top with their sag) as fine lines
+    const segs = [];
+    for (const w of MODEL.wires || []) {
+      const n = w.length / 3;
+      for (let i = 0; i + 1 < n; i++) {
+        if ((i + 1) % 9 === 0) continue;
+        segs.push(w[i * 3], w[i * 3 + 2], -w[i * 3 + 1], w[i * 3 + 3], w[i * 3 + 5], -w[i * 3 + 4]);
+      }
+    }
+    if (segs.length) {
+      const lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.Float32BufferAttribute(segs, 3));
+      const lines = new THREE.LineSegments(lg, wireMat); lines.frustumCulled = false; world.add(lines);
+    }
+    scene.add(world);
+    // the materials dusk lights, by their names in the model
+    const seen = new Set();
+    for (const g of groups) {
+      const m = g.orig; if (seen.has(m)) continue; seen.add(m);
+      const n = m.name || '';
+      if (/^web_BLOX_LampLens/.test(n)) DUSK.lamp.push(m);
+      else if (/^web_blox_glow/.test(n)) DUSK.glow.push([m, m.emissiveIntensity]);
+    }
+    buildFlows();
+    buildLabels();
+    loaded = true;
+    bar(1);
+    // the page opens from high over the fen and comes down to the overview (or goes straight to the step the address asks for)
+    if (step) { const [p1, t1, f1] = aim(STEPS[step - 1].cam); camera.position.copy(p1); controls.target.copy(t1); setFov(f1); }
+    else {
+      const v1 = CAMERAS[view] || CAMERAS.overview;
+      const [p0, t0, f0] = aim(MODEL.cams.aerial || CAMERAS.site.cam), [p1, t1, f1] = aim(v1.cam);
+      if (REDUCED || view !== 'overview') { camera.position.copy(p1); controls.target.copy(t1); setFov(f1); }
+      else { camera.position.copy(p0); controls.target.copy(t0); setFov(f0); setTimeout(() => { if (!step && view === 'overview' && !document.body.classList.contains('moved')) animateCamera(p1, t1, 3600, f1); }, 350); }
+    }
+    controls.update();
+    applyStep();
+    draw();
+    setTimeout(() => {
+      $('loading').classList.add('hide');
+      document.body.classList.add('ready');
+      $('rail').removeAttribute('inert'); $('caption').removeAttribute('inert');
+      clampCaption(); railEdges();
+    }, 150);
+    run();
+  }
+  // the fans' blades on the containers' roof coolers turn fast while the BLOX runs (they carry its heat), slowly at rest
+  let _q = null, _qy = null;
+  function placeFans(){
+    if (!_q) { _q = new THREE.Quaternion(); _qy = new THREE.Quaternion(); }
+    const M = new THREE.Matrix4(), T = new THREE.Matrix4(), Y = new THREE.Vector3(0, 1, 0);
+    for (const fs of fanSets) {
+      fs.list.forEach(([it, R], i) => {
+        _qy.setFromAxisAngle(Y, bloxAng + it.phase); _q.copy(it.q0).multiply(_qy);
+        T.compose(it.pos, _q, it.scl); M.multiplyMatrices(it.base, T).multiply(R); fs.im.setMatrixAt(i, M);
+      });
+      fs.im.instanceMatrix.needsUpdate = true;
+    }
+  }
+
+  /* ------------------------------------------------------------ the flows */
+  // Each flow is the model's route, a stream of points in its key colour running along it at walking pace, a faint tube
+  // so the route reads where the points are far apart, and an arrowhead at its end.
+  function route(flat){
+    const pts = []; for (let i = 0; i < flat.length; i += 3) pts.push(P(flat[i], flat[i + 1], flat[i + 2]));
+    const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + pts[i].distanceTo(pts[i - 1]));
+    return { pts, cum, len: cum[cum.length - 1] };
+  }
+  function at(rt, s, out){
+    s = Math.max(0, Math.min(rt.len, s));
+    let lo = 0, hi = rt.cum.length - 1;
+    while (hi - lo > 1) { const m = (lo + hi) >> 1; if (rt.cum[m] <= s) lo = m; else hi = m; }
+    const seg = (rt.cum[hi] - rt.cum[lo]) || 1;
+    return out.lerpVectors(rt.pts[lo], rt.pts[hi], (s - rt.cum[lo]) / seg);
+  }
+  function tubeOf(rt, s0, s1, r){
+    const c = new THREE.Curve();
+    c.getPoint = (t, o) => at(rt, s0 + (s1 - s0) * t, o || new THREE.Vector3());
+    c.getPointAt = c.getPoint;
+    c.getTangentAt = (t, o) => c.getTangent(t, o);
+    return new THREE.TubeGeometry(c, Math.max(2, Math.min(700, Math.ceil((s1 - s0) / 0.8))), r, 6, false);
+  }
+  const DASH = 3.5, GAP = 4.5;
+  function addFlow(def){
+    const rt = route(def.p), Lr = rt.len;
+    const base = new THREE.Color(KEY[def.k] ? KEY[def.k][0] : def.c);
+    const r = def.r, size = 5.2 * r;
+    const d0 = def.d == null ? Lr : Math.max(0, Math.min(Lr, def.d));
+    // the stream: points spaced along the solid part, closer in the dashed part so each dash holds a few
+    const gapS = r >= 1.5 ? 5.2 : 4.2, gapD = 1.4;
+    const S0 = [], A = [], B = [], DP = [];
+    if (d0 > 0.5) { const n = Math.max(2, Math.round(d0 / gapS)); for (let i = 0; i < n; i++) { S0.push(i * d0 / n); A.push(0); B.push(d0); DP.push(0); } }
+    if (Lr - d0 > 0.5) { const n = Math.max(2, Math.round((Lr - d0) / gapD)); for (let i = 0; i < n; i++) { S0.push(i * (Lr - d0) / n); A.push(d0); B.push(Lr); DP.push(1); } }
+    const n = S0.length;
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 3), 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(new Float32Array(n * 4), 4));
+    const mat = new THREE.PointsMaterial({ size, map: FLOWDOT, vertexColors: true, transparent: true, opacity: 0, depthWrite: false, sizeAttenuation: true, alphaTest: 0.02 });
+    const points = new THREE.Points(geo, mat); points.frustumCulled = false; points.renderOrder = 20;
+    // the tube: whole where the flow is solid, in dashes beyond its dash point, and the arrowhead
+    const tr = r * 0.42, parts = [];
+    if (d0 > 0.3) parts.push(tubeOf(rt, 0, d0, tr));
+    for (let s = d0; s < Lr - 0.3; s += DASH + GAP) parts.push(tubeOf(rt, s, Math.min(Lr, s + DASH), tr));
+    const end = rt.pts[rt.pts.length - 1], dir = new THREE.Vector3().subVectors(end, rt.pts[rt.pts.length - 2]).normalize();
+    const h = 3.6 * r, cone = new THREE.ConeGeometry(1.4 * r, h, 10);
+    cone.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir));
+    cone.translate(end.x - dir.x * h / 2, end.y - dir.y * h / 2, end.z - dir.z * h / 2);
+    parts.push(cone);
+    parts.forEach((g, i) => { if (g.index) parts[i] = g.toNonIndexed(); });
+    let lg = null; try { lg = L.mergeGeometries(parts, false); } catch (e) { lg = parts[0]; }
+    const line = new THREE.Mesh(lg, new THREE.MeshBasicMaterial({ color: base, transparent: true, opacity: 0, depthWrite: false }));
+    line.renderOrder = 19; line.frustumCulled = false; scene.add(line);
+    scene.add(points);
+    const f = { id: def.id, key: def.k, prop: def.st === 'p', rt, points, line, n, S0: Float32Array.from(S0), A: Float32Array.from(A), B: Float32Array.from(B), DP: Uint8Array.from(DP),
+      base, speed: r >= 1.5 ? 5 : 4, lineMax: 0.55 * (1 - (def.dim || 0)), target: 0, level: 0 };
+    flows[def.id] = f;
+    return f;
+  }
+  function buildFlows(){ MODEL.flows.forEach(addFlow); }
+  function flowFrame(dt, t){
+    const v = new THREE.Vector3(), c = new THREE.Color();
+    for (const id in flows) {
+      const f = flows[id];
+      // each flow fades to its target over half a second
+      if (f.level !== f.target) f.level = f.target > f.level ? Math.min(f.target, f.level + dt * 2) : Math.max(f.target, f.level - dt * 2);
+      const on = f.level > 0.01;
+      f.points.visible = on; f.line.visible = on; f.line.material.opacity = f.lineMax * f.level;
+      f.points.material.opacity = f.level;
+      if (!on) continue;
+      const pos = f.points.geometry.attributes.position.array, col = f.points.geometry.attributes.color.array, Lr = f.rt.len;
+      for (let i = 0; i < f.n; i++) {
+        const a = f.A[i], span = f.B[i] - a;
+        const s = a + ((f.S0[i] + t * f.speed) % span + span) % span;
+        at(f.rt, s, v);
+        // the points fade in at the route's start and out at its end; in the dashed part they show only in the dashes
+        let al = Math.min(1, s / 1.5, (Lr - s) / 1.5);
+        if (f.DP[i]) { const m = (s - a) % (DASH + GAP); al *= m < DASH ? Math.max(0, Math.min(1, (m - 0.5) / 0.5, (DASH - 0.5 - m) / 0.5)) : 0; }
+        pos[i * 3] = v.x; pos[i * 3 + 1] = v.y; pos[i * 3 + 2] = v.z;
+        c.copy(f.base);
+        col[i * 4] = c.r; col[i * 4 + 1] = c.g; col[i * 4 + 2] = c.b; col[i * 4 + 3] = Math.max(0, al);
+      }
+      f.points.geometry.attributes.position.needsUpdate = true; f.points.geometry.attributes.color.needsUpdate = true;
+    }
+  }
+
+  /* ----------------------------------------------------------- the labels */
+  // title, subtitle, where (site metres), the part it names, shown within (m), and 1 / 0 for a label that shows only
+  // with / without the proposal
+  const LABELS = [
+    ['CHP', 'Gas turbine and heat recovery steam generator', [9, -29, 28.6], 'chp', 900],
+    ['CHP stack', '60 m', [0, 0, 61.7], 'chp', 2400],
+    ['Lime kiln', 'With its skip hoist', [7.1, -140.4, 63], 'kiln', 1500],
+    ['Main building', 'Diffuser, carbonatation, pans', [96, -73, 20], 'main', 900],
+    ['Evaporators', 'With the 2023 first-effect and juice-run units', [247.5, -78.5, 27.8], 'evap', 800],
+    ['Slicer building', 'Beet into cossettes', [275.6, -1.7, 19.7], 'slicer', 800],
+    ['Beet reception and washing', 'Sampling, tarehouse, flume', [300, -112, 9], 'reception', 900],
+    ['Beet pad', 'Clamps in the campaign', [440, -110, 7], 'beetpad', 1500],
+    ['Storage silos', 'Silos 1 to 7', [145, -175, 61.6], 'silos', 1800],
+    ['Sugar store', 'Screening and storage', [242, -246, 45.2], 'store', 900],
+    ['Bulk outloading', 'Tankers, bags, blends and syrups', [371, -296, 5.5], 'outload', 800],
+    ['Thick juice tanks', 'Stored for the juice run', [159.4, -330.5, 22.6], 'tanks', 1300],
+    ['Steam dryers', 'New for the 2026/27 campaign', [121.7, 48.5, 22], 'steamdryers', 900],
+    ['CO₂ plant', 'Restarted 2024', [151.9, -458.3, 6.4], 'co2', 800],
+    ['Bioethanol plant', '', [52.5, -404, 20], 'ethanol', 800],
+    ['33 kV substation', 'UK Power Networks', [-37, -128.2, 7.2], 'sub', 900],
+    ['Switchroom and export meter', 'British Sugar’s; position assumed', [-66, -150, 4], 'bsswitch', 650],
+    ['33 kV line', 'The export, to the grid', [-330, -151, 12], 'ohl', 1700],
+    ['BLOX Peaker Plant, proposed', '10 hydro-cooled containers · up to about 18 MW', [-170, -192, 8.5], 'blox', 2000, 1],
+    ['River Wissey', '', [150, 152, 2.5], 'site', 2600],
+    ['Wastewater lagoons', '', [200, 480, 2.5], 'site', 2600],
+    ['Glasshouse', '', [-279, 547, 7], 'site', 2600],
+    ['College Road', '', [530, -480, 3], 'site', 2600],
+  ];
+  function buildLabels(){
+    for (const [title, sub, p, part, near, pr] of LABELS) {
+      const wrap = document.createElement('div'); wrap.className = 'lab';
+      const el = document.createElement('button'); el.className = 'lbl'; el.type = 'button';
+      el.innerHTML = title + (sub ? '<small>' + sub + '</small>' : ''); el.title = 'Go to: ' + title;
+      el.addEventListener('click', () => flyTo(P(...p)));
+      wrap.appendChild(el);
+      const o = new L.CSS2DObject(wrap); o.position.copy(P(...p)); o.userData.part = part; o.userData.near = near; o.userData.prop = pr;
+      scene.add(o); labelObjs.push(o);
+    }
+    let pd = null;
+    $('labels').addEventListener('pointerdown', (e) => { pd = e; });
+    $('labels').addEventListener('pointermove', (e) => {
+      if (!pd || Math.hypot(e.clientX - pd.clientX, e.clientY - pd.clientY) < 6) return;
+      renderer.domElement.dispatchEvent(new PointerEvent('pointerdown', pd)); pd = null;
+    });
+    $('labels').addEventListener('pointerup', () => { pd = null; });
+    $('labels').addEventListener('pointercancel', () => { pd = null; });
+  }
+  function updateLabels(){
+    const v = new THREE.Vector3(), s = step ? STEPS[step - 1] : null, hi = s && s.hi ? new Set(s.hi) : null;
+    for (const o of labelObjs) {
+      const d = camera.position.distanceTo(o.position), pr = o.userData.prop;
+      o.visible = labelsOn && d < o.userData.near && (pr == null || pr === (proposal ? 1 : 0));
+      o.element.classList.toggle('dim', !!hi && !hi.has(o.userData.part));
+      v.copy(o.position).project(camera);
+      o.element.firstElementChild.tabIndex = (o.visible && Math.abs(v.x) <= 1 && Math.abs(v.y) <= 1 && v.z < 1) ? 0 : -1;
+    }
+  }
+
+  /* --------------------------------------------------------- the hooks */
+  function hooks(){
+    window.__atlas = { setStep, setCamera: setView, setDusk, setLabels, setFlows, setProposal, setTab, setDay, draw, settle, cover,
+      get ready(){ return loaded; }, get scene(){ return scene; }, get camera(){ return camera; },
+      // for the checks: what shows now
+      get state(){ return { tab, step, view, proposal, flowsOn, labelsOn, dusk, bloxRunning, day: { t: +dayT.toFixed(2), run: dayRun, shown: dayVis, blox: bloxNow() },
+        flows: Object.keys(flows).filter((k) => flows[k].target > 0) }; }, get controls(){ return controls; }, renderer: () => renderer };
+  }
+  // for the front-page cover: the scene alone from a given camera (site metres; the field of view optional), labels off,
+  // as a JPEG data URL. The containers' livery lettering and the signs (lettered surfaces) are hidden for the shot.
+  function cover(pos, tgt, w, h, fov){
+    const keepL = labelsOn; labelsOn = false; updateLabels();
+    const lettered = []; scene.traverse((o) => { if (o.isMesh && o.visible && [].concat(o.material).some((m) => /^web_(BLOX_Livery|yellow_sign)/.test(m.name || ''))) { o.visible = false; lettered.push(o); } });
+    const p0 = camera.position.clone(), t0 = controls.target.clone(), asp = camera.aspect, f0 = camera.fov;
+    renderer.setSize(w, h, false); camera.aspect = w / h; if (fov) camera.fov = fov; camera.updateProjectionMatrix();
+    camera.position.copy(P(...pos)); controls.target.copy(P(...tgt)); controls.update();
+    for (const id in flows) flows[id].level = flows[id].target; flowFrame(0, tAcc);
+    renderer.render(scene, camera);
+    const url = renderer.domElement.toDataURL('image/jpeg', 0.95);
+    for (const o of lettered) o.visible = true;
+    labelsOn = keepL;
+    const gl = $('gl'); renderer.setSize(gl.clientWidth, gl.clientHeight); camera.aspect = asp; camera.fov = f0; camera.updateProjectionMatrix();
+    camera.position.copy(p0); controls.target.copy(t0); controls.update(); draw();
+    return url;
+  }
+  // for the covers and the checks: finish any camera flight and fade at once, then draw
+  function settle(){
+    if (!loaded) return;
+    if (tween) { camera.position.copy(tween.p1); controls.target.copy(tween.t1); camera.fov = tween.f1; camera.updateProjectionMatrix(); tween = null; }
+    for (const id in flows) flows[id].level = flows[id].target;
+    flowFrame(0, tAcc); controls.update(); draw();
+  }
+
+  /* ------------------------------------------------------- camera moves */
+  function setFov(f){ if (f && camera.fov !== f) { camera.fov = f; camera.updateProjectionMatrix(); } }
+  function animateCamera(pos, tgt, ms, fov){
+    fov = fov || camera.fov;
+    if (REDUCED) { camera.position.copy(pos); controls.target.copy(tgt); setFov(fov); draw(); return; }
+    tween = { p0: camera.position.clone(), t0: controls.target.clone(), f0: camera.fov, p1: pos, t1: tgt, f1: fov, start: performance.now(), ms: ms || 1500 };
+    run();
+  }
+  function flyTo(target){
+    const off = new THREE.Vector3().subVectors(camera.position, controls.target);
+    off.setLength(Math.min(off.length(), 90));
+    animateCamera(target.clone().add(off), target);
+  }
+  function aim(cam){
+    // on a stage held upright the camera stands further back, so the same subject fits
+    const narrow = camera.aspect < 0.8;
+    const pos = P(...cam[0]), tgt = P(...cam[1]);
+    if (narrow) pos.sub(tgt).multiplyScalar(1.55).add(tgt);
+    return [pos, tgt, cam[2]];
+  }
+  function setView(name){
+    if (CAMERAS[name] && CAMERAS[name].prop && !proposal) name = 'overview';
+    const v = CAMERAS[name]; if (!v) return;
+    view = name; step = 0; setPlay(false);
+    document.querySelectorAll('#rail [data-v]').forEach((b) => b.setAttribute('aria-current', b.dataset.v === name ? 'true' : 'false'));
+    if (!loaded) { applyStep(); return; }
+    if (controls.autoRotate) { controls.autoRotate = false; pressed('b-rot', false); }
+    const [pos, tgt, fov] = aim(v.cam);
+    animateCamera(pos, tgt, null, fov);
+    applyStep();
+  }
+  document.querySelectorAll('#rail [data-v]').forEach((b) => b.addEventListener('click', () => setView(b.dataset.v)));
+
+  /* ------------------------------------------------------------ the steps */
+  const strip = $('strip');
+  STEPS.forEach((s) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'step' + (s.blox ? ' blox' : ''); b.setAttribute('role', 'tab');
+    if (s.blox) b.dataset.proposal = '1';
+    b.style.setProperty('--kcol', kcol(s.key)); b.dataset.n = s.n; b.title = s.t;
+    b.innerHTML = '<span class="n">' + s.n + '</span><span class="t">' + s.t + '</span><i class="pr"></i>';
+    b.addEventListener('click', () => { setStep(s.n); });
+    strip.appendChild(b);
+  });
+  function setStep(n, keepPlay){
+    n = Math.max(0, Math.min(STEPS.length, n | 0));
+    if (n && STEPS[n - 1].blox && !proposal) n = 0;
+    step = n; playT = 0;
+    if (!keepPlay) setPlay(false);
+    document.querySelectorAll('#rail [data-v]').forEach((b) => b.setAttribute('aria-current', !n && b.dataset.v === view ? 'true' : 'false'));
+    if (loaded && n) {
+      if (controls.autoRotate) { controls.autoRotate = false; pressed('b-rot', false); }
+      const [pos, tgt, fov] = aim(STEPS[n - 1].cam);
+      animateCamera(pos, tgt, 1700, fov);
+    }
+    applyStep();
+    const b = strip.querySelector('.step[aria-current="true"]');
+    if (b && b.scrollIntoView) b.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+  }
+  function nextStep(d){
+    const A = active().map((s) => s.n), i = A.indexOf(step);
+    if (i < 0) return d > 0 ? A[0] : A[A.length - 1];
+    return A[(i + d + A.length) % A.length];
+  }
+  const legend = (keys) => keys.filter((k) => KEY[k]).map((k) => '<span><i' + (LIGHT.has(k) ? ' class="l"' : '') + ' style="background:' + KEY[k][0] + '"></i>' + KEY[k][1] + '</span>').join('');
+  // the surplus goes up the 33 kV line or to the proposed BLOX, never both: with the proposal on, the overview and step 9
+  // follow the day's prices. A side comes on only once the other has faded right out, so the two are never drawn together
+  const ALT = ['bloxpower'];
+  const lvl = (ids) => Math.max(0, ...ids.map((k) => (flows[k] ? flows[k].level : 0)));
+  const altOn = (id) => ((id === 'export' ? !bloxNow() && lvl(ALT) <= 0.01 : bloxNow() && lvl(['export']) <= 0.01) ? 1 : 0);
+  function flowOn(id, s){
+    const f = flows[id];
+    if (!flowsOn || !f || (f.prop && !proposal)) return 0;
+    if (proposal && (!s || s.alternate) && (id === 'export' || ALT.includes(id)) && (!s || s.flows.includes(id))) return altOn(id);
+    if (s) return s.flows.includes(id) ? 1 : 0;
+    return 1;
+  }
+  function applyStep(){
+    const s = step ? STEPS[step - 1] : null, N = active().length;
+    strip.querySelectorAll('.step').forEach((b) => { b.setAttribute('aria-current', +b.dataset.n === step ? 'true' : 'false'); b.tabIndex = +b.dataset.n === step || (!step && +b.dataset.n === 1) ? 0 : -1; });
+    // the caption
+    const cap = $('caption');
+    if (s) {
+      cap.style.setProperty('--kcol', kcol(s.key));
+      $('cap-k').lastElementChild.textContent = 'Step ' + s.n + ' of ' + N + (s.blox ? ' · RenewaBlox proposal' : s.n === 8 ? ' · British Sugar’s CHP' : ' · British Sugar’s process, in their words');
+      $('cap-h').innerHTML = s.h; $('cap-p').innerHTML = s.p;
+      const keys = [...new Set(s.flows.filter((id) => !(flows[id] && flows[id].prop && !proposal)).map((id) => { const f = MODEL.flows.find((x) => x.id === id); return f ? f.k : null; }).filter(Boolean))];
+      $('cap-flows').innerHTML = legend(keys);
+    } else {
+      const v = CAMERAS[view] || CAMERAS.overview, off = !proposal && v.offH;
+      cap.style.setProperty('--kcol', 'var(--accent)');
+      $('cap-k').lastElementChild.textContent = 'Camera · ' + v.k; $('cap-h').innerHTML = off ? v.offH : v.h; $('cap-p').innerHTML = off ? v.offP : v.p;
+      $('cap-flows').innerHTML = legend(['beet', 'flume', 'rawjuice', 'juice', 'thick', 'lime', 'sugar', 'steam', 'elec', 'export'].concat(proposal ? ['blox'] : []));
+    }
+    cap.classList.remove('more'); clampCaption();
+    showDay();
+    drawSchem();
+    if (!loaded) return;
+    // the flows: those of the step, or all of them in the overview
+    for (const id in flows) flows[id].target = flowOn(id, s);
+    switchState(true);
+    if (REDUCED) for (const id in flows) flows[id].level = flows[id].target;
+    // the parts: the step's in colour, the rest of the factory in clay; RenewaBlox's parts only with the proposal
+    const hi = s && s.hi ? new Set(s.hi) : null;
+    for (const g of groups) {
+      const dim = !!hi && !NODIM.has(g.part) && !hi.has(g.part);
+      g.m.material = dim ? (g.orig.transparent ? dimMatT : dimMat) : g.orig; g.m.castShadow = g.cast;
+      g.m.visible = proposal || !g.prop;
+    }
+    if (REDUCED) flowFrame(0, 0);
+    updateLabels(); run();
+  }
+  // Play: each step holds for a while, then the next
+  const HOLD = 9000;
+  function setPlay(on){
+    playing = on; $('s-play').setAttribute('aria-pressed', on ? 'true' : 'false');
+    $('s-play').querySelector('.pl').hidden = on; $('s-play').querySelector('.pa').hidden = !on;
+    $('s-play').setAttribute('aria-label', on ? 'Pause' : 'Play the process');
+    if (on) { if (!step) setStep(nextStep(1), true); playT = 0; }
+    else strip.querySelectorAll('.step').forEach((b) => b.style.setProperty('--pr', 0));
+    run();
+  }
+  $('s-play').addEventListener('click', () => setPlay(!playing));
+  $('s-prev').addEventListener('click', () => setStep(nextStep(-1)));
+  $('s-next').addEventListener('click', () => setStep(nextStep(1)));
+  document.addEventListener('keydown', (e) => {
+    if (e.target && /^(INPUT|TEXTAREA|SELECT|VIDEO)$/.test(e.target.tagName)) return;
+    if (!$('as-sheet').hidden || !$('lb').hidden || tab === 'media') return;
+    if (e.key === 'ArrowRight' && !e.target.closest('#ptabs')) { e.preventDefault(); setStep(nextStep(1)); }
+    else if (e.key === 'ArrowLeft' && !e.target.closest('#ptabs')) { e.preventDefault(); setStep(nextStep(-1)); }
+    else if (e.key === ' ' && !e.target.closest('button')) { e.preventDefault(); setPlay(!playing); }
+    else if (e.key === 'Escape' && step) { setStep(0); }
+  });
+
+  /* ------------------------------------------------ the day and the switch */
+  // The card: the day's price shape, the line, and a playhead; above the line the export, below it the BLOX. A click or
+  // a drag on the curve moves to that half-hour and holds there; the button plays the day on, or pauses it.
+  const SVGN = 'http://www.w3.org/2000/svg';
+  const dx = (t) => t / 48 * 300, dy = (v) => 60 - v * 52;
+  let dayHead = null, dayDot = null;
+  function buildDay(){
+    const svg = $('day-svg'); svg.innerHTML = '';
+    const mk = (tag, a, parent) => { const e = document.createElementNS(SVGN, tag); for (const k in a) e.setAttribute(k, a[k]); (parent || svg).appendChild(e); return e; };
+    const yl = dy(DAY.line);
+    const defs = mk('defs', {});
+    const ca = mk('clipPath', { id: 'd-above' }, defs); mk('rect', { x: 0, y: 0, width: 300, height: yl }, ca);
+    const cb = mk('clipPath', { id: 'd-below' }, defs); mk('rect', { x: 0, y: yl, width: 300, height: 66 - yl }, cb);
+    // the half-hours as steps: the price holds for each settlement period
+    let d = 'M0 ' + dy(DAY.v[0]);
+    DAY.v.forEach((v, i) => { d += ' L' + dx(i) + ' ' + dy(v) + ' L' + dx(i + 1) + ' ' + dy(v); });
+    const area = d + ' L300 64 L0 64 Z';
+    mk('path', { d: area, fill: 'rgba(51,69,79,.13)', 'clip-path': 'url(#d-above)' });
+    mk('path', { d: area, fill: 'rgba(111,179,214,.42)', 'clip-path': 'url(#d-below)' });
+    mk('path', { d, fill: 'none', stroke: '#33454f', 'stroke-width': 1.6, 'stroke-linejoin': 'round', 'clip-path': 'url(#d-above)', 'vector-effect': 'non-scaling-stroke' });
+    mk('path', { d, fill: 'none', stroke: '#2f86b3', 'stroke-width': 1.6, 'stroke-linejoin': 'round', 'clip-path': 'url(#d-below)', 'vector-effect': 'non-scaling-stroke' });
+    // the quarter days, unlabelled, and the line
+    [12, 24, 36].forEach((t) => mk('line', { x1: dx(t), x2: dx(t), y1: 4, y2: 64, stroke: 'rgba(13,27,35,.10)', 'stroke-width': 1, 'vector-effect': 'non-scaling-stroke' }));
+    mk('line', { x1: 0, x2: 300, y1: yl, y2: yl, stroke: '#12475e', 'stroke-width': 1.2, 'stroke-dasharray': '4 3', 'vector-effect': 'non-scaling-stroke' });
+    mk('line', { x1: 0, x2: 300, y1: 64, y2: 64, stroke: 'rgba(13,27,35,.25)', 'stroke-width': 1, 'vector-effect': 'non-scaling-stroke' });
+    dayHead = mk('line', { x1: 0, x2: 0, y1: 2, y2: 64, stroke: '#0d1b23', 'stroke-width': 1.4, 'vector-effect': 'non-scaling-stroke' });
+    dayDot = mk('rect', { x: 0, y: 0, width: 6.25, height: 3, rx: 1, fill: '#0d1b23' });
+    let drag = false;
+    const toT = (e) => { const r = svg.getBoundingClientRect(); return Math.max(0, Math.min(47.99, (e.clientX - r.left) / Math.max(1, r.width) * 48)); };
+    svg.addEventListener('pointerdown', (e) => { drag = true; try { svg.setPointerCapture(e.pointerId); } catch (err) {} setDay(toT(e), false); });
+    svg.addEventListener('pointermove', (e) => { if (drag) setDay(toT(e), false); });
+    svg.addEventListener('pointerup', () => { drag = false; });
+    svg.addEventListener('pointercancel', () => { drag = false; });
+  }
+  function drawDay(){
+    if (!dayHead) return;
+    const t = dayT, i = Math.max(0, Math.min(47, Math.floor(t)));
+    dayHead.setAttribute('x1', dx(t)); dayHead.setAttribute('x2', dx(t));
+    dayDot.setAttribute('x', dx(i)); dayDot.setAttribute('y', dy(DAY.v[i]) - 1.5);
+    const b = bloxNow(), st = $('d-state');
+    st.classList.toggle('blox', b);
+    st.lastElementChild.textContent = b ? 'Prices low: the BLOX takes the surplus' : 'Prices high: exporting up the 33 kV line';
+  }
+  function dayButton(){
+    pressed('d-play', dayRun);
+    $('d-play').querySelector('.pl').hidden = dayRun; $('d-play').querySelector('.pa').hidden = !dayRun;
+    $('d-play').lastElementChild.textContent = dayRun ? 'Pause' : 'Play the day';
+  }
+  // the hook and the scrub: a time of day in half-hours (0 to 48), and whether the day plays on from there
+  function setDay(t, runOn){
+    if (t != null && isFinite(t)) dayT = ((+t % 48) + 48) % 48;
+    if (runOn != null) dayRun = !!runOn;
+    dayButton(); drawDay(); switchState(); altSchem(); run();
+  }
+  $('d-play').addEventListener('click', () => setDay(null, !dayRun));
+  function showDay(){
+    dayVis = proposal && tab !== 'media' && (!step || !!STEPS[step - 1].alternate);
+    $('day').hidden = !dayVis;
+    document.body.classList.toggle('dayon', dayVis);
+    drawDay();
+  }
+  // the switch follows the day: the targets of the export and the BLOX's feed, the BLOX's fans and its glow
+  function switchState(force){
+    const s = step ? STEPS[step - 1] : null;
+    let running = proposal && !!s && !!s.blox && bloxNow();
+    if (proposal && (!s || s.alternate)) {
+      running = bloxNow();
+      if (loaded && flowsOn) { ALT.forEach((id) => { if (flows[id]) flows[id].target = flowOn(id, s); }); if (flows.export) flows.export.target = flowOn('export', s); }
+    }
+    bloxRunning = running;
+    if (loaded && (force || glowState !== (running ? 1 : 0) + (dusk ? 2 : 0))) {
+      glowState = (running ? 1 : 0) + (dusk ? 2 : 0);
+      DUSK.glow.forEach(([m, day]) => { m.emissiveIntensity = (dusk ? 3.4 : day) * (running ? 1 : 0.12); });
+    }
+  }
+
+  /* ---------------------------------------------------------- toggles */
+  function setFlows(on){ flowsOn = !!on; pressed('b-flows', flowsOn); applyStep(); }
+  function setLabels(on){ labelsOn = !!on; pressed('b-labels', labelsOn); if (loaded) { updateLabels(); draw(); } }
+  function setDusk(on){
+    dusk = !!on; pressed('b-dusk', dusk);
+    if (!loaded) return;
+    skyCol.setHex(dusk ? 0x1c2a3a : 0xc9dcec); fogCol.setHex(dusk ? 0x25303f : 0xd5e1ea);
+    if (skyDome) { skyDome.material.map.dispose(); skyDome.material.map = skyTexture(dusk); skyDome.material.needsUpdate = true; }
+    sun.color.setHex(dusk ? 0xffb070 : 0xfff0d8); sun.intensity = dusk ? 0.55 : 2.4; placeSun(dusk ? SUN_DUSK : SUN_DAY);
+    hemi.intensity = dusk ? 0.32 : 0.9; hemi.color.setHex(dusk ? 0x5a6f8a : 0xd6e6f4); hemi.groundColor.setHex(dusk ? 0x2a2a28 : 0x6f6a52);
+    renderer.toneMappingExposure = dusk ? 0.9 : 1.18; scene.environmentIntensity = dusk ? 0.12 : 0.55;
+    wireMat.color.setHex(dusk ? 0x0d1013 : 0x2b3034);
+    DUSK.lamp.forEach((m) => { m.emissive.setHex(0xfff0d2); m.emissiveIntensity = dusk ? 2.4 : 0; });
+    switchState(true);
+    draw(); run();
+  }
+  // the proposal switch: RenewaBlox's parts, its feed, labels, step 9, the day, the schematic's BLOX branch, the BLOX stills
+  // and the sheet's proposal card all come and go together; the address keeps the choice (?proposal=0)
+  function setProposal(on){
+    proposal = !!on; pressed('b-prop', proposal);
+    document.body.classList.toggle('noprop', !proposal);
+    PROP_ATTRS.forEach(([sel, attr, a, b]) => { const e = document.querySelector(sel); if (e) e.setAttribute(attr, proposal ? a : b); });
+    const u = new URL(location.href);
+    if (proposal) u.searchParams.delete('proposal'); else u.searchParams.set('proposal', '0');
+    history.replaceState(null, '', u);
+    if (!proposal && $('lb') && !$('lb').hidden) closeLb();
+    if (!proposal && ((step && STEPS[step - 1].blox) || (!step && CAMERAS[view] && CAMERAS[view].prop))) {
+      if (loaded) setView('overview'); else { step = 0; view = 'overview'; }
+    }
+    if (playing && !proposal && step && STEPS[step - 1].blox) setStep(nextStep(1), true);
+    buildKey();
+    applyStep(); railEdges();
+    if (loaded) draw();
+  }
+  $('b-flows').addEventListener('click', () => setFlows(!flowsOn));
+  $('b-labels').addEventListener('click', () => setLabels(!labelsOn));
+  $('b-dusk').addEventListener('click', () => setDusk(!dusk));
+  $('b-prop').addEventListener('click', () => setProposal(!proposal));
+  $('b-rot').addEventListener('click', () => { if (!loaded) return; controls.autoRotate = !controls.autoRotate; pressed('b-rot', controls.autoRotate); if (controls.autoRotate) setPlay(false); run(); });
+
+  /* -------------------------------------------------------------- loop */
+  let tAcc = 0;
+  function draw(dt){
+    if (!loaded) return;
+    updateLabels();
+    controls.update(dt == null ? null : dt);
+    renderer.render(scene, camera); labelR.render(scene, camera);
+  }
+  function anyFlow(){ for (const id in flows) if (flows[id].level > 0.01 || flows[id].target > 0) return true; return false; }
+  function moving(){
+    return !!tween || playing || controls.autoRotate || performance.now() - lastMove < 1500 || (dayVis && dayRun) || (!REDUCED && (anyFlow() || fanSets.length > 0));
+  }
+  function frame(now){
+    raf = 0;
+    const dt = Math.min(clock.getDelta(), 0.05); tAcc += dt;
+    if (tween) {
+      const tt = Math.min(1, (now - tween.start) / tween.ms), e = tt < 0.5 ? 2 * tt * tt : 1 - Math.pow(-2 * tt + 2, 2) / 2;
+      camera.position.lerpVectors(tween.p0, tween.p1, e); controls.target.lerpVectors(tween.t0, tween.t1, e);
+      if (tween.f1 !== tween.f0) { camera.fov = tween.f0 + (tween.f1 - tween.f0) * e; camera.updateProjectionMatrix(); }
+      if (tt >= 1) tween = null;
+    }
+    if (playing && !document.hidden) {
+      playT += dt * 1000;
+      const b = strip.querySelector('.step[aria-current="true"]'); if (b) b.style.setProperty('--pr', Math.min(1, playT / HOLD).toFixed(3));
+      if (playT >= HOLD) { setStep(nextStep(1), true); }
+    }
+    if (dayVis && dayRun && !document.hidden) { dayT = (dayT + dt * 48 / DAY.secs) % 48; drawDay(); }
+    switchState();
+    if (!REDUCED) {
+      bloxAng += dt * 2 * Math.PI * (bloxRunning ? 2.2 : 0.35);
+      placeFans();
+      flowFrame(dt, tAcc);
+    } else {
+      let ch = false; for (const id in flows) if (flows[id].level !== flows[id].target) { flows[id].level = flows[id].target; ch = true; }
+      if (ch) flowFrame(0, 0);
+    }
+    draw(dt);
+    run();
+  }
+  function run(){
+    const want = loaded && tab === 'model' && !document.hidden && moving();
+    if (want && !raf) { clock.getDelta(); raf = requestAnimationFrame(frame); }
+    else if (!want && raf) { cancelAnimationFrame(raf); raf = 0; }
+  }
+  document.addEventListener('visibilitychange', () => { run(); if (!document.hidden && loaded && !raf) draw(); });
+  // the schematic has no render loop: the day moves on there on a timer of its own
+  let schemLast = performance.now();
+  setInterval(() => {
+    const now = performance.now(), dt = Math.min(0.5, (now - schemLast) / 1000); schemLast = now;
+    if (tab !== 'schem' || document.hidden) return;
+    if (dayVis && dayRun) { dayT = (dayT + dt * 48 / DAY.secs) % 48; drawDay(); }
+    altSchem();
+  }, 100);
+
+  /* ------------------------------------------------- caption and rail */
+  function clampCaption(){
+    const p = $('cap-p'), more = $('caption').classList.contains('more');
+    $('capmore').hidden = !more && p.scrollHeight <= p.clientHeight + 1;
+    $('capmore').textContent = more ? 'Less' : 'More';
+  }
+  $('capmore').addEventListener('click', () => { $('caption').classList.toggle('more'); clampCaption(); });
+  // the rail along a phone's top edge scrolls: fade the edge that has more beyond it
+  function railEdges(){
+    const r = $('rail'), wide = r.scrollWidth > r.clientWidth + 1;
+    r.classList.toggle('more-l', wide && r.scrollLeft > 1);
+    r.classList.toggle('more-r', wide && r.scrollLeft + r.clientWidth < r.scrollWidth - 1);
+  }
+  $('rail').addEventListener('scroll', railEdges, { passive: true });
+  addEventListener('resize', () => { clampCaption(); railEdges(); });
+  if (document.fonts) document.fonts.ready.then(() => { clampCaption(); railEdges(); });
+
+  /* ======================================================== the schematic */
+  // British Sugar's process redrawn: one node per step along the beet-to-sugar line, the CHP below it with its steam to
+  // the juice and evaporator stations, its power to the factory and its surplus to the switchroom; from there the export
+  // up the 33 kV lines or, proposed, the BLOX. The same step state lights the node and its flows, and the switch follows
+  // the day as the model's does.
+  const SN = 'http://www.w3.org/2000/svg';
+  const NODES = {   // id: [x, y, w, h, step, title, subtitle, extra]
+    grown: [20, 210, 165, 80, 1, 'Grown', 'Fields, autumn and winter'],
+    travels: [205, 210, 175, 80, 2, 'To the factory', 'By lorry to the beet pad'],
+    washed: [400, 210, 160, 80, 3, 'Washed', 'Flume and washer'],
+    sliced: [580, 210, 160, 80, 4, 'Sliced', 'Into cossettes'],
+    juice: [760, 210, 200, 80, 5, 'Diffuser and lime', 'Raw juice, cleaned', 'Carbonatation'],
+    crystal: [980, 210, 215, 80, 6, 'Evaporators and pans', 'Thick juice to crystals', 'Juice stored for the juice run'],
+    customers: [1215, 210, 175, 80, 7, 'Silos, outloading', 'To customers'],
+    chp: [760, 400, 200, 80, 8, 'CHP', 'Steam and electricity', 'Gas turbine, heat recovery'],
+    blox: [1215, 400, 245, 80, 9, 'BLOX Peaker Plant', 'RenewaBlox proposal', 'Ten containers, behind the meter'],
+  };
+  const JUNCTION = [1000, 415, 165, 50, 'Switchroom', 'Export meter'];
+  // each edge: key, from, to, and an optional route through waypoints; the step(s) it lights for
+  const EDGES = [
+    ['beet', 'grown', 'travels', null, [1, 2]],
+    ['flume', 'travels', 'washed', null, [2, 3]],
+    ['beet', 'washed', 'sliced', null, [3, 4]],
+    ['beet', 'sliced', 'juice', null, [4, 5]],
+    ['lime', null, 'juice', [[860, 128], [860, 210]], [5]],
+    ['juice', 'juice', 'crystal', null, [5, 6]],
+    ['sugar', 'crystal', 'customers', null, [6, 7]],
+    ['sugar', 'customers', null, [[1390, 250], [1470, 250]], [7]],
+    ['steam', 'chp', 'juice', [[820, 400], [820, 290]], [5, 8]],
+    ['steam', 'chp', 'crystal', [[900, 400], [900, 340], [1060, 340], [1060, 290]], [6, 8]],
+    ['steam', 'chp', null, [[760, 425], [620, 425]], [8]],
+    ['elec', 'chp', null, [[760, 458], [620, 458]], [8]],
+    ['elec', 'chp', 'switch', [[960, 440], [1000, 440]], [8, 9]],
+    ['export', 'switch', null, [[1165, 430], [1190, 430], [1190, 360], [1470, 360]], [8, 9]],
+    ['blox', 'switch', 'blox', [[1165, 450], [1215, 450]], [9]],
+  ];
+  const KEY_ORDER = ['beet', 'flume', 'lime', 'juice', 'sugar', 'steam', 'elec', 'export', 'blox'];
+  let schemBuilt = false;
+  function el(tag, attrs, parent){ const e = document.createElementNS(SN, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+  function edgePath(e){
+    const [key, from, to, via] = e;
+    const pts = [];
+    const c = (n) => { const [x, y, w, h] = NODES[n]; return [x + w / 2, y + h / 2]; };
+    if (via) pts.push(...via);
+    else { const a = c(from), b = c(to); const [ax, , aw] = NODES[from], [bx] = NODES[to]; pts.push([ax + aw, a[1]], [bx, b[1]]); }
+    return 'M' + pts.map((p) => p.join(' ')).join(' L');
+  }
+  function buildSchem(){
+    const svg = $('schem'); svg.innerHTML = '';
+    const defs = el('defs', {}, svg);
+    KEY_ORDER.forEach((k) => {
+      const m = el('marker', { id: 'ar-' + k, viewBox: '0 0 10 10', refX: '8', refY: '5', markerWidth: '5', markerHeight: '5', orient: 'auto-start-reverse' }, defs);
+      el('path', { d: 'M0 0L10 5 0 10z', fill: RIM[k] || KEY[k][0] }, m);
+    });
+    // a soft band behind the main line so the eye reads left to right
+    el('rect', { x: 14, y: 182, width: 1452, height: 136, rx: 18, fill: 'rgba(31,95,127,.045)' }, svg);
+    const t = el('text', { x: 30, y: 176, fill: '#5a6a73', 'font-size': 10.5, 'font-weight': 750, 'letter-spacing': '.16em' }, svg); t.textContent = 'BEET IN · SUGAR OUT';
+    const gE = el('g', { class: 'edges' }, svg);
+    EDGES.forEach((e, i) => {
+      const attrs = (cls, stroke, marker) => {
+        const a = { d: edgePath(e), class: cls, stroke, 'data-steps': e[4].join(' ') };
+        if (marker) a['marker-end'] = 'url(#ar-' + e[0] + ')';
+        return a;
+      };
+      const tag = (p) => {
+        p.dataset.i = i;
+        if (e[4].length === 1 && e[4][0] === 9) p.dataset.proposal = '1';
+        if (e[0] === 'export') p.dataset.alt = 'grid';
+        if (e[0] === 'blox') p.dataset.alt = 'blox';
+      };
+      // a pale flow (sugar, the export) is a dark rim under its dashes, as the model draws a pale ribbon
+      if (RIM[e[0]]) tag(el('path', attrs('flow rim', RIM[e[0]], true), gE));
+      tag(el('path', attrs('flow dash', KEY[e[0]][0], !RIM[e[0]]), gE));
+    });
+    // the off-page ends
+    const gX = el('g', { class: 'ext' }, svg);
+    const lab = (x, y, txt, anchor, prop) => { const tx = el('text', { x, y, 'text-anchor': anchor || 'start' }, gX); tx.textContent = txt; if (prop != null) tx.dataset.proposal = String(prop); };
+    lab(860, 120, 'Lime kiln: milk of lime', 'middle'); lab(1468, 236, 'To customers', 'end');
+    lab(612, 429, 'To the new steam dryers', 'end'); lab(612, 462, 'Power for the factory', 'end');
+    lab(1468, 350, 'Export: up the 33 kV lines, within an export limit', 'end');
+    lab(1215, 498, 'Proposed: when prices are low,', 'start', 1); lab(1215, 512, 'the BLOX takes the surplus', 'start', 1);
+    // the switchroom: where the surplus divides (not a step)
+    const [jx, jy, jw, jh, jt, js] = JUNCTION, gj = el('g', { class: 'jn' }, svg);
+    el('rect', { x: jx, y: jy, width: jw, height: jh, rx: 10 }, gj);
+    const jt1 = el('text', { x: jx + 14, y: jy + 21, class: 'nt' }, gj); jt1.textContent = jt;
+    const jt2 = el('text', { x: jx + 14, y: jy + 38, class: 'ns' }, gj); jt2.textContent = js;
+    const gN = el('g', { class: 'nodes' }, svg);
+    for (const id in NODES) {
+      const [x, y, w, h, n, title, sub, extra] = NODES[id], s = STEPS[n - 1];
+      const g = el('g', { class: 'node' + (s.blox ? ' blox' : ''), 'data-step': n, tabindex: 0, role: 'button', 'aria-label': 'Step ' + n + ': ' + title }, gN);
+      if (s.blox) g.dataset.proposal = '1';
+      const kc = kcol(s.key);
+      el('rect', { x, y, width: w, height: h, rx: 12 }, g);
+      el('rect', { x, y, width: 6, height: h, rx: 3, fill: kc }, g);
+      el('circle', { cx: x + 22, cy: y + 20, r: 11, fill: s.blox ? '#12475e' : kc }, g);
+      const nn = el('text', { x: x + 22, y: y + 24, 'text-anchor': 'middle', class: 'nn' }, g); nn.textContent = n;
+      const tt = el('text', { x: x + 40, y: y + 25, class: 'nt' }, g); tt.textContent = title;
+      const ss = el('text', { x: x + 16, y: y + 47, class: 'ns' }, g); ss.textContent = sub;
+      if (extra) { const ex = el('text', { x: x + 16, y: y + 66, class: 'ns' }, g); ex.textContent = extra; }
+      g.addEventListener('click', () => setStep(n));
+      g.addEventListener('keydown', (ev) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); setStep(n); } });
+    }
+    el('g', { class: 'key', id: 'schem-key' }, svg);
+    buildKey();
+    const cr = el('text', { x: 1460, y: 554, 'text-anchor': 'end', fill: '#93a2aa', 'font-size': 10, 'data-proposal': '1' }, svg); cr.textContent = 'After British Sugar’s published process · the BLOX branch is RenewaBlox’s proposal';
+    const c0 = el('text', { x: 1460, y: 554, 'text-anchor': 'end', fill: '#93a2aa', 'font-size': 10, 'data-proposal': '0' }, svg); c0.textContent = 'After British Sugar’s published process';
+    schemBuilt = true;
+  }
+  // the key along the foot: the BLOX joins it with the proposal
+  function buildKey(){
+    const gK = $('schem-key'); if (!gK) return;
+    gK.innerHTML = '';
+    let kx = 40;
+    KEY_ORDER.filter((k) => proposal || k !== 'blox').forEach((k) => {
+      el('rect', { x: kx, y: 535, width: 16, height: 5, rx: 2, fill: KEY[k][0], stroke: RIM[k] || 'none', 'stroke-width': RIM[k] ? 1 : 0 }, gK);
+      const tx = el('text', { x: kx + 22, y: 541 }, gK); tx.textContent = KEY[k][1]; kx += 22 + KEY[k][1].length * 6.6 + 26;
+    });
+  }
+  function drawSchem(){
+    if (!schemBuilt) return;
+    const svg = $('schem');
+    svg.classList.toggle('focus', !!step);
+    svg.querySelectorAll('.node').forEach((g) => g.classList.toggle('on', +g.dataset.step === step));
+    svg.querySelectorAll('.flow').forEach((p) => p.classList.toggle('on', !!step && p.dataset.steps.split(' ').includes(String(step))));
+    altSchem();
+  }
+  // the surplus goes up the 33 kV lines or to the proposed BLOX, never both: in the overview and at step 9 the schematic
+  // switches with the day, and the side that isn't running stands still and pale
+  function altSchem(){
+    if (!schemBuilt) return;
+    const alt = proposal && (!step || !!STEPS[step - 1].alternate), blox = bloxNow();
+    $('schem').querySelectorAll('.flow[data-alt]').forEach((p) => p.classList.toggle('off', alt && (p.dataset.alt === 'blox') !== blox));
+  }
+
+  /* --------------------------------------------------------- lightbox */
+  // The stills on show (the BLOX editions go with the proposal), one at a time over the page; the arrows step through them.
+  const allStills = [...document.querySelectorAll('#gallery .still')];
+  const shown = () => allStills.filter((s) => proposal || s.dataset.proposal !== '1');
+  let at0 = 0, opener = null, lbList = [];
+  function openLb(i){
+    if ($('lb').hidden) lbList = shown();
+    if (!lbList.length) return;
+    at0 = (i + lbList.length) % lbList.length;
+    const s = lbList[at0];
+    $('lb-img').src = s.dataset.full; $('lb-img').alt = s.querySelector('img').alt;
+    $('lb-cap').innerHTML = s.querySelector(':scope > span').innerHTML;
+    $('lb-chip').hidden = s.dataset.proposal !== '1';
+    if ($('lb').hidden) { opener = document.activeElement; $('lb').hidden = false; $('lb-x').focus(); }
+  }
+  function closeLb(){ $('lb').hidden = true; $('lb-img').removeAttribute('src'); if (opener && opener.focus) opener.focus(); }
+  allStills.forEach((s) => s.addEventListener('click', () => { lbList = shown(); openLb(lbList.indexOf(s)); }));
+  $('lb-x').addEventListener('click', closeLb);
+  $('lb-pv').addEventListener('click', () => openLb(at0 - 1));
+  $('lb-nx').addEventListener('click', () => openLb(at0 + 1));
+  $('lb').addEventListener('click', (e) => { if (e.target === $('lb')) closeLb(); });
+  document.addEventListener('keydown', (e) => {
+    if ($('lb').hidden) return;
+    if (e.key === 'Escape') closeLb();
+    else if (e.key === 'ArrowLeft') openLb(at0 - 1);
+    else if (e.key === 'ArrowRight') openLb(at0 + 1);
+    else if (e.key === 'Tab') {   // keep focus inside the dialog
+      const f = [$('lb-x'), $('lb-pv'), $('lb-nx')], i = f.indexOf(document.activeElement);
+      e.preventDefault(); f[(i + (e.shiftKey ? -1 : 1) + f.length) % f.length].focus();
+    }
+  });
+
+  /* ------------------------------------------------------ assumptions */
+  let asFrom = null;
+  function openAs(){
+    if (!$('as-sheet').hidden) return;
+    asFrom = document.activeElement;
+    $('as-sheet').hidden = false; $('as-open').setAttribute('aria-expanded', 'true');
+    $('as-sheet').scrollTop = 0; $('as-x').focus();
+    const u = new URL(location.href); u.searchParams.delete('tab'); u.hash = 'assumptions'; history.replaceState(null, '', u);
+  }
+  function closeAs(){
+    $('as-sheet').hidden = true; $('as-open').setAttribute('aria-expanded', 'false');
+    const u = new URL(location.href); u.hash = tab === 'model' ? '' : tab; history.replaceState(null, '', u);
+    if (asFrom && asFrom.focus) asFrom.focus();
+  }
+  $('as-open').setAttribute('aria-expanded', 'false');
+  $('as-open').addEventListener('click', openAs);
+  $('as-x').addEventListener('click', closeAs);
+  $('as-sheet').addEventListener('click', (e) => { if (e.target === $('as-sheet')) closeAs(); });
+  document.addEventListener('keydown', (e) => {
+    if ($('as-sheet').hidden) return;
+    if (e.key === 'Escape') { e.preventDefault(); closeAs(); }
+    else if (e.key === 'Tab') { e.preventDefault(); $('as-x').focus(); }
+  });
+
+  // last: the schematic, the day, the proposal as the address has it, the scene, and the tab and step the address asks for
+  buildSchem();
+  buildDay(); dayButton();
+  hooks();
+  setProposal(proposal);
+  start();
+  const q = new URLSearchParams(location.search), want = q.get('tab') || location.hash.slice(1);
+  setTab(want);
+  if (want === 'assumptions' || want === 'facts') openAs();
+  else if (want === 'stills') $('stills').scrollIntoView();
+  const st = parseInt(q.get('step'), 10); if (st) setStep(st);
+  // a new #hash typed or followed on the open page goes to its tab too
+  addEventListener('hashchange', () => {
+    const h = location.hash.slice(1);
+    if (h === 'assumptions' || h === 'facts') openAs();
+    else if (h) { setTab(h); if (h === 'stills') $('stills').scrollIntoView(); }
+  });
+})();
+</script>
+</body>
+</html>
