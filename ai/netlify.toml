@@ -5,14 +5,21 @@
 # Atlas brand files the build copies from atlas/root/; the build fails if it reads a file the list
 # doesn't cover). Every build and deploy costs credits, so the ignore command skips the rest
 # (tools/netlify-ignore.sh).
+#
+# Every address passes through the sign-in first, the edge function in netlify/edge-functions/ (ai-gate.js;
+# its settings are described at the top of the file): only RenewaBlox staff, signed in with their
+# @renewablox.com Google account, get past it. After the build its tests run (tests/gate.test.mjs); a sign-in
+# that fails them is never deployed. An edge function's responses don't get the [[headers]] below from
+# Netlify, so build.py hands them to the sign-in, which sets them.
 
 [build]
-  command = "python3 build.py"
+  command = "python3 build.py && node tests/gate.test.mjs"
   publish = "site"
   ignore = "bash ../tools/netlify-ignore.sh ai/inputs.txt"
 
 [build.environment]
   PYTHON_VERSION = "3.12"
+  NODE_VERSION = "22"
 
 # ---- Atlas ----
 # Atlas is its own Netlify project (renewablox-atlas, atlas.renewablox.com) and keeps deploying as it
@@ -74,4 +81,14 @@
     Content-Security-Policy = "default-src 'none'; script-src 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'; frame-ancestors 'self'"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Robots-Tag = "noindex"
+
+# Eunice Dispatch, the team explainer: one self-contained page (its data and wordmark inlined), loading and
+# calling nothing; its links to the offtakers' sites are followed, not loaded.
+[[headers]]
+  for = "/eunice/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'; frame-ancestors 'self'"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"
     X-Robots-Tag = "noindex"

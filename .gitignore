@@ -22,3 +22,6 @@ kld_twin/*.glb
 # KLD twin media (the flythrough and stills) are hosted with the splat, not committed
 kld_twin/*.mp4
 kld_twin/*.jpg
+
+# ai.renewablox.com: the sign-in's settings, written by ai/build.py
+ai/netlify/edge-lib/

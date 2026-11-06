@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Eunice · Dispatch — RenewaBlox</title>
+<style>
+:root{
+  --teal:#156082; --navy:#0B3549; --sea:#218099; --sky:#83CBEB; --mist:#E7F1F7;
+  --ink-1:#0B3549; --ink-2:#44596A; --ink-3:#5F7282; --ink-4:#A6B3BD;
+  --surface:#FCFCFB; --card:#FFFFFF; --rule:rgba(11,53,73,.10); --rule-2:rgba(11,53,73,.16);
+  /* chart palette — validated (dataviz validate_palette.js, light + dark): */
+  --c-export:#0F78B0; --c-full:#D06A1F; --c-eff:#9A4A9E; --c-muted:#A6B3BD; --c-red:#C0392B;
+  --font:"Leelawadee UI","Open Sans","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  --r:14px; --sh:0 0 0 .5px rgba(8,37,51,.06),0 1px 2px rgba(8,37,51,.05),0 8px 24px -8px rgba(8,37,51,.14);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--surface);color:var(--ink-1);font-family:var(--font);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--teal)}
+.wrap{max-width:1080px;margin:0 auto;padding:0 22px}
+header.hero{background:linear-gradient(128deg,#1B6E94 0%,#156082 46%,#0B3549 100%);color:#fff;padding:26px 0 40px}
+.brandrow{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.brandrow img{height:22px;background:#fff;border-radius:6px;padding:5px 9px}
+.pill{font-size:12px;letter-spacing:.02em;border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:3px 10px;color:#E7F1F7}
+.hero h1{font-size:clamp(28px,4.4vw,44px);line-height:1.12;margin:26px 0 10px;font-weight:700;letter-spacing:-.01em}
+.hero p.lead{font-size:clamp(16px,2vw,19px);max-width:760px;color:#E7F1F7;margin:0}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:26px}
+.kpi{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.16);border-radius:12px;padding:12px 14px}
+.kpi b{display:block;font-size:24px;line-height:1.2;font-variant-numeric:tabular-nums}
+.kpi span{font-size:13px;color:#CFE3EE}
+nav.toc{position:sticky;top:0;z-index:20;background:rgba(252,252,251,.92);backdrop-filter:saturate(1.6) blur(14px);border-bottom:1px solid var(--rule)}
+nav.toc .wrap{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none}
+nav.toc a{white-space:nowrap;text-decoration:none;color:var(--ink-2);font-size:14px;padding:12px 10px;border-bottom:2px solid transparent}
+nav.toc a:hover,nav.toc a.on{color:var(--teal);border-bottom-color:var(--teal)}
+section{padding:46px 0 10px;scroll-margin-top:50px}
+.eyebrow{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--sea);font-weight:700}
+h2{font-size:clamp(22px,3vw,30px);line-height:1.2;margin:6px 0 8px;letter-spacing:-.005em}
+h3{font-size:17px;margin:0 0 6px}
+p.sub{color:var(--ink-2);max-width:760px;margin:0 0 18px}
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--sh);padding:18px 20px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.grid2>*,.grid3>*,.ladder-out>*{min-width:0}
+.muted{color:var(--ink-3)} .small{font-size:13px}
+.num{font-variant-numeric:tabular-nums}
+.takeaways{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:14px}
+.takeaways div{border-left:3px solid var(--sky);padding:2px 0 2px 12px;color:var(--ink-2);font-size:15px}
+.takeaways b{color:var(--ink-1)}
+/* state cards */
+.state{position:relative;padding-top:22px}
+.state .sw{position:absolute;top:0;left:0;right:0;height:6px;border-radius:var(--r) var(--r) 0 0}
+.state .big{font-size:28px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.state dl{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;margin:12px 0 0;font-size:14px}
+.state dt{color:var(--ink-3)} .state dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
+/* controls */
+.controls{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin:0 0 14px}
+.seg{display:inline-flex;background:rgba(11,53,73,.06);border-radius:999px;padding:3px}
+.seg button{border:0;background:transparent;font:inherit;font-size:14px;color:var(--ink-2);padding:5px 12px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:#fff;color:var(--ink-1);box-shadow:0 1px 3px rgba(8,37,51,.14)}
+.seg button:focus-visible,input[type=range]:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.ctl-label{font-size:13px;color:var(--ink-3);margin-right:6px}
+input[type=range]{width:100%;accent-color:var(--teal)}
+/* ladder */
+.ladder-out{display:grid;grid-template-columns:1.25fr 1fr;gap:18px;align-items:start}
+.badge{display:inline-block;border-radius:999px;padding:3px 11px;font-size:13px;font-weight:700;color:#fff}
+.split{height:30px;border-radius:8px;overflow:hidden;display:flex;background:rgba(11,53,73,.06);margin:10px 0 6px}
+.split div{height:100%;transition:width .25s var(--e,ease)}
+.compare{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+.compare td{padding:7px 4px;border-top:1px solid var(--rule)}
+.compare td:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.compare tr.best td{font-weight:700}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--ink-2)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+svg text{font-family:var(--font)}
+.chart{width:100%;height:auto;display:block;touch-action:pan-y pinch-zoom}
+.tip{position:fixed;pointer-events:none;z-index:50;background:rgba(8,38,54,.95);color:#fff;font-size:13px;line-height:1.4;padding:8px 10px;border-radius:8px;max-width:260px;opacity:0;transition:opacity .12s}
+.tip b{font-variant-numeric:tabular-nums}
+.statline{display:flex;flex-wrap:wrap;gap:8px 22px;margin:10px 0 0;font-size:14px}
+.statline b{font-variant-numeric:tabular-nums;white-space:nowrap}
+.ctl{display:inline-flex;flex-wrap:wrap;align-items:center;row-gap:4px;max-width:100%}
+table.data{width:100%;border-collapse:collapse;font-size:14px}
+table.data th{text-align:left;font-weight:600;color:var(--ink-3);font-size:12px;letter-spacing:.04em;text-transform:uppercase;padding:8px 6px;border-bottom:1px solid var(--rule-2)}
+table.data td{padding:9px 6px;border-bottom:1px solid var(--rule);vertical-align:top}
+table.data th.n{text-align:right}
+table.data td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+table.data tr.hl td{background:rgba(21,96,130,.06)}
+.callout{background:var(--mist);border-radius:12px;padding:14px 16px;color:var(--ink-1);font-size:15px}
+.flow text{font-size:13px;fill:var(--ink-1)}
+.flow .t{font-weight:700}
+.flow .s{fill:var(--ink-3);font-size:12px}
+.tag{display:inline-block;font-size:12px;border-radius:6px;padding:1px 7px;background:rgba(11,53,73,.07);color:var(--ink-2)}
+.open li{margin:0 0 8px}
+footer{margin-top:50px;padding:26px 0 40px;border-top:1px solid var(--rule);color:var(--ink-3);font-size:13px}
+details summary{cursor:pointer;color:var(--teal);font-size:14px;margin-top:10px}
+/* scenarios (section 4) */
+.scen{border-top:1px solid var(--rule);padding:12px 0 12px;margin:0 0 4px;scroll-margin-top:56px}
+.scen-head{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin:0 0 6px}
+.scen-chips{display:flex;flex-wrap:wrap;gap:6px}
+.scen-nav{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--rule-2);background:#fff;font:inherit;font-size:13px;line-height:1.3;color:var(--ink-2);padding:3px 11px 3px 3px;border-radius:999px;cursor:pointer}
+.chip b{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:rgba(11,53,73,.07);color:var(--ink-1);font-size:13px;font-variant-numeric:tabular-nums}
+.chip[aria-pressed="true"]{border-color:var(--teal);background:var(--mist);color:var(--ink-1)}
+.chip[aria-pressed="true"] b{background:var(--teal);color:#fff}
+.btn-s{border:1px solid var(--rule-2);background:#fff;font:inherit;font-size:13px;line-height:1.3;color:var(--ink-2);padding:4px 11px;border-radius:8px;cursor:pointer}
+.btn-s:disabled{opacity:.45;cursor:default}
+.chip:focus-visible,.btn-s:focus-visible,.chart:focus-visible,.linkbtn:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.chart:focus:not(:focus-visible){outline:none}
+svg.chart text{-webkit-user-select:none;user-select:none}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.chart:focus-visible{border-radius:6px}
+.scen-card{margin:12px 0 0;border:1px solid var(--rule-2);border-left:4px solid var(--teal);border-radius:12px;padding:14px 16px}
+.scen-card .when{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--sea);font-weight:700}
+.scen-card h3{margin:2px 0 6px}
+.scen-card p{margin:0;color:var(--ink-2);max-width:820px}
+.scen-figs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px 0 0}
+.scen-figs div{background:rgba(11,53,73,.045);border-radius:10px;padding:8px 12px}
+.scen-figs b{display:block;font-size:22px;line-height:1.25;font-variant-numeric:tabular-nums}
+.scen-figs span{display:block;font-size:13px;color:var(--ink-3)}
+.scen-figs .lead b{color:var(--ink-1)}
+.scen-note{margin:10px 0 0!important;font-size:14px}
+.linkbtn{border:0;background:none;padding:0;font:inherit;color:var(--teal);text-decoration:underline;cursor:pointer}
+/* one day at a time on narrow screens */
+.daypick{display:flex;gap:4px;margin:8px 0 6px}
+.daypick[hidden]{display:none}
+.dayb{flex:1 1 0;min-width:0;display:grid;justify-items:center;border:1px solid var(--rule-2);background:#fff;font:inherit;font-size:12px;line-height:1.2;color:var(--ink-2);padding:4px 0;border-radius:8px;cursor:pointer}
+.dayb b{font-size:14px;color:var(--ink-1);font-variant-numeric:tabular-nums}
+.dayb[aria-pressed="true"]{border-color:var(--teal);background:var(--mist);color:var(--ink-1)}
+.dayb:focus-visible,.tablebox:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+/* week-chart table view */
+.tablebox{max-height:440px;overflow:auto;margin-top:8px;border:1px solid var(--rule);border-radius:10px;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+.tablebox table.data{display:table;min-width:660px}
+.tablebox table.data td,.tablebox table.data th{white-space:nowrap}
+.tablebox table.data>tbody{display:table-row-group;min-width:0}
+.tablebox table.data th{position:sticky;top:0;z-index:2;background:var(--card);text-transform:none;letter-spacing:0;box-shadow:inset 0 -1px 0 var(--rule-2)}
+.tablebox table.data td:first-child,.tablebox table.data th:first-child{position:sticky;left:0;white-space:nowrap;background:var(--card);box-shadow:inset -1px 0 0 var(--rule)}
+.tablebox table.data td:first-child{z-index:1}
+.tablebox table.data th:first-child{z-index:3;box-shadow:inset -1px -1px 0 var(--rule-2)}
+.tablebox tr.win td:first-child{background:#EAF1F4}
+.tablebox tr.win td{background:rgba(21,96,130,.09)}
+.tablebox tr.win td:first-child{box-shadow:inset 3px 0 0 var(--ink-1),inset -1px 0 0 var(--rule)}
+.tablebox tfoot td{font-weight:700;border-top:1px solid var(--rule-2);border-bottom:0}
+.flow text{pointer-events:none}
+svg.chart text.lbl{pointer-events:none}
+.scen-list{display:none}
+@media (max-width:600px){
+  .scen-list{display:inline}
+  .kbd-hint{display:none}
+  .chip span{display:none}
+  .chip{padding:3px}
+  .scen-figs{grid-template-columns:1fr}
+  .scen-figs div{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .scen-figs b{order:2;font-size:19px}
+}
+@media (max-width:860px){
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .grid3,.grid2,.takeaways,.ladder-out{grid-template-columns:1fr}
+  table.data{display:block;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  table.data>tbody{display:table;width:100%;min-width:560px}
+  .card{padding:16px 14px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="brandrow">
+      <img src="data:image/png;base64,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" alt="RenewaBlox">
+      <span class="pill">Eunice · Dispatch</span>
+      <span class="pill">Prototype · backtest on Mar 2025 – Mar 2026 data</span>
+    </div>
+    <h1>Every half-hour, export or mine?</h1>
+    <p class="lead">Eunice decides how much of Scrivelsby's CHP surplus the 44 miners should take and how much to sell to the grid, then tells Foreman to set the miners' power. This page explains how, in five pictures.</p>
+    <div class="kpis">
+      <div class="kpi"><b>371 kW</b><span>average surplus while the engine runs</span></div>
+      <div class="kpi"><b>3 states</b><span>full mining · efficient mining + export · stop &amp; export</span></div>
+      <div class="kpi"><b>8 periods</b><span>minimum run (4 hours) before a full start or stop</span></div>
+      <div class="kpi"><b>SSP spill</b><span>preferred export contract — paid the system price</span></div>
+    </div>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Sections"><div class="wrap">
+  <a href="#how">1 · How it works</a><a href="#states">2 · Three states</a><a href="#ladder">3 · Decision ladder</a>
+  <a href="#week">4 · A week of decisions</a><a href="#blocks">5 · Trading blocks</a><a href="#paid">6 · Getting paid</a><a href="#next">7 · Next steps</a>
+</div></nav>
+
+<main class="wrap">
+
+<!-- 1 HOW IT WORKS -->
+<section id="how">
+  <div class="eyebrow">1 · How it works</div>
+  <h2>Prices in, a power setting out</h2>
+  <p class="sub">Each afternoon the day-ahead auction sets tomorrow's half-hourly prices. Eunice adds the network credit (gDUoS) and compares that export value with what the miners would earn. It then plans all 48 half-hours and sends Foreman one power setting per change.</p>
+  <div class="card">
+    <svg class="chart flow" id="flowChart" viewBox="0 0 1000 300" role="img" aria-label="Flow: day-ahead prices, gDUoS, hashprice and surplus feed Eunice, which plans the day and sends power settings to Foreman, which sets the 44 miners; the rest of the surplus is exported under an SSP spill contract."></svg>
+  </div>
+  <div class="takeaways">
+    <div><b>Planned the day before.</b> Decisions follow the day-ahead price, which is known by about 16:00 on the previous day.</div>
+    <div><b>Runs are commitments.</b> A full start or stop has to last at least 8 half-hours, so Eunice only starts a run that pays over its whole length.</div>
+    <div><b>Safety is local.</b> A hardwired trip drops the miners if the engine stops. Eunice sets the economics, not the protection.</div>
+  </div>
+</section>
+
+<!-- 2 STATES -->
+<section id="states">
+  <div class="eyebrow">2 · Three states, not two</div>
+  <h2>Slowing the miners down beats switching them off</h2>
+  <p class="sub">Miners are most efficient at lower power. The last few kW of overclock earn the least, so in many half-hours the best move is to drop to efficient mode and export what that frees up.</p>
+  <div class="controls"><span class="ctl-label">Hashprice</span><div class="seg" data-bind="hp"><button data-v="34" aria-pressed="true">$34 /PH/day</button><button data-v="40" aria-pressed="false">$40 /PH/day</button></div></div>
+  <div class="grid3" id="stateCards"></div>
+  <div class="card" style="margin-top:14px">
+    <h3>What each slice of the miners' power earns</h3>
+    <p class="muted small" style="margin:0 0 8px">Fleet of 44 M63S++ (hydro). Bar = the 371 kW surplus. Slices show the value of the energy in that slice once cooling is counted.</p>
+    <svg class="chart" id="sliceChart" viewBox="0 0 1000 122" role="img" aria-label="Value of each slice of miner power"></svg>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h3>Efficient vs installed vs overclock: four settings for 44 miners</h3>
+    <table class="data" id="opsTable"></table>
+    <p class="small muted" style="margin:8px 0 0">Total draw = miners + dry cooler + controls. £/MWh is the average value of every MWh the fleet absorbs at that setting.</p>
+  </div>
+</section>
+
+<!-- 3 LADDER -->
+<section id="ladder">
+  <div class="eyebrow">3 · The decision ladder</div>
+  <h2>Move the export value, watch the decision</h2>
+  <p class="sub">Export value = day-ahead price + gDUoS credit for that half-hour. Drag it and see where Eunice sets the miners, and what that earns against all-or-nothing.</p>
+  <div class="card">
+    <div class="controls">
+      <span class="ctl-label">Hashprice</span><div class="seg" data-bind="hp"><button data-v="34" aria-pressed="true">$34</button><button data-v="40" aria-pressed="false">$40</button></div>
+    </div>
+    <label class="ctl-label" for="eSlider">Export value: <b id="eVal" class="num" style="color:var(--ink-1)"></b> /MWh</label>
+    <input id="eSlider" type="range" min="0" max="140" step="1" value="60">
+    <svg class="chart" id="ladderScale" viewBox="0 0 1000 64" aria-hidden="true"></svg>
+    <p class="small muted" id="ladderTh" style="margin:2px 0 0"></p>
+    <div class="ladder-out" style="margin-top:12px">
+      <div>
+        <span id="modeBadge" class="badge"></span>
+        <div class="split" id="splitBar" role="img"></div>
+        <div class="legend"><span><i style="background:var(--c-full)"></i>Miners (full)</span><span><i style="background:var(--c-eff)"></i>Miners (efficient)</span><span><i style="background:#7FA9BF"></i>Cooling &amp; controls</span><span><i style="background:var(--c-export)"></i>Exported</span></div>
+        <p class="small muted" id="splitText" style="margin:8px 0 0"></p>
+      </div>
+      <div>
+        <h3 style="font-size:15px">This half-hour earns</h3>
+        <table class="compare" id="cmpTable"></table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 WEEK -->
+<section id="week">
+  <div class="eyebrow">4 · A week of decisions</div>
+  <h2>What Eunice would have done, 10–16 November 2025</h2>
+  <p class="sub">Real day-ahead prices for one week, run through Eunice's optimiser. Switch the trading block and compare against simple mine-or-export.</p>
+  <div class="card" id="weekCard" style="scroll-margin-top:56px">
+    <div class="controls">
+      <span class="ctl"><span class="ctl-label">Strategy</span><span class="seg" data-bind="strat"><button data-v="partial" aria-pressed="true">Eunice (3 states)</button><button data-v="binary" aria-pressed="false">Mine or export only</button></span></span>
+      <span class="ctl"><span class="ctl-label">Minimum run</span><span class="seg" data-bind="bs"><button data-v="4" aria-pressed="false">4</button><button data-v="8" aria-pressed="true">8</button><button data-v="12" aria-pressed="false">12</button></span></span>
+      <span class="ctl"><span class="ctl-label">Hashprice</span><span class="seg" data-bind="hp"><button data-v="34" aria-pressed="true">$34</button><button data-v="40" aria-pressed="false">$40</button></span></span>
+    </div>
+    <div class="scen" id="scenBar" role="group" aria-labelledby="scenLabel">
+      <div class="scen-head">
+        <span class="ctl-label" id="scenLabel">Scenarios to run through</span>
+        <div class="scen-chips" id="scenChips"></div>
+        <div class="scen-nav">
+          <button type="button" class="btn-s" id="scenPrev">‹ Previous</button><button type="button" class="btn-s" id="scenNext">Next ›</button><button type="button" class="btn-s" id="scenAll">Whole week</button>
+        </div>
+      </div>
+      <p class="small muted" id="scenHint" style="margin:0"><span class="scen-list" id="scenList"></span>Pick a scenario to zoom in on a moment worth talking through.<span class="kbd-hint"> With the chart focused, the left and right arrow keys step through them.</span></p>
+    </div>
+    <div class="legend"><span><i style="background:var(--c-full)"></i>Miners — full</span><span><i style="background:var(--c-eff)"></i>Miners — efficient</span><span><i style="background:var(--c-export)"></i>Exported</span><span><i style="background:rgba(192,57,43,.14)"></i>Red band (16:00–19:00 weekdays)</span><span id="scenLegend" hidden><i style="background:transparent;outline:2px solid var(--ink-1);outline-offset:-2px"></i>Scenario window</span></div>
+    <div class="daypick" id="dayPick" role="group" aria-label="Day shown" hidden></div>
+    <svg class="chart" id="weekChart" viewBox="0 0 1000 390" role="img" tabindex="0" aria-label="Export value and the split between miners and export for each half-hour of the week"></svg>
+    <p class="small muted" id="swipeHint" hidden style="margin:2px 0 0">One day at a time on a narrow screen: pick a day above or swipe the chart.</p>
+    <div class="scen-card" id="scenCard" hidden></div>
+    <p class="sr-only" id="scenStatus" role="status"></p>
+    <div class="statline" id="weekStats"></div>
+    <details id="weekDetails"><summary>Show the numbers</summary>
+      <p class="small muted" id="weekTableNote" style="margin:8px 0 0"></p>
+      <div class="tablebox" id="weekTable" tabindex="0" role="region" aria-labelledby="weekTableNote"></div>
+    </details>
+  </div>
+</section>
+
+<!-- 5 BLOCKS -->
+<section id="blocks">
+  <div class="eyebrow">5 · Trading blocks</div>
+  <h2>4, 8 or 12 half-hours: revenue against wear</h2>
+  <p class="sub">A longer minimum run means fewer full starts and stops but less freedom to follow prices. Full year Mar 2025 – Mar 2026, 44 miners, against mine-or-export with no minimum.</p>
+  <div class="controls"><span class="ctl-label">Hashprice</span><div class="seg" data-bind="hp"><button data-v="34" aria-pressed="true">$34</button><button data-v="40" aria-pressed="false">$40</button></div></div>
+  <div class="grid2">
+    <div class="card"><h3>Revenue vs no-minimum baseline (£/yr)</h3><div class="legend"><span><i style="background:var(--teal)"></i>Eunice (3 states)</span><span><i style="background:var(--c-muted)"></i>Mine or export only</span></div><svg class="chart" id="blkRev" viewBox="0 0 480 260" role="img" aria-label="Revenue by minimum run length"></svg><p class="small muted" style="margin:4px 0 0">Below zero = what the minimum-run rule costs. Eunice's three states win back part or all of it.</p></div>
+    <div class="card"><h3>Full start/stop cycles per year</h3><div class="legend"><span><i style="background:var(--teal)"></i>Eunice (3 states)</span><span><i style="background:var(--c-muted)"></i>Mine or export only</span></div><svg class="chart" id="blkCyc" viewBox="0 0 480 260" role="img" aria-label="Cycles by minimum run length"></svg><p class="small muted" style="margin:4px 0 0">A cycle = miners fully off then on again. Trimming between efficient and full doesn't count.</p></div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h3>How the engine-running hours were spent (8-period minimum)</h3>
+    <svg class="chart" id="shareChart" viewBox="0 0 1000 120" role="img" aria-label="Share of running hours in each state"></svg>
+  </div>
+  <div class="callout" style="margin-top:14px" id="blockCallout"></div>
+  <details><summary>Show the numbers</summary><div id="blockTable" style="margin-top:10px"></div></details>
+</section>
+
+<!-- 6 PAID -->
+<section id="paid">
+  <div class="eyebrow">6 · Getting paid</div>
+  <h2>SSP spill: paid the system price for every half-hour we export</h2>
+  <p class="sub">Sites under 1 MW can't be their own Balancing Mechanism unit. Instead of an aggregator taking 25–30%, the export meter goes to a supplier who pays the System Sell Price (SSP) for each half-hour's metered export, plus gDUoS, less a small fee.</p>
+  <div class="grid3">
+    <div class="card"><h3>What we're paid</h3><p style="margin:0 0 8px"><b>SSP × exported MWh</b><br>+ gDUoS credit (band rate)<br>− offtaker fee (target ≈ £1–1.50/MWh)</p><p class="small muted" style="margin:0">SSP is set after each half-hour from NESO's balancing actions. No volume to nominate, no penalty for over- or under-delivery.</p></div>
+    <div class="card"><h3>Imbalance risk</h3><p style="margin:0 0 8px">With no contracted volume there's no imbalance, only <b>price risk</b>: exporting into a half-hour that turns out cheaper than mining.</p><p class="small muted" style="margin:0">Backtest: engine trips under a day-ahead-plus-SSP hybrid cost about £8–24 a year. The miners absorb every other swing.</p></div>
+    <div class="card"><h3>Fees decide the winner</h3><p style="margin:0 0 8px">At ~2,500 MWh a year, each <b>£1/MWh of fee ≈ £2,500/yr</b>.</p><p class="small muted" style="margin:0">Ask for a fixed £/MWh, not a % of SSP (a % takes more exactly when we export into high prices). gDUoS at 100%.</p></div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h3>Contracts on the shortlist</h3>
+    <table class="data" id="providerTable"></table>
+    <p class="small muted" style="margin:8px 0 0">Later, for a portfolio: SmartestEnergy ETSA or TotalEnergies Fully Flexible (day-ahead position, deviations at SSP). Same value as spill in the backtest, more work.</p>
+  </div>
+  <div class="grid2" style="margin-top:14px">
+    <div class="card">
+      <h3>Estimated cost of an SSP spill contract</h3>
+      <table class="data">
+        <tr><th>Terms</th><th>Fee basis</th><th class="n">£/yr</th><th class="n">£/MWh</th></tr>
+        <tr class="hl"><td>Good</td><td>98.5% of SSP or ~£1.00 fixed; 100% gDUoS</td><td class="n">£2.5–3.2k</td><td class="n">£1.00–1.30</td></tr>
+        <tr><td>Typical</td><td>97% of SSP; 95% gDUoS; ~£500 admin</td><td class="n">£7.7k</td><td class="n">£3.10</td></tr>
+        <tr><td>Poor</td><td>95% of SSP; 90% gDUoS; ~£1k admin</td><td class="n">£13.2k</td><td class="n">£5.30</td></tr>
+      </table>
+      <p class="small muted" style="margin:8px 0 0">Estimates, not quotes. None of these providers publishes fees.</p>
+    </div>
+    <div class="card">
+      <h3>What real-time SSP calls could add (phase 2)</h3>
+      <p class="small muted" style="margin:0 0 6px">£/yr over day-ahead dispatch, by what Eunice knows when it decides. Earlier backtest at a £70/MWh mining value, no minimum run.</p>
+      <svg class="chart" id="infoChart" viewBox="0 0 480 190" role="img" aria-label="Value of better real-time information"></svg>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h3>gDUoS export credits — HV generation, NGED East Midlands (p/kWh)</h3>
+    <table class="data">
+      <tr><th>Charging year</th><th class="n">Red 16:00–19:00</th><th class="n">Amber 07:30–16:00, 19:00–21:00</th><th class="n">Green other times &amp; weekends</th></tr>
+      <tr><td>2025/26 (invoices)</td><td class="n">3.414</td><td class="n">0.580</td><td class="n">0.039</td></tr>
+      <tr class="hl"><td>2026/27 (current)</td><td class="n">3.958</td><td class="n">0.431</td><td class="n">0.021</td></tr>
+      <tr><td>2027/28</td><td class="n">4.189</td><td class="n">0.398</td><td class="n">0.025</td></tr>
+    </table>
+    <p class="small muted" style="margin:8px 0 0">Bands apply Monday–Friday including bank holidays. A red-band half-hour adds ~£40/MWh to the export value, so Eunice exports through almost every one.</p>
+  </div>
+</section>
+
+<!-- 7 NEXT -->
+<section id="next">
+  <div class="eyebrow">7 · Next steps</div>
+  <h2>What has to happen before Eunice goes live</h2>
+  <div class="grid2">
+    <div class="card"><h3>Decisions and tests</h3><ol class="open">
+      <li><b>Fast trim.</b> Who holds the site at zero import second by second? Foreman settles in minutes, so this needs a local controller on the boundary meter.</li>
+      <li><b>Power-step test.</b> One miner, 100% → 50% of installed in 5% steps, 30 minutes each: wall power, TH/s, temperatures. Confirms the 6.2 kW floor and whether lower is possible.</li>
+      <li><b>Cost per start.</b> A wear figure from the CTO lets Eunice price every start/stop.</li>
+    </ol></div>
+    <div class="card"><h3>Access and contracts</h3><ol class="open" start="4">
+      <li><b>Foreman Enterprise API</b> key and docs. Confirm it uses MicroBT power adjustment (normal mode), not a preset mode switch.</li>
+      <li><b>Modo API key</b> for the GB EPEX half-hourly day-ahead feed.</li>
+      <li><b>RFQ</b> to npower, TotalEnergies, SmartestEnergy, Statkraft and F&amp;S Energy for SSP spill on export MPAN 1170000388200.</li>
+    </ol></div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h3>Phase 2: this page goes live</h3>
+    <p style="margin:0 0 8px">The same page will show today's plan and the current decision from Eunice's dispatch API:</p>
+    <p class="small" style="margin:0"><span class="tag">GET /v1/sites/scrivelsby/decision/current</span> <span class="tag">GET /v1/sites/scrivelsby/schedule?date=…</span> <span class="tag">GET /v1/sites/scrivelsby/status</span></p>
+  </div>
+</section>
+</main>
+
+<footer><div class="wrap">
+  <p><b>Basis.</b> Surplus = Scrivelsby export MPAN 1170000388200, Mar 2025 – Mar 2026 (Sep 2025 and Jan 2026 missing; results annualised), average 371 kW while running. Prices: EPEX GB half-hourly day-ahead, Elexon system prices (via Modo Energy). 44 × MicroBT M63S++ hydro, hashrate ∝ power<sup>0.70</sup> through installed (7,208 W, 464 TH/s) and Aggressive (9,911 W, 580 TH/s), consistent with MicroBT's published Low/High mode ratios. Efficient floor 6.2 kW per miner (bottom of MicroBT Low mode). Cooling: 5 kW fixed + dry cooler 25 kW at 381.6 kW of miner draw. GBP/USD 1.3413. No offtaker fee in the dispatch figures.</p>
+  <p><b>Differences from the live configuration</b> (<span class="tag">dispatch/sites/scrivelsby.json</span>), kept on purpose: 44 miners here against 40 in the live config, which moves to 44 once the deployment is confirmed; an export margin of 0 kW here against 10 kW live; and no offtaker fee in the dispatch figures (fees are shown separately in section 6).</p>
+  <p><b>Method.</b> The week uses Eunice's optimiser (whole-day plan, minimum run on full starts and stops). Year-long trading-block figures use fixed aligned blocks, a simpler and slightly harsher approximation; the optimiser cycles less. Backtests, not forecasts.</p>
+  <p>RenewaBlox · no Watt wasted</p>
+</div></footer>
+
+<div class="tip" id="tip" role="tooltip"></div>
+
+<script>
+const WEEK = {"days":["2025-11-10","2025-11-11","2025-11-12","2025-11-13","2025-11-14","2025-11-15","2025-11-16"],"price":[70.98,74.0,72.0,70.34,69.6,66.01,67.24,64.23,68.44,65.78,71.08,65.74,77.4,76.0,77.0,82.43,79.0,78.7,78.5,77.8,74.3,74.0,78.45,79.0,78.6,78.82,80.7,81.9,82.5,83.5,78.37,89.41,85.4,104.0,92.0,104.72,100.0,94.0,85.28,80.3,78.82,75.0,80.0,74.0,71.0,71.0,75.43,77.16,70.68,73.0,69.0,65.0,66.0,62.77,65.73,64.27,65.56,63.15,68.62,69.26,76.61,84.0,84.0,91.0,86.65,87.07,84.2,78.0,76.21,73.7,71.26,69.48,71.0,70.0,77.0,75.97,81.0,81.0,76.36,84.28,89.9,100.37,93.72,93.39,85.26,81.51,76.0,81.28,79.6,76.25,75.36,64.64,65.15,54.32,77.7,71.26,46.58,52.77,44.0,41.95,40.0,38.82,40.24,40.36,41.6,39.0,35.0,40.6,64.92,72.0,65.0,75.0,63.0,65.28,69.0,71.0,73.0,74.04,75.0,72.46,75.71,75.71,77.0,75.46,78.4,78.51,79.98,84.0,87.5,97.0,88.0,90.21,82.2,75.0,75.3,70.0,73.56,72.94,75.0,74.0,64.0,56.0,55.0,45.15,16.0,20.0,17.58,14.0,15.86,9.1,10.0,2.0,14.83,19.0,25.24,33.8,44.0,60.0,73.11,77.0,75.61,69.8,72.0,70.0,71.1,73.0,73.0,71.51,76.0,78.21,74.75,75.01,73.5,74.0,76.0,84.0,94.99,107.0,99.0,100.0,103.64,94.41,83.2,80.0,82.0,78.0,78.11,75.01,76.7,73.69,39.2,17.5,74.8,75.88,70.0,62.5,62.6,53.09,57.66,56.42,56.8,55.04,52.6,55.76,67.8,72.0,79.8,85.0,83.0,83.84,84.9,83.07,83.51,83.0,82.0,82.0,80.92,79.68,78.26,75.99,76.9,73.11,66.4,73.2,68.6,78.0,75.4,75.58,75.99,69.0,72.03,73.2,67.0,58.3,62.08,53.48,53.89,48.0,73.21,72.0,44.2,50.0,51.5,43.01,46.08,41.92,42.0,39.0,34.5,37.35,38.79,34.0,45.41,70.0,56.53,67.77,72.49,80.9,78.0,81.76,76.58,74.0,71.0,75.7,76.21,77.84,79.55,73.0,77.86,77.64,81.51,88.8,94.52,109.0,96.97,91.9,96.0,92.0,93.3,85.0,90.0,84.0,86.6,81.27,90.0,80.1,54.1,39.0,79.64,85.0,84.19,77.28,76.54,72.82,73.9,68.95,71.47,71.31,70.6,70.0,70.15,72.54,73.44,75.81,74.93,77.0,78.0,86.0,83.72,83.72,83.4,88.25,83.5,86.22,83.0,76.0,82.0,83.3,85.0,96.24,97.9,101.19,100.0,100.0,102.32,91.01,88.9,84.0,87.16,80.35,80.0,75.1,73.26,65.5,77.0,76.27],"export_value":[71.37,74.39,72.39,70.73,69.99,66.4,67.63,64.62,68.83,66.17,71.47,66.13,77.79,76.39,77.39,88.23,84.8,84.5,84.3,83.6,80.1,79.8,84.25,84.8,84.4,84.62,86.5,87.7,88.3,89.3,84.17,95.21,119.54,138.14,126.14,138.86,134.14,128.14,91.08,86.1,84.62,80.8,80.39,74.39,71.39,71.39,75.82,77.55,71.07,73.39,69.39,65.39,66.39,63.16,66.12,64.66,65.95,63.54,69.01,69.65,77.0,84.39,84.39,96.8,92.45,92.87,90.0,83.8,82.01,79.5,77.06,75.28,76.8,75.8,82.8,81.77,86.8,86.8,82.16,90.08,124.04,134.51,127.86,127.53,119.4,115.65,81.8,87.08,85.4,82.05,75.75,65.03,65.54,54.71,78.09,71.65,46.97,53.16,44.39,42.34,40.39,39.21,40.63,40.75,41.99,39.39,35.39,40.99,65.31,72.39,65.39,80.8,68.8,71.08,74.8,76.8,78.8,79.84,80.8,78.26,81.51,81.51,82.8,81.26,84.2,84.31,85.78,89.8,121.64,131.14,122.14,124.35,116.34,109.14,81.1,75.8,79.36,78.74,75.39,74.39,64.39,56.39,55.39,45.54,16.39,20.39,17.97,14.39,16.25,9.49,10.39,2.39,15.22,19.39,25.63,34.19,44.39,60.39,73.5,82.8,81.41,75.6,77.8,75.8,76.9,78.8,78.8,77.31,81.8,84.01,80.55,80.81,79.3,79.8,81.8,89.8,129.13,141.14,133.14,134.14,137.78,128.55,89.0,85.8,87.8,83.8,78.5,75.4,77.09,74.08,39.59,17.89,75.19,76.27,70.39,62.89,62.99,53.48,58.05,56.81,57.19,55.43,52.99,56.15,68.19,72.39,80.19,90.8,88.8,89.64,90.7,88.87,89.31,88.8,87.8,87.8,86.72,85.48,84.06,81.79,82.7,78.91,72.2,79.0,102.74,112.14,109.54,109.72,110.13,103.14,77.83,79.0,72.8,64.1,62.47,53.87,54.28,48.39,73.6,72.39,44.59,50.39,51.89,43.4,46.47,42.31,42.39,39.39,34.89,37.74,39.18,34.39,45.8,70.39,56.92,68.16,72.88,81.29,78.39,82.15,76.97,74.39,71.39,76.09,76.6,78.23,79.94,73.39,78.25,78.03,81.9,89.19,94.91,109.39,97.36,92.29,96.39,92.39,93.69,85.39,90.39,84.39,86.99,81.66,90.39,80.49,54.49,39.39,80.03,85.39,84.58,77.67,76.93,73.21,74.29,69.34,71.86,71.7,70.99,70.39,70.54,72.93,73.83,76.2,75.32,77.39,78.39,86.39,84.11,84.11,83.79,88.64,83.89,86.61,83.39,76.39,82.39,83.69,85.39,96.63,98.29,101.58,100.39,100.39,102.71,91.4,89.29,84.39,87.55,80.74,80.39,75.49,73.65,65.89,77.39,76.66],"band":["g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","r","r","r","r","r","r","a","a","a","a","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","r","r","r","r","r","r","a","a","a","a","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","r","r","r","r","r","r","a","a","a","a","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","r","r","r","r","r","r","a","a","a","a","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","a","r","r","r","r","r","r","a","a","a","a","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g","g"],"variants":{"hp34_b4_partial":{"miner_kw":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,272.8,272.8,272.8,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,272.8,323.79,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,272.8,272.8,297.33,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,323.79,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,272.8,343.5,343.5,0.0,0.0,0.0,0.0,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,272.8,272.8,272.8,272.8,272.8,272.8,318.97,272.8,272.8,343.5,277.95,343.5,343.5,343.5,343.5,343.5,343.5,343.5,291.74,272.8,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,272.8,343.5,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"mode":"EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEPPPPPEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEPPPMMMMMMMMMPEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEPPPPMMMMMMMMMMMMPPEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEPPMMEEEEPPPPPPPPEEEEEEEEEEEEEEEEEEEEEEEEEEEEEPPPPPPPPPPMPMMMMMMMPPPEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEPPMPEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE","value_gbp":5016.07,"starts":7},"hp34_b4_binary":{"miner_kw":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,343.5,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"mode":"EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMMMMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMMMMMMMMMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMEEEEMMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMMMMMMMMMMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE","value_gbp":5002.06,"starts":5},"hp34_b8_partial":{"miner_kw":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,272.8,323.79,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,272.8,272.8,297.33,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,323.79,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,272.8,272.8,272.8,272.8,272.8,272.8,318.97,272.8,272.8,343.5,277.95,343.5,343.5,343.5,343.5,343.5,343.5,343.5,291.74,272.8,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"mode":"EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEPPPPPPPPEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEPPPMMMMMMMMMPEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEPPPPMMMMMMMMMMMMPPEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMPPPPPPPPPPPPEEEEEEEEEEEEEEEEEEEEEEEEEEEEEPPPPPPPPPPMPMMMMMMMPPPEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE","value_gbp":5013.73,"starts":5},"hp34_b8_binary":{"miner_kw":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"mode":"EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMMMMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMMMMMMMMMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMMMMMMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMMMMMMMMMMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE","value_gbp":4999.45,"starts":4},"hp34_b12_partial":{"miner_kw":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,272.8,323.79,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,272.8,272.8,297.33,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,323.79,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,272.8,272.8,272.8,272.8,272.8,272.8,318.97,272.8,272.8,343.5,277.95,343.5,343.5,343.5,343.5,343.5,343.5,343.5,291.74,272.8,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"mode":"EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEPPPMMMMMMMMMPEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEPPPPMMMMMMMMMMMMPPEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMPPPPPPPPPPPPEEEEEEEEEEEEEEEEEEEEEEEEEEEEEPPPPPPPPPPMPMMMMMMMPPPEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE","value_gbp":5013.61,"starts":4},"hp34_b12_binary":{"miner_kw":[0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"mode":"EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMMMMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMMMMMMMMMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMMMMMMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMMMMMMMMMMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE","value_gbp":4999.45,"starts":4},"hp40_b4_partial":{"miner_kw":[272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,272.8,272.8,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,272.8,272.8,277.29,272.8,272.8,343.5,305.16,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,272.8,272.8,272.8,272.8,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,272.8,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,272.8,272.8,343.5,343.5,272.8,272.8,272.8,272.8,272.8,299.12,272.8,272.8,272.8,272.8,308.44,272.8,272.8,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,272.8,272.8,291.96,284.68,343.5,272.8,272.8,343.5,343.5,330.78,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,272.8,272.8,272.8,272.8,0.0,0.0,0.0,0.0,272.8,272.8,272.8,272.8,272.8,272.8,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,281.04,343.5,272.8,0.0,0.0,0.0,0.0,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,272.8,272.8,272.8,272.8],"mode":"PPPPPPPPPPPPPPEEEEEEEEEEEEEEEEEEEEEEEEEEEEEPPPPPPPPPPPPPPPPPPEEEEEEEEEPPPPEEEEEEEEEEEEEEEEPPPPPPMPMMMMMMMMMMPPPPPPPPEEEEEEEEEEEEEEEEEEEEEEPPPPPMMMMMMMMMMMMMMPPEEEEEEEEEEEEEEEEEEEEEEEEEEEEPPPMMPPPPPPPPPPPPPPEEEEEEEEEEEEEEEEEEEEEEEEEEPPPPPMPPMMPMMMMMMMMMMPPPPEEEEPPPPPPPEEEEEEEEEEEEEEEEEPPMPEEEEPPPPPPPPPPPPEEEEEEEEEEEEEEEEEEEEEEEEEEPPPPP","value_gbp":5214.48,"starts":10},"hp40_b4_binary":{"miner_kw":[0.0,0.0,0.0,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"mode":"EEEMMMMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMMMMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMMMMMMMMMMMMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMMMMMMMMMMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMMMMMMMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMMMMMMMMMMMMMMMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMEEEEEEMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE","value_gbp":5165.68,"starts":8},"hp40_b8_partial":{"miner_kw":[272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,272.8,272.8,277.29,272.8,272.8,343.5,305.16,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,272.8,272.8,272.8,272.8,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,272.8,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,272.8,272.8,343.5,343.5,272.8,272.8,272.8,272.8,272.8,299.12,272.8,272.8,272.8,272.8,308.44,272.8,272.8,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,272.8,272.8,291.96,284.68,343.5,272.8,272.8,343.5,343.5,330.78,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,281.04,343.5,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,272.8,272.8,272.8,272.8],"mode":"PPPPPPPPPPPPPPEEEEEEEEEEEEEEEEEEEEEEEEEEEEEPPPPPPPPPPPPPPPPPPEEEEEEEEEEEEEEEEEEEEEEEEEEEEEPPPPPPMPMMMMMMMMMMPPPPPPPPEEEEEEEEEEEEEEEEEEEEEEPPPPPMMMMMMMMMMMMMMPPEEEEEEEEEEEEEEEEEEEEEEEEEEEEPPPMMPPPPPPPPPPPPPPEEEEEEEEEEEEEEEEEEEEEEEEEEPPPPPMPPMMPMMMMMMMMMMPPPPPPPPPPPPPPPEEEEEEEEEEEEEEEEEEPMPPPPPPPPPPPPPPPPPEEEEEEEEEEEEEEEEEEEEEEEEEEPPPPP","value_gbp":5210.59,"starts":7},"hp40_b8_binary":{"miner_kw":[0.0,0.0,0.0,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"mode":"EEEMMMMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMMMMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMMMMMMMMMMMMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMMMMMMMMMMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMMMMMMMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMMMMMMMMMMMMMMMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMMMMMMMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE","value_gbp":5160.1,"starts":7},"hp40_b12_partial":{"miner_kw":[272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,272.8,272.8,277.29,272.8,272.8,343.5,305.16,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,272.8,272.8,272.8,272.8,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,272.8,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,272.8,272.8,343.5,343.5,272.8,272.8,272.8,272.8,272.8,299.12,272.8,272.8,272.8,272.8,308.44,272.8,272.8,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,272.8,272.8,291.96,284.68,343.5,272.8,272.8,343.5,343.5,330.78,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,281.04,343.5,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,272.8,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,272.8,272.8,272.8,272.8,272.8],"mode":"PPPPPPPPPPPPPPEEEEEEEEEEEEEEEEEEEEEEEEEEEEEPPPPPPPPPPPPPPPPPPEEEEEEEEEEEEEEEEEEEEEEEEEEEEEPPPPPPMPMMMMMMMMMMPPPPPPPPEEEEEEEEEEEEEEEEEEEEEEPPPPPMMMMMMMMMMMMMMPPEEEEEEEEEEEEEEEEEEEEEEEEEEEEPPPMMPPPPPPPPPPPPPPEEEEEEEEEEEEEEEEEEEEEEEEEEPPPPPMPPMMPMMMMMMMMMMPPPPPPPPPPPPPPPEEEEEEEEEEEEEEEEEEPMPPPPPPPPPPPPPPPPPEEEEEEEEEEEEEEEEEEEEEEEEEEPPPPP","value_gbp":5210.59,"starts":7},"hp40_b12_binary":{"miner_kw":[343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,343.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0],"mode":"MMMMMMMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMMMMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMMMMMMMMMMMMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMMMMMMMMMMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMMMMMMMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMMMMMMMMMMMMMMMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEMMMMMMMMMMMMMMMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE","value_gbp":5159.87,"starts":6}}};
+const YEAR = {"34":{"1":{"partial_vs_base":476,"binary_vs_base":0,"partial_minus_binary":476,"cycles_partial":374,"cycles_binary":272,"share_partial":{"stop":0.825,"efficient":0.077,"between":0.005,"full":0.093},"share_binary":{"stop":0.85,"full":0.15}},"4":{"partial_vs_base":103,"binary_vs_base":-448,"partial_minus_binary":551,"cycles_partial":197,"cycles_binary":169,"share_partial":{"stop":0.826,"efficient":0.076,"between":0.005,"full":0.093},"share_binary":{"stop":0.85,"full":0.15}},"8":{"partial_vs_base":-700,"binary_vs_base":-1377,"partial_minus_binary":677,"cycles_partial":161,"cycles_binary":142,"share_partial":{"stop":0.831,"efficient":0.073,"between":0.005,"full":0.091},"share_binary":{"stop":0.853,"full":0.147}},"12":{"partial_vs_base":-1590,"binary_vs_base":-2394,"partial_minus_binary":804,"cycles_partial":131,"cycles_binary":115,"share_partial":{"stop":0.835,"efficient":0.071,"between":0.004,"full":0.089},"share_binary":{"stop":0.859,"full":0.141}}},"40":{"1":{"partial_vs_base":2051,"binary_vs_base":0,"partial_minus_binary":2051,"cycles_partial":876,"cycles_binary":641,"share_partial":{"stop":0.617,"efficient":0.263,"between":0.009,"full":0.111},"share_binary":{"stop":0.739,"full":0.261}},"4":{"partial_vs_base":1424,"binary_vs_base":-595,"partial_minus_binary":2019,"cycles_partial":448,"cycles_binary":324,"share_partial":{"stop":0.63,"efficient":0.251,"between":0.009,"full":0.111},"share_binary":{"stop":0.745,"full":0.255}},"8":{"partial_vs_base":340,"binary_vs_base":-1733,"partial_minus_binary":2074,"cycles_partial":351,"cycles_binary":244,"share_partial":{"stop":0.642,"efficient":0.239,"between":0.009,"full":0.11},"share_binary":{"stop":0.755,"full":0.245}},"12":{"partial_vs_base":-839,"binary_vs_base":-2968,"partial_minus_binary":2130,"cycles_partial":260,"cycles_binary":180,"share_partial":{"stop":0.666,"efficient":0.217,"between":0.009,"full":0.109},"share_binary":{"stop":0.768,"full":0.232}}}};
+
+/* ---------------------------------------------------------------- physics (mirrors dispatch/engine.py) */
+const F = {N:44, instKw:7.208, ths:464, alpha:0.70, minKw:6.2, maxKw:9.911, fixed:5, cooler:25/381.6, S:371, gbpusd:1.3413};
+function model(hp){
+  const K = F.N*F.ths*Math.pow(1/(F.N*F.instKw),F.alpha)/1000*hp/24/F.gbpusd;
+  const par = P => P>0 ? F.fixed + F.cooler*P : 0;
+  const pmin = F.N*F.minKw, pmax = Math.min(F.N*F.maxKw, (F.S-F.fixed)/(1+F.cooler));
+  const rev = P => P>0 ? K*Math.pow(P,F.alpha) : 0;               // £/h
+  const avg = P => rev(P)/(P+par(P))*1000;                          // £/MWh absorbed
+  function best(e){                                                 // e = export value £/MWh
+    let P = e<=0 ? pmax : Math.min(pmax, Math.max(pmin, Math.pow(K*F.alpha*1000/(e*(1+F.cooler)), 1/(1-F.alpha))));
+    const on = e*(F.S-P-par(P))/1000 + rev(P), off = e*F.S/1000;
+    if (off > on) return {P:0, val:off};
+    return {P, val:on};
+  }
+  return {K,par,pmin,pmax,rev,avg,best};
+}
+const state = {hp:34, strat:'partial', bs:8};
+const NF={}, fmt=(v,d=0)=>(NF[d]||(NF[d]=new Intl.NumberFormat('en-GB',{minimumFractionDigits:d,maximumFractionDigits:d}))).format(v);
+const gbp = (v,d=0)=>(v<0?'−':'')+'£'+fmt(Math.abs(v),d);
+const css = n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const NS='http://www.w3.org/2000/svg';
+function el(tag, attrs={}, parent){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(parent)parent.appendChild(e);return e;}
+function txt(parent,x,y,s,attrs={}){const t=el('text',Object.assign({x,y},attrs),parent);t.textContent=s;return t;}
+function clear(svg){while(svg.firstChild)svg.removeChild(svg.firstChild);}
+const tip=document.getElementById('tip');
+function showTip(ev,html){tip.innerHTML=html;tip.style.opacity=1;const x=Math.min(ev.clientX+14,innerWidth-tip.offsetWidth-8),y=Math.min(ev.clientY+14,innerHeight-tip.offsetHeight-8);tip.style.left=x+'px';tip.style.top=y+'px';}
+let hairline=null;   // the week chart's crosshair, hidden with the tooltip
+function hideTip(){tip.style.opacity=0; if(hairline) hairline.setAttribute('opacity',0);}
+// Tooltip on a mark: follows the mouse, and shows on a tap with a finger or pen.
+function tipOn(node,html){const h=typeof html==='function'?html:()=>html;
+  node.addEventListener('pointermove',ev=>showTip(ev,h(ev)));
+  node.addEventListener('pointerdown',ev=>{if(ev.pointerType!=='mouse')showTip(ev,h(ev));});
+  node.addEventListener('pointerleave',ev=>{if(ev.pointerType==='mouse')hideTip();});}
+document.addEventListener('pointerdown',ev=>{if(ev.pointerType!=='mouse'&&!ev.target.closest('svg.chart'))hideTip();});
+addEventListener('scroll',hideTip,{passive:true});
+/* Charts are drawn at the width of their box (one SVG unit = one CSS pixel), so text keeps its size on a phone.
+   A ResizeObserver redraws a chart when its width changes (see the end of the script). */
+const lastW={};
+function widthOf(svg){const w=Math.round(svg.getBoundingClientRect().width||svg.parentNode.clientWidth||1000);lastW[svg.id]=w;return Math.max(240,w);}
+function size(svg,W,H){svg.setAttribute('viewBox',`0 0 ${W} ${Math.ceil(H)}`);}
+function textW(t){try{return t.getComputedTextLength();}catch(e){return 0;}}
+// Write s in lines no wider than maxW; returns the number of lines.
+function wrap(parent,x,y,s,maxW,attrs={},lh=16){
+  let line='',n=0,t=txt(parent,x,y,'',attrs);
+  for(const w of s.split(' ')){const next=line?line+' '+w:w;t.textContent=next;
+    if(textW(t)>maxW&&line){t.textContent=line;n++;t=txt(parent,x,y+n*lh,w,attrs);line=w;}else line=next;}
+  t.textContent=line;return n+1;}
+// Place labels [{x,s,anchor}] in rows so that none overlaps the one before it; returns the rows used.
+function placeLabels(parent,labels,y,attrs,rowH=15){
+  const ends=[];let rows=1;
+  labels.forEach(l=>{const t=txt(parent,l.x,y,l.s,Object.assign({'text-anchor':l.anchor||'middle'},attrs));const w=textW(t);
+    const x0=l.anchor==='end'?l.x-w:(l.anchor==='start'?l.x:l.x-w/2);let r=0;
+    while(ends[r]!==undefined&&ends[r]>x0-6)r++;ends[r]=x0+w;t.setAttribute('y',y+r*rowH);rows=Math.max(rows,r+1);});
+  return rows;}
+function modeOf(P,m){ if(P<=0) return 'stop'; if(P>=m.pmax-0.5) return 'full'; if(P<=m.pmin+0.5) return 'efficient'; return 'trim'; }
+const MODE = {full:{label:'Full mining', c:'--c-full'}, trim:{label:'Trimming toward efficient', c:'--c-eff'}, efficient:{label:'Efficient mining + export', c:'--c-eff'}, stop:{label:'Stop & export everything', c:'--c-export'}};
+
+/* ---------------------------------------------------------------- 1 flow diagram */
+function drawFlow(){
+  const svg=document.getElementById('flowChart'); clear(svg); const W=widthOf(svg), wide=W>=960;
+  svg.dataset.layout=wide?'horizontal':'vertical';
+  size(svg,W,wide?300:900);                           // provisional height while the text is measured
+  const defs=el('defs',{},svg), mk=el('marker',{id:'ah',viewBox:'0 0 10 10',refX:9,refY:5,markerWidth:7,markerHeight:7,orient:'auto-start-reverse'},defs);
+  el('path',{d:'M0,0L10,5L0,10z',fill:'#5F7282'},mk);
+  const g=el('g',{},svg);
+  const arrow=d=>el('path',{d,fill:'none',stroke:'#5F7282','stroke-width':1.4,'marker-end':'url(#ah)'},g);
+  // A box with a bold title and wrapped sub-lines; returns its rect (height set to fit, at least minH).
+  function box(x,y,w,title,subs,fill='#fff',stroke='rgba(11,53,73,.18)',minH=0){
+    const r=el('rect',{x,y,width:w,height:10,rx:10,fill,stroke},g);
+    const tl=wrap(g,x+12,y+22,title,w-24,{class:'t'},17)-1;
+    let n=0; subs.forEach(s=>{n+=wrap(g,x+12,y+40+tl*17+n*16,s,w-24,{class:'s'});});
+    r.setAttribute('height',Math.max(minH,(n?40+(n-1)*16+14:36)+tl*17)); return r;}
+  const hOf=r=>+r.getAttribute('height');
+  const ins=[['Day-ahead prices',['EPEX half-hourly, D-1 ~16:00']],['gDUoS credit',['red / amber / green band']],['Hashprice',['miner earnings per TH']],['Expected surplus',['~371 kW while engine runs']]];
+  const EU=['Eunice',['plans 48 half-hours','8-period minimum run','sets miner power'],'#EAF3F8','#156082'];
+  const MI=['44 miners',['6.2 kW efficient …','7.8 kW full surplus'],'#FBF1EA',css('--c-full')];
+  const GX=['Grid export',['SSP spill contract','SSP + gDUoS − fee'],'#EAF2F8',css('--c-export')];
+  if(wide){
+    const xo=W-12-206, gap=(xo-210-350)/3, xe=210+gap, xf=xe+200+gap;
+    ins.forEach((d,i)=>{box(10,12+i*70,200,d[0],d[1],undefined,undefined,58);
+      arrow(`M210,${41+i*70} C${210+gap/2},${41+i*70} ${xe-gap/2},150 ${xe-4},150`);});
+    box(xe,95,200,...EU,110);
+    arrow(`M${xe+200},150 L${xf-4},150`); txt(g,(xe+200+xf)/2,140,'setpoint',{class:'s','text-anchor':'middle'});
+    box(xf,110,150,'Foreman',['moves the miners'],'#fff',undefined,80);
+    box(xo,40,206,...MI,92); box(xo,168,206,...GX,92);
+    arrow(`M${xf+150},140 C${xf+150+gap/2},140 ${xo-gap/2},86 ${xo-4},86`);
+    arrow(`M${xf+150},160 C${xf+150+gap/2},160 ${xo-gap/2},214 ${xo-4},214`);
+    wrap(g,xf,232,'Edge agent on site keeps the plan if the cloud link drops',xo-xf-12,{class:'s'});
+    size(svg,W,300); return;
+  }
+  // vertical: inputs in a 2×2 grid, then Eunice → Foreman → miners and export side by side
+  const pad=10, gx=10, cw=(W-2*pad-gx)/2, cx=W/2; let y=pad+6;
+  const frame=el('rect',{x:pad-4,y:y-6,width:W-2*pad+8,height:10,rx:12,fill:'rgba(11,53,73,.035)'},g);
+  for(let row=0;row<2;row++){
+    const a=box(pad,y,cw,...ins[row*2],'#fff',undefined,58), b=box(pad+cw+gx,y,cw,...ins[row*2+1],'#fff',undefined,58);
+    const h=Math.max(hOf(a),hOf(b)); a.setAttribute('height',h); b.setAttribute('height',h); y+=h+8;}
+  frame.setAttribute('height',y-frame.getAttribute('y')-2);
+  arrow(`M${cx},${y} L${cx},${y+26}`); y+=30;
+  const eu=box(pad,y,W-2*pad,...EU); y+=hOf(eu);
+  arrow(`M${cx},${y} L${cx},${y+30}`); txt(g,cx+10,y+20,'setpoint',{class:'s'}); y+=34;
+  const fw=Math.min(W-2*pad,260), fm=box(cx-fw/2,y,fw,'Foreman',['moves the miners']); y+=hOf(fm);
+  const lx=pad+cw/2, rx=pad+cw+gx+cw/2;
+  arrow(`M${cx-12},${y} C${cx-12},${y+18} ${lx},${y+12} ${lx},${y+30}`);
+  arrow(`M${cx+12},${y} C${cx+12},${y+18} ${rx},${y+12} ${rx},${y+30}`); y+=34;
+  const mi=box(pad,y,cw,...MI), gxb=box(pad+cw+gx,y,cw,...GX), h=Math.max(hOf(mi),hOf(gxb));
+  mi.setAttribute('height',h); gxb.setAttribute('height',h); y+=h+22;
+  y+=16*(wrap(g,pad,y,'Edge agent on site keeps the plan if the cloud link drops.',W-2*pad,{class:'s'})-1);
+  size(svg,W,y+10);
+}
+
+/* ---------------------------------------------------------------- 2 state cards + slice bar */
+function drawStates(){
+  const m=model(state.hp), wrap=document.getElementById('stateCards');
+  const jth = kw => kw*1000/(F.ths*Math.pow(kw/F.instKw,F.alpha));
+  const ths = kw => F.ths*Math.pow(kw/F.instKw,F.alpha);
+  const fullKw=m.pmax/F.N, effKw=F.minKw;
+  const exportAtEff = F.S - m.pmin - m.par(m.pmin);
+  const cards=[
+    {c:'--c-full',name:'Full mining',big:`${fmt(fullKw,1)} kW`,unit:'per miner',rows:[['Miners draw',`${fmt(m.pmax,1)} kW`],['vs installed (7.2 kW)',`+${fmt((fullKw/F.instKw-1)*100)}%`],['Efficiency',`${fmt(jth(fullKw),2)} J/TH`],['Earns',`${gbp(m.avg(m.pmax),2)}/MWh`],['Exported','0 kW']],when:'When export is worth less than the top slice of mining.'},
+    {c:'--c-eff',name:'Efficient mining + export',big:`${fmt(effKw,1)} kW`,unit:'per miner',rows:[['Miners draw',`${fmt(m.pmin,1)} kW`],['vs installed (7.2 kW)',`−${fmt((1-effKw/F.instKw)*100)}%`],['Efficiency',`${fmt(jth(effKw),2)} J/TH`],['Earns',`${gbp(m.avg(m.pmin),2)}/MWh`],['Exported',`${fmt(exportAtEff)} kW`]],when:'When export beats the top slice but not efficient mining.'},
+    {c:'--c-export',name:'Stop & export everything',big:`${fmt(F.S)} kW`,unit:'exported',rows:[['Miners draw','0 kW'],['Cooling & controls','off'],['Earns','export value'],['Start/stop','counts as a cycle'],['Minimum run','8 half-hours']],when:'When export beats even efficient mining.'}];
+  wrap.innerHTML=cards.map(k=>`<div class="card state"><div class="sw" style="background:var(${k.c})"></div><h3>${k.name}</h3><div class="big">${k.big}</div><div class="muted small">${k.unit}</div><dl>${k.rows.map(r=>`<dt>${r[0]}</dt><dd>${r[1]}</dd>`).join('')}</dl><p class="small muted" style="margin:10px 0 0">${k.when}</p></div>`).join('');
+  // operating points table
+  const ops=[['Efficient','MicroBT Low-mode floor',F.minKw,'Yes — when export value is close to mining'],
+             ['Installed','MicroBT Normal mode',F.instKw,'Passed through while trimming'],
+             ['Full surplus','light overclock, uses all 371 kW',fullKw,'Yes — the default when mining'],
+             ['Max overclock','MicroBT Aggressive',F.maxKw,`No — needs ${fmt(F.N*F.maxKw+m.par(F.N*F.maxKw))} kW, we have ${F.S} kW`]];
+  document.getElementById('opsTable').innerHTML='<tr><th>Setting</th><th class="n">kW / miner</th><th class="n">Total draw</th><th class="n">J/TH</th><th class="n">£/MWh</th><th>Do we use it?</th></tr>'+
+    ops.map(([n,s,kw,use])=>{const P=F.N*kw;return `<tr${n==='Full surplus'||n==='Efficient'?' class="hl"':''}><td><b>${n}</b><br><span class="small muted">${s}</span></td><td class="n">${fmt(kw,kw===F.instKw?3:(kw===F.maxKw?3:2))}</td><td class="n">${fmt(P+m.par(P))} kW</td><td class="n">${fmt(jth(kw),2)}</td><td class="n">${gbp(m.avg(P),2)}</td><td>${use}</td></tr>`;}).join('');
+  drawSlice();
+}
+function drawSlice(){
+  const m=model(state.hp), svg=document.getElementById('sliceChart'); clear(svg);
+  const W=widthOf(svg), x0=10, x1=W-10, h=40, sc=v=>x0+(x1-x0)*v/F.S;
+  let y=34;
+  size(svg,W,200);
+  const instP=F.N*F.instKw, absorbed=P=>P+m.par(P);
+  const slices=[
+    {a:0,b:absorbed(m.pmin),c:css('--c-eff'),name:'Efficient base',label:`Efficient base ${fmt(absorbed(m.pmin))} kW`,v:m.avg(m.pmin)},
+    {a:absorbed(m.pmin),b:absorbed(instP),c:css('--c-full'),name:'Up to installed',label:'up to installed',v:(m.rev(instP)-m.rev(m.pmin))/(absorbed(instP)-absorbed(m.pmin))*1000,op:.75},
+    {a:absorbed(instP),b:absorbed(m.pmax),c:css('--c-full'),name:'Overclock',label:'overclock',v:(m.rev(m.pmax)-m.rev(instP))/(absorbed(m.pmax)-absorbed(instP))*1000},
+  ];
+  // labels on the bar where every one fits its slice; otherwise a key under the bar
+  const lab=el('g',{},svg), fits=slices.every(s=>{const w=sc(s.b)-sc(s.a), cx=(sc(s.a)+sc(s.b))/2;
+    const a=txt(lab,cx,y-10,gbp(s.v,0)+'/MWh',{class:'lbl','text-anchor':'middle','font-size':14,'font-weight':700,fill:css('--ink-1')});
+    const b=txt(lab,cx,y+h+20,s.label,{class:'lbl','text-anchor':'middle','font-size':12,fill:css('--ink-3')});
+    return Math.max(textW(a),textW(b))<=w-2;});
+  if(!fits){ lab.remove(); y=6; }
+  slices.forEach((s,i)=>{const r=el('rect',{x:sc(s.a)+(i?1:0),y,width:Math.max(0,sc(s.b)-sc(s.a)-(i?1:0)),height:h,rx:4,fill:s.c,'fill-opacity':s.op||1},svg);
+    tipOn(r,`<b>${s.label}</b><br>${fmt(s.b-s.a)} kW · <b>${gbp(s.v,2)}/MWh</b>`);});
+  if(fits) svg.appendChild(lab);
+  let yy=y+h+44;
+  if(!fits){ yy=y+h+24;
+    slices.forEach(s=>{el('rect',{x:x0,y:yy-10,width:11,height:11,rx:2,fill:s.c,'fill-opacity':s.op||1},svg);
+      yy+=16*wrap(svg,x0+18,yy,`${s.name} · ${fmt(s.b-s.a)} kW · ${gbp(s.v,0)}/MWh`,x1-x0-18,{class:'lbl','font-size':13,fill:css('--ink-2')})+4;});
+    yy+=10;}
+  const n=wrap(svg,x0,yy,`Average for the whole fleet at full surplus: ${gbp(m.avg(m.pmax),2)}/MWh. The top ${fmt(absorbed(m.pmax)-absorbed(m.pmin))} kW earns only about ${gbp(slices[2].v,0)}–${gbp(slices[1].v,0)}/MWh.`,x1-x0,{class:'lbl','font-size':13,fill:css('--ink-2')},18);
+  size(svg,W,yy+(n-1)*18+10);
+  svg.dataset.layout=fits?'labels':'key';
+}
+
+/* ---------------------------------------------------------------- 3 ladder */
+function thresholds(m){
+  let tFull=null,tFloor=null,tStop=null;
+  for(let e=0;e<=160;e+=0.25){const b=m.best(e);
+    if(tFull===null && b.P<m.pmax-0.5) tFull=e;
+    if(tFloor===null && b.P>0 && b.P<=m.pmin+0.5) tFloor=e;
+    if(tStop===null && b.P===0) {tStop=e;break;}}
+  return {tFull,tFloor,tStop};
+}
+function drawLadder(){
+  const m=model(state.hp), e=+document.getElementById('eSlider').value, th=thresholds(m);
+  document.getElementById('eVal').textContent=gbp(e);
+  document.getElementById('ladderTh').innerHTML=`At $${state.hp}/PH/day: full mining until <b>${gbp(th.tFull,2)}</b> · efficient floor from <b>${gbp(th.tFloor,2)}</b> · stop &amp; export above <b>${gbp(th.tStop,2)}</b> per MWh.`;
+  // scale strip
+  const svg=document.getElementById('ladderScale'); clear(svg);
+  const W=widthOf(svg), sx=v=>10+(W-20)*v/140, y=14; size(svg,W,64);
+  const segs=[[0,th.tFull,'--c-full','Full'],[th.tFull,th.tFloor,'--c-eff','Trim'],[th.tFloor,th.tStop,'--c-eff','Efficient + export'],[th.tStop,140,'--c-export','Stop & export']];
+  const names=el('g',{},svg);
+  const allFit=segs.map(([a,b,c,l],i)=>{const r=el('rect',{x:sx(a)+(i?1:0),y,width:Math.max(0,sx(b)-sx(a)-(i?1:0)),height:12,rx:3,fill:css(c),'fill-opacity':i===1?.55:1},svg);
+    tipOn(r,`<b>${l}</b><br>export value ${gbp(a,2)}–${gbp(b,2)} per MWh`);
+    const t=txt(names,(sx(a)+sx(b))/2,y+30,l,{class:'lbl','text-anchor':'middle','font-size':12,fill:css('--ink-2')});
+    return textW(t)<=sx(b)-sx(a)-8;}).every(Boolean);
+  if(!allFit) names.remove();
+  // a tick from the bar down to each threshold's figure
+  [th.tFull,th.tFloor,th.tStop].forEach(v=>el('line',{x1:sx(v),x2:sx(v),y1:y+12,y2:y+(allFit?18:33),stroke:css('--ink-2'),'stroke-width':1},svg));
+  const labs = (sx(th.tFloor)-sx(th.tFull) < 90) ? [[(th.tFull+th.tFloor)/2, gbp(th.tFull,2)+'–'+gbp(th.tFloor,2).slice(1)],[th.tStop,gbp(th.tStop,2)]] : [[th.tFull,gbp(th.tFull,2)],[th.tFloor,gbp(th.tFloor,2)],[th.tStop,gbp(th.tStop,2)]];
+  const lrows=placeLabels(svg,labs.map(([v,s])=>({x:Math.max(10,Math.min(W-10,sx(v))),s,anchor:sx(v)<40?'start':(sx(v)>W-40?'end':'middle')})),y+46,{class:'lbl','font-size':12,'font-weight':700,fill:css('--ink-1')});
+  let hy=y+46+(lrows-1)*15+6;
+  if(!allFit){ // the bands' names as a key under the figures
+    let kx=10, ky=hy+16;
+    segs.forEach(([a,b,c,l],i)=>{const t=txt(svg,kx+16,ky,l,{class:'lbl','font-size':12,fill:css('--ink-2')}), w=16+textW(t)+14;
+      if(kx>10&&kx+w>W-10){ kx=10; ky+=18; t.setAttribute('x',kx+16); t.setAttribute('y',ky); }
+      el('rect',{x:kx,y:ky-10,width:11,height:11,rx:2,fill:css(c),'fill-opacity':i===1?.55:1},svg); kx+=w;});
+    hy=ky+8;}
+  size(svg,W,hy);
+  el('path',{d:`M${sx(e)},${y-6} l-6,-8 h12 z`,fill:css('--ink-1')},svg);
+  // outcome
+  const b=m.best(e), mode=modeOf(b.P,m), P=b.P, par=m.par(P), exp=Math.max(0,F.S-P-par);
+  const badge=document.getElementById('modeBadge'); badge.textContent=MODE[mode].label; badge.style.background=css(MODE[mode].c);
+  const split=document.getElementById('splitBar');
+  const pc=v=>(100*v/F.S)+'%';
+  split.innerHTML=`<div style="width:${pc(P)};background:var(${mode==='full'?'--c-full':'--c-eff'})"></div><div style="width:${pc(par)};background:#7FA9BF"></div><div style="width:${pc(exp)};background:var(--c-export)"></div>`;
+  split.setAttribute('aria-label',`Miners ${fmt(P)} kW, cooling ${fmt(par)} kW, exported ${fmt(exp)} kW`);
+  document.getElementById('splitText').textContent = P>0 ? `Miners ${fmt(P,1)} kW (${fmt(P/F.N,2)} kW each) · cooling ${fmt(par)} kW · exported ${fmt(exp)} kW` : `Miners off · all ${fmt(F.S)} kW exported`;
+  const mineAll = m.best(-1).val*0.5, exportAll=e*F.S/1000*0.5, eunice=b.val*0.5, bestSingle=Math.max(mineAll,exportAll);
+  const rows=[['Export everything',exportAll],['Mine everything (full)',mineAll],['Eunice’s choice',eunice]];
+  document.getElementById('cmpTable').innerHTML = rows.map(r=>`<tr class="${r[0].startsWith('Eunice')?'best':''}"><td>${r[0]}</td><td>${gbp(r[1],2)}</td></tr>`).join('') +
+    `<tr><td class="muted">Gain over the better single option</td><td>${gbp(eunice-bestSingle,2)}</td></tr>`;
+}
+
+/* ---------------------------------------------------------------- 4 week chart */
+// Half-hour helpers. Index 0 = Mon 10 Nov 00:00 UTC (= UK time in November); 48 half-hours a day.
+const HH = WEEK.export_value.length;
+const dayDate = d => new Date(WEEK.days[Math.min(d,WEEK.days.length-1)]+'T12:00:00Z');
+const dayName = d => dayDate(d).toLocaleDateString('en-GB',{weekday:'short',timeZone:'UTC'});
+const hhTime = i => {const sp=((i%48)+48)%48; return String(Math.floor(sp/2)).padStart(2,'0')+':'+(sp%2?'30':'00');};
+function rangeLabel(a,b){            // inclusive half-hour indices → "Mon 16:00–19:00" or "Wed 22:00 – Thu 07:00"
+  const e=b+1, d0=Math.floor(a/48), atMidnight=e%48===0, d1=atMidnight?e/48-1:Math.floor(e/48), t1=atMidnight?'24:00':hhTime(e);
+  return d1===d0 ? `${dayName(d0)} ${hhTime(a)}–${t1}` : `${dayName(d0)} ${hhTime(a)} – ${dayName(d1)} ${t1}`;
+}
+const variantKey = (strat,hp=state.hp,bs=state.bs) => `hp${hp}_b${bs}_${strat}`;
+// £ for one half-hour with the miners at P kW: 0.5 h × (export value × exported MWh + mining £/h).
+function hhValue(i,P,m){ return 0.5*(WEEK.export_value[i]*(F.S-P-m.par(P))/1000 + m.rev(P)); }
+// Sum over an inclusive window, unrounded; rounded once for display. Summed over the whole week this
+// matches each variant's value_gbp to within a penny, so the week totals are read from WEEK, not summed here.
+function windowValue(key,a,b,hp){
+  const m=model(hp), v=key?WEEK.variants[key]:null; let s=0;
+  for(let i=a;i<=b;i++) s+=hhValue(i, v?v.miner_kw[i]:0, m);
+  return s;
+}
+
+/* scenarios to run through (HANDOVER.md). win and zoom are inclusive indices. */
+const SCENARIOS=[
+  {head:'Red-band evening', hp:34, bs:8, strat:'partial', win:[32,37], zoom:[12,47],
+   story:'Day-ahead £85–105 plus the red-band credit (£34/MWh) puts export at £120–139. The miners stay off and all 371 kW goes to the grid. This happens on almost every weekday evening.'},
+  {head:'A normal day: export wins', hp:34, bs:8, strat:'partial', win:[300,331], zoom:[288,335],
+   story:'Export is worth £70–103. At $34/PH/day the miners earn at most £66/MWh, even in efficient mode, so Eunice exports everything. Last year this was the case for 83% of engine-running hours.'},
+  {head:'Overnight slump: mine flat out', hp:34, bs:8, strat:'partial', win:[140,157], zoom:[132,167],
+   story:'Prices slide from £64 to £2. Eunice starts in efficient mode at 22:00, runs at full power (7.8 kW per miner) from midnight and eases back to efficient at 06:00 as prices recover.'},
+  {head:"A short dip isn't worth a start", hp:34, bs:8, strat:'partial', win:[285,289], zoom:[276,299], night:[280,299],
+   story:'Prices dip to £54 and £39 for an hour, between £80–90. On the 8-period rule a start would lock the miners on for 4 hours, mostly into prices above £66, so Eunice keeps exporting. Switch to a 4-period minimum: it starts for 2 hours and earns about £1.40 more over the night, for one extra cycle.'},
+  {head:'Locked in: efficient mode limits the cost', hp:34, bs:8, strat:'partial', win:[190,203], zoom:[180,215],
+   story:'A crash to £18 at 23:30 starts a run. The 8-period rule keeps the miners on through 00:00–02:00, when export is worth £63–76, so Eunice drops them to 6.2 kW and exports 75 kW. Mine-or-export runs at full power throughout.'},
+  {head:'Hashprice rises to $40', hp:40, bs:8, strat:'partial', win:[288,304], zoom:[288,335],
+   story:'Efficient mining is now worth up to £77/MWh. The same Sunday morning that exported at $34 runs the miners at 6.2 kW and still exports 75 kW.'},
+];
+const view = {scen:0, day:0, narrow:false};   // scen: 0 = whole week, 1–6 = scenario open; day: the day shown on a narrow screen
+const scenOf = () => view.scen ? SCENARIOS[view.scen-1] : null;
+function viewRange(){ const s=scenOf(); if(s) return s.zoom; return view.narrow ? [view.day*48, view.day*48+47] : [0,HH-1]; }
+
+function drawWeek(){
+  const svg=document.getElementById('weekChart'); clear(svg); hideTip();
+  const W=widthOf(svg); view.narrow=W<640;
+  const v=WEEK.variants[variantKey(state.strat)], m=model(state.hp), sc=scenOf();
+  const [a,b]=viewRange(), n=b-a+1, hourly=n<=96, nar=view.narrow;
+  const L=nar?38:46, R=W-(nar?8:12), top=22, h1=nar?104:120, gap=nar?30:34, top2=top+h1+gap, h2=nar?140:170, axisY=top2+h2;
+  const H=axisY+(hourly?42:28);
+  size(svg,W,H);
+  svg.dataset.range=`${a}-${b}`; svg.dataset.window=sc?`${sc.win[0]}-${sc.win[1]}`:''; svg.dataset.layout=nar?'day':'week';
+  const xs=i=>L+(R-L)*(i-a)/n, bw=(R-L)/n;
+  const eMax=Math.max(140,Math.ceil(Math.max(...WEEK.export_value)/20)*20), eMin=Math.min(0,Math.floor(Math.min(...WEEK.export_value)/20)*20);
+  const ye=val=>top+h1*(1-(val-eMin)/(eMax-eMin)), yk=val=>top2+h2*(1-val/F.S);
+  const small={'font-size':11,fill:css('--ink-3')};
+  // red band: shaded through the price panel and the gap (the columns below are opaque)
+  for(let i=a;i<=b;i++) if(WEEK.band[i]==='r') el('rect',{x:xs(i),y:top,width:bw+0.5,height:top2-top,fill:'rgba(192,57,43,.10)','data-i':i,'data-role':'red'},svg);
+  // grid
+  for(let g=eMin; g<=eMax; g+=40){el('line',{x1:L,x2:R,y1:ye(g),y2:ye(g),stroke:css('--rule')},svg);txt(svg,L-6,ye(g)+4,'£'+g,Object.assign({'text-anchor':'end'},small));}
+  [0,100,200,300].forEach(g=>{el('line',{x1:L,x2:R,y1:yk(g),y2:yk(g),stroke:css('--rule')},svg);txt(svg,L-6,yk(g)+4,g,Object.assign({'text-anchor':'end'},small));});
+  const halo={stroke:'#fff','stroke-width':3,'stroke-linejoin':'round','paint-order':'stroke'};
+  const titles=[txt(svg,L,top-6,'Export value (£/MWh)',Object.assign({'font-size':12,fill:css('--ink-2')},halo)),
+                txt(svg,L,top2-6,'Surplus split (kW)',Object.assign({'font-size':12,fill:css('--ink-2')},halo))];
+  // stacked columns
+  const fullC=css('--c-full'), effC=css('--c-eff'), expC=css('--c-export');
+  el('rect',{x:L,y:yk(F.S),width:R-L,height:yk(0)-yk(F.S),fill:expC,'data-role':'export'},svg);
+  const cols=el('g',{'shape-rendering':'crispEdges'},svg);
+  for(let i=a;i<=b;i++){const P=v.miner_kw[i], used=Math.min(F.S,P+m.par(P));
+    if(P>0) el('rect',{x:xs(i),y:yk(used),width:bw+(hourly?0:0.6),height:yk(0)-yk(used),fill:v.mode[i]==='M'?fullC:effC,'data-i':i},cols);}
+  // time axis: hourly ticks labelled every 3 hours when zoomed in, day ticks for the whole week
+  if(hourly){
+    // px per 3 hours decides the labels: 'HH:MM' at 12 or 11 px, else 'HH' (with a note that they are hours); every 3 h,
+    // evenly, unless even 'HH' can't fit, when every 6 h
+    const slot=(R-L)*6/n, probe=(t,fs)=>{const e=txt(svg,0,-99,t,{'font-size':fs}),w=textW(e);e.remove();return w;};
+    let fs=12, short=false, every=6;
+    if(slot<probe('00:00',12)+6){ fs=11; if(slot<probe('00:00',11)+4){ fs=12; short=true; if(slot<probe('00',12)+6) every=12; } }
+    svg.dataset.axis=`${every/2}h${short?'-short':''}`;
+    // a label centred on its tick and kept inside the chart (returns its left and right edges)
+    const put=(x,y,s,attrs)=>{const t=txt(svg,x,y,s,Object.assign({'text-anchor':'middle'},attrs)), w=textW(t);
+      const cx=Math.min(Math.max(x,w/2+1),W-1-w/2); t.setAttribute('x',cx); return {t,l:cx-w/2,r:cx+w/2};};
+    let lastR=-1e9;
+    const days=[];
+    for(let i=a;i<=b+1;i++){ if(i%2) continue; const x=xs(i), sp=i%48, major=sp%6===0;
+      el('line',{x1:x,x2:x,y1:axisY,y2:axisY+(major?6:3),stroke:css('--ink-4')},svg);
+      if(!major) continue;
+      el('line',Object.assign({x1:x,x2:x,y1:top,y2:axisY,stroke:sp===0?css('--rule-2'):css('--rule')},sp===0?{}:{'stroke-dasharray':'2 3'}),svg);
+      if(sp%every) continue;
+      const lb=put(x,axisY+19,short?hhTime(i).slice(0,2):hhTime(i),{'font-size':fs,fill:css('--ink-2')});
+      if(i===b+1&&lb.l<lastR+3) lb.t.remove(); else lastR=lb.r;      // the end of the range gives way to the label before it
+      if(sp===0 && i<=b) days.push(i);
+    }
+    // the day's name under each midnight, and under the start when the range starts mid-day (unless a midnight is too close)
+    const dayLabel=i=>`${dayName(Math.floor(i/48))} ${dayDate(Math.floor(i/48)).getUTCDate()}`, dattrs={'font-size':12,'font-weight':700,fill:css('--ink-1')};
+    const placed=days.map(i=>put(xs(i),axisY+35,dayLabel(i),dattrs));
+    if(a%48){const t=txt(svg,xs(a),axisY+35,dayLabel(a),dattrs), r=xs(a)+textW(t); if(placed.length&&placed[0].l<r+8) t.remove();}
+    if(short) txt(svg,R,axisY+35,'hours, UK time',{'text-anchor':'end','font-size':11,fill:css('--ink-3')});
+  } else {
+    WEEK.days.forEach((ds,k)=>{const x=xs(k*48);el('line',{x1:x,x2:x,y1:top,y2:axisY,stroke:css('--rule-2')},svg);
+      txt(svg,x+4,axisY+18,dayDate(k).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',timeZone:'UTC'}),{'font-size':12,fill:css('--ink-2')});});
+  }
+  // export-value line
+  let d=''; for(let i=a;i<=b;i++) d+=(i>a?'L':'M')+(xs(i)+bw/2).toFixed(1)+','+ye(WEEK.export_value[i]).toFixed(1);
+  el('path',{d,fill:'none',stroke:css('--ink-1'),'stroke-width':hourly?2:1.6,'stroke-linejoin':'round','data-role':'line'},svg);
+  // scenario window, outlined across both panels
+  if(sc){const x0=xs(Math.max(a,sc.win[0])), x1=xs(Math.min(b,sc.win[1])+1);
+    el('rect',{x:x0,y:top-3,width:x1-x0,height:axisY-top+6,rx:4,fill:'none',stroke:css('--ink-1'),'stroke-width':2.5,'data-role':'window','pointer-events':'none'},svg);}
+  titles.forEach(t=>svg.appendChild(t));       // panel titles above the outline
+  // crosshair + tooltip: follows the mouse; a tap or a sideways drag with a finger
+  const hl=hairline=el('line',{x1:0,x2:0,y1:top,y2:axisY,stroke:css('--ink-1'),'stroke-width':1,opacity:0,'pointer-events':'none'},svg);
+  const hit=el('rect',{x:L,y:top,width:R-L,height:axisY-top,fill:'transparent','data-role':'plot'},svg);
+  const show=ev=>{const r=svg.getBoundingClientRect();const x=(ev.clientX-r.left)*W/r.width;const i=a+Math.max(0,Math.min(n-1,Math.floor((x-L)/bw)));
+    hl.setAttribute('x1',xs(i)+bw/2);hl.setAttribute('x2',xs(i)+bw/2);hl.setAttribute('opacity',.5);
+    const P=v.miner_kw[i],exp=Math.max(0,F.S-P-m.par(P)), dd=Math.floor(i/48);
+    const md=v.mode[i]==='E'?'Stop & export':(v.mode[i]==='M'?'Full mining':'Efficient mining + export');
+    showTip(ev,`<b>${dayDate(dd).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',timeZone:'UTC'})} ${hhTime(i)}</b><br>Day-ahead £${fmt(WEEK.price[i],2)} · export value <b>£${fmt(WEEK.export_value[i],2)}</b>${WEEK.band[i]==='r'?' (red band)':''}<br>${md}<br>Miners <b>${fmt(P,1)}</b> kW · exported <b>${fmt(exp)}</b> kW<br>This half-hour <b>${gbp(hhValue(i,P,m),2)}</b>`);};
+  const hide=()=>{hideTip();hl.setAttribute('opacity',0);};
+  const swipeDays=nar&&!sc; let start=null;
+  hit.addEventListener('pointerdown',ev=>{if(ev.pointerType==='mouse')return; start={x:ev.clientX,y:ev.clientY,swipe:false}; show(ev);});
+  hit.addEventListener('pointermove',ev=>{
+    if(ev.pointerType==='mouse'){show(ev);return;}
+    if(!start) return;
+    if(swipeDays){ if(Math.abs(ev.clientX-start.x)>12){start.swipe=true;hide();} } else show(ev);});
+  hit.addEventListener('pointerup',ev=>{if(!start)return; const dx=ev.clientX-start.x, dy=ev.clientY-start.y;
+    if(swipeDays&&start.swipe&&Math.abs(dx)>40&&Math.abs(dx)>Math.abs(dy)) pickDay(view.day+(dx<0?1:-1));
+    start=null;});
+  hit.addEventListener('pointercancel',()=>{start=null;hide();});
+  hit.addEventListener('pointerleave',ev=>{if(ev.pointerType==='mouse')hide();});
+  // day picker (narrow screens, no scenario open)
+  const pick=document.getElementById('dayPick'), showPick=nar&&!sc;
+  pick.hidden=!showPick; document.getElementById('swipeHint').hidden=!showPick;
+  if(showPick){ if(!pick.childElementCount) pick.innerHTML=WEEK.days.map((ds,k)=>`<button type="button" class="dayb" data-day="${k}" aria-pressed="false" aria-label="${dayDate(k).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',timeZone:'UTC'})}">${dayName(k)}<b>${dayDate(k).getUTCDate()}</b></button>`).join('');
+    pick.querySelectorAll('.dayb').forEach(bt=>bt.setAttribute('aria-pressed',String(+bt.dataset.day===view.day)));}
+  svg.setAttribute('aria-label', sc
+    ? `Week chart zoomed to ${rangeLabel(a,b)} for scenario ${view.scen}, ${sc.head}. The scenario window, ${rangeLabel(sc.win[0],sc.win[1])}, is outlined.`
+    : (nar ? `Export value and the split between miners and export for each half-hour of ${dayDate(view.day).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',timeZone:'UTC'})}.`
+           : 'Export value and the split between miners and export for each half-hour of the week.'));
+  // stats (whole week, from the optimiser's own totals)
+  const other=WEEK.variants[variantKey(state.strat==='partial'?'binary':'partial')];
+  const cnt=c=>[...v.mode].filter(x=>x===c).length;
+  const diff = state.strat==='partial' ? v.value_gbp-other.value_gbp : other.value_gbp-v.value_gbp;
+  document.getElementById('weekStats').innerHTML=
+    `<span>Week value <b>${gbp(v.value_gbp,2)}</b></span><span>Full starts <b>${v.starts}</b></span>`+
+    `<span>Half-hours: full <b>${cnt('M')}</b> · efficient <b>${cnt('P')}</b> · stopped <b>${cnt('E')}</b></span>`+
+    `<span>Eunice vs mine-or-export this week <b>${diff>=0?'+':''}${gbp(diff,2)}</b></span>`;
+  drawWeekTable();
+}
+function pickDay(k){ k=Math.max(0,Math.min(WEEK.days.length-1,k)); if(k===view.day) return; view.day=k; drawWeek(); }
+
+/* "Show the numbers": the half-hours the chart is showing, as a table. */
+function drawWeekTable(){
+  const det=document.getElementById('weekDetails'), box=document.getElementById('weekTable'), note=document.getElementById('weekTableNote');
+  const [a,b]=viewRange(), sc=scenOf(), m=model(state.hp), v=WEEK.variants[variantKey(state.strat)];
+  const strat=state.strat==='partial'?'Eunice (3 states)':'mine or export only';
+  const what = sc ? `scenario ${view.scen}'s zoom, ${rangeLabel(a,b)}; the scenario window is highlighted` : (b-a+1===HH ? 'the whole week' : rangeLabel(a,b));
+  note.textContent=`Every half-hour on the chart (${what}) at $${state.hp}/PH/day, ${state.bs}-period minimum, ${strat}. £ = export value × exported MWh + mining revenue, for the half-hour.`;
+  if(!det.open){ box.innerHTML=''; box.dataset.range=''; box.dataset.key=''; return; }
+  const key=`${a}-${b}|${state.hp}|${state.bs}|${state.strat}|${view.scen}`;
+  if(box.dataset.key===key) return;
+  box.dataset.key=key;
+  const BAND={r:'Red',a:'Amber',g:'Green'}, ST={E:'Stop & export',M:'Full mining',P:'Efficient + export'};
+  let rows='', tot=0;
+  for(let i=a;i<=b;i++){const P=v.miner_kw[i], exp=F.S-P-m.par(P), val=hhValue(i,P,m); tot+=val;
+    const inWin=sc&&i>=sc.win[0]&&i<=sc.win[1];
+    rows+=`<tr${inWin?' class="win"':''} data-i="${i}"><td>${dayName(Math.floor(i/48))} ${dayDate(Math.floor(i/48)).getUTCDate()} ${hhTime(i)}</td><td>${BAND[WEEK.band[i]]}</td><td class="n">${fmt(WEEK.price[i],2)}</td><td class="n">${fmt(WEEK.export_value[i],2)}</td><td>${ST[v.mode[i]]}</td><td class="n">${fmt(P,1)}</td><td class="n">${fmt(Math.max(0,exp),1)}</td><td class="n">${gbp(val,2)}</td></tr>`;}
+  // A total for a part of the week; the whole week's value is the optimiser's own (stat line above).
+  const foot = (b-a+1===HH) ? '' : `<tfoot><tr><td colspan="7">Total, ${rangeLabel(a,b)}</td><td class="n" data-total>${gbp(tot,2)}</td></tr></tfoot>`;
+  box.innerHTML=`<table class="data"><thead><tr><th>Time (UK)</th><th>Band</th><th class="n">Day-ahead £/MWh</th><th class="n">Export value £/MWh</th><th>State</th><th class="n">Miners kW</th><th class="n">Exported kW</th><th class="n">£ this half-hour</th></tr></thead><tbody>${rows}</tbody>${foot}</table>`;
+  box.dataset.range=`${a}-${b}`;
+}
+
+function drawScenario(){
+  const card=document.getElementById('scenCard'), sc=scenOf();
+  document.querySelectorAll('#scenChips .chip').forEach((c,k)=>c.setAttribute('aria-pressed',String(view.scen===k+1)));
+  document.getElementById('scenPrev').disabled = view.scen===0;
+  document.getElementById('scenNext').disabled = view.scen===SCENARIOS.length;
+  document.getElementById('scenAll').disabled = view.scen===0;
+  document.getElementById('scenHint').hidden = !!sc;
+  document.getElementById('scenLegend').hidden = !sc;
+  if(!sc){ card.hidden=true; card.innerHTML=''; lastCard=''; announce(!view.closed?'':(view.narrow?`${dayDate(view.day).toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',timeZone:'UTC'})} shown: pick a day or swipe the chart.`:'Whole week shown.')); return; }
+  const [wa,wb]=sc.win, hp=state.hp, bs=state.bs;
+  const eu=windowValue(variantKey('partial'),wa,wb,hp), mo=windowValue(variantKey('binary'),wa,wb,hp), ex=windowValue(null,wa,wb,hp);
+  const changed = hp!==sc.hp || bs!==sc.bs || state.strat!==sc.strat;
+  const set = `$${hp}/PH/day, ${bs}-period minimum`;
+  let html = `<div class="when">Scenario ${view.scen} of ${SCENARIOS.length} · ${rangeLabel(wa,wb)}</div><h3>${sc.head}</h3><p>${sc.story}</p>`+
+    `<div class="scen-figs" role="list">`+
+    `<div class="lead" role="listitem"><span>Eunice (3 states)</span><b data-fig="eunice">${gbp(eu,2)}</b></div>`+
+    `<div role="listitem"><span>Mine or export (same minimum run)</span><b data-fig="mine-or-export">${gbp(mo,2)}</b></div>`+
+    `<div role="listitem"><span>Export only</span><b data-fig="export-only">${gbp(ex,2)}</b></div></div>`+
+    `<p class="small muted scen-note">Earned over the outlined window, ${rangeLabel(wa,wb)}, at ${set}. No offtaker fee.</p>`;
+  if(sc.night){const [na,nb]=sc.night, k4=windowValue(`hp${hp}_b4_partial`,na,nb,hp), k8=windowValue(`hp${hp}_b8_partial`,na,nb,hp);
+    html += `<p class="scen-note">Over the night, ${rangeLabel(na,nb)}, Eunice earns <b data-fig="night-4">${gbp(k4,2)}</b> on a 4-period minimum and <b data-fig="night-8">${gbp(k8,2)}</b> on 8 periods (<span style="white-space:nowrap">${k4>=k8?'+':''}${gbp(k4-k8,2)}</span>).</p>`;}
+  if(changed) html += `<p class="scen-note muted">You've changed the settings from this scenario's ($${sc.hp}/PH/day, ${sc.bs}-period minimum, ${sc.strat==='partial'?'Eunice':'mine or export'}). <button type="button" class="linkbtn" data-restore>Restore them</button></p>`;
+  if(html!==lastCard){ card.innerHTML=html; lastCard=html; }
+  card.hidden=false;
+  announce(`Scenario ${view.scen} of ${SCENARIOS.length}, ${sc.head}. Over ${rangeLabel(wa,wb)}: Eunice ${gbp(eu,2)}, mine or export ${gbp(mo,2)}, export only ${gbp(ex,2)}.`);
+}
+let lastCard='', lastStatus='';
+function announce(t){ if(t===lastStatus) return; lastStatus=t; document.getElementById('scenStatus').textContent=t; }
+function openScenario(k,{scroll=false,url=true}={}){
+  const was=scenOf();
+  view.closed = !k && !!was;
+  if(view.closed) view.day=Math.floor(was.win[0]/48);   // on a phone, the whole week opens on the day the scenario was in
+  view.scen = k||0;
+  const sc=scenOf(); if(sc){state.hp=sc.hp; state.bs=sc.bs; state.strat=sc.strat;}
+  syncSegs(); renderAll();
+  if(url) history.replaceState(null,'', sc?`#scenario-${k}`:location.pathname+location.search);
+  if(scroll) requestAnimationFrame(scrollToScenario);
+}
+// The top of the card on a wide screen (the toggles the scenario set, then the chart); the chips just above the chart on
+// a narrow one, where the toggles would push the chart below the fold.
+function scrollToScenario(){ document.getElementById(innerWidth<700?'scenBar':'weekCard').scrollIntoView({block:'start'}); }
+function stepScenario(d){ const k=Math.max(0,Math.min(SCENARIOS.length,view.scen+d)); if(k!==view.scen) openScenario(k); }
+// After a button that had focus is disabled (Previous on scenario 1, Next on 6, Whole week) or rebuilt (Restore), keep focus
+// in the scenario controls rather than letting it fall back to the page.
+function refocus(){ const a=document.activeElement; if(a&&a!==document.body&&!a.disabled&&a.isConnected) return;
+  const c=document.querySelector('#scenChips .chip[aria-pressed="true"]')||document.querySelector('#scenChips .chip'); if(c) c.focus({preventScroll:true}); }
+// After a click, bring the chart into view if it is off screen.
+function bringIntoView(){ const r=document.getElementById('weekChart').getBoundingClientRect();
+  if(r.top>innerHeight-160||r.bottom<80) document.getElementById('scenBar').scrollIntoView({block:'start'}); }
+function initScenarios(){
+  document.getElementById('scenChips').innerHTML = SCENARIOS.map((s,k)=>
+    `<button type="button" class="chip" data-k="${k+1}" aria-pressed="false" aria-label="Scenario ${k+1}: ${s.head}" title="${s.head}"><b>${k+1}</b><span>${s.head}</span></button>`).join('');
+  document.getElementById('scenChips').addEventListener('click',ev=>{const c=ev.target.closest('.chip'); if(c){ openScenario(+c.dataset.k); bringIntoView(); }});
+  const had=ev=>document.activeElement===ev.currentTarget||document.activeElement===ev.target;
+  document.getElementById('scenPrev').addEventListener('click',ev=>{const f=had(ev); stepScenario(-1); if(f) refocus(); bringIntoView();});
+  document.getElementById('scenNext').addEventListener('click',ev=>{const f=had(ev); stepScenario(1); if(f) refocus(); bringIntoView();});
+  document.getElementById('scenAll').addEventListener('click',ev=>{const f=had(ev); openScenario(0); if(f) refocus();});
+  document.getElementById('scenCard').addEventListener('click',ev=>{if(ev.target.closest('[data-restore]')){ const f=had(ev); openScenario(view.scen); if(f) refocus(); }});
+  document.getElementById('scenList').textContent=SCENARIOS.map((s,k)=>`${k+1} ${s.head}`).join(' · ')+'. ';
+  document.getElementById('weekChart').addEventListener('keydown',ev=>{
+    if(ev.altKey||ev.ctrlKey||ev.metaKey||ev.shiftKey) return;
+    if(ev.key==='ArrowRight') stepScenario(1); else if(ev.key==='ArrowLeft') stepScenario(-1);
+    else if(ev.key==='Escape' && view.scen) openScenario(0); else return;
+    ev.preventDefault();});
+  addEventListener('hashchange',()=>scenarioFromHash(true));
+  document.getElementById('dayPick').addEventListener('click',ev=>{const bt=ev.target.closest('.dayb'); if(bt) pickDay(+bt.dataset.day);});
+  document.getElementById('weekDetails').addEventListener('toggle',drawWeekTable);
+}
+function scenarioFromHash(scroll){
+  const h=location.hash, mm=/^#scenario-([1-6])$/.exec(h);
+  if(mm){
+    if(+mm[1]!==view.scen) openScenario(+mm[1],{scroll,url:false});   // the open scenario's own link keeps any toggles changed since
+    else if(scroll) requestAnimationFrame(scrollToScenario);
+    return true;
+  }
+  // Back or Forward to the whole week (no hash) or a scenario that doesn't exist: show the whole week. A section's link
+  // (#week from the nav, say) leaves an open scenario as it is.
+  if(view.scen && (!h || h==='#' || /^#scenario-/.test(h))) openScenario(0,{url:false});
+  return false;
+}
+
+/* ---------------------------------------------------------------- 5 blocks */
+function groupedBars(svgId, getter, opts){
+  const svg=document.getElementById(svgId); clear(svg);
+  const W=widthOf(svg), H=262; size(svg,W,H);
+  const Y=YEAR[state.hp], blocks=['4','8','12'], L=60, R=W-10, T=18, B=220;
+  const vals=blocks.flatMap(b=>[getter(Y[b],'partial'),getter(Y[b],'binary')]);
+  let lo=Math.min(0,...vals), hi=Math.max(0,...vals); const pad=(hi-lo)*0.12||1; lo=lo<0?lo-pad:0; hi=hi+pad;
+  const yv=v=>T+(B-T)*(1-(v-lo)/(hi-lo)), step=opts.step;
+  for(let g=Math.ceil(lo/step)*step; g<=hi; g+=step){el('line',{x1:L,x2:R,y1:yv(g),y2:yv(g),stroke:g===0?css('--rule-2'):css('--rule')},svg);txt(svg,L-6,yv(g)+4,opts.fmt(g),{'text-anchor':'end','font-size':12,fill:css('--ink-3')});}
+  const gw=(R-L)/3, bw=Math.min(46,gw*(W<400?0.42:0.3)), labels=el('g',{},svg);
+  let compact=false;
+  blocks.forEach((b,k)=>{const cx=L+gw*(k+.5), placed=[];
+    [['partial',css('--teal'),-1],['binary',css('--c-muted'),1]].forEach(([s,c,side])=>{
+      const v=getter(Y[b],s), x=cx+side*(bw/2+1)-bw/2, y0=yv(0), y1=yv(v);
+      const r=el('rect',{x,y:Math.min(y0,y1),width:bw,height:Math.max(1,Math.abs(y1-y0)),rx:3,fill:c,'data-series':s,'data-block':b},svg);
+      tipOn(r,`<b>${b}-period minimum</b><br>${s==='partial'?'Eunice (3 states)':'Mine or export only'}: <b>${opts.fmt(v)}</b>`);
+      // value label above (or below) its bar; nudged away from the zero line if it would overlap its neighbour
+      const t=txt(labels,x+bw/2,(v>=0?y1-6:y1+15),opts.fmt(v),{'data-series':s,'data-block':b,class:'lbl','text-anchor':'middle','font-size':12,'font-weight':s==='partial'?700:400,fill:css(s==='partial'?'--ink-1':'--ink-3'),stroke:'#fff','stroke-width':3,'stroke-linejoin':'round','paint-order':'stroke'});
+      const w=textW(t);
+      let x0=w>bw+2?(side<0?x+bw-w:x):x+bw/2-w/2;
+      x0=Math.max(2,Math.min(W-2-w,x0));              // inside the chart whatever the font's widths
+      t.setAttribute('text-anchor','start'); t.setAttribute('x',x0);
+      const box={x0,x1:x0+w,y:+t.getAttribute('y')};
+      placed.forEach(p=>{ if(box.x0<p.x1+3&&box.x1>p.x0-3&&Math.abs(box.y-p.y)<14){ box.y=v>=0?Math.min(box.y,p.y)-14:Math.max(box.y,p.y)+14; t.setAttribute('y',box.y);} });
+      placed.push(box);
+    });
+    const xl=txt(svg,cx,B+20,`${b} periods`,{'text-anchor':'middle','font-size':12,fill:css('--ink-2')});
+    if(textW(xl)>gw-8){ xl.textContent=`${b}`; compact=true; }
+    txt(svg,cx,B+36,`${b/2} h`,{'text-anchor':'middle','font-size':12,fill:css('--ink-3')});
+  });
+  if(compact){ txt(svg,(L+R)/2,B+54,'minimum run, periods (hours)',{'text-anchor':'middle','font-size':12,fill:css('--ink-3')}); size(svg,W,H+16); }
+  svg.appendChild(labels);
+}
+function drawBlkRev(){ groupedBars('blkRev',(r,s)=>s==='partial'?r.partial_vs_base:r.binary_vs_base,{step:1000,fmt:v=>(v>0?'+':'')+gbp(v)}); }
+function drawBlkCyc(){ groupedBars('blkCyc',(r,s)=>s==='partial'?r.cycles_partial:r.cycles_binary,{step:100,fmt:v=>fmt(v)}); }
+// Whole percentages that add up to 100: round down, then give the leftover points to the largest remainders.
+function wholePercents(shares){ const tot=shares.reduce((a,b)=>a+b,0)||1, raw=shares.map(v=>v/tot*100), out=raw.map(Math.floor);
+  let left=100-out.reduce((a,b)=>a+b,0);
+  raw.map((v,i)=>[v-Math.floor(v),i]).sort((a,b)=>b[0]-a[0]).forEach(([,i])=>{ if(left>0){ out[i]++; left--; } });
+  return out; }
+// share chart: two segmented bars; the row labels sit beside the bars on a wide screen, above them on a narrow one
+function drawShare(){
+  const svg=document.getElementById('shareChart'); clear(svg); const W=widthOf(svg), Y=YEAR[state.hp]['8'];
+  size(svg,W,200);
+  const probe=l=>{const t=txt(svg,0,-99,l,{'font-size':13}),w=textW(t);t.remove();return w;};
+  const lw=Math.max(probe('Eunice (3 states)'),probe('Mine or export only'));
+  const side=W>=560&&lw+34<=W*0.4, x0=side?Math.max(190,Math.ceil(lw)+24):10, bwid=W-10-x0, rowH=side?54:62;
+  const rows=[['Eunice (3 states)',[['full',Y.share_partial.full],['efficient',Y.share_partial.efficient+Y.share_partial.between],['stop',Y.share_partial.stop]]],
+              ['Mine or export only',[['full',Y.share_binary.full],['stop',Y.share_binary.stop]]]];
+  const C={full:css('--c-full'),efficient:css('--c-eff'),stop:css('--c-export')}, NAME={full:'Full mining',efficient:'Efficient + export',stop:'Stopped, all exported'};
+  let yEnd=0;
+  rows.forEach(([lab,parts],k)=>{const y=(side?12:30)+k*rowH; txt(svg,10,side?y+19:y-8,lab,{class:'lbl','font-size':13,fill:css('--ink-2')}); let x=x0;
+    const pct=wholePercents(parts.map(q=>q[1]));
+    parts.forEach(([p,s],j)=>{const w=bwid*s; const r=el('rect',{x:x+(j?1:0),y,width:Math.max(0,w-(j?1:0)),height:28,rx:3,fill:C[p]},svg);
+      tipOn(r,`<b>${NAME[p]}</b><br>${fmt(s*100,1)}% of engine-running hours`);
+      const t=txt(svg,x+w/2,y+19,`${pct[j]}%`,{class:'lbl','text-anchor':'middle','font-size':12,'font-weight':700,fill:'#fff'});
+      if(textW(t)>w-8) t.remove(); x+=w;});
+    yEnd=y+28;});
+  const n=wrap(svg,side?x0:10,yEnd+22,'Orange = full mining · purple = efficient mining + export · blue = miners stopped, all exported',W-10-(side?x0:10),{class:'lbl','font-size':12,fill:css('--ink-3')});
+  size(svg,W,yEnd+22+(n-1)*16+8);
+}
+function drawBlocks(){
+  drawBlkRev(); drawBlkCyc(); drawShare();
+  // callout + table
+  const y4=YEAR[state.hp]['4'], y8=YEAR[state.hp]['8'], y12=YEAR[state.hp]['12'];
+  document.getElementById('blockCallout').innerHTML=`<b>Recommendation: 8-period minimum with Eunice's three states.</b> At $${state.hp}/PH/day it earns <b>${gbp(y8.partial_minus_binary)}/yr</b> more than mine-or-export on the same 8-period rule, with about <b>${y8.cycles_partial}</b> full start/stop cycles a year (4-period: ${y4.cycles_partial}, 12-period: ${y12.cycles_partial}). That is ${y8.cycles_partial-y8.cycles_binary} more than mine-or-export, because efficient mode makes some shorter runs worth starting; moving between efficient and full is a power change, not a cycle. Efficient mining covers <b>${fmt((y8.share_partial.efficient+y8.share_partial.between)*100)}%</b> of engine-running hours.`;
+  document.getElementById('blockTable').innerHTML=`<table class="data"><tr><th>Minimum run</th><th class="n">Eunice £/yr</th><th class="n">Mine-or-export £/yr</th><th class="n">Eunice advantage</th><th class="n">Cycles Eunice</th><th class="n">Cycles mine-or-export</th></tr>${['4','8','12'].map(b=>{const r=YEAR[state.hp][b];return `<tr class="${b==='8'?'hl':''}"><td>${b} periods (${b/2} h)</td><td class="n">${gbp(r.partial_vs_base)}</td><td class="n">${gbp(r.binary_vs_base)}</td><td class="n">+${gbp(r.partial_minus_binary)}</td><td class="n">${r.cycles_partial}</td><td class="n">${r.cycles_binary}</td></tr>`}).join('')}</table><p class="small muted">£ figures are against mine-or-export with no minimum run, same year and prices. Each column is rounded on its own, so the advantage can differ by £1 from the difference of the two columns beside it.</p>`;
+}
+
+/* ---------------------------------------------------------------- 6 offtake */
+function drawPaid(){
+  const P=[['SmartestEnergy','Index PPA (index = SSP)','SSP, EPEX or N2EX','Strong','https://www.smartestenergy.com/en_GB/selling-energy/flexible-ppas/'],
+           ['TotalEnergies','System Price (Spill) PPA','SSP','Strong','https://business.totalenergies.uk/understanding-ppas'],
+           ['npower Business Solutions','System Sell Price PPA','SSP, no balance or volume fees','Strong','https://npowerbusinesssolutions.com/corporate/generation'],
+           ['Statkraft','Export PPA (floating index)','Floating index, option to fix','Ask','https://www.statkraft.co.uk/what-we-offer/power-purchase-agreements/export-ppas/'],
+           ['F&S Energy','Wholesale pass-through (on request)','Pass-through terms not published; ask','Ask','https://fs-energy.co.uk/sell-us-power'],
+           ['npower Business Solutions','N2EX PPA','Daily average day-ahead price','Avoid — a peaker loses its peak value','https://npowerbusinesssolutions.com/corporate/generation']];
+  document.getElementById('providerTable').innerHTML='<tr><th>Provider</th><th>Product</th><th>Index</th><th>Fit for us</th></tr>'+P.map(p=>`<tr${p[3]==='Strong'?' class="hl"':''}><td>${p[0]}</td><td><a href="${p[4]}" target="_blank" rel="noopener">${p[1]}</a></td><td>${p[2]}</td><td>${p[3]}</td></tr>`).join('');
+  drawInfo();
+}
+// what real-time SSP calls could add: labels beside the bars on a wide box, above them on a narrow one
+function drawInfo(){
+  const svg=document.getElementById('infoChart'); clear(svg); const W=widthOf(svg); size(svg,W,220);
+  const D=[['Last SSP, 2 periods back (simple)',3019],['Last SSP, 1 period back',5495],['Grid short/long this period',8961],['Exact SSP (ceiling)',13754]];
+  const probe=l=>{const t=txt(svg,0,-99,l,{'font-size':12}),w=textW(t);t.remove();return w;};
+  const labelW=Math.max(...D.map(([l])=>probe(l)));
+  const side=labelW+18<=W*0.5, L=side?Math.ceil(labelW)+18:10, R=W-10, max=14000, rowH=side?42:50;
+  D.forEach(([l,v],i)=>{const y=(side?12:24)+i*rowH;
+    if(side) txt(svg,L-8,y+17,l,{class:'lbl','text-anchor':'end','font-size':12,fill:css('--ink-2')});
+    else txt(svg,L,y-6,l,{class:'lbl','font-size':12,fill:css('--ink-2')});
+    const w=(R-L-62)*v/max, r=el('rect',{x:L,y,width:w,height:24,rx:3,fill:i===3?css('--c-muted'):css('--teal')},svg);
+    tipOn(r,`<b>${l}</b><br><b>+${gbp(v)}</b> a year over day-ahead dispatch`);
+    txt(svg,L+w+6,y+17,'+'+gbp(v),{class:'lbl','font-size':12,'font-weight':700,fill:css('--ink-1')});});
+  size(svg,W,(side?12:24)+3*rowH+24+10);
+}
+
+/* ---------------------------------------------------------------- controls */
+function syncSegs(){document.querySelectorAll('.seg').forEach(s=>{const k=s.dataset.bind;s.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(String(state[k])===b.dataset.v)));});}
+document.querySelectorAll('.seg').forEach(s=>s.addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b)return;const k=s.dataset.bind;state[k]=(k==='strat')?b.dataset.v:+b.dataset.v;syncSegs();renderAll();}));
+document.getElementById('eSlider').addEventListener('input',drawLadder);
+function renderAll(){drawStates();drawLadder();drawWeek();drawScenario();drawBlocks();}
+// active section in the nav
+const links=[...document.querySelectorAll('nav.toc a')];
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)links.forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+e.target.id));}),{rootMargin:'-45% 0px -50% 0px'});
+document.querySelectorAll('main section').forEach(s=>io.observe(s));
+drawFlow(); drawPaid(); initScenarios(); syncSegs(); if(!scenarioFromHash(true)) renderAll();
+// Redraw a chart when the width of its box changes (window resized, phone turned).
+const REDRAW={flowChart:drawFlow, sliceChart:drawSlice, ladderScale:drawLadder, weekChart:drawWeek, blkRev:drawBlkRev, blkCyc:drawBlkCyc, shareChart:drawShare, infoChart:drawInfo};
+const pendingIds=new Set(); let raf=0;
+const ro=new ResizeObserver(es=>{es.forEach(e=>{const id=e.target.id, w=Math.round(e.target.getBoundingClientRect().width); if(w&&w!==lastW[id]) pendingIds.add(id);});
+  if(pendingIds.size&&!raf) raf=requestAnimationFrame(()=>{raf=0; const ids=[...pendingIds]; pendingIds.clear(); ids.forEach(id=>REDRAW[id]());});});
+Object.keys(REDRAW).forEach(id=>ro.observe(document.getElementById(id)));
+</script>
+</body>
+</html>
