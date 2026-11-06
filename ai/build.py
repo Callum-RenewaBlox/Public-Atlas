@@ -2,7 +2,13 @@
 
     /           the home page (index.html)
     /oscar/     OSCAR, the site model (oscar.html), served exactly as the team's own file
+    /eunice/    Eunice Dispatch, the team explainer (eunice.html), a copy of the page built in the Eunice-Platform
+                repository (docs/eunice-web/eunice.html, by its tools/build_page.py), served exactly as it is
     404.html    for any other address
+
+Every address passes through the sign-in first (netlify/edge-functions/ai-gate.js). Netlify's [[headers]] rules
+don't reach a response that passes through an edge function, so the build writes them, with the wordmark the
+sign-in's pages show, to netlify/edge-lib/site.js (git-ignored), and the sign-in sets them itself.
 
 The home page and the 404 page wear the Atlas's brand, from the Atlas's own files: the build copies its
 stylesheet, wordmarks and icons from atlas/root/ (BRAND) and fetches the two brand fonts as atlas/build.py
@@ -16,7 +22,8 @@ The build checks the things that would otherwise break quietly:
   * every origin OSCAR names (its Google font, its live sources and the proxies it falls back on) is
     allowed by its Content-Security-Policy in netlify.toml, in the directive that governs it, and the
     policy allows no other (no wildcards, no origin the page doesn't name, no directive set twice);
-  * every file atlas.css refers to is one the build puts in place.
+  * every file atlas.css refers to is one the build puts in place;
+  * every page has a [[headers]] rule of its own, in a form the sign-in can apply ("/x/*" or an exact address).
 
 Run:  python ai/build.py            (writes ai/site/, git-ignored)
       python -m http.server 8900 -d ai/site
@@ -25,7 +32,9 @@ Netlify runs it on a push to the renewablox-ai project's production branch that 
 Without the network (here, not on Netlify) the fonts are skipped with a warning and the pages fall back to
 the system font. Standard library only.
 """
+import base64
 import hashlib
+import json
 import os
 import re
 import shutil
@@ -44,8 +53,13 @@ ON_NETLIFY = os.environ.get("NETLIFY") == "true"
 PAGES = {
     "index.html": "index.html",
     "oscar/index.html": "oscar.html",
+    "eunice/index.html": "eunice.html",
     "404.html": "404.html",
 }
+# The [[headers]] rule each page is served under (the 404 page answers at any address, so has none of its own).
+PAGE_RULES = {"index.html": ["/", "/index.html"], "oscar/index.html": ["/oscar/*"], "eunice/index.html": ["/eunice/*"]}
+EDGE_LIB = HERE / "netlify" / "edge-lib" / "site.js"
+WORDMARK = "assets/logos/renewablox-wordmark-light.png"   # on the sign-in's white card
 
 # The Atlas's brand files, served here at the same paths.
 BRAND = [
@@ -174,6 +188,28 @@ def put_fonts():
     return warnings
 
 
+def put_edge_lib():
+    """netlify.toml's [[headers]] rules and the wordmark, for the sign-in (netlify/edge-functions/ai-gate.js)."""
+    with open(HERE / "netlify.toml", "rb") as f:
+        rules = [{"for": h["for"], "values": h.get("values", {})} for h in tomllib.load(f).get("headers", [])]
+    for r in rules:
+        if not re.fullmatch(r"/([A-Za-z0-9._~-]+/)*(\*|[A-Za-z0-9._~-]*)", r["for"]):
+            raise SystemExit(f"netlify.toml: the sign-in applies [[headers]] for \"/x/*\" or an exact address, not {r['for']!r}")
+    have = {r["for"] for r in rules}
+    for page, want in PAGE_RULES.items():
+        missing = [w for w in want if w not in have]
+        if missing:
+            raise SystemExit(f"netlify.toml: {page} needs a [[headers]] rule for {', '.join(missing)}")
+    for page in PAGES:
+        if page != "404.html" and page not in PAGE_RULES:
+            raise SystemExit(f"build.py: {page} needs its [[headers]] rule in PAGE_RULES")
+    mark = "data:image/png;base64," + base64.b64encode((ATLAS_ROOT / WORDMARK).read_bytes()).decode()
+    EDGE_LIB.parent.mkdir(parents=True, exist_ok=True)
+    EDGE_LIB.write_text("// Written by ai/build.py from netlify.toml and the Atlas's wordmark: don't edit.\n"
+                        f"export const HEADERS = {json.dumps(rules, indent=1)};\n"
+                        f"export const WORDMARK = {json.dumps(mark)};\n", encoding="utf-8")
+
+
 def main():
     site_inputs.watch()
     if OUT.exists():
@@ -189,6 +225,7 @@ def main():
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(data)
     put_brand()
+    put_edge_lib()
     warnings = put_fonts()
     # Tools for the team and the clients we send them to, not for search engines.
     (OUT / "robots.txt").write_text("User-agent: *\nDisallow: /\n", encoding="utf-8")

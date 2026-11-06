@@ -690,6 +690,8 @@ decided.
 | --- | --- |
 | `/` | the home page: OSCAR, in the Atlas's house style (`ai/index.html`): the Atlas's topbar, navy hero and footer, with OSCAR's miner catalogue charted where the Atlas has its map, OSCAR's card (its halving schedule as the art) beside a card that leaves room for more tools, and its three cards of inputs |
 | `/oscar/` | OSCAR, the site model, served exactly as the team's own file (`ai/oscar.html`) |
+| `/eunice/` | Eunice Dispatch, the team explainer of how Eunice splits Scrivelsby's CHP surplus between the miners and export, half-hour by half-hour, with six scenarios to run through (`#scenario-1` … `#scenario-6` open one). `ai/eunice.html` is a copy, served as it is, of the page built in the Eunice-Platform repository (`docs/eunice-web/eunice.html`, by its `tools/build_page.py`, checked by its `tools/check_page.py` in CI): change it there and copy the built file here |
+| `/access/` | the sign-in (below), the only addresses answered without signing in |
 
 The home page's figures are OSCAR's own (the eleven miners, the market models, the halving
 schedule), written into the page: when a newer `ai/oscar.html` changes them, change the home page
@@ -741,19 +743,57 @@ when the CAPEX comes back:
   stands, saving with no scenario chosen in the list replaces the first one saved (the list's
   empty choice reads as 0), so the list holds one scenario at a time.
 
+**The sign-in** (`ai/netlify/edge-functions/ai-gate.js`). Every request to the site, whatever its
+address, passes through it first; only its own round trip under `/access/` is answered without a
+session. It is the Atlas's sign-in cut down: the same Supabase project (`renewablox-crm`) and PKCE
+round trip, the same check that every Google and Microsoft identity on the account vouches for its
+address, the same sealed cookies, and a `#fragment` kept across the round trip (so a link to
+`/eunice/#scenario-3` opens scenario 3 after signing in). It offers Google only, and lets in a
+verified **@renewablox.com** address (with RenewaBlox's Workspace as Google's `hd`, when Google
+gives one); anyone else gets a "Not authorised" page and no session. A sign-in lasts a week. Nothing
+is served without a session: not a page, an asset or the `/atlas/` proxy, and if the function
+errors Netlify shows its error page, not the site. Netlify doesn't apply `[[headers]]` to responses
+that pass through an edge function, so `ai/build.py` writes them (and the wordmark the sign-in's
+pages show) to `ai/netlify/edge-lib/site.js`, and the sign-in sets each page's own; the build
+checks every page has a rule. Its tests (`node ai/tests/gate.test.mjs`) run after the build on
+Netlify, so a sign-in that fails them is never deployed.
+
+It needs these environment variables on `renewablox-ai` (Project configuration → Environment
+variables; scope including Functions; deploy contexts including Production and Deploy Previews; a
+change needs a redeploy), and until all three are right every address answers "The sign-in isn't
+set up yet":
+
+| Variable | Value |
+| --- | --- |
+| `SUPABASE_URL` | `https://enghoowpiwopsfabfurx.supabase.co` (renewablox-crm), as on `renewablox-atlas` |
+| `SUPABASE_PUBLISHABLE_KEY` | renewablox-crm's publishable key, as on `renewablox-atlas` |
+| `AI_SESSION_SECRET` | 32 or more random characters (not the Atlas's), marked secret; changing it signs everyone out |
+
+And in Supabase (renewablox-crm → Authentication → URL Configuration → Redirect URLs):
+`https://ai.renewablox.com/access/callback`, and for deploy previews
+`https://deploy-preview-*--renewablox-ai.netlify.app/access/callback`. Google needs nothing new:
+it only ever sends the browser back to Supabase, whose callback it already allows.
+
 Deploy: the Netlify project is `renewablox-ai` (renewablox-ai.netlify.app). Link it to this
 repository with production branch `live` and its **base directory set to `ai`** (it then reads
 `ai/netlify.toml`, not the root one), add `ai.renewablox.com` as its domain, and point a CNAME
 record `ai` at `renewablox-ai.netlify.app` at the renewablox.com DNS host, as for `atlas.` and
 `crm.`. The `/atlas/` proxy targets `https://atlas.renewablox.com`, so that domain must resolve.
 Netlify then builds on a push to live that changes one of its inputs (`ai/inputs.txt`). The project was created private (a team login on every
-deploy, production included); the energy and Atlas projects ask for one on previews only.
+deploy, production included); the energy and Atlas projects ask for one on previews only. With the
+sign-in in place, production can drop that login (Project configuration → General → Visitor access →
+Project visibility: **Private**, with **Preview access** set to **Previews only**, so deploy previews
+keep Netlify's login on top of the sign-in), but only once a production deploy with the sign-in has
+been seen to work: until then Netlify's login is what keeps the site private.
 
 Build and look at it locally (`ai/oscar.html` also works opened straight from the folder; the
 home page needs the build's brand files):
 
     python ai/build.py
     python -m http.server 8900 -d ai/site      # then open http://localhost:8900/
+    node ai/tests/gate.test.mjs                # the sign-in's tests
+
+(`http.server` serves the files without the sign-in in front.)
 
 ## Run locally
 
@@ -764,6 +804,7 @@ tests need Node 22:
     python atlas/build.py && python -m http.server 8901 -d atlas/site           # atlas.renewablox.com
     node atlas/tests/gates.test.mjs                                             # the Atlas's sign-in
     python ai/build.py && python -m http.server 8900 -d ai/site                 # ai.renewablox.com
+    node ai/tests/gate.test.mjs                                                 # ai.renewablox.com's sign-in
 
 The dev container (`.devcontainer/`) builds the Atlas and serves it on port 8901.
 
