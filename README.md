@@ -747,32 +747,42 @@ when the CAPEX comes back:
 address, passes through it first; only its own round trip under `/access/` is answered without a
 session. It is the Atlas's sign-in cut down: the same Supabase project (`renewablox-crm`) and PKCE
 round trip, the same check that every Google and Microsoft identity on the account vouches for its
-address, the same sealed cookies, and a `#fragment` kept across the round trip (so a link to
-`/eunice/#scenario-3` opens scenario 3 after signing in). It offers Google only, and lets in a
-verified **@renewablox.com** address (with RenewaBlox's Workspace as Google's `hd`, when Google
-gives one); anyone else gets a "Not authorised" page and no session. A sign-in lasts a week. Nothing
-is served without a session: not a page, an asset or the `/atlas/` proxy, and if the function
-errors Netlify shows its error page, not the site. Netlify doesn't apply `[[headers]]` to responses
+address, the same sealed cookies, the same one spelling for every address, and a `#fragment`
+kept across the round trip (so a link to `/eunice/#scenario-3` opens scenario 3 after signing in).
+It offers Google only, and lets in only an account of RenewaBlox's Google Workspace: after the
+round trip it asks Google itself, with the Google token from that sign-in, who signed in, and
+needs a verified **@renewablox.com** address with Google's `hd` claim `renewablox.com` (a personal
+Google account made on a work address has no `hd`, so it is refused). Anyone else gets a "Not
+authorised" page and no session. A sign-in lasts 12 hours, so someone suspended in the Workspace
+is out by the next working day; to shut everyone out at once, change `AI_SESSION_SECRET` and
+redeploy. A session is sealed for the host that made it, so a deploy preview's opens nothing in
+production. Nothing is served without a session: not a page, an asset or the `/atlas/` proxy, and
+if the function errors Netlify shows its error page, not the site. Netlify doesn't apply `[[headers]]` to responses
 that pass through an edge function, so `ai/build.py` writes them (and the wordmark the sign-in's
 pages show) to `ai/netlify/edge-lib/site.js`, and the sign-in sets each page's own; the build
 checks every page has a rule. Its tests (`node ai/tests/gate.test.mjs`) run after the build on
 Netlify, so a sign-in that fails them is never deployed.
 
 It needs these environment variables on `renewablox-ai` (Project configuration → Environment
-variables; scope including Functions; deploy contexts including Production and Deploy Previews; a
-change needs a redeploy), and until all three are right every address answers "The sign-in isn't
-set up yet":
+variables; on the Personal plan every variable reaches the edge functions; deploy contexts
+Production and Deploy Previews; a change needs a redeploy), and until all three are right every
+address answers "The sign-in isn't set up yet":
 
 | Variable | Value |
 | --- | --- |
 | `SUPABASE_URL` | `https://enghoowpiwopsfabfurx.supabase.co` (renewablox-crm), as on `renewablox-atlas` |
 | `SUPABASE_PUBLISHABLE_KEY` | renewablox-crm's publishable key, as on `renewablox-atlas` |
-| `AI_SESSION_SECRET` | 32 or more random characters (not the Atlas's), marked secret; changing it signs everyone out |
+| `AI_SESSION_SECRET` | 32 or more random characters (not the Atlas's), marked secret, with a **different value for Deploy Previews** than for Production; changing it signs everyone out |
 
-And in Supabase (renewablox-crm → Authentication → URL Configuration → Redirect URLs):
-`https://ai.renewablox.com/access/callback`, and for deploy previews
-`https://deploy-preview-*--renewablox-ai.netlify.app/access/callback`. Google needs nothing new:
-it only ever sends the browser back to Supabase, whose callback it already allows.
+And in Supabase (renewablox-crm → Authentication → URL Configuration → Redirect URLs), exact
+addresses only: `https://ai.renewablox.com/access/callback`, and, only while a deploy preview is
+being checked, that preview's own `https://deploy-preview-<n>--renewablox-ai.netlify.app/access/callback`
+(removed afterwards; a wildcard would let any preview receive sign-in codes). Google needs nothing
+new: it only ever sends the browser back to Supabase, whose callback it already allows.
+
+Keep production deploys made before the sign-in out of use: publishing one (a rollback) would serve
+the site without it. Don't turn on Split Testing for this project: Netlify doesn't run edge
+functions on a site that has it.
 
 Deploy: the Netlify project is `renewablox-ai` (renewablox-ai.netlify.app). Link it to this
 repository with production branch `live` and its **base directory set to `ai`** (it then reads
