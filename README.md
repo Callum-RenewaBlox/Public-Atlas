@@ -690,7 +690,7 @@ to anyone (the sign-in, below, can keep Eunice to RenewaBlox staff); whether Atl
 | --- | --- |
 | `/` | the home page, in the Atlas's house style (`ai/index.html`): the Atlas's topbar (with OSCAR and Eunice kept on a phone), navy hero and footer, with OSCAR's miner catalogue charted where the Atlas has its map; the two tools' cards, OSCAR's (its halving schedule as the art) and Eunice Dispatch's (an illustrative day of its decisions, not the site's data); and OSCAR's three cards of inputs. Being open to anyone, it names no client site and shows none of its figures |
 | `/oscar/` | OSCAR, the site model, served exactly as the team's own file (`ai/oscar.html`) |
-| `/eunice/` | **open to anyone for now; the sign-in (below) can keep it to RenewaBlox staff.** Eunice Dispatch, the team explainer of how Eunice splits Scrivelsby's CHP surplus between the miners and export, half-hour by half-hour, with six scenarios to run through (`#scenario-1` … `#scenario-6` open one). `ai/eunice.html` is a copy, served as it is, of the page built in the Eunice-Platform repository (`docs/eunice-web/eunice.html`, by its `tools/build_page.py`, checked by its `tools/check_page.py` in CI): change it there and copy the built file here |
+| `/eunice/` | **open to anyone for now; the sign-in (below) can keep it to RenewaBlox staff.** Eunice: how dispatch works (v2), the team's explainer of how Eunice splits Scrivelsby's spare CHP power between the 44 miners and the grid, half hour by half hour, in seven chapters anchored to the 1 April 2027 go-live: selling our power (the five PPA types, and why System Sell Price spill), network time bands, how the miners flex (four running states), the half-hour decision, runs not flickers, a week with Eunice (four real weeks, one per season, and six moments) and the road to go-live. A hashprice switch ($34 / $40 per PH/day) in its top bar drives chapters 2–6; the arrow keys and PageUp/PageDown move between chapters when presenting. `ai/eunice.html` is a copy, served as it is, of the page built in the Eunice-Platform repository (`docs/eunice-web/eunice.html`, by its `tools/build_page.py`, checked by its `tools/check_page.py` in CI): change it there and copy the built file here |
 | `/access/` | the sign-in (below), for the folders it keeps private: none for now |
 
 The home page's figures are OSCAR's own (the eleven miners, the market models, the halving
@@ -763,7 +763,7 @@ context of its own (`Cross-Origin-Opener-Policy: same-origin`), so an open page 
 a signed-in visitor's browser; an origin of its own would be the complete answer. A sign-in started
 at `/access/` itself goes on to the first private page. It is the Atlas's sign-in cut down: the same Supabase project (`renewablox-crm`) and PKCE
 round trip, the same sealed cookies, the same one spelling for every address, and a `#fragment`
-kept across the round trip (so a link to `/eunice/#scenario-3` opens scenario 3 after signing in,
+kept across the round trip (so a link to `/eunice/#week` opens chapter 6, A week with Eunice, after signing in,
 "Try again" included). It offers Google only, and lets in only an account of RenewaBlox's Google
 Workspace, on Google's own answer: after the round trip it asks Google, with the Google token from
 that sign-in, who signed in, and needs a verified **@renewablox.com** address with Google's `hd`
