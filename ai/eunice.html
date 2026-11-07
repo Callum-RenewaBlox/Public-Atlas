@@ -44,6 +44,7 @@ button{font:inherit;color:inherit}
 .seg button[aria-pressed=true]{background:#fff;color:var(--ink);opacity:1;box-shadow:0 1px 3px rgba(0,0,0,.15)}
 .progress{position:absolute;left:0;bottom:-1px;height:2px;background:linear-gradient(90deg,var(--sky),var(--export-d));width:0}
 @media (max-width:980px){.chap{display:none}.hp{margin-left:auto}}
+@media (max-width:1180px){.chap a b{display:none}.chap a{padding:6px 7px}}
 
 /* ---------- sections ---------- */
 .ch{position:relative;padding:120px 0 110px;scroll-margin-top:0}
@@ -128,7 +129,7 @@ svg text{font-family:var(--font)}
 .bands{display:grid;grid-template-columns:420px 1fr;gap:56px;align-items:center;margin-top:40px}
 .clock{width:100%;max-width:420px;aspect-ratio:1;display:block}
 .bandcards{display:grid;gap:14px}
-.bandcard{display:grid;grid-template-columns:120px 1fr;gap:18px;align-items:center;padding:18px 22px}
+.bandcard{display:grid;grid-template-columns:minmax(120px,auto) 1fr;gap:18px;align-items:center;padding:18px 22px}
 .bandcard .val{font-family:var(--display);font-size:42px;font-weight:700;line-height:1}
 .bandcard .val small{font-size:15px;font-weight:600;opacity:.75;margin-left:2px}
 .bandcard .nm{font-weight:800;letter-spacing:.06em;text-transform:uppercase;font-size:13px;display:flex;align-items:center;gap:8px}
@@ -137,7 +138,7 @@ svg text{font-family:var(--font)}
 .meter div{height:100%;border-radius:4px}
 .weekshare{margin-top:34px}
 .wsbar{display:flex;height:44px;border-radius:10px;overflow:hidden;gap:2px;margin-top:10px}
-.wsbar div{display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden}
+.wsbar div{display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.15;font-size:14px;font-weight:700;color:#fff;overflow:hidden}
 
 /* ---------- 3 miners ---------- */
 .states{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:44px}
@@ -184,13 +185,13 @@ svg text{font-family:var(--font)}
 .split{display:flex;height:54px;border-radius:12px;overflow:hidden;gap:2px;background:var(--paper)}
 .split div{transition:flex-grow .45s var(--ease);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;flex-basis:0}
 .race{display:grid;gap:10px;margin-top:6px}
-.race .row{display:grid;grid-template-columns:120px 1fr 86px;gap:12px;align-items:center;padding:8px 10px;border-radius:12px;transition:background .3s}
+.race .row{display:grid;grid-template-columns:120px 1fr 96px;gap:12px;align-items:center;padding:8px 10px;border-radius:12px;transition:background .3s}
 .race .row.win{background:rgba(47,168,102,.1)}
 .race .lab{font-weight:700;font-size:15px;line-height:1.2}
 .race .lab small{display:block;font-weight:500;color:var(--ink3);font-size:12px}
 .race .track{height:22px;border-radius:6px;background:var(--paper);display:flex;overflow:hidden}
 .race .track div{transition:width .45s var(--ease);height:100%}
-.race .gbp{text-align:right;font-weight:700;font-variant-numeric:tabular-nums}
+.race .gbp{text-align:right;white-space:nowrap;font-weight:700;font-variant-numeric:tabular-nums}
 .race .win .gbp::after{content:" ✓";color:var(--green)}
 
 /* ---------- 5 runs ---------- */
@@ -256,12 +257,14 @@ footer p{margin:0 0 10px;max-width:980px}
   .wrap,.bar-in{padding:0 18px}
   .ppa,.bench,.states{grid-template-columns:1fr}
   .road{grid-template-columns:1fr 1fr}
-  .bandcard{grid-template-columns:104px 1fr;padding:16px;gap:12px}
+  .bandcard{grid-template-columns:minmax(104px,auto) 1fr;padding:16px;gap:12px}
   .bandcard .val{font-size:30px}
-  .race .row{grid-template-columns:92px 1fr 70px;gap:8px;padding:8px 6px}
+  .race .row{grid-template-columns:96px 1fr 86px;gap:8px;padding:8px 6px}
   .pricebig b{font-size:56px}
   .hp>span{display:none}
+  .wsbar div{font-size:12px}
 }
+@media (max-width:359px){.brand span{display:none}.zone{grid-template-columns:14px 1fr}.zone .zl{grid-column:2}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}.reveal{opacity:1;transform:none}}
 </style>
 </head>
@@ -727,7 +730,7 @@ function drawRuns(){
       const cell=el('rect',{x:x(i)+.5,y:rowY[r],width:bw-1,height:rh,rx:2,fill:c==='off'?'rgba(144,136,255,.35)':CSS('--'+c)},s);
       cell.addEventListener('mousemove',e=>showTip(e,`<b>${hhTime(ex.i0+i)}</b> · export ${p1(ev[i])}<br>${STATE_TXT[c]}`));cell.addEventListener('mouseleave',hideTip);});
     tx(s,R+8,rowY[r]+rh/2+5,starts+(starts===1?' start':' starts'),{'font-size':12,fill:'#EAF4F8','font-weight':700}); });
-  [0,12,24,36].forEach(i=>tx(s,x(i),rowY[1]+rh+18,hhTime(ex.i0+i),{'font-size':11,fill:'#A9C3D0'}));
+  (bw*12<36?[0,16,32]:[0,12,24,36]).forEach(i=>tx(s,x(i),rowY[1]+rh+18,hhTime(ex.i0+i),{'font-size':11,fill:'#A9C3D0'}));
   // yearly starts
   const host2=document.getElementById('startsChart'); const [s2,w2]=svgIn(host2,236); const A=D.agg[String(S.hp)];
   const rows=[['1','No minimum'],['4','2 hours'],['8','4 hours'],['12','6 hours']], base=A['1'].gbp_yr, maxS=Math.max(...rows.map(r=>A[r[0]].starts_yr));

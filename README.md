@@ -763,7 +763,7 @@ context of its own (`Cross-Origin-Opener-Policy: same-origin`), so an open page 
 a signed-in visitor's browser; an origin of its own would be the complete answer. A sign-in started
 at `/access/` itself goes on to the first private page. It is the Atlas's sign-in cut down: the same Supabase project (`renewablox-crm`) and PKCE
 round trip, the same sealed cookies, the same one spelling for every address, and a `#fragment`
-kept across the round trip (so a link to `/eunice/#scenario-3` opens scenario 3 after signing in,
+kept across the round trip (so a link to `/eunice/#week` opens chapter 6, A week with Eunice, after signing in,
 "Try again" included). It offers Google only, and lets in only an account of RenewaBlox's Google
 Workspace, on Google's own answer: after the round trip it asks Google, with the Google token from
 that sign-in, who signed in, and needs a verified **@renewablox.com** address with Google's `hd`
