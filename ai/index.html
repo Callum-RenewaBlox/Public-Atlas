@@ -7,7 +7,7 @@
      particular to this page is inline below. Light only, like the Atlas home; nothing loads from elsewhere. -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RenewaBlox AI</title>
-<meta name="description" content="RenewaBlox AI: OSCAR, our planning tool for Bitcoin mining site economics. What a site's power earns, what it costs, how the revenue is shared and when the CAPEX is paid back.">
+<meta name="description" content="RenewaBlox AI, our in-house tools: OSCAR, our planning tool for Bitcoin mining site economics, and Eunice Dispatch, the team's explainer of how Eunice decides each half-hour whether to mine or export.">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#ffffff">
 <link rel="icon" href="/favicon.ico" sizes="any">
@@ -22,10 +22,21 @@
   html { scroll-behavior: smooth; }
   #tools, #inside { scroll-margin-top: 64px; }
 
-  /* top bar: keep the OSCAR link on a phone, where atlas.css hides the whole nav */
+  /* top bar: keep the links to the tools on a phone, where atlas.css hides the whole nav */
   @media (max-width: 560px) {
     .nav { display: flex; }
     .nav a:not(.nav__keep) { display: none; }
+  }
+  /* the narrowest phones: room for both tools beside the wordmark */
+  @media (max-width: 380px) {
+    .topbar__in { gap: 10px; }
+    .brand { flex: none; gap: 10px; }
+    .brand__app { padding-left: 10px; }
+    .nav { gap: 0; }
+    .nav a { padding: 8px 6px; }
+  }
+  @media (max-width: 345px) {
+    .brand__app { display: none; }
   }
 
   /* focus rings that show on every surface (atlas.css's ring is faint on navy) */
@@ -77,7 +88,6 @@
   .cards--tools { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .cards--tools .card { container-type: inline-size; }
   .card__sub { margin-top: -6px; font-family: var(--font-nav); font-weight: 700; font-size: 11.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #5f6975; }
-  .lockmark--plus svg { width: 22px; height: 22px; }
 
   /* OSCAR's halving schedule as the card's art: lines in SVG, labels in HTML so they stay legible at any width */
   .halving { position: relative; aspect-ratio: 16 / 9; overflow: hidden; font-size: 12px; line-height: 1; color: var(--text-on-dark-mut);
@@ -104,8 +114,33 @@
     .hv-y--alt { display: none; }
   }
 
-  @media (min-width: 721px) {
-    @container (max-width: 420px) { .card--soon .card__art { aspect-ratio: 4 / 3; } }
+  /* Eunice Dispatch's card: an illustrative day of its decisions as the art, in the halving chart's style */
+  .dispatch { position: relative; aspect-ratio: 16 / 9; overflow: hidden; font-size: 12px; line-height: 1; color: var(--text-on-dark-mut);
+    background: radial-gradient(520px 300px at 38% 62%, rgba(28,115,152,0.38), transparent 70%), var(--navy); }
+  .dispatch > svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .dp-grid { stroke: rgba(255,255,255,0.05); stroke-width: 1; }
+  .dp-axis { stroke: rgba(174,211,225,0.35); stroke-width: 1; }
+  .dp-full { fill: var(--teal-300); fill-opacity: 0.9; }
+  .dp-eff { fill: var(--teal-300); fill-opacity: 0.42; }
+  .dp-line { fill: none; stroke: #f0c457; stroke-width: 2; stroke-linejoin: round; filter: drop-shadow(0 0 4px rgba(240,196,87,0.55)); }
+  .dp-head { position: absolute; left: 5%; top: 8%; line-height: 1.45; }
+  .dp-head b { display: block; font-family: var(--font-nav); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--teal-200); }
+  .dp-head span { font-size: 11.5px; }
+  .dp-key { position: absolute; left: 5%; top: calc(8% + 44px); display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 11.5px; color: var(--text-on-dark); }
+  .dp-key i { display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 2px; vertical-align: -1px; background: var(--teal-300); }
+  .dp-key i.eff { opacity: 0.42; }
+  .dp-key i.ev { height: 2px; border-radius: 1px; vertical-align: 3px; background: #f0c457; }
+  .dp-lock { position: absolute; right: 4%; top: 7%; display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: var(--radius-pill);
+    border: 1px solid rgba(106,242,255,0.35); background: rgba(14,38,49,0.6); color: var(--cyan-300); font-size: 11.5px; font-weight: 600; white-space: nowrap; }
+  .dp-lock svg { flex: none; width: 12px; height: 12px; }
+  .dp-x { position: absolute; top: calc(86% + 9px); transform: translateX(-50%); font-size: 11px; font-variant-numeric: tabular-nums; }
+  .dp-x--first { transform: translateX(-30%); }
+  .dp-x--last { transform: translateX(-70%); }
+  .card__note { display: flex; gap: 8px; align-items: flex-start; font-size: 13px; line-height: 1.5; color: #5f6975; }
+  .card__note svg { flex: none; width: 14px; height: 14px; max-width: none; margin-top: 2px; color: var(--brand); }
+  @container (max-width: 420px) {
+    .dispatch { aspect-ratio: 4 / 3; font-size: 11.5px; }
+    .dp-key { top: calc(8% + 40px); }
   }
 
   /* ---------- inside OSCAR ---------- */
@@ -142,6 +177,7 @@
     <a class="brand" href="/" aria-label="RenewaBlox AI home"><img src="/assets/logos/renewablox-wordmark-light.png" alt="RenewaBlox" width="170" height="19"><span class="brand__app">AI</span></a>
     <nav class="nav" aria-label="Main">
       <a class="nav__keep" href="/oscar/">OSCAR</a>
+      <a class="nav__keep" href="/eunice/">Eunice</a>
       <a href="#tools">Tools</a>
       <a href="#inside">Inside OSCAR</a>
       <a href="https://www.renewablox.com/">renewablox.com</a>
@@ -236,7 +272,7 @@
       <div class="section__head">
         <div class="eyebrow">RenewaBlox AI</div>
         <h2>Our in-house tools</h2>
-        <p>Choose a miner, describe the site and set the market. OSCAR works out the revenue, the cost, the split between RenewaBlox and the client, and the payback over the contract.</p>
+        <p>OSCAR models what a site&rsquo;s power can earn from Bitcoin mining, energy markets and heat. Eunice Dispatch, for the team, shows how Eunice decides each half-hour whether a site&rsquo;s surplus power goes to the miners or the grid.</p>
       </div>
       <div class="cards cards--tools">
         <article class="card">
@@ -282,13 +318,39 @@
           </div>
         </article>
 
-        <article class="card card--soon">
-          <div class="card__art"><div class="lockmark lockmark--plus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></div></div>
+        <article class="card">
+          <div class="dispatch" role="img" aria-label="An illustrative day of Eunice&rsquo;s decisions, one bar per half-hour: the miners run flat out through the cheap night, drop to efficient mode and export the rest as the export value rises, and stop for four hours to export everything through the evening peak.">
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+              <path class="dp-grid" vector-effect="non-scaling-stroke" d="M0 50H100M0 68H100"/>
+              <path class="dp-full" d="M10.85 86V50h1.44V86zM12.72 86V50h1.44V86zM14.60 86V50h1.44V86zM16.47 86V50h1.44V86zM18.34 86V50h1.44V86zM20.22 86V50h1.44V86zM22.09 86V50h1.44V86zM23.97 86V50h1.44V86zM25.84 86V50h1.44V86zM89.59 86V50h1.44V86zM91.47 86V50h1.44V86zM93.34 86V50h1.44V86z"/>
+              <path class="dp-eff" d="M5.22 86V64h1.44V86zM7.09 86V64h1.44V86zM8.97 86V64h1.44V86zM27.72 86V64h1.44V86zM29.59 86V64h1.44V86zM31.47 86V64h1.44V86zM33.34 86V64h1.44V86zM35.22 86V64h1.44V86zM37.09 86V64h1.44V86zM38.97 86V64h1.44V86zM40.84 86V64h1.44V86zM42.72 86V64h1.44V86zM44.59 86V64h1.44V86zM46.47 86V64h1.44V86zM48.34 86V64h1.44V86zM50.22 86V64h1.44V86zM52.09 86V64h1.44V86zM53.97 86V64h1.44V86zM55.84 86V64h1.44V86zM57.72 86V64h1.44V86zM59.59 86V64h1.44V86zM61.47 86V64h1.44V86zM63.34 86V64h1.44V86zM80.22 86V64h1.44V86zM82.09 86V64h1.44V86zM83.97 86V64h1.44V86zM85.84 86V64h1.44V86zM87.72 86V64h1.44V86z"/>
+              <path class="dp-axis" vector-effect="non-scaling-stroke" d="M0 86H100"/>
+              <polyline class="dp-line" vector-effect="non-scaling-stroke" points="5.94 76.53 7.81 77.10 9.69 77.85 11.56 78.74 13.44 79.67 15.31 80.49 17.19 81.07 19.06 81.27 20.94 81.06 22.81 80.48 24.69 79.61 26.56 78.50 28.44 77.10 30.31 75.27 32.19 73.07 34.06 71.04 35.94 70.03 37.81 70.45 39.69 71.78 41.56 73.10 43.44 73.83 45.31 73.95 47.19 73.73 49.06 73.38 50.94 73.06 52.81 72.84 54.69 72.76 56.56 72.81 58.44 72.93 60.31 72.87 62.19 72.06 64.06 69.51 65.94 64.16 67.81 55.82 69.69 46.40 71.56 39.70 73.44 39.12 75.31 45.05 77.19 54.54 79.06 63.67 80.94 70.09 82.81 73.69 84.69 75.56 86.56 76.81 88.44 77.99 90.31 78.98 92.19 79.38 94.06 78.98"/>
+            </svg>
+            <div class="dp-head"><b>A day of decisions</b><span>Illustrative &middot; one bar per half-hour</span></div>
+            <div class="dp-key"><span><i></i>Full mining</span><span><i class="eff"></i>Efficient + export</span><span><i class="ev"></i>Export value</span></div>
+            <span class="dp-lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg>Staff only</span>
+            <span class="dp-x dp-x--first" style="left:5%">00:00</span>
+            <span class="dp-x" style="left:27.5%">06:00</span>
+            <span class="dp-x" style="left:50%">12:00</span>
+            <span class="dp-x" style="left:72.5%">18:00</span>
+            <span class="dp-x dp-x--last" style="left:95%">24:00</span>
+          </div>
           <div class="card__body">
-            <div class="eyebrow">In-house tools</div>
-            <h3>Room for more</h3>
-            <p>RenewaBlox AI is home to our in-house tools. For now, that&rsquo;s OSCAR. Questions about a model, or a site you&rsquo;d like us to look at? Get in touch.</p>
-            <div class="card__cta"><a class="btn btn--ghost" href="mailto:info@renewablox.com?subject=RenewaBlox%20AI">Get in touch</a></div>
+            <div class="eyebrow">Dispatch &middot; for the team</div>
+            <h3>Eunice Dispatch</h3>
+            <div class="card__sub">Every half-hour, export or mine?</div>
+            <p>How Eunice, our dispatch engine, splits a site&rsquo;s surplus power between the miners and the grid, planned the day before from the day-ahead prices.</p>
+            <ul>
+              <li>Three states: full mining, efficient mining + export, and stop &amp; export</li>
+              <li>The decision ladder: move the export value and watch the decision change</li>
+              <li>A week of decisions, with six scenarios to run through</li>
+              <li>Trading blocks, and how the site gets paid</li>
+            </ul>
+            <div class="card__cta">
+              <a class="btn btn--primary" href="/eunice/">Open Eunice <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
+            </div>
+            <p class="card__note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg><span>For RenewaBlox staff: sign in with your @renewablox.com Google account.</span></p>
           </div>
         </article>
       </div>

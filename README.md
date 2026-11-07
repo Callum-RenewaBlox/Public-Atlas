@@ -688,7 +688,7 @@ decided.
 
 | Address | Page |
 | --- | --- |
-| `/` | the home page: OSCAR, in the Atlas's house style (`ai/index.html`): the Atlas's topbar, navy hero and footer, with OSCAR's miner catalogue charted where the Atlas has its map, OSCAR's card (its halving schedule as the art) beside a card that leaves room for more tools, and its three cards of inputs |
+| `/` | the home page, in the Atlas's house style (`ai/index.html`): the Atlas's topbar (with OSCAR and Eunice kept on a phone), navy hero and footer, with OSCAR's miner catalogue charted where the Atlas has its map; the two tools' cards, OSCAR's (its halving schedule as the art) and Eunice Dispatch's (an illustrative day of its decisions, not the site's data, and a note that it is for RenewaBlox staff, behind the sign-in); and OSCAR's three cards of inputs. Being open to anyone, it names no client site and shows none of its figures |
 | `/oscar/` | OSCAR, the site model, served exactly as the team's own file (`ai/oscar.html`) |
 | `/eunice/` | **behind the sign-in (below): RenewaBlox staff only.** Eunice Dispatch, the team explainer of how Eunice splits Scrivelsby's CHP surplus between the miners and export, half-hour by half-hour, with six scenarios to run through (`#scenario-1` … `#scenario-6` open one). `ai/eunice.html` is a copy, served as it is, of the page built in the Eunice-Platform repository (`docs/eunice-web/eunice.html`, by its `tools/build_page.py`, checked by its `tools/check_page.py` in CI): change it there and copy the built file here |
 | `/access/` | the sign-in (below), for `/eunice/`; the rest of the site needs no sign-in |
