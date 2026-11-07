@@ -683,19 +683,21 @@ without a sign-in and their views are files of their own
 ## ai.renewablox.com — RenewaBlox's AI tools
 
 The in-house tools live on one domain of their own, built from `ai/` by its own Netlify
-project, separate from the energy site. For now that is OSCAR; whether Atlas joins it isn't
-decided.
+project, separate from the energy site. For now that is OSCAR and Eunice Dispatch, both open
+to anyone (the sign-in, below, can keep Eunice to RenewaBlox staff); whether Atlas joins them isn't decided.
 
 | Address | Page |
 | --- | --- |
-| `/` | the home page: OSCAR, in the Atlas's house style (`ai/index.html`): the Atlas's topbar, navy hero and footer, with OSCAR's miner catalogue charted where the Atlas has its map, OSCAR's card (its halving schedule as the art) beside a card that leaves room for more tools, and its three cards of inputs |
+| `/` | the home page, in the Atlas's house style (`ai/index.html`): the Atlas's topbar (with OSCAR and Eunice kept on a phone), navy hero and footer, with OSCAR's miner catalogue charted where the Atlas has its map; the two tools' cards, OSCAR's (its halving schedule as the art) and Eunice Dispatch's (an illustrative day of its decisions, not the site's data); and OSCAR's three cards of inputs. Being open to anyone, it names no client site and shows none of its figures |
 | `/oscar/` | OSCAR, the site model, served exactly as the team's own file (`ai/oscar.html`) |
-| `/eunice/` | **behind the sign-in (below): RenewaBlox staff only.** Eunice Dispatch, the team explainer of how Eunice splits Scrivelsby's CHP surplus between the miners and export, half-hour by half-hour, with six scenarios to run through (`#scenario-1` … `#scenario-6` open one). `ai/eunice.html` is a copy, served as it is, of the page built in the Eunice-Platform repository (`docs/eunice-web/eunice.html`, by its `tools/build_page.py`, checked by its `tools/check_page.py` in CI): change it there and copy the built file here |
-| `/access/` | the sign-in (below), for `/eunice/`; the rest of the site needs no sign-in |
+| `/eunice/` | **open to anyone for now; the sign-in (below) can keep it to RenewaBlox staff.** Eunice Dispatch, the team explainer of how Eunice splits Scrivelsby's CHP surplus between the miners and export, half-hour by half-hour, with six scenarios to run through (`#scenario-1` … `#scenario-6` open one). `ai/eunice.html` is a copy, served as it is, of the page built in the Eunice-Platform repository (`docs/eunice-web/eunice.html`, by its `tools/build_page.py`, checked by its `tools/check_page.py` in CI): change it there and copy the built file here |
+| `/access/` | the sign-in (below), for the folders it keeps private: none for now |
 
 The home page's figures are OSCAR's own (the eleven miners, the market models, the halving
 schedule), written into the page: when a newer `ai/oscar.html` changes them, change the home page
-with it.
+with it. The Eunice Dispatch card's chart is made up and its list follows `ai/eunice.html`'s sections:
+when a newer copy changes them, change the card too, and never give it the site's name or figures,
+as the home page is open to anyone.
 
 `/atlas/` still answers by proxy from Atlas's own Netlify project (`renewablox-atlas`,
 atlas.renewablox.com), with the root-relative links Atlas's pages may use (`/investors/`,
@@ -743,18 +745,23 @@ when the CAPEX comes back:
   stands, saving with no scenario chosen in the list replaces the first one saved (the list's
   empty choice reads as 0), so the list holds one scenario at a time.
 
-**The sign-in** (`ai/netlify/edge-functions/ai-gate.js`). Every request to the site, whatever its
-address, passes through it first and is sent to its one spelling. Only `/eunice/` needs a session
-(any address with `eunice` anywhere in it, %-escapes undone and folded as a server might fold them,
+**The sign-in** (`ai/netlify/edge-functions/ai-gate.js`). **For now no folder is private (`PRIVATE`
+in the file is empty), so the whole site, `/eunice/` included, is open to anyone and nobody is asked
+to sign in. To keep Eunice to RenewaBlox staff again, set `PRIVATE = ['eunice']`, set the three
+environment variables and the Supabase redirect URL below, and deploy.** Its tests always run with
+Eunice private, so the sign-in stays ready.
+
+Every request to the site, whatever its address, passes through it first and is sent to its one
+spelling. With `eunice` on the list, only `/eunice/` needs a session (any address with `eunice` anywhere in it, %-escapes undone and folded as a server might fold them,
 so no other spelling of it gets through; `PRIVATE` in the file lists the private folders, so adding
 one puts it behind the sign-in too); the home page, OSCAR, the `/atlas/` proxy and the site's files
-are served as they are, to anyone, with their own headers. Eunice shares its origin with those open
+are served as they are, to anyone, with their own headers. A private page shares its origin with those open
 pages (and the Atlas's pages behind the proxy, with their third-party scripts), so it is served only
 as a page in its own right: never to another page's fetch or frame (by the `Sec-Fetch-*` headers
 every current browser sends, `frame-ancestors 'none'` and `X-Frame-Options: DENY`), and in a browsing
 context of its own (`Cross-Origin-Opener-Policy: same-origin`), so an open page can't read it through
 a signed-in visitor's browser; an origin of its own would be the complete answer. A sign-in started
-at `/access/` itself goes on to `/eunice/`. It is the Atlas's sign-in cut down: the same Supabase project (`renewablox-crm`) and PKCE
+at `/access/` itself goes on to the first private page. It is the Atlas's sign-in cut down: the same Supabase project (`renewablox-crm`) and PKCE
 round trip, the same sealed cookies, the same one spelling for every address, and a `#fragment`
 kept across the round trip (so a link to `/eunice/#scenario-3` opens scenario 3 after signing in,
 "Try again" included). It offers Google only, and lets in only an account of RenewaBlox's Google
@@ -767,7 +774,7 @@ still gets in, and Supabase's own session for the sign-in is ended at once. Anyo
 "Not authorised" page and no session. A sign-in lasts 12 hours, so someone suspended in the Workspace
 is out by the next working day; to shut everyone out at once, change `AI_SESSION_SECRET` and
 redeploy. A session is sealed for the host that made it, so a deploy preview's opens nothing in
-production. Nothing under `/eunice/` is served without a session, and if the function errors
+production. Nothing in a private folder is served without a session, and if the function errors
 Netlify shows its error page, not the site. Netlify doesn't apply `[[headers]]` to responses
 that pass through an edge function, so `ai/build.py` writes them (and the wordmark the sign-in's
 pages show) to `ai/netlify/edge-lib/site.js`, and the sign-in sets each page's own; the build
@@ -776,8 +783,8 @@ Netlify, so a sign-in that fails them is never deployed.
 
 It needs these environment variables on `renewablox-ai` (Project configuration → Environment
 variables; on the Personal plan every variable reaches the edge functions; deploy contexts
-Production and Deploy Previews; a change needs a redeploy), and until all three are right `/eunice/`
-and the sign-in answer "The sign-in isn't set up yet" (the rest of the site doesn't need them):
+Production and Deploy Previews; a change needs a redeploy), and until all three are right the
+private folders and the sign-in answer "The sign-in isn't set up yet" (the rest of the site doesn't need them):
 
 | Variable | Value |
 | --- | --- |
@@ -792,9 +799,8 @@ being checked, that preview's own `https://deploy-preview-<n>--renewablox-ai.net
 new: it only ever sends the browser back to Supabase, whose callback it already allows.
 
 Don't turn on Split Testing for this project: Netlify doesn't run edge functions on a site that has
-it, so `/eunice/` would be served to anyone. Production deploys from before the sign-in have no
-`/eunice/`, so publishing one (a rollback) only drops it; but once another folder joins `PRIVATE`,
-keep the deploys from before that change out of use, as publishing one would serve that folder
+it, so a private folder would be served to anyone. Once a folder joins `PRIVATE`, keep the
+production deploys from before that change out of use, as publishing one would serve that folder
 without the sign-in.
 
 Deploy: the Netlify project is `renewablox-ai` (renewablox-ai.netlify.app). Link it to this
@@ -807,9 +813,10 @@ deploy, production included); the energy and Atlas projects ask for one on previ
 sign-in in place, production can drop that login (Project configuration → General → Visitor access →
 Project visibility: **Private**, with **Preview access** set to **Previews only**, so deploy previews
 keep Netlify's login on top of the sign-in), but only once a production deploy with the sign-in has
-been seen to work: until then Netlify's login is what keeps `/eunice/` private. Once it is dropped,
-the home page, OSCAR and the `/atlas/` proxy are open to anyone. Then check from outside that every
-spelling of `/eunice/` is refused: each should answer 303 (to the sign-in) or 301 (to its one
+been seen to work: until then Netlify's login is what keeps the site private. Once it is dropped,
+the home page, OSCAR, the `/atlas/` proxy and every folder off the private list (for now `/eunice/`
+too) are open to anyone. With Eunice on the list, check from outside that every spelling of
+`/eunice/` is refused: each should answer 303 (to the sign-in) or 301 (to its one
 spelling, which then answers 303), never 200:
 
     for p in /eunice/ /eunice/index.html //eunice/ /EUNICE/ /%65unice/ /eun%C4%B0ce/; do

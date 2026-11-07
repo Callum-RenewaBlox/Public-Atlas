@@ -1,17 +1,24 @@
 // Tests for ai.renewablox.com's sign-in (netlify/edge-functions/ai-gate.js), against a stand-in Supabase and Google and
 // a test set of header rules. Run:  node ai/tests/gate.test.mjs   (Node 22 or later; no packages)
-// The gate is copied into a temporary folder beside a test edge-lib/site.js, so the real (built) one isn't needed.
+// The gate is copied into a temporary folder beside a test edge-lib/site.js, so the real (built) one isn't needed. The
+// sign-in is tested with Eunice private, whatever the shipped list (PRIVATE) holds, so it is ready to be switched on; the
+// last group checks the list as shipped.
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, copyFileSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createHash } from 'node:crypto';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
+const SOURCE = readFileSync(join(HERE, '..', 'netlify', 'edge-functions', 'ai-gate.js'), 'utf-8');
+const LIST = /^const PRIVATE = (\[[^\]\n]*\]);$/m;
+assert.match(SOURCE, LIST, 'ai-gate.js lists its private folders on one line');
+const SHIPPED = JSON.parse(SOURCE.match(LIST)[1].replace(/'/g, '"'));
 const TMP = mkdtempSync(join(tmpdir(), 'ai-gate-'));
-mkdirSync(join(TMP, 'edge-functions')); mkdirSync(join(TMP, 'edge-lib'));
-copyFileSync(join(HERE, '..', 'netlify', 'edge-functions', 'ai-gate.js'), join(TMP, 'edge-functions', 'ai-gate.js'));
+mkdirSync(join(TMP, 'edge-functions')); mkdirSync(join(TMP, 'edge-lib')); mkdirSync(join(TMP, 'shipped'));
+writeFileSync(join(TMP, 'edge-functions', 'ai-gate.js'), SOURCE.replace(LIST, "const PRIVATE = ['eunice'];"));
+writeFileSync(join(TMP, 'shipped', 'ai-gate.js'), SOURCE);
 writeFileSync(join(TMP, 'edge-lib', 'site.js'), `export const HEADERS = [
   {"for": "/oscar/*", "values": {"Content-Security-Policy": "oscar-policy", "Referrer-Policy": "no-referrer"}},
   {"for": "/", "values": {"Content-Security-Policy": "home-policy"}},
@@ -377,6 +384,22 @@ assert.equal(r.headers.get('clear-site-data'), '"cache"');
 assert.ok((await r.text()).includes('href="/"'));
 assert.equal((await gate(req('/access/other'), ctx)).status, 404);
 ok('sign-out clears the session and the browser\'s copies of the pages; any other /access/ address is a 404 of the sign-in\'s own');
+
+// ---- the list as shipped ----
+// Each shipped private folder needs a session (the sign-in, tested above with Eunice, works for any name); a folder not
+// on the list is open; and with no list a sign-in started at /access/ itself goes back to the home page.
+{
+  const shipped = await import(pathToFileURL(join(TMP, 'shipped', 'ai-gate.js')).href);
+  env = {};
+  for (const name of ['eunice', 'oscar']) {
+    const p = `/${name}/`, b = nexts, r = await shipped.default(req(p), ctx);
+    if (SHIPPED.includes(name)) { assert.equal(shipped.isPrivate(p), true); assert.equal(r.status, 503, `${p} locked without settings`); assert.equal(nexts, b); }
+    else { assert.equal(shipped.isPrivate(p), false); assert.equal(r.status, 200, `${p} open`); assert.equal(nexts, b + 1); }
+  }
+  assert.equal(shipped.safeReturn(''), SHIPPED.length ? `/${SHIPPED[0]}/` : '/');
+  env = { ...ENV };
+  ok(`as shipped, ${SHIPPED.length ? SHIPPED.map(s => `/${s}/`).join(', ') + ' need' : 'no folder needs'} a session; ${['eunice', 'oscar'].filter(s => !SHIPPED.includes(s)).map(s => `/${s}/`).join(' and ')} open to anyone`);
+}
 
 console.error = quiet;
 console.log(`all ${n} groups passed`);
