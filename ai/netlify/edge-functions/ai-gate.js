@@ -1,4 +1,4 @@
-/* ai.renewablox.com's sign-in, in front of the pages the team keeps to itself (PRIVATE below: /eunice/ for now). Every
+/* ai.renewablox.com's sign-in, in front of the pages the team keeps to itself (PRIVATE below: none for now). Every
    request to the site passes through here first, whatever its address: it is sent to its one spelling, then a private
    address needs a session, and the rest of the site (the home page, OSCAR, the /atlas/ proxy, its files) is served as
    it is, to anyone. Only RenewaBlox staff get a session: someone who has just signed in to Google with an account of
@@ -57,8 +57,9 @@ const GOOGLE_USERINFO = 'https://openidconnect.googleapis.com/v1/userinfo';
 // Google, through Supabase; hd asks Google's account chooser for RenewaBlox accounts (a hint only: the check is below)
 const GOOGLE = { provider: 'google', prompt: 'select_account', hd: DOMAIN };
 // The site's private folders: an address needs a session when one of these names is anywhere in it (isPrivate below).
-// Add a folder's name here to put it behind the sign-in too.
-const PRIVATE = ['eunice'];
+// Add a folder's name here to put it behind the sign-in. None for now: the owner has opened the whole site, /eunice/
+// included, until the sign-in's settings are in place. To close Eunice again: ['eunice'], with those settings set.
+const PRIVATE = [];
 
 const GATED_HEADERS = {
   'x-robots-tag': 'noindex, nofollow',
@@ -309,10 +310,10 @@ function settings() {
 }
 
 // Where to go back to after signing in: an address on this site, with a plain query, never the sign-in itself, so the
-// round trip can't be turned into a redirect elsewhere; without one, the first private page (Eunice). It is checked in its one spelling (canonical, as every address
+// round trip can't be turned into a redirect elsewhere; without one, the first private page (or the home page). It is checked in its one spelling (canonical, as every address
 // is served), so an escaped /access/ is refused too; a path that changes when resolved (dot segments) is refused.
 export function safeReturn(r) {
-  const fallback = `/${PRIVATE[0]}/`;
+  const fallback = PRIVATE.length ? `/${PRIVATE[0]}/` : '/';
   if (typeof r !== 'string' || r.length > 400) return fallback;
   let [path, query = '', extra] = r.split('?');
   if (extra !== undefined || !/^\/[A-Za-z0-9._~%\-\/]*$/.test(path) || path.includes('//')) return fallback;

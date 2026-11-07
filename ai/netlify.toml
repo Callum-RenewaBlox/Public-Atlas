@@ -7,8 +7,9 @@
 # (tools/netlify-ignore.sh).
 #
 # Every address passes through the sign-in first, the edge function in netlify/edge-functions/ (ai-gate.js;
-# its settings are described at the top of the file). It keeps /eunice/ to RenewaBlox staff, signed in with
-# their @renewablox.com Google account, and serves the rest of the site to anyone. After the build its tests
+# its settings are described at the top of the file). It can keep folders to RenewaBlox staff, signed in with
+# their @renewablox.com Google account (PRIVATE in the file: none for now, so the whole site, /eunice/ included,
+# is open to anyone). After the build its tests
 # run (tests/gate.test.mjs); a sign-in that fails them is never deployed. An edge function's responses don't
 # get the [[headers]] below from Netlify, so build.py hands them to the sign-in, which sets them.
 
@@ -83,7 +84,7 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     X-Robots-Tag = "noindex"
 
-# Eunice Dispatch, the team explainer, behind the sign-in: one self-contained page (its data and wordmark inlined),
+# Eunice Dispatch, the team explainer (open for now; the sign-in can close it again): one self-contained page (its data and wordmark inlined),
 # loading and calling nothing; its links to the offtakers' sites are followed, not loaded. No page may frame it,
 # this site's own included (the sign-in adds the rest of its protection).
 [[headers]]
