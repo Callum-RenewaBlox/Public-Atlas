@@ -7,7 +7,7 @@
      particular to this page is inline below. Light only, like the Atlas home; nothing loads from elsewhere. -->
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>RenewaBlox AI</title>
-<meta name="description" content="RenewaBlox AI, our in-house tools: OSCAR, our planning tool for Bitcoin mining site economics, and Eunice Dispatch, the team's explainer of how Eunice splits a site's surplus power between mining and export, half-hour by half-hour.">
+<meta name="description" content="RenewaBlox AI, our in-house tools: OSCAR, our planning tool for Bitcoin mining site economics, and Eunice Dispatch, the team's explainer of how Eunice splits a site's spare power between mining and the grid, half hour by half hour.">
 <meta name="robots" content="noindex">
 <meta name="theme-color" content="#ffffff">
 <link rel="icon" href="/favicon.ico" sizes="any">
@@ -274,7 +274,7 @@
       <div class="section__head">
         <div class="eyebrow">RenewaBlox AI</div>
         <h2>Our in-house tools</h2>
-        <p>OSCAR models what a site&rsquo;s power can earn from Bitcoin mining, energy markets and heat. Eunice Dispatch, for the team, shows how Eunice decides, each half-hour, how much of a site&rsquo;s surplus power goes to the miners and how much to the grid.</p>
+        <p>OSCAR models what a site&rsquo;s power can earn from Bitcoin mining, energy markets and heat. Eunice Dispatch, for the team, shows how Eunice decides, each half hour, how much of a site&rsquo;s spare power goes to the miners and how much to the grid.</p>
       </div>
       <div class="cards cards--tools">
         <article class="card">
@@ -321,7 +321,7 @@
         </article>
 
         <article class="card">
-          <div class="dispatch" role="img" aria-label="An illustrative day of Eunice&rsquo;s decisions, one bar per half-hour: the miners run flat out through the cheap night, drop to efficient mode and export the rest as the export value rises, stop for four hours to export everything through the evening peak, then go back to efficient mode and run flat out again late in the evening.">
+          <div class="dispatch" role="img" aria-label="An illustrative day of Eunice&rsquo;s decisions, one bar per half hour: the miners run at full power through the cheap night, underclock and sell the rest as the export value rises, switch off for four hours to sell everything through the evening peak, then underclock again and return to full power late in the evening.">
             <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
               <path class="dp-grid" vector-effect="non-scaling-stroke" d="M0 50H100M0 68H100"/>
               <path class="dp-stop" d="M65 40H80.2V86H65z"/>
@@ -330,8 +330,8 @@
               <path class="dp-axis" vector-effect="non-scaling-stroke" d="M0 86H100"/>
               <polyline class="dp-line" vector-effect="non-scaling-stroke" points="5.94 77.62 7.81 78.13 9.69 78.79 11.56 79.58 13.44 80.40 15.31 81.13 17.19 81.64 19.06 81.82 20.94 81.63 22.81 81.12 24.69 80.34 26.56 79.37 28.44 78.13 30.31 76.51 32.19 74.56 34.06 72.77 35.94 71.88 37.81 72.24 39.69 73.42 41.56 74.59 43.44 75.23 45.31 75.34 47.19 75.14 49.06 74.84 50.94 74.55 52.81 74.36 54.69 74.29 56.56 74.34 58.44 74.44 60.31 74.38 62.19 73.67 64.06 71.42 65.94 66.68 67.81 59.30 69.69 50.97 71.56 45.04 73.44 44.53 75.31 49.78 77.19 58.17 79.06 66.24 80.94 71.93 82.81 75.11 84.69 76.77 86.56 77.87 88.44 78.91 90.31 79.79 92.19 80.14 94.06 79.79"/>
             </svg>
-            <div class="dp-head"><b>A day of decisions</b><span>Illustrative<span class="dp-long"> &middot; one bar per half-hour</span></span></div>
-            <div class="dp-key"><span><i></i>Full mining</span><span><i class="eff"></i>Efficient + export</span><span><i class="stop"></i>Stop &amp; export</span><span><i class="ev"></i>Export value</span></div>
+            <div class="dp-head"><b>A day of decisions</b><span>Illustrative<span class="dp-long"> &middot; one bar per half hour</span></span></div>
+            <div class="dp-key"><span><i></i>Full power</span><span><i class="eff"></i>Underclocked + selling</span><span><i class="stop"></i>Off, all sold</span><span><i class="ev"></i>Export value</span></div>
             <span class="dp-x dp-x--first" style="left:5%">00:00</span>
             <span class="dp-x" style="left:27.5%">06:00</span>
             <span class="dp-x" style="left:50%">12:00</span>
@@ -341,13 +341,13 @@
           <div class="card__body">
             <div class="eyebrow">Dispatch &middot; for the team</div>
             <h3>Eunice Dispatch</h3>
-            <div class="card__sub">Every half-hour, export or mine?</div>
-            <p>How Eunice, our dispatch engine, splits a site&rsquo;s surplus power between the miners and the grid, planned the day before from the day-ahead prices.</p>
+            <div class="card__sub">Every half hour, where the power earns most</div>
+            <p>How Eunice, our dispatch engine, decides 48 times a day how much of a site&rsquo;s spare power the miners use and how much we sell to the grid.</p>
             <ul>
-              <li>Three states: full mining, efficient mining + export, and stop &amp; export</li>
-              <li>The decision ladder: move the export value and watch the decision change</li>
-              <li>A week of decisions, with six scenarios to run through</li>
-              <li>Trading blocks, and how the site gets paid</li>
+              <li>How we sell what the miners don&rsquo;t use, and why System Sell Price spill suits us</li>
+              <li>Network time bands, and the four ways the miners can run</li>
+              <li>The half-hour decision: drag the export value and watch Eunice choose</li>
+              <li>Four real weeks, one per season, replayed half hour by half hour</li>
             </ul>
             <div class="card__cta">
               <a class="btn btn--primary" href="/eunice/">Open Eunice <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
