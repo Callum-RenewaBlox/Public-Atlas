@@ -683,8 +683,8 @@ without a sign-in and their views are files of their own
 ## ai.renewablox.com — RenewaBlox's AI tools
 
 The in-house tools live on one domain of their own, built from `ai/` by its own Netlify
-project, separate from the energy site. For now that is OSCAR; whether Atlas joins it isn't
-decided.
+project, separate from the energy site. For now that is OSCAR, open to anyone, and Eunice
+Dispatch, for RenewaBlox staff behind the sign-in (below); whether Atlas joins them isn't decided.
 
 | Address | Page |
 | --- | --- |
@@ -695,7 +695,9 @@ decided.
 
 The home page's figures are OSCAR's own (the eleven miners, the market models, the halving
 schedule), written into the page: when a newer `ai/oscar.html` changes them, change the home page
-with it.
+with it. The Eunice Dispatch card's chart is made up and its list follows `ai/eunice.html`'s sections:
+when a newer copy changes them, change the card too, and never give it the site's name or figures,
+as the home page is open to anyone.
 
 `/atlas/` still answers by proxy from Atlas's own Netlify project (`renewablox-atlas`,
 atlas.renewablox.com), with the root-relative links Atlas's pages may use (`/investors/`,
